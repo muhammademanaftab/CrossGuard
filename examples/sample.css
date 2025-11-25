@@ -1,0 +1,68 @@
+/* Modern CSS Features for Testing */
+
+/* CSS Grid */
+.container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+}
+
+/* Flexbox */
+.flex-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* CSS Custom Properties (Variables) */
+:root {
+    --primary-color: #3498db;
+    --spacing: 16px;
+}
+
+/* Modern selectors */
+.parent:has(.child) {
+    background: var(--primary-color);
+}
+
+/* Container queries */
+@container (min-width: 700px) {
+    .card {
+        display: flex;
+    }
+}
+
+/* Backdrop filter */
+.modal {
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+/* CSS Grid subgrid */
+.subgrid {
+    display: grid;
+    grid-template-columns: subgrid;
+}
+
+/* Modern functions */
+.element {
+    width: clamp(200px, 50%, 500px);
+    padding: calc(var(--spacing) * 2);
+}
+
+/* Aspect ratio */
+.video-container {
+    aspect-ratio: 16 / 9;
+}
+
+/* Logical properties */
+.box {
+    margin-inline: auto;
+    padding-block: 20px;
+}
+
+/* Color functions */
+.color-test {
+    color: oklch(0.5 0.2 180);
+    background: color-mix(in srgb, red 50%, blue);
+}
