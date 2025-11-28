@@ -137,22 +137,22 @@ class MainWindow(QMainWindow):
         button_layout.setSpacing(10)
         
         # Add button
-        add_btn = QPushButton("➕ Add Files")
+        add_btn = QPushButton()
+        add_btn.setText("Add Files")
         add_btn.setObjectName("addButton")
+        add_btn.setMinimumWidth(120)
+        add_btn.setMinimumHeight(40)
         add_btn.clicked.connect(lambda: self._add_files(title.split()[0].lower()))
         button_layout.addWidget(add_btn)
         
         # Remove button
-        remove_btn = QPushButton("➖ Remove")
+        remove_btn = QPushButton()
+        remove_btn.setText("Remove")
         remove_btn.setObjectName("removeButton")
+        remove_btn.setMinimumWidth(120)
+        remove_btn.setMinimumHeight(40)
         remove_btn.clicked.connect(lambda: self._remove_file(file_list))
         button_layout.addWidget(remove_btn)
-        
-        # Clear button
-        clear_btn = QPushButton("🗑️ Clear All")
-        clear_btn.setObjectName("clearButton")
-        clear_btn.clicked.connect(lambda: self._clear_files(file_list))
-        button_layout.addWidget(clear_btn)
         
         button_layout.addStretch()
         
@@ -180,7 +180,8 @@ class MainWindow(QMainWindow):
         button_container.addStretch()
         
         # Analyze button (prominent)
-        analyze_btn = QPushButton("🔍 Analyze Compatibility")
+        analyze_btn = QPushButton()
+        analyze_btn.setText("Analyze Compatibility")
         analyze_btn.setObjectName("analyzeButton")
         analyze_btn.setMinimumHeight(45)
         analyze_btn.setMinimumWidth(200)
@@ -379,9 +380,12 @@ class MainWindow(QMainWindow):
             QPushButton {
                 border: none;
                 border-radius: 5px;
-                padding: 8px 15px;
+                padding: 10px 15px;
+                font-family: Arial, sans-serif;
                 font-weight: bold;
-                font-size: 12px;
+                font-size: 14px;
+                color: #FFFFFF;
+                text-align: center;
             }
             
             #addButton {
