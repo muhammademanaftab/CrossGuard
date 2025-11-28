@@ -1,0 +1,110 @@
+{
+  "success": true,
+  "timestamp": "2025-11-29T00:20:07.653103",
+  "summary": {
+    "total_features": 11,
+    "html_features": 11,
+    "css_features": 0,
+    "js_features": 0,
+    "critical_issues": 0,
+    "overall_grade": "C",
+    "risk_level": "low"
+  },
+  "scores": {
+    "simple_score": 75.0,
+    "weighted_score": 75.0,
+    "compatibility_index": 75.0,
+    "grade": "C",
+    "risk_level": "low"
+  },
+  "browsers": {
+    "chrome": {
+      "version": "144",
+      "total_features": 11,
+      "supported": 10,
+      "partial": 0,
+      "unsupported": 0,
+      "unknown": 1,
+      "compatibility_percentage": 90.91,
+      "unsupported_features": [],
+      "partial_features": []
+    },
+    "firefox": {
+      "version": "146",
+      "total_features": 11,
+      "supported": 9,
+      "partial": 1,
+      "unsupported": 0,
+      "unknown": 1,
+      "compatibility_percentage": 86.36,
+      "unsupported_features": [],
+      "partial_features": [
+        "input-datetime"
+      ]
+    },
+    "safari": {
+      "version": "18.4",
+      "total_features": 11,
+      "supported": 8,
+      "partial": 2,
+      "unsupported": 0,
+      "unknown": 1,
+      "compatibility_percentage": 81.82,
+      "unsupported_features": [],
+      "partial_features": [
+        "input-datetime",
+        "srcset"
+      ]
+    },
+    "edge": {
+      "version": "144",
+      "total_features": 11,
+      "supported": 10,
+      "partial": 0,
+      "unsupported": 0,
+      "unknown": 1,
+      "compatibility_percentage": 90.91,
+      "unsupported_features": [],
+      "partial_features": []
+    }
+  },
+  "features": {
+    "html": [
+      "details",
+      "dialog",
+      "form-validation",
+      "input-color",
+      "input-datetime",
+      "input-range",
+      "loading-lazy-attr",
+      "meta-charset",
+      "picture",
+      "srcset",
+      "viewport-units"
+    ],
+    "css": [],
+    "js": [],
+    "all": [
+      "details",
+      "dialog",
+      "form-validation",
+      "input-color",
+      "input-datetime",
+      "input-range",
+      "loading-lazy-attr",
+      "meta-charset",
+      "picture",
+      "srcset",
+      "viewport-units"
+    ]
+  },
+  "issues": {
+    "critical": [],
+    "warnings": [],
+    "errors": []
+  },
+  "recommendations": [
+    "ℹ️  3 features have partial support. Test thoroughly in target browsers.",
+    "⚠️  4 features not found in database. These may be very new or custom features."
+  ]
+}

@@ -9,7 +9,7 @@ from pathlib import Path
 from bs4 import BeautifulSoup
 import re
 
-from .feature_maps import (
+from .html_feature_maps import (
     HTML_ELEMENTS,
     HTML_INPUT_TYPES,
     HTML_ATTRIBUTES,

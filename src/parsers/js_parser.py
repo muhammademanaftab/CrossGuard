@@ -8,7 +8,7 @@ from typing import Set, List, Dict, Optional
 from pathlib import Path
 import re
 
-from .feature_maps import ALL_JS_FEATURES
+from .js_feature_maps import ALL_JS_FEATURES
 
 
 class JavaScriptParser:
