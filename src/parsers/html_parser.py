@@ -231,10 +231,8 @@ class HTMLParser:
         if viewport_meta:
             self.features_found.add('viewport-units')
         
-        # Detect meta charset UTF-8
-        charset_meta = soup.find('meta', attrs={'charset': True})
-        if charset_meta:
-            self.features_found.add('meta-charset')
+        # Note: meta charset is universally supported and not tracked in Can I Use
+        # so we don't detect it to avoid "feature not found" warnings
     
     def get_detailed_report(self) -> Dict:
         """Get detailed report of found features.

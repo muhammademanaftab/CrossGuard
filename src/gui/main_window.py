@@ -6,12 +6,17 @@ Main GUI window with file selection interface for browser compatibility analysis
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
     QPushButton, QLabel, QListWidget, QGroupBox,
-    QFileDialog, QMessageBox, QFrame
+    QFileDialog, QMessageBox, QFrame, QProgressDialog
 )
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QThread, pyqtSignal
 from PyQt6.QtGui import QFont, QIcon
 from pathlib import Path
-from typing import List
+from typing import List, Dict, Optional
+import sys
+import os
+
+# Import analyzer
+from src.analyzer.main import CrossGuardAnalyzer
 
 
 class MainWindow(QMainWindow):
@@ -127,8 +132,8 @@ class MainWindow(QMainWindow):
         # File list
         file_list = QListWidget()
         file_list.setObjectName(list_name)
-        file_list.setMinimumHeight(100)
-        file_list.setMaximumHeight(150)
+        file_list.setMinimumHeight(120)
+        file_list.setMaximumHeight(200)
         setattr(self, list_name, file_list)
         h_layout.addWidget(file_list)
         
@@ -220,12 +225,20 @@ class MainWindow(QMainWindow):
         
         # Add selected files
         if files:
+            print(f"Selected {len(files)} file(s)")
             for file_path in files:
+                print(f"Adding: {file_path}")
                 if file_path not in storage:
                     storage.append(file_path)
-                    file_list.addItem(Path(file_path).name)
+                    filename = Path(file_path).name
+                    file_list.addItem(filename)
+                    print(f"Added to list: {filename}")
             
+            print(f"Total files in storage: {len(storage)}")
+            print(f"Total items in list: {file_list.count()}")
             self._update_status()
+        else:
+            print("No files selected")
                     
     def _remove_file(self, file_list: QListWidget):
         """Remove selected file from list.
@@ -320,13 +333,109 @@ class MainWindow(QMainWindow):
         )
         
         if reply == QMessageBox.StandardButton.Yes:
-            # TODO: This will be connected to the analyzer in the next step
-            QMessageBox.information(
-                self,
-                "Analysis Started",
-                "Analysis functionality will be implemented in the next step!\n\n"
-                f"Files to analyze:\n{summary_text}"
+            # Run the analysis
+            self._run_analysis()
+    
+    def _run_analysis(self):
+        """Run the compatibility analysis."""
+        try:
+            # Show progress dialog
+            progress = QProgressDialog("Analyzing files...", "Cancel", 0, 100, self)
+            progress.setWindowTitle("Analysis in Progress")
+            progress.setWindowModality(Qt.WindowModality.WindowModal)
+            progress.setValue(10)
+            
+            # Create analyzer
+            analyzer = CrossGuardAnalyzer()
+            progress.setValue(20)
+            
+            # Default target browsers (latest versions)
+            target_browsers = {
+                'chrome': '144',
+                'firefox': '146',
+                'safari': '18.4',
+                'edge': '144'
+            }
+            progress.setValue(30)
+            
+            # Run analysis
+            print("Starting analysis...")
+            report = analyzer.analyze_project(
+                html_files=self.html_files if self.html_files else None,
+                css_files=self.css_files if self.css_files else None,
+                js_files=self.js_files if self.js_files else None,
+                target_browsers=target_browsers
             )
+            progress.setValue(90)
+            
+            # Close progress dialog
+            progress.setValue(100)
+            progress.close()
+            
+            # Show results
+            if report.get('success'):
+                self._show_results(report)
+            else:
+                QMessageBox.critical(
+                    self,
+                    "Analysis Error",
+                    f"Analysis failed:\n{report.get('error', 'Unknown error')}"
+                )
+                
+        except Exception as e:
+            progress.close()
+            QMessageBox.critical(
+                self,
+                "Analysis Error",
+                f"An error occurred during analysis:\n{str(e)}"
+            )
+            print(f"Analysis error: {e}")
+            import traceback
+            traceback.print_exc()
+    
+    def _show_results(self, report: Dict):
+        """Show analysis results in a message box (temporary - will be replaced with results window).
+        
+        Args:
+            report: Analysis report dictionary
+        """
+        summary = report.get('summary', {})
+        scores = report.get('scores', {})
+        
+        result_text = f"""
+Analysis Complete!
+
+📊 SUMMARY:
+• Total Features: {summary.get('total_features', 0)}
+• HTML Features: {summary.get('html_features', 0)}
+• CSS Features: {summary.get('css_features', 0)}
+• JS Features: {summary.get('js_features', 0)}
+• Critical Issues: {summary.get('critical_issues', 0)}
+
+🎯 COMPATIBILITY SCORE:
+• Grade: {scores.get('grade', 'N/A')}
+• Risk Level: {scores.get('risk_level', 'N/A')}
+• Simple Score: {scores.get('simple_score', 0):.1f}%
+• Weighted Score: {scores.get('weighted_score', 0):.1f}%
+
+📝 RECOMMENDATIONS:
+"""
+        
+        recommendations = report.get('recommendations', [])
+        for rec in recommendations[:3]:  # Show first 3 recommendations
+            result_text += f"• {rec}\n"
+        
+        QMessageBox.information(
+            self,
+            "Analysis Results",
+            result_text
+        )
+        
+        print("\n" + "="*50)
+        print("FULL ANALYSIS REPORT:")
+        print("="*50)
+        import json
+        print(json.dumps(report, indent=2))
             
     def _apply_styles(self):
         """Apply custom styles to the window."""
@@ -364,12 +473,14 @@ class MainWindow(QMainWindow):
                 border-radius: 5px;
                 padding: 5px;
                 background-color: #fafafa;
-                font-size: 12px;
+                font-size: 13px;
+                color: #333;
             }
             
             QListWidget::item {
                 padding: 5px;
                 border-radius: 3px;
+                color: #333;
             }
             
             QListWidget::item:selected {

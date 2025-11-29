@@ -348,7 +348,8 @@ class CrossGuardAnalyzer:
         # Generate recommendations
         recommendations = self._generate_recommendations(
             critical_issues,
-            compatibility_results
+            compatibility_results,
+            target_browsers
         )
         
         # Build final report
@@ -391,9 +392,15 @@ class CrossGuardAnalyzer:
     def _generate_recommendations(
         self,
         critical_issues: Set[str],
-        compatibility_results: Dict
+        compatibility_results: Dict,
+        target_browsers: Dict[str, str]
     ) -> List[str]:
         """Generate recommendations based on analysis results.
+        
+        Args:
+            critical_issues: Set of critical issue feature IDs
+            compatibility_results: Browser compatibility results
+            target_browsers: Dict of target browsers and versions
         
         Returns:
             List of recommendation strings
@@ -419,14 +426,23 @@ class CrossGuardAnalyzer:
             )
         
         # Check for unknown features
-        unknown_count = sum(
-            len(results['unknown']) 
-            for results in compatibility_results.values()
-        )
-        if unknown_count > 0:
+        # Get unique unknown features across all browsers
+        unknown_features = set()
+        for results in compatibility_results.values():
+            unknown_features.update(results['unknown'])
+        
+        if unknown_features:
+            num_browsers = len(target_browsers)
+            num_features = len(unknown_features)
+            
+            if num_features == 1:
+                feature_text = "feature"
+            else:
+                feature_text = "features"
+            
             recommendations.append(
-                f"⚠️  {unknown_count} features not found in database. "
-                "These may be very new or custom features."
+                f"ℹ️  {num_features} {feature_text} not found in database across {num_browsers} browsers. "
+                "These may be universally supported or custom features."
             )
         
         # Browser-specific recommendations
