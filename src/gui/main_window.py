@@ -35,8 +35,8 @@ class MainWindow(QMainWindow):
     def init_ui(self):
         """Initialize the user interface."""
         self.setWindowTitle("Cross Guard - Browser Compatibility Checker")
-        self.setMinimumSize(1000, 750)
-        self.resize(1100, 800)
+        self.setMinimumSize(1000, 850)
+        self.resize(1100, 900)
         
         # Set window icon
         logo_path = Path(__file__).parent / "logo.png"
@@ -149,38 +149,29 @@ class MainWindow(QMainWindow):
         header_frame.setObjectName("headerFrame")
         header_layout = QHBoxLayout(header_frame)
         
-        # Left side - Logo, Title and subtitle
+        # Left side - Logo and tagline horizontally
         title_layout = QHBoxLayout()
+        title_layout.setSpacing(15)
         
-        # Logo
+        # Logo (bigger size)
         logo_path = Path(__file__).parent / "logo.png"
         if logo_path.exists():
             logo_label = QLabel()
             pixmap = QPixmap(str(logo_path))
-            scaled_pixmap = pixmap.scaled(48, 48, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
+            scaled_pixmap = pixmap.scaled(80, 80, Qt.AspectRatioMode.KeepAspectRatio, Qt.TransformationMode.SmoothTransformation)
             logo_label.setPixmap(scaled_pixmap)
+            logo_label.setAlignment(Qt.AlignmentFlag.AlignVCenter)
             title_layout.addWidget(logo_label)
         
-        # Title and subtitle in vertical layout
-        text_layout = QVBoxLayout()
-        
-        # Title
-        title_label = QLabel("Cross Guard")
-        title_font = QFont()
-        title_font.setPointSize(24)
-        title_font.setBold(True)
-        title_label.setFont(title_font)
-        text_layout.addWidget(title_label)
-        
-        # Subtitle
-        subtitle_label = QLabel("Browser Compatibility Checker")
-        subtitle_font = QFont()
-        subtitle_font.setPointSize(12)
-        subtitle_label.setFont(subtitle_font)
-        subtitle_label.setStyleSheet("color: #666;")
-        text_layout.addWidget(subtitle_label)
-        
-        title_layout.addLayout(text_layout)
+        # Tagline (bigger font, next to logo)
+        tagline_label = QLabel("Browser Compatibility Checker")
+        tagline_font = QFont()
+        tagline_font.setPointSize(22)
+        tagline_font.setBold(True)
+        tagline_label.setFont(tagline_font)
+        tagline_label.setStyleSheet("color: #333;")
+        tagline_label.setAlignment(Qt.AlignmentFlag.AlignVCenter)
+        title_layout.addWidget(tagline_label)
         
         header_layout.addLayout(title_layout)
         header_layout.addStretch()
