@@ -6,7 +6,8 @@ Main GUI window with file selection interface for browser compatibility analysis
 from PyQt6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
     QPushButton, QLabel, QListWidget, QGroupBox,
-    QFileDialog, QMessageBox, QFrame, QProgressDialog
+    QFileDialog, QMessageBox, QFrame, QProgressDialog,
+    QStackedWidget, QScrollArea, QTextEdit, QSizePolicy
 )
 from PyQt6.QtCore import Qt, QThread, pyqtSignal
 from PyQt6.QtGui import QFont, QIcon
@@ -27,6 +28,7 @@ class MainWindow(QMainWindow):
         self.html_files = []
         self.css_files = []
         self.js_files = []
+        self.current_report = None
         
         self.init_ui()
         
@@ -35,10 +37,28 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Cross Guard - Browser Compatibility Checker")
         self.setMinimumSize(900, 700)
         
-        # Create central widget and main layout
-        central_widget = QWidget()
-        self.setCentralWidget(central_widget)
-        main_layout = QVBoxLayout(central_widget)
+        # Create stacked widget for page switching
+        self.stacked_widget = QStackedWidget()
+        self.setCentralWidget(self.stacked_widget)
+        
+        # Create upload page (index 0)
+        upload_page = self._create_upload_page()
+        self.stacked_widget.addWidget(upload_page)
+        
+        # Create results page (index 1)
+        results_page = self._create_results_page()
+        self.stacked_widget.addWidget(results_page)
+        
+        # Start with upload page
+        self.stacked_widget.setCurrentIndex(0)
+        
+        # Apply styling
+        self._apply_styles()
+    
+    def _create_upload_page(self) -> QWidget:
+        """Create the file upload page."""
+        page = QWidget()
+        main_layout = QVBoxLayout(page)
         main_layout.setSpacing(20)
         main_layout.setContentsMargins(30, 30, 30, 30)
         
@@ -51,8 +71,38 @@ class MainWindow(QMainWindow):
         # Action buttons at bottom
         self._create_action_buttons(main_layout)
         
-        # Apply styling
-        self._apply_styles()
+        return page
+    
+    def _create_results_page(self) -> QWidget:
+        """Create the results display page."""
+        page = QWidget()
+        page.setStyleSheet("background-color: #ffffff;")
+        layout = QVBoxLayout(page)
+        layout.setSpacing(20)
+        layout.setContentsMargins(30, 30, 30, 30)
+        
+        # Back button
+        back_btn = QPushButton("← Back to Upload")
+        back_btn.setObjectName("backButton")
+        back_btn.setMinimumHeight(40)
+        back_btn.clicked.connect(lambda: self.stacked_widget.setCurrentIndex(0))
+        layout.addWidget(back_btn)
+        
+        # Scroll area for results
+        scroll = QScrollArea()
+        scroll.setWidgetResizable(True)
+        scroll.setObjectName("resultsScroll")
+        
+        # Results content widget
+        self.results_content = QWidget()
+        self.results_layout = QVBoxLayout(self.results_content)
+        self.results_layout.setSpacing(20)
+        self.results_layout.setContentsMargins(0, 0, 0, 0)
+        
+        scroll.setWidget(self.results_content)
+        layout.addWidget(scroll)
+        
+        return page
         
     def _create_header(self, parent_layout):
         """Create the header section with title and description."""
@@ -394,43 +444,183 @@ class MainWindow(QMainWindow):
             traceback.print_exc()
     
     def _show_results(self, report: Dict):
-        """Show analysis results in a message box (temporary - will be replaced with results window).
+        """Show analysis results in the results page.
         
         Args:
             report: Analysis report dictionary
         """
+        self.current_report = report
+        
+        # Clear previous results
+        for i in reversed(range(self.results_layout.count())): 
+            item = self.results_layout.itemAt(i)
+            if item.widget():
+                item.widget().setParent(None)
+            else:
+                self.results_layout.removeItem(item)
+        
         summary = report.get('summary', {})
         scores = report.get('scores', {})
         
-        result_text = f"""
-Analysis Complete!
+        # Title
+        title = QLabel("Analysis Complete!")
+        title_font = QFont()
+        title_font.setPointSize(20)
+        title_font.setBold(True)
+        title.setFont(title_font)
+        title.setStyleSheet("color: #333; padding: 10px 0;")
+        self.results_layout.addWidget(title)
+        
+        # Summary Section
+        summary_group = QGroupBox("📊 Summary")
+        summary_group.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        summary_layout = QVBoxLayout(summary_group)
+        summary_layout.setSpacing(4)
+        summary_layout.setContentsMargins(15, 12, 15, 12)
+        
+        total_label = QLabel(f"Total Features: {summary.get('total_features', 0)}")
+        total_label.setStyleSheet("font-size: 14px; font-weight: bold; color: #333;")
+        summary_layout.addWidget(total_label)
+        
+        html_label = QLabel(f"HTML Features: {summary.get('html_features', 0)}")
+        html_label.setStyleSheet("font-size: 13px; color: #555;")
+        summary_layout.addWidget(html_label)
+        
+        css_label = QLabel(f"CSS Features: {summary.get('css_features', 0)}")
+        css_label.setStyleSheet("font-size: 13px; color: #555;")
+        summary_layout.addWidget(css_label)
+        
+        js_label = QLabel(f"JS Features: {summary.get('js_features', 0)}")
+        js_label.setStyleSheet("font-size: 13px; color: #555;")
+        summary_layout.addWidget(js_label)
+        
+        critical_label = QLabel(f"Critical Issues: {summary.get('critical_issues', 0)}")
+        critical_label.setStyleSheet("font-size: 13px; color: #F44336; font-weight: bold;")
+        summary_layout.addWidget(critical_label)
+        
+        self.results_layout.addWidget(summary_group)
+        
+        # Compatibility Score Section
+        score_group = QGroupBox("🎯 Compatibility Score")
+        score_group.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        score_layout = QVBoxLayout(score_group)
+        score_layout.setSpacing(6)
+        score_layout.setContentsMargins(15, 12, 15, 12)
+        
+        grade_label = QLabel(f"Grade: {scores.get('grade', 'N/A')}")
+        grade_label.setStyleSheet("font-size: 32px; color: #2196F3; font-weight: bold;")
+        score_layout.addWidget(grade_label)
+        
+        risk_label = QLabel(f"Risk Level: {scores.get('risk_level', 'N/A').upper()}")
+        risk_label.setStyleSheet("font-size: 14px; font-weight: bold; color: #333;")
+        score_layout.addWidget(risk_label)
+        
+        simple_label = QLabel(f"Simple Score: {scores.get('simple_score', 0):.1f}%")
+        simple_label.setStyleSheet("font-size: 13px; color: #555;")
+        score_layout.addWidget(simple_label)
+        
+        weighted_label = QLabel(f"Weighted Score: {scores.get('weighted_score', 0):.1f}%")
+        weighted_label.setStyleSheet("font-size: 13px; color: #555;")
+        score_layout.addWidget(weighted_label)
+        
+        self.results_layout.addWidget(score_group)
+        
+        # Browser Compatibility Section
+        browser_group = QGroupBox("🌐 Browser Compatibility")
+        browser_group.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        browser_layout = QVBoxLayout(browser_group)
+        browser_layout.setSpacing(12)
+        browser_layout.setContentsMargins(15, 12, 15, 12)
 
-📊 SUMMARY:
-• Total Features: {summary.get('total_features', 0)}
-• HTML Features: {summary.get('html_features', 0)}
-• CSS Features: {summary.get('css_features', 0)}
-• JS Features: {summary.get('js_features', 0)}
-• Critical Issues: {summary.get('critical_issues', 0)}
+        browsers = report.get('browsers', {})
+        for browser_name, details in browsers.items():
+            compat_pct = details.get('compatibility_percentage', 0)
+            supported = details.get('supported', 0)
+            partial = details.get('partial', 0)
+            unsupported = details.get('unsupported', 0)
 
-🎯 COMPATIBILITY SCORE:
-• Grade: {scores.get('grade', 'N/A')}
-• Risk Level: {scores.get('risk_level', 'N/A')}
-• Simple Score: {scores.get('simple_score', 0):.1f}%
-• Weighted Score: {scores.get('weighted_score', 0):.1f}%
+            browser_card = QFrame()
+            browser_card.setObjectName("browserCard")
+            card_layout = QVBoxLayout(browser_card)
+            card_layout.setSpacing(4)
+            card_layout.setContentsMargins(10, 8, 10, 8)
 
-📝 RECOMMENDATIONS:
-"""
+            # Browser header
+            browser_label = QLabel(f"{browser_name.upper()} {details.get('version', '')}")
+            browser_label.setStyleSheet("font-size: 15px; font-weight: bold; color: #333;")
+            card_layout.addWidget(browser_label)
+
+            # Stats in a horizontal layout
+            stats_widget = QWidget()
+            stats_h_layout = QHBoxLayout(stats_widget)
+            stats_h_layout.setContentsMargins(0, 0, 0, 0)
+            stats_h_layout.setSpacing(20)
+
+            supported_label = QLabel(f"✅ Supported: {supported}")
+            supported_label.setStyleSheet("color: #4CAF50; font-size: 13px; font-weight: bold;")
+            stats_h_layout.addWidget(supported_label)
+            
+            partial_label_widget = QLabel(f"⚠️ Partial: {partial}")
+            partial_label_widget.setStyleSheet("color: #FF9800; font-size: 13px; font-weight: bold;")
+            stats_h_layout.addWidget(partial_label_widget)
+            
+            unsupported_label = QLabel(f"❌ Unsupported: {unsupported}")
+            unsupported_label.setStyleSheet("color: #F44336; font-size: 13px; font-weight: bold;")
+            stats_h_layout.addWidget(unsupported_label)
+            
+            stats_h_layout.addStretch()
+            card_layout.addWidget(stats_widget)
+
+            # Compatibility percentage
+            compat_label = QLabel(f"Compatibility: {compat_pct:.1f}%")
+            compat_label.setStyleSheet("color: #2196F3; font-size: 14px; font-weight: bold;")
+            card_layout.addWidget(compat_label)
+
+            # Show unsupported features if any
+            if details.get('unsupported_features'):
+                unsup_label = QLabel(f"Not supported: {', '.join(details['unsupported_features'][:5])}")
+                unsup_label.setStyleSheet("color: #d32f2f; font-size: 12px;")
+                unsup_label.setWordWrap(True)
+                card_layout.addWidget(unsup_label)
+
+            # Show partial support features if any
+            if details.get('partial_features'):
+                partial_feat_label = QLabel(f"Partial support: {', '.join(details['partial_features'][:5])}")
+                partial_feat_label.setStyleSheet("color: #f57c00; font-size: 12px;")
+                partial_feat_label.setWordWrap(True)
+                card_layout.addWidget(partial_feat_label)
+
+            browser_layout.addWidget(browser_card)
+
+        self.results_layout.addWidget(browser_group)
+
+        # Recommendations Section
+        rec_group = QGroupBox("📝 Recommendations")
+        rec_group.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        rec_layout = QVBoxLayout(rec_group)
+        rec_layout.setSpacing(6)
+        rec_layout.setContentsMargins(15, 12, 15, 12)
         
         recommendations = report.get('recommendations', [])
-        for rec in recommendations[:3]:  # Show first 3 recommendations
-            result_text += f"• {rec}\n"
+        if recommendations:
+            for i, rec in enumerate(recommendations, 1):
+                rec_label = QLabel(f"{i}. {rec}")
+                rec_label.setWordWrap(True)
+                rec_label.setStyleSheet("font-size: 13px; color: #555; background-color: #f9f9f9; border-radius: 5px; padding: 8px;")
+                rec_layout.addWidget(rec_label)
+        else:
+            rec_label = QLabel("✅ No issues found! Your code is well-supported.")
+            rec_label.setStyleSheet("color: #4CAF50; font-weight: bold; font-size: 14px;")
+            rec_layout.addWidget(rec_label)
         
-        QMessageBox.information(
-            self,
-            "Analysis Results",
-            result_text
-        )
+        self.results_layout.addWidget(rec_group)
         
+        self.results_layout.addStretch()
+        
+        # Switch to results page
+        self.stacked_widget.setCurrentIndex(1)
+        
+        # Print to console for debugging
         print("\n" + "="*50)
         print("FULL ANALYSIS REPORT:")
         print("="*50)
@@ -457,7 +647,8 @@ Analysis Complete!
                 border: 2px solid #ddd;
                 border-radius: 8px;
                 margin-top: 10px;
-                padding-top: 15px;
+                padding-top: 18px;
+                padding-bottom: 5px;
                 background-color: white;
             }
             
@@ -466,6 +657,13 @@ Analysis Complete!
                 left: 15px;
                 padding: 0 5px;
                 color: #333;
+            }
+            
+            #browserCard {
+                background-color: #f9f9f9;
+                border: 1px solid #e0e0e0;
+                border-radius: 6px;
+                padding: 8px;
             }
             
             QListWidget {
@@ -544,6 +742,21 @@ Analysis Complete!
             
             #analyzeButton:hover {
                 background-color: #0b7dda;
+            }
+            
+            #backButton {
+                background-color: #607D8B;
+                color: white;
+                font-size: 14px;
+            }
+            
+            #backButton:hover {
+                background-color: #455A64;
+            }
+            
+            #resultsScroll {
+                border: none;
+                background-color: transparent;
             }
             
             QPushButton:pressed {
