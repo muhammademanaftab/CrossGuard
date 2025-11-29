@@ -387,3 +387,18 @@ def get_database() -> CanIUseDatabase:
         _database_instance.load()
     
     return _database_instance
+
+
+def reload_database() -> CanIUseDatabase:
+    """Force reload the database from disk.
+    
+    This is useful after updating the database files.
+    
+    Returns:
+        CanIUseDatabase instance with fresh data
+    """
+    global _database_instance
+    
+    print("Reloading database from disk...")
+    _database_instance = None
+    return get_database()

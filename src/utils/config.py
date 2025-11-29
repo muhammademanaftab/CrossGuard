@@ -4,8 +4,9 @@ from pathlib import Path
 
 # Project paths
 PROJECT_ROOT = Path(__file__).parent.parent.parent
-CANIUSE_DB_PATH = PROJECT_ROOT / "caniuse" / "data.json"
-CANIUSE_FEATURES_PATH = PROJECT_ROOT / "caniuse" / "features-json"
+CANIUSE_DIR = PROJECT_ROOT / "caniuse"
+CANIUSE_DB_PATH = CANIUSE_DIR / "data.json"
+CANIUSE_FEATURES_PATH = CANIUSE_DIR / "features-json"
 
 # Target browsers (can be customized by user)
 DEFAULT_BROWSERS = {

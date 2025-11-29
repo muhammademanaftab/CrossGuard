@@ -129,6 +129,17 @@ def get_main_stylesheet() -> str:
             background-color: #0b7dda;
         }
         
+        #updateDbButton {
+            background-color: #2196F3;
+            color: white;
+            font-size: 13px;
+            font-weight: bold;
+        }
+        
+        #updateDbButton:hover {
+            background-color: #1976D2;
+        }
+        
         #backButton {
             background-color: #f8f9fa;
             color: #333;

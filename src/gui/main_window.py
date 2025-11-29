@@ -13,9 +13,13 @@ from PyQt6.QtGui import QFont
 from typing import Dict
 
 from src.analyzer.main import CrossGuardAnalyzer
+from src.analyzer.database import reload_database
+from src.analyzer.database_updater import DatabaseUpdater
+from src.utils.config import CANIUSE_DIR
 from .file_selector import FileSelectorGroup
 from .export_manager import ExportManager
 from .styles import get_main_stylesheet
+from pathlib import Path
 
 
 class MainWindow(QMainWindow):
@@ -137,7 +141,10 @@ class MainWindow(QMainWindow):
         """Create the header section with title and description."""
         header_frame = QFrame()
         header_frame.setObjectName("headerFrame")
-        header_layout = QVBoxLayout(header_frame)
+        header_layout = QHBoxLayout(header_frame)
+        
+        # Left side - Title and subtitle
+        title_layout = QVBoxLayout()
         
         # Title
         title_label = QLabel("🛡️ Cross Guard")
@@ -145,7 +152,7 @@ class MainWindow(QMainWindow):
         title_font.setPointSize(24)
         title_font.setBold(True)
         title_label.setFont(title_font)
-        header_layout.addWidget(title_label)
+        title_layout.addWidget(title_label)
         
         # Subtitle
         subtitle_label = QLabel("Browser Compatibility Checker")
@@ -153,7 +160,18 @@ class MainWindow(QMainWindow):
         subtitle_font.setPointSize(12)
         subtitle_label.setFont(subtitle_font)
         subtitle_label.setStyleSheet("color: #666;")
-        header_layout.addWidget(subtitle_label)
+        title_layout.addWidget(subtitle_label)
+        
+        header_layout.addLayout(title_layout)
+        header_layout.addStretch()
+        
+        # Right side - Update Database button
+        update_db_btn = QPushButton("🔄 Update Database")
+        update_db_btn.setObjectName("updateDbButton")
+        update_db_btn.setMinimumHeight(40)
+        update_db_btn.setMinimumWidth(160)
+        update_db_btn.clicked.connect(self._update_database)
+        header_layout.addWidget(update_db_btn)
         
         parent_layout.addWidget(header_frame)
         
@@ -494,3 +512,96 @@ class MainWindow(QMainWindow):
         print("="*50)
         import json
         print(json.dumps(report, indent=2))
+    
+    def _update_database(self):
+        """Update the Can I Use database."""
+        try:
+            from datetime import datetime
+            
+            # Create updater
+            updater = DatabaseUpdater(Path(CANIUSE_DIR))
+            
+            # Get current database info
+            info = updater.get_database_info()
+            
+            # Format last updated date
+            last_updated = info.get('last_updated', 'Unknown')
+            if last_updated != 'Unknown' and isinstance(last_updated, (int, float)):
+                # Convert Unix timestamp to readable date
+                last_updated = datetime.fromtimestamp(last_updated).strftime('%Y-%m-%d %H:%M')
+            
+            # Confirm update
+            confirm_msg = f"Current database:\n"
+            confirm_msg += f"• Features: {info.get('features_count', 'Unknown')}\n"
+            confirm_msg += f"• Last updated: {last_updated}\n"
+            confirm_msg += f"• Git repository: {'Yes' if info.get('is_git_repo') else 'No'}\n\n"
+            confirm_msg += "Update to the latest version?"
+            
+            reply = QMessageBox.question(
+                self,
+                "Update Database",
+                confirm_msg,
+                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+            )
+            
+            if reply != QMessageBox.StandardButton.Yes:
+                return
+            
+            # Show progress dialog
+            progress = QProgressDialog("Updating database...", None, 0, 100, self)
+            progress.setWindowTitle("Database Update")
+            progress.setWindowModality(Qt.WindowModality.WindowModal)
+            progress.setMinimumDuration(0)
+            progress.setValue(0)
+            
+            # Progress callback
+            def update_progress(message: str, percentage: int):
+                progress.setLabelText(message)
+                progress.setValue(percentage)
+            
+            # Run update
+            result = updater.update_database(update_progress)
+            
+            # Close progress
+            progress.setValue(100)
+            progress.close()
+            
+            # Show result
+            if result.get('success'):
+                if result.get('no_changes'):
+                    QMessageBox.information(
+                        self,
+                        "Database Up to Date",
+                        result.get('message', 'Database is already up to date')
+                    )
+                else:
+                    # Reload database
+                    reload_progress = QProgressDialog("Reloading database...", None, 0, 100, self)
+                    reload_progress.setWindowTitle("Reloading")
+                    reload_progress.setWindowModality(Qt.WindowModality.WindowModal)
+                    reload_progress.setMinimumDuration(0)
+                    reload_progress.setValue(50)
+                    
+                    reload_database()
+                    
+                    reload_progress.setValue(100)
+                    reload_progress.close()
+                    
+                    QMessageBox.information(
+                        self,
+                        "Update Successful",
+                        result.get('message', 'Database updated successfully!')
+                    )
+            else:
+                QMessageBox.critical(
+                    self,
+                    "Update Failed",
+                    f"{result.get('message', 'Unknown error')}\n\n{result.get('error', '')}"
+                )
+                
+        except Exception as e:
+            QMessageBox.critical(
+                self,
+                "Update Error",
+                f"An error occurred while updating the database:\n{str(e)}"
+            )
