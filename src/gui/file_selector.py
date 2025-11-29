@@ -41,20 +41,24 @@ class FileSelectorGroup(QGroupBox):
             description: Description text to display
         """
         layout = QVBoxLayout()
+        layout.setContentsMargins(10, 5, 10, 10)
+        layout.setSpacing(8)
         
         # Description
         desc_label = QLabel(description)
-        desc_label.setStyleSheet("color: #666; font-size: 11px;")
+        desc_label.setStyleSheet("color: #666; font-size: 11px; padding: 2px;")
         layout.addWidget(desc_label)
         
         # Horizontal layout for list and buttons
         h_layout = QHBoxLayout()
+        h_layout.setSpacing(10)
+        h_layout.setContentsMargins(0, 0, 0, 0)
         
         # File list
         self.file_list = QListWidget()
         self.file_list.setObjectName(f"{self.file_type}_list")
-        self.file_list.setMinimumHeight(120)
-        self.file_list.setMaximumHeight(200)
+        self.file_list.setMinimumHeight(80)
+        self.file_list.setMaximumHeight(80)
         h_layout.addWidget(self.file_list)
         
         # Button layout

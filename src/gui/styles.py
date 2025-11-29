@@ -24,19 +24,23 @@ def get_main_stylesheet() -> str:
         
         QGroupBox {
             font-weight: bold;
-            font-size: 13px;
+            font-size: 14px;
             border: 2px solid #ddd;
             border-radius: 8px;
-            margin-top: 10px;
-            padding-top: 18px;
-            padding-bottom: 5px;
+            margin-top: 12px;
+            margin-bottom: 8px;
+            padding-top: 20px;
+            padding-bottom: 12px;
+            padding-left: 12px;
+            padding-right: 12px;
             background-color: white;
         }
         
         QGroupBox::title {
             subcontrol-origin: margin;
-            left: 15px;
-            padding: 0 5px;
+            subcontrol-position: top left;
+            left: 8px;
+            padding: 2px 5px;
             color: #333;
         }
         

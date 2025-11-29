@@ -35,7 +35,8 @@ class MainWindow(QMainWindow):
     def init_ui(self):
         """Initialize the user interface."""
         self.setWindowTitle("Cross Guard - Browser Compatibility Checker")
-        self.setMinimumSize(900, 700)
+        self.setMinimumSize(1000, 750)
+        self.resize(1100, 800)
         
         # Create stacked widget for page switching
         self.stacked_widget = QStackedWidget()
