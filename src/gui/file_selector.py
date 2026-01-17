@@ -1,6 +1,6 @@
 """
 File Selector Widget for Cross Guard
-Handles file selection UI components.
+Handles file selection UI components with drag-and-drop support.
 """
 
 from PyQt6.QtWidgets import (
@@ -9,18 +9,27 @@ from PyQt6.QtWidgets import (
 )
 from PyQt6.QtCore import pyqtSignal
 from pathlib import Path
-from typing import List, Callable
+from typing import List
+
+from .widgets.drop_zone import DropZone
 
 
 class FileSelectorGroup(QGroupBox):
-    """Group box for selecting files of a specific type."""
-    
+    """Group box for selecting files of a specific type with drag-and-drop."""
+
     # Signal emitted when files change
     files_changed = pyqtSignal()
-    
+
+    # File extensions for each type
+    FILE_EXTENSIONS = {
+        'html': ['html', 'htm'],
+        'css': ['css'],
+        'javascript': ['js']
+    }
+
     def __init__(self, title: str, description: str, file_type: str, parent=None):
         """Initialize file selector group.
-        
+
         Args:
             title: Group box title
             description: Description text
@@ -30,42 +39,43 @@ class FileSelectorGroup(QGroupBox):
         super().__init__(title, parent)
         self.file_type = file_type
         self.files: List[str] = []
-        
+
         self.setObjectName("fileGroup")
         self._init_ui(description)
-    
+
     def _init_ui(self, description: str):
         """Initialize the user interface.
-        
+
         Args:
             description: Description text to display
         """
         layout = QVBoxLayout()
         layout.setContentsMargins(10, 5, 10, 10)
         layout.setSpacing(8)
-        
-        # Description
-        desc_label = QLabel(description)
-        desc_label.setStyleSheet("color: #666; font-size: 11px; padding: 2px;")
-        layout.addWidget(desc_label)
-        
+
+        # Drop zone for drag-and-drop
+        extensions = self.FILE_EXTENSIONS.get(self.file_type, [])
+        self.drop_zone = DropZone(extensions)
+        self.drop_zone.files_dropped.connect(self._handle_dropped_files)
+        layout.addWidget(self.drop_zone)
+
         # Horizontal layout for list and buttons
         h_layout = QHBoxLayout()
         h_layout.setSpacing(10)
         h_layout.setContentsMargins(0, 0, 0, 0)
-        
+
         # File list
         self.file_list = QListWidget()
         self.file_list.setObjectName(f"{self.file_type}_list")
         self.file_list.setMinimumHeight(80)
         self.file_list.setMaximumHeight(80)
         h_layout.addWidget(self.file_list)
-        
+
         # Button layout
         button_layout = QVBoxLayout()
         button_layout.setSpacing(12)
         button_layout.setContentsMargins(0, 0, 0, 0)
-        
+
         # Add button
         add_btn = QPushButton("Add Files")
         add_btn.setObjectName("addButton")
@@ -81,14 +91,31 @@ class FileSelectorGroup(QGroupBox):
         remove_btn.setMinimumHeight(38)
         remove_btn.clicked.connect(self._remove_file)
         button_layout.addWidget(remove_btn)
-        
+
         # Add bottom spacer
         button_layout.addStretch()
-        
+
         h_layout.addLayout(button_layout)
         layout.addLayout(h_layout)
-        
+
         self.setLayout(layout)
+
+    def _handle_dropped_files(self, file_paths: List[str]):
+        """Handle files dropped onto the drop zone.
+
+        Args:
+            file_paths: List of dropped file paths
+        """
+        added = False
+        for file_path in file_paths:
+            if file_path not in self.files:
+                self.files.append(file_path)
+                filename = Path(file_path).name
+                self.file_list.addItem(filename)
+                added = True
+
+        if added:
+            self.files_changed.emit()
     
     def _add_files(self):
         """Open file dialog to add files."""

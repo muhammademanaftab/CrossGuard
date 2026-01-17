@@ -10,7 +10,10 @@ from pathlib import Path
 from typing import Dict, List, Optional, Set, Tuple
 from functools import lru_cache
 
-from ..utils.config import CANIUSE_DB_PATH, CANIUSE_FEATURES_PATH, SUPPORT_STATUS
+from ..utils.config import CANIUSE_DB_PATH, CANIUSE_FEATURES_PATH, SUPPORT_STATUS, get_logger
+
+# Module logger
+logger = get_logger('analyzer.database')
 
 
 class CanIUseDatabase:
@@ -25,48 +28,48 @@ class CanIUseDatabase:
         
     def load(self) -> bool:
         """Load the Can I Use database into memory.
-        
+
         Returns:
             bool: True if loaded successfully, False otherwise.
         """
         try:
             # Load main data.json file
-            print(f"Loading Can I Use database from {CANIUSE_DB_PATH}...")
+            logger.info(f"Loading Can I Use database from {CANIUSE_DB_PATH}...")
             with open(CANIUSE_DB_PATH, 'r', encoding='utf-8') as f:
                 self.data = json.load(f)
-            
+
             # Load individual feature files for detailed information
             self._load_feature_files()
-            
+
             # Build search index
             self._build_index()
-            
+
             self.loaded = True
-            print(f"✓ Loaded {len(self.features)} features successfully")
+            logger.info(f"Loaded {len(self.features)} features successfully")
             return True
-            
+
         except FileNotFoundError:
-            print(f"✗ Error: Database file not found at {CANIUSE_DB_PATH}")
+            logger.error(f"Database file not found at {CANIUSE_DB_PATH}")
             return False
         except json.JSONDecodeError as e:
-            print(f"✗ Error: Invalid JSON in database file: {e}")
+            logger.error(f"Invalid JSON in database file: {e}")
             return False
         except Exception as e:
-            print(f"✗ Error loading database: {e}")
+            logger.error(f"Error loading database: {e}")
             return False
     
     def _load_feature_files(self):
         """Load individual feature JSON files from features-json directory."""
         features_path = Path(CANIUSE_FEATURES_PATH)
-        
+
         if not features_path.exists():
-            print(f"Warning: Features directory not found at {features_path}")
+            logger.warning(f"Features directory not found at {features_path}")
             return
-        
+
         # Load each feature file
         feature_files = list(features_path.glob('*.json'))
-        print(f"Loading {len(feature_files)} feature files...")
-        
+        logger.debug(f"Loading {len(feature_files)} feature files...")
+
         for feature_file in feature_files:
             try:
                 with open(feature_file, 'r', encoding='utf-8') as f:
@@ -74,11 +77,11 @@ class CanIUseDatabase:
                     feature_id = feature_file.stem  # filename without .json
                     self.features[feature_id] = feature_data
             except Exception as e:
-                print(f"Warning: Could not load {feature_file.name}: {e}")
+                logger.warning(f"Could not load {feature_file.name}: {e}")
     
     def _build_index(self):
         """Build search index for fast keyword lookups."""
-        print("Building search index...")
+        logger.debug("Building search index...")
         
         for feature_id, feature_data in self.features.items():
             # Index by feature ID
@@ -108,7 +111,7 @@ class CanIUseDatabase:
                             if feature_id not in self.feature_index[word]:
                                 self.feature_index[word].append(feature_id)
         
-        print(f"✓ Index built with {len(self.feature_index)} entries")
+        logger.debug(f"Index built with {len(self.feature_index)} entries")
     
     def get_feature(self, feature_id: str) -> Optional[Dict]:
         """Get detailed information about a specific feature.
@@ -399,6 +402,6 @@ def reload_database() -> CanIUseDatabase:
     """
     global _database_instance
     
-    print("Reloading database from disk...")
+    logger.info("Reloading database from disk...")
     _database_instance = None
     return get_database()

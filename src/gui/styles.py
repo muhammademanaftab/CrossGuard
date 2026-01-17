@@ -3,6 +3,54 @@ Styles for Cross Guard GUI
 Centralized stylesheet definitions.
 """
 
+# Design Tokens
+COLORS = {
+    'primary': '#2196F3',
+    'primary_dark': '#1976D2',
+    'primary_light': '#BBDEFB',
+    'success': '#4CAF50',
+    'success_dark': '#45a049',
+    'warning': '#FF9800',
+    'warning_dark': '#e68900',
+    'danger': '#F44336',
+    'danger_dark': '#da190b',
+    'text_primary': '#333333',
+    'text_secondary': '#555555',
+    'text_muted': '#666666',
+    'background': '#F5F5F5',
+    'surface': '#FFFFFF',
+    'surface_alt': '#f9f9f9',
+    'border': '#E0E0E0',
+    'border_light': '#dddddd',
+}
+
+SPACING = {
+    'xs': 4,
+    'sm': 8,
+    'md': 16,
+    'lg': 24,
+    'xl': 32,
+}
+
+FONTS = {
+    'size_small': 12,
+    'size_normal': 13,
+    'size_medium': 14,
+    'size_large': 16,
+    'size_title': 20,
+    'size_header': 24,
+}
+
+
+def get_color(name: str) -> str:
+    """Get a color value by name."""
+    return COLORS.get(name, '#000000')
+
+
+def get_spacing(name: str) -> int:
+    """Get a spacing value by name."""
+    return SPACING.get(name, 8)
+
 
 def get_main_stylesheet() -> str:
     """Get the main application stylesheet.
@@ -190,5 +238,46 @@ def get_main_stylesheet() -> str:
         QPushButton:pressed {
             padding-top: 10px;
             padding-bottom: 6px;
+        }
+
+        /* Drop Zone Styles */
+        #dropZone {
+            border: 2px dashed #ccc;
+            border-radius: 8px;
+            background-color: #fafafa;
+            min-height: 60px;
+        }
+
+        #dropZone:hover {
+            border-color: #2196F3;
+            background-color: #e3f2fd;
+        }
+
+        #dropZoneActive {
+            border: 2px solid #2196F3;
+            border-radius: 8px;
+            background-color: #e3f2fd;
+            min-height: 60px;
+        }
+
+        /* Score Card Styles */
+        #scoreCard {
+            background-color: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            padding: 20px;
+        }
+
+        /* Enhanced Browser Card */
+        #enhancedBrowserCard {
+            background-color: #ffffff;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            padding: 12px;
+        }
+
+        #enhancedBrowserCard:hover {
+            border-color: #2196F3;
+            background-color: #fafafa;
         }
     """

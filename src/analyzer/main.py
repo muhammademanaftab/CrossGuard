@@ -15,6 +15,10 @@ from ..parsers.css_parser import CSSParser
 from .database import get_database
 from .compatibility import CompatibilityAnalyzer
 from .scorer import CompatibilityScorer
+from ..utils.config import get_logger
+
+# Module logger
+logger = get_logger('analyzer.main')
 
 
 class CrossGuardAnalyzer:
@@ -73,20 +77,20 @@ class CrossGuardAnalyzer:
             }
         
         # Parse all files
-        print("Analyzing project files...")
+        logger.info("Analyzing project files...")
         self._parse_html_files(html_files or [])
         self._parse_css_files(css_files or [])
         self._parse_js_files(js_files or [])
-        
+
         # Combine all features
         self.all_features = self.html_features | self.js_features | self.css_features
-        
+
         # Check compatibility
-        print("Checking browser compatibility...")
+        logger.info("Checking browser compatibility...")
         compatibility_results = self._check_compatibility(target_browsers)
-        
+
         # Calculate scores
-        print("Calculating compatibility scores...")
+        logger.info("Calculating compatibility scores...")
         scores = self._calculate_scores(compatibility_results, target_browsers)
         
         # Generate detailed report
@@ -184,35 +188,35 @@ class CrossGuardAnalyzer:
             try:
                 features = self.html_parser.parse_file(filepath)
                 self.html_features.update(features)
-                print(f"  ✓ Parsed HTML: {Path(filepath).name} ({len(features)} features)")
+                logger.info(f"Parsed HTML: {Path(filepath).name} ({len(features)} features)")
             except Exception as e:
                 error_msg = f"Error parsing HTML file {filepath}: {str(e)}"
                 self.errors.append(error_msg)
-                print(f"  ✗ {error_msg}")
-    
+                logger.error(error_msg)
+
     def _parse_css_files(self, css_files: List[str]):
         """Parse all CSS files and collect features."""
         for filepath in css_files:
             try:
                 features = self.css_parser.parse_file(filepath)
                 self.css_features.update(features)
-                print(f"  ✓ Parsed CSS: {Path(filepath).name} ({len(features)} features)")
+                logger.info(f"Parsed CSS: {Path(filepath).name} ({len(features)} features)")
             except Exception as e:
                 error_msg = f"Error parsing CSS file {filepath}: {str(e)}"
                 self.errors.append(error_msg)
-                print(f"  ✗ {error_msg}")
-    
+                logger.error(error_msg)
+
     def _parse_js_files(self, js_files: List[str]):
         """Parse all JavaScript files and collect features."""
         for filepath in js_files:
             try:
                 features = self.js_parser.parse_file(filepath)
                 self.js_features.update(features)
-                print(f"  ✓ Parsed JS: {Path(filepath).name} ({len(features)} features)")
+                logger.info(f"Parsed JS: {Path(filepath).name} ({len(features)} features)")
             except Exception as e:
                 error_msg = f"Error parsing JS file {filepath}: {str(e)}"
                 self.errors.append(error_msg)
-                print(f"  ✗ {error_msg}")
+                logger.error(error_msg)
     
     def _check_compatibility(self, target_browsers: Dict[str, str]) -> Dict:
         """Check compatibility for all detected features.
@@ -489,23 +493,23 @@ class CrossGuardAnalyzer:
             if format == 'json':
                 with open(output_path, 'w', encoding='utf-8') as f:
                     json.dump(report, f, indent=2, ensure_ascii=False)
-                print(f"✓ Report exported to {output_path}")
-                
+                logger.info(f"Report exported to {output_path}")
+
             elif format == 'txt':
                 with open(output_path, 'w', encoding='utf-8') as f:
                     f.write(self._format_text_report(report))
-                print(f"✓ Report exported to {output_path}")
-                
+                logger.info(f"Report exported to {output_path}")
+
             elif format == 'html':
                 with open(output_path, 'w', encoding='utf-8') as f:
                     f.write(self._format_html_report(report))
-                print(f"✓ Report exported to {output_path}")
-                
+                logger.info(f"Report exported to {output_path}")
+
             else:
-                print(f"✗ Unknown format: {format}")
-                
+                logger.warning(f"Unknown export format: {format}")
+
         except Exception as e:
-            print(f"✗ Error exporting report: {e}")
+            logger.error(f"Error exporting report: {e}")
     
     def _format_text_report(self, report: Dict) -> str:
         """Format report as plain text."""

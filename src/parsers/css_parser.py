@@ -9,6 +9,10 @@ from pathlib import Path
 import re
 
 from .css_feature_maps import ALL_CSS_FEATURES
+from ..utils.config import get_logger
+
+# Module logger
+logger = get_logger('parsers.css')
 
 
 class CSSParser:
@@ -106,7 +110,7 @@ class CSSParser:
                         break  # Found this feature, move to next
                 except re.error as e:
                     # Skip invalid regex patterns
-                    print(f"Warning: Invalid regex pattern for {feature_id}: {e}")
+                    logger.warning(f"Invalid regex pattern for {feature_id}: {e}")
                     continue
     
     def get_detailed_report(self) -> Dict:
@@ -137,7 +141,7 @@ class CSSParser:
                 features = self.parse_file(filepath)
                 all_features.update(features)
             except Exception as e:
-                print(f"Warning: Could not parse {filepath}: {e}")
+                logger.warning(f"Could not parse {filepath}: {e}")
         
         return all_features
     

@@ -16,6 +16,10 @@ from .html_feature_maps import (
     HTML_ATTRIBUTE_VALUES,
     ALL_HTML_FEATURES
 )
+from ..utils.config import get_logger
+
+# Module logger
+logger = get_logger('parsers.html')
 
 
 class HTMLParser:
@@ -263,7 +267,7 @@ class HTMLParser:
                 features = self.parse_file(filepath)
                 all_features.update(features)
             except Exception as e:
-                print(f"Warning: Could not parse {filepath}: {e}")
+                logger.warning(f"Could not parse {filepath}: {e}")
         
         return all_features
     

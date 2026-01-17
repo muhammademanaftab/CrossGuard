@@ -4,32 +4,37 @@ Main GUI window with file selection interface for browser compatibility analysis
 """
 
 from PyQt6.QtWidgets import (
-    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
+    QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QPushButton, QLabel, QFrame, QProgressDialog,
-    QStackedWidget, QScrollArea, QMessageBox, QGroupBox, QSizePolicy
+    QStackedWidget, QScrollArea, QMessageBox, QGroupBox, QSizePolicy,
+    QGraphicsOpacityEffect
 )
-from PyQt6.QtCore import Qt
+from PyQt6.QtCore import Qt, QPropertyAnimation, QEasingCurve, QSequentialAnimationGroup, QParallelAnimationGroup
 from PyQt6.QtGui import QFont, QPixmap, QIcon
-from typing import Dict
+from typing import Dict, List
+from pathlib import Path
 
-from src.analyzer.main import CrossGuardAnalyzer
-from src.analyzer.database import reload_database
-from src.analyzer.database_updater import DatabaseUpdater
-from src.utils.config import CANIUSE_DIR
+# API Layer imports - Frontend only depends on API, not backend directly
+from src.api import get_analyzer_service, AnalysisResult
+
 from .file_selector import FileSelectorGroup
 from .export_manager import ExportManager
 from .styles import get_main_stylesheet
-from pathlib import Path
+from .widgets.score_card import ScoreCard
+from .widgets.browser_card import BrowserCard
+from .widgets.charts import CompatibilityBarChart
 
 
 class MainWindow(QMainWindow):
     """Main application window for Cross Guard."""
-    
+
     def __init__(self):
         super().__init__()
         self.current_report = None
         self.export_manager = ExportManager(self)
-        
+        # Use API service layer instead of direct backend access
+        self._analyzer_service = get_analyzer_service()
+
         self.init_ui()
         
     def init_ui(self):
@@ -110,7 +115,7 @@ class MainWindow(QMainWindow):
         top_bar.addWidget(export_label)
         
         # Export PDF button
-        export_pdf_btn = QPushButton("📄 PDF")
+        export_pdf_btn = QPushButton("PDF")
         export_pdf_btn.setObjectName("exportPdfButton")
         export_pdf_btn.setMinimumHeight(45)
         export_pdf_btn.setMinimumWidth(120)
@@ -118,7 +123,7 @@ class MainWindow(QMainWindow):
         top_bar.addWidget(export_pdf_btn)
         
         # Export JSON button
-        export_json_btn = QPushButton("💾 JSON")
+        export_json_btn = QPushButton("JSON")
         export_json_btn.setObjectName("exportJsonButton")
         export_json_btn.setMinimumHeight(45)
         export_json_btn.setMinimumWidth(120)
@@ -177,7 +182,7 @@ class MainWindow(QMainWindow):
         header_layout.addStretch()
         
         # Right side - Update Database button
-        update_db_btn = QPushButton("🔄 Update Database")
+        update_db_btn = QPushButton("Update Database")
         update_db_btn.setObjectName("updateDbButton")
         update_db_btn.setMinimumHeight(40)
         update_db_btn.setMinimumWidth(160)
@@ -290,7 +295,7 @@ class MainWindow(QMainWindow):
             self._run_analysis(html_files, css_files, js_files)
     
     def _run_analysis(self, html_files, css_files, js_files):
-        """Run the compatibility analysis."""
+        """Run the compatibility analysis using the API service."""
         try:
             # Show progress dialog
             progress = QProgressDialog("Analyzing files...", None, 0, 100, self)
@@ -298,43 +303,34 @@ class MainWindow(QMainWindow):
             progress.setWindowModality(Qt.WindowModality.WindowModal)
             progress.setMinimumDuration(0)
             progress.setValue(10)
-            
-            # Create analyzer
-            analyzer = CrossGuardAnalyzer()
-            progress.setValue(20)
-            
-            # Set target browsers
-            target_browsers = {
-                'chrome': '144',
-                'firefox': '146',
-                'safari': '18.4',
-                'edge': '144'
-            }
+
+            progress.setLabelText("Initializing analyzer...")
             progress.setValue(30)
-            
-            # Run analysis
-            report = analyzer.analyze_project(
+
+            # Use API service instead of direct backend access
+            result = self._analyzer_service.analyze_files(
                 html_files=html_files if html_files else None,
                 css_files=css_files if css_files else None,
                 js_files=js_files if js_files else None,
-                target_browsers=target_browsers
             )
             progress.setValue(90)
-            
+
             # Close progress dialog
             progress.setValue(100)
             progress.close()
-            
+
             # Show results
-            if report.get('success'):
+            if result.success:
+                # Convert AnalysisResult to dict for display and export
+                report = result.to_dict()
                 self._show_results(report)
             else:
                 QMessageBox.critical(
                     self,
                     "Analysis Failed",
-                    f"Analysis failed: {report.get('error', 'Unknown error')}"
+                    f"Analysis failed: {result.error or 'Unknown error'}"
                 )
-                
+
         except Exception as e:
             QMessageBox.critical(
                 self,
@@ -347,19 +343,39 @@ class MainWindow(QMainWindow):
     def _show_results(self, report: Dict):
         """Show analysis results in the results page."""
         self.current_report = report
-        
-        # Clear previous results
-        for i in reversed(range(self.results_layout.count())): 
+        self._clear_results()
+
+        # Build result sections
+        self._add_results_title()
+        self._add_summary_section(report.get('summary', {}))
+        self._add_score_section(report.get('scores', {}))
+        self._add_chart_section(report.get('browsers', {}))
+        self._add_browser_section(report.get('browsers', {}))
+        self._add_recommendations_section(report.get('recommendations', []))
+
+        self.results_layout.addStretch()
+
+        # Switch to results page with animation
+        self._switch_to_results_page()
+
+        # Print to console for debugging
+        print("\n" + "=" * 50)
+        print("FULL ANALYSIS REPORT:")
+        print("=" * 50)
+        import json
+        print(json.dumps(report, indent=2))
+
+    def _clear_results(self):
+        """Clear previous results from the layout."""
+        for i in reversed(range(self.results_layout.count())):
             item = self.results_layout.itemAt(i)
             if item.widget():
                 item.widget().setParent(None)
             else:
                 self.results_layout.removeItem(item)
-        
-        summary = report.get('summary', {})
-        scores = report.get('scores', {})
-        
-        # Title
+
+    def _add_results_title(self):
+        """Add the results title."""
         title = QLabel("Analysis Complete!")
         title_font = QFont()
         title_font.setPointSize(20)
@@ -367,249 +383,227 @@ class MainWindow(QMainWindow):
         title.setFont(title_font)
         title.setStyleSheet("color: #333; padding: 10px 0;")
         self.results_layout.addWidget(title)
-        
-        # Summary Section
-        summary_group = QGroupBox("📊 Summary")
+
+    def _add_summary_section(self, summary: Dict):
+        """Add the summary section."""
+        summary_group = QGroupBox("Summary")
         summary_group.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
         summary_layout = QVBoxLayout(summary_group)
         summary_layout.setSpacing(4)
         summary_layout.setContentsMargins(15, 12, 15, 12)
-        
-        total_label = QLabel(f"Total Features: {summary.get('total_features', 0)}")
-        total_label.setStyleSheet("font-size: 14px; font-weight: bold; color: #333;")
-        summary_layout.addWidget(total_label)
-        
-        html_label = QLabel(f"HTML Features: {summary.get('html_features', 0)}")
-        html_label.setStyleSheet("font-size: 13px; color: #555;")
-        summary_layout.addWidget(html_label)
-        
-        css_label = QLabel(f"CSS Features: {summary.get('css_features', 0)}")
-        css_label.setStyleSheet("font-size: 13px; color: #555;")
-        summary_layout.addWidget(css_label)
-        
-        js_label = QLabel(f"JS Features: {summary.get('js_features', 0)}")
-        js_label.setStyleSheet("font-size: 13px; color: #555;")
-        summary_layout.addWidget(js_label)
-        
-        critical_label = QLabel(f"Critical Issues: {summary.get('critical_issues', 0)}")
-        critical_label.setStyleSheet("font-size: 13px; color: #F44336; font-weight: bold;")
-        summary_layout.addWidget(critical_label)
-        
+
+        labels = [
+            (f"Total Features: {summary.get('total_features', 0)}", "font-size: 14px; font-weight: bold; color: #333;"),
+            (f"HTML Features: {summary.get('html_features', 0)}", "font-size: 13px; color: #555;"),
+            (f"CSS Features: {summary.get('css_features', 0)}", "font-size: 13px; color: #555;"),
+            (f"JS Features: {summary.get('js_features', 0)}", "font-size: 13px; color: #555;"),
+            (f"Critical Issues: {summary.get('critical_issues', 0)}", "font-size: 13px; color: #F44336; font-weight: bold;"),
+        ]
+
+        for text, style in labels:
+            label = QLabel(text)
+            label.setStyleSheet(style)
+            summary_layout.addWidget(label)
+
         self.results_layout.addWidget(summary_group)
-        
-        # Compatibility Score Section
-        score_group = QGroupBox("🎯 Compatibility Score")
+
+    def _add_score_section(self, scores: Dict):
+        """Add the compatibility score section with visual ScoreCard."""
+        score_group = QGroupBox("Compatibility Score")
         score_group.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
-        score_layout = QVBoxLayout(score_group)
-        score_layout.setSpacing(6)
+        score_layout = QHBoxLayout(score_group)
+        score_layout.setSpacing(20)
         score_layout.setContentsMargins(15, 12, 15, 12)
-        
-        grade_label = QLabel(f"Grade: {scores.get('grade', 'N/A')}")
-        grade_label.setStyleSheet("font-size: 32px; color: #2196F3; font-weight: bold;")
-        score_layout.addWidget(grade_label)
-        
+
+        # Visual score card
+        weighted_score = scores.get('weighted_score', 0)
+        grade = scores.get('grade', 'N/A')
+        score_card = ScoreCard(weighted_score, grade, "Weighted Score")
+        score_card.set_score(weighted_score, grade, animate=True)
+        score_layout.addWidget(score_card)
+
+        # Text details
+        details_widget = QWidget()
+        details_layout = QVBoxLayout(details_widget)
+        details_layout.setSpacing(8)
+        details_layout.setContentsMargins(0, 0, 0, 0)
+
         risk_label = QLabel(f"Risk Level: {scores.get('risk_level', 'N/A').upper()}")
-        risk_label.setStyleSheet("font-size: 14px; font-weight: bold; color: #333;")
-        score_layout.addWidget(risk_label)
-        
+        risk_label.setStyleSheet("font-size: 16px; font-weight: bold; color: #333;")
+        details_layout.addWidget(risk_label)
+
         simple_label = QLabel(f"Simple Score: {scores.get('simple_score', 0):.1f}%")
-        simple_label.setStyleSheet("font-size: 13px; color: #555;")
-        score_layout.addWidget(simple_label)
-        
+        simple_label.setStyleSheet("font-size: 14px; color: #555;")
+        details_layout.addWidget(simple_label)
+
         weighted_label = QLabel(f"Weighted Score: {scores.get('weighted_score', 0):.1f}%")
-        weighted_label.setStyleSheet("font-size: 13px; color: #555;")
-        score_layout.addWidget(weighted_label)
-        
+        weighted_label.setStyleSheet("font-size: 14px; color: #555;")
+        details_layout.addWidget(weighted_label)
+
+        details_layout.addStretch()
+        score_layout.addWidget(details_widget)
+        score_layout.addStretch()
+
         self.results_layout.addWidget(score_group)
-        
-        # Browser Compatibility Section
-        browser_group = QGroupBox("🌐 Browser Compatibility")
+
+    def _add_chart_section(self, browsers: Dict):
+        """Add the browser comparison chart."""
+        if not browsers:
+            return
+
+        chart_group = QGroupBox("Browser Comparison")
+        chart_group.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
+        chart_layout = QVBoxLayout(chart_group)
+        chart_layout.setContentsMargins(15, 12, 15, 12)
+
+        # Prepare data for chart
+        chart_data = {}
+        for browser_name, details in browsers.items():
+            chart_data[browser_name] = {
+                'supported': details.get('supported', 0),
+                'partial': details.get('partial', 0),
+                'unsupported': details.get('unsupported', 0),
+                'compatibility_percentage': details.get('compatibility_percentage', 0)
+            }
+
+        chart = CompatibilityBarChart()
+        chart.set_data(chart_data)
+        chart_layout.addWidget(chart)
+
+        self.results_layout.addWidget(chart_group)
+
+    def _add_browser_section(self, browsers: Dict):
+        """Add the browser compatibility section with enhanced cards."""
+        browser_group = QGroupBox("Browser Details")
         browser_group.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
         browser_layout = QVBoxLayout(browser_group)
         browser_layout.setSpacing(12)
         browser_layout.setContentsMargins(15, 12, 15, 12)
 
-        browsers = report.get('browsers', {})
         for browser_name, details in browsers.items():
-            compat_pct = details.get('compatibility_percentage', 0)
-            supported = details.get('supported', 0)
-            partial = details.get('partial', 0)
-            unsupported = details.get('unsupported', 0)
-
-            browser_card = QFrame()
-            browser_card.setObjectName("browserCard")
-            card_layout = QVBoxLayout(browser_card)
-            card_layout.setSpacing(4)
-            card_layout.setContentsMargins(10, 8, 10, 8)
-
-            # Browser header
-            browser_label = QLabel(f"{browser_name.upper()} {details.get('version', '')}")
-            browser_label.setStyleSheet("font-size: 15px; font-weight: bold; color: #333;")
-            card_layout.addWidget(browser_label)
-
-            # Stats in a horizontal layout
-            stats_widget = QWidget()
-            stats_h_layout = QHBoxLayout(stats_widget)
-            stats_h_layout.setContentsMargins(0, 0, 0, 0)
-            stats_h_layout.setSpacing(20)
-
-            supported_label = QLabel(f"✅ Supported: {supported}")
-            supported_label.setStyleSheet("color: #4CAF50; font-size: 13px; font-weight: bold;")
-            stats_h_layout.addWidget(supported_label)
-            
-            partial_label_widget = QLabel(f"⚠️ Partial: {partial}")
-            partial_label_widget.setStyleSheet("color: #FF9800; font-size: 13px; font-weight: bold;")
-            stats_h_layout.addWidget(partial_label_widget)
-            
-            unsupported_label = QLabel(f"❌ Unsupported: {unsupported}")
-            unsupported_label.setStyleSheet("color: #F44336; font-size: 13px; font-weight: bold;")
-            stats_h_layout.addWidget(unsupported_label)
-            
-            stats_h_layout.addStretch()
-            card_layout.addWidget(stats_widget)
-
-            # Compatibility percentage
-            compat_label = QLabel(f"Compatibility: {compat_pct:.1f}%")
-            compat_label.setStyleSheet("color: #2196F3; font-size: 14px; font-weight: bold;")
-            card_layout.addWidget(compat_label)
-
-            # Show unsupported features if any
-            if details.get('unsupported_features'):
-                unsup_label = QLabel(f"Not supported: {', '.join(details['unsupported_features'][:5])}")
-                unsup_label.setStyleSheet("color: #d32f2f; font-size: 12px;")
-                unsup_label.setWordWrap(True)
-                card_layout.addWidget(unsup_label)
-
-            # Show partial support features if any
-            if details.get('partial_features'):
-                partial_feat_label = QLabel(f"Partial support: {', '.join(details['partial_features'][:5])}")
-                partial_feat_label.setStyleSheet("color: #f57c00; font-size: 12px;")
-                partial_feat_label.setWordWrap(True)
-                card_layout.addWidget(partial_feat_label)
-
-            browser_layout.addWidget(browser_card)
+            card = BrowserCard(
+                browser_name=browser_name,
+                version=details.get('version', ''),
+                supported=details.get('supported', 0),
+                partial=details.get('partial', 0),
+                unsupported=details.get('unsupported', 0),
+                compatibility_pct=details.get('compatibility_percentage', 0),
+                unsupported_features=details.get('unsupported_features', []),
+                partial_features=details.get('partial_features', [])
+            )
+            browser_layout.addWidget(card)
 
         self.results_layout.addWidget(browser_group)
 
-        # Recommendations Section
-        rec_group = QGroupBox("📝 Recommendations")
+    def _add_recommendations_section(self, recommendations: List[str]):
+        """Add the recommendations section."""
+        rec_group = QGroupBox("Recommendations")
         rec_group.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Minimum)
         rec_layout = QVBoxLayout(rec_group)
         rec_layout.setSpacing(6)
         rec_layout.setContentsMargins(15, 12, 15, 12)
-        
-        recommendations = report.get('recommendations', [])
+
         if recommendations:
             for i, rec in enumerate(recommendations, 1):
                 rec_label = QLabel(f"{i}. {rec}")
                 rec_label.setWordWrap(True)
-                rec_label.setStyleSheet("font-size: 13px; color: #555; background-color: #f9f9f9; border-radius: 5px; padding: 8px;")
+                rec_label.setStyleSheet(
+                    "font-size: 13px; color: #555; background-color: #f9f9f9; "
+                    "border-radius: 5px; padding: 8px;"
+                )
                 rec_layout.addWidget(rec_label)
         else:
-            rec_label = QLabel("✅ No issues found! Your code is well-supported.")
+            rec_label = QLabel("No issues found! Your code is well-supported.")
             rec_label.setStyleSheet("color: #4CAF50; font-weight: bold; font-size: 14px;")
             rec_layout.addWidget(rec_label)
-        
+
         self.results_layout.addWidget(rec_group)
-        
-        self.results_layout.addStretch()
-        
-        # Switch to results page
+
+    def _switch_to_results_page(self):
+        """Switch to results page with fade animation."""
+        # Get the results page widget
+        results_page = self.stacked_widget.widget(1)
+
+        # Create opacity effect
+        opacity_effect = QGraphicsOpacityEffect(results_page)
+        results_page.setGraphicsEffect(opacity_effect)
+        opacity_effect.setOpacity(0)
+
+        # Switch page
         self.stacked_widget.setCurrentIndex(1)
-        
-        # Print to console for debugging
-        print("\n" + "="*50)
-        print("FULL ANALYSIS REPORT:")
-        print("="*50)
-        import json
-        print(json.dumps(report, indent=2))
+
+        # Animate fade in
+        self._fade_animation = QPropertyAnimation(opacity_effect, b"opacity")
+        self._fade_animation.setDuration(300)
+        self._fade_animation.setStartValue(0.0)
+        self._fade_animation.setEndValue(1.0)
+        self._fade_animation.setEasingCurve(QEasingCurve.Type.OutCubic)
+        self._fade_animation.finished.connect(lambda: results_page.setGraphicsEffect(None))
+        self._fade_animation.start()
     
     def _update_database(self):
-        """Update the Can I Use database."""
+        """Update the Can I Use database using the API service."""
         try:
-            from datetime import datetime
-            
-            # Create updater
-            updater = DatabaseUpdater(Path(CANIUSE_DIR))
-            
-            # Get current database info
-            info = updater.get_database_info()
-            
-            # Format last updated date
-            last_updated = info.get('last_updated', 'Unknown')
-            if last_updated != 'Unknown' and isinstance(last_updated, (int, float)):
-                # Convert Unix timestamp to readable date
-                last_updated = datetime.fromtimestamp(last_updated).strftime('%Y-%m-%d %H:%M')
-            
+            # Get current database info via API
+            db_info = self._analyzer_service.get_database_info()
+
             # Confirm update
             confirm_msg = f"Current database:\n"
-            confirm_msg += f"• Features: {info.get('features_count', 'Unknown')}\n"
-            confirm_msg += f"• Last updated: {last_updated}\n"
-            confirm_msg += f"• Git repository: {'Yes' if info.get('is_git_repo') else 'No'}\n\n"
+            confirm_msg += f"• Features: {db_info.features_count}\n"
+            confirm_msg += f"• Last updated: {db_info.last_updated}\n"
+            confirm_msg += f"• Git repository: {'Yes' if db_info.is_git_repo else 'No'}\n\n"
             confirm_msg += "Update to the latest version?"
-            
+
             reply = QMessageBox.question(
                 self,
                 "Update Database",
                 confirm_msg,
                 QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
             )
-            
+
             if reply != QMessageBox.StandardButton.Yes:
                 return
-            
+
             # Show progress dialog
             progress = QProgressDialog("Updating database...", None, 0, 100, self)
             progress.setWindowTitle("Database Update")
             progress.setWindowModality(Qt.WindowModality.WindowModal)
             progress.setMinimumDuration(0)
             progress.setValue(0)
-            
+
             # Progress callback
             def update_progress(message: str, percentage: int):
                 progress.setLabelText(message)
                 progress.setValue(percentage)
-            
-            # Run update
-            result = updater.update_database(update_progress)
-            
+
+            # Run update via API service
+            result = self._analyzer_service.update_database(update_progress)
+
             # Close progress
             progress.setValue(100)
             progress.close()
-            
+
             # Show result
-            if result.get('success'):
-                if result.get('no_changes'):
+            if result.success:
+                if result.no_changes:
                     QMessageBox.information(
                         self,
                         "Database Up to Date",
-                        result.get('message', 'Database is already up to date')
+                        result.message or 'Database is already up to date'
                     )
                 else:
-                    # Reload database
-                    reload_progress = QProgressDialog("Reloading database...", None, 0, 100, self)
-                    reload_progress.setWindowTitle("Reloading")
-                    reload_progress.setWindowModality(Qt.WindowModality.WindowModal)
-                    reload_progress.setMinimumDuration(0)
-                    reload_progress.setValue(50)
-                    
-                    reload_database()
-                    
-                    reload_progress.setValue(100)
-                    reload_progress.close()
-                    
                     QMessageBox.information(
                         self,
                         "Update Successful",
-                        result.get('message', 'Database updated successfully!')
+                        result.message or 'Database updated successfully!'
                     )
             else:
                 QMessageBox.critical(
                     self,
                     "Update Failed",
-                    f"{result.get('message', 'Unknown error')}\n\n{result.get('error', '')}"
+                    f"{result.message or 'Unknown error'}\n\n{result.error or ''}"
                 )
-                
+
         except Exception as e:
             QMessageBox.critical(
                 self,
