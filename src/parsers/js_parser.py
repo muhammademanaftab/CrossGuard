@@ -9,6 +9,7 @@ from pathlib import Path
 import re
 
 from .js_feature_maps import ALL_JS_FEATURES
+from .custom_rules_loader import get_custom_js_rules
 from ..utils.config import get_logger
 
 # Module logger
@@ -22,6 +23,8 @@ class JavaScriptParser:
         """Initialize the JavaScript parser."""
         self.features_found = set()
         self.feature_details = []
+        # Merge built-in rules with custom rules
+        self._all_features = {**ALL_JS_FEATURES, **get_custom_js_rules()}
         
     def parse_file(self, filepath: str) -> Set[str]:
         """Parse a JavaScript file and extract features.
@@ -96,8 +99,8 @@ class JavaScriptParser:
         Args:
             js_content: JavaScript code (without comments)
         """
-        # Check each feature
-        for feature_id, feature_info in ALL_JS_FEATURES.items():
+        # Check each feature (includes both built-in and custom rules)
+        for feature_id, feature_info in self._all_features.items():
             patterns = feature_info.get('patterns', [])
             
             # Check if any pattern matches
