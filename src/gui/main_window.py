@@ -38,6 +38,11 @@ class MainWindow(ctk.CTkFrame):
         self._analyzer_service = get_analyzer_service()
         self._current_page = None
 
+        # Store last analyzed files for re-checking
+        self._last_html_files: List[str] = []
+        self._last_css_files: List[str] = []
+        self._last_js_files: List[str] = []
+
         # Build the upload page directly (simplest approach)
         self._build_upload_page()
 
@@ -234,6 +239,19 @@ class MainWindow(ctk.CTkFrame):
             command=self._build_upload_page,
         )
         back_btn.pack(side="left")
+
+        # Re-check button
+        recheck_btn = ctk.CTkButton(
+            bar_inner,
+            text="🔄 Re-check Files",
+            font=ctk.CTkFont(size=14, weight="bold"),
+            width=160,
+            height=45,
+            fg_color=COLORS['primary'],
+            hover_color=COLORS['primary_dark'],
+            command=self._recheck_files,
+        )
+        recheck_btn.pack(side="left", padx=(15, 0))
 
         # Export buttons
         export_frame = ctk.CTkFrame(bar_inner, fg_color="transparent")
@@ -482,6 +500,11 @@ class MainWindow(ctk.CTkFrame):
 
     def _run_analysis(self, html_files, css_files, js_files):
         """Run the analysis."""
+        # Store for re-check feature
+        self._last_html_files = list(html_files) if html_files else []
+        self._last_css_files = list(css_files) if css_files else []
+        self._last_js_files = list(js_files) if js_files else []
+
         try:
             progress = ProgressDialog(self.master, "Analyzing", "Starting...")
             progress.set_progress(10)
@@ -507,6 +530,37 @@ class MainWindow(ctk.CTkFrame):
             show_error(self.master, "Error", str(e))
             import traceback
             traceback.print_exc()
+
+    def _recheck_files(self):
+        """Re-analyze the previously selected files."""
+        if not self._last_html_files and not self._last_css_files and not self._last_js_files:
+            show_warning(self.master, "Warning", "No files to re-check.")
+            return
+
+        # Verify files still exist
+        missing = self._check_files_exist()
+        if missing:
+            missing_list = "\n".join(missing[:5])  # Show first 5
+            if len(missing) > 5:
+                missing_list += f"\n... and {len(missing) - 5} more"
+            show_warning(self.master, "Missing Files", f"Some files no longer exist:\n{missing_list}")
+            return
+
+        # Run analysis with stored paths
+        self._run_analysis(
+            self._last_html_files,
+            self._last_css_files,
+            self._last_js_files
+        )
+
+    def _check_files_exist(self) -> List[str]:
+        """Check if stored files still exist, return list of missing files."""
+        missing = []
+        all_files = self._last_html_files + self._last_css_files + self._last_js_files
+        for f in all_files:
+            if not Path(f).exists():
+                missing.append(f)
+        return missing
 
     def _update_database(self):
         """Update the Can I Use database."""
