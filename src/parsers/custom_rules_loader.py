@@ -162,3 +162,78 @@ def get_custom_html_rules() -> Dict[str, Any]:
 def reload_custom_rules():
     """Reload custom rules from file."""
     get_custom_rules_loader().reload()
+
+
+def is_user_rule(category: str, feature_id: str, subtype: str = None) -> bool:
+    """Check if a rule is user-added (vs built-in).
+
+    Args:
+        category: Rule category ('css', 'javascript', 'html')
+        feature_id: The feature ID to check
+        subtype: For HTML rules, the subtype ('elements', 'attributes', etc.)
+
+    Returns:
+        True if the rule is user-added, False if built-in
+    """
+    loader = get_custom_rules_loader()
+
+    if category == 'css':
+        return feature_id in loader._css_rules
+    elif category == 'javascript':
+        return feature_id in loader._js_rules
+    elif category == 'html':
+        if subtype:
+            return feature_id in loader._html_rules.get(subtype, {})
+        else:
+            # Check all HTML subtypes
+            for subcat in ['elements', 'attributes', 'input_types', 'attribute_values']:
+                if feature_id in loader._html_rules.get(subcat, {}):
+                    return True
+            return False
+    return False
+
+
+def save_custom_rules(rules_data: dict) -> bool:
+    """Save custom rules to JSON file.
+
+    Args:
+        rules_data: The rules data dictionary to save
+
+    Returns:
+        True if save was successful, False otherwise
+    """
+    try:
+        with open(CUSTOM_RULES_PATH, 'w', encoding='utf-8') as f:
+            json.dump(rules_data, f, indent=2)
+
+        # Reload after saving
+        reload_custom_rules()
+        return True
+    except Exception as e:
+        logger.error(f"Error saving custom rules: {e}")
+        return False
+
+
+def load_raw_custom_rules() -> dict:
+    """Load raw custom rules data from JSON file.
+
+    Returns:
+        Dictionary containing the raw custom rules data
+    """
+    try:
+        if CUSTOM_RULES_PATH.exists():
+            with open(CUSTOM_RULES_PATH, 'r', encoding='utf-8') as f:
+                return json.load(f)
+    except Exception as e:
+        logger.error(f"Error loading raw custom rules: {e}")
+
+    return {
+        "css": {},
+        "javascript": {},
+        "html": {
+            "elements": {},
+            "attributes": {},
+            "input_types": {},
+            "attribute_values": {}
+        }
+    }
