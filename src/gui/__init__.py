@@ -1,5 +1,5 @@
 """
-Cross Guard Frontend - PyQt6 GUI Application.
+Cross Guard Frontend - CustomTkinter GUI Application.
 
 This package contains the graphical user interface for Cross Guard.
 It communicates with the backend ONLY through the API layer (src.api).
@@ -13,8 +13,6 @@ Usage:
 
     # Or directly use the MainWindow
     from src.gui import MainWindow
-    window = MainWindow()
-    window.show()
 """
 
 from .main_window import MainWindow

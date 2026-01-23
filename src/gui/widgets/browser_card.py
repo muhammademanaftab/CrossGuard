@@ -1,32 +1,65 @@
 """
 BrowserCard widget for displaying browser compatibility with visual bar chart.
+Canvas-based implementation for CustomTkinter.
 """
 
-from PyQt6.QtWidgets import (
-    QFrame, QVBoxLayout, QHBoxLayout, QLabel,
-    QPushButton, QWidget, QSizePolicy
-)
-from PyQt6.QtCore import Qt, QPropertyAnimation, QEasingCurve, pyqtProperty, QRectF
-from PyQt6.QtGui import QPainter, QColor, QFont
 from typing import List, Optional
 
+import customtkinter as ctk
 
-class StackedBarWidget(QWidget):
-    """Horizontal stacked bar showing support breakdown."""
+from ..theme import COLORS, get_score_color, ANIMATION
 
-    def __init__(self, parent=None):
-        super().__init__(parent)
+
+class StackedBarWidget(ctk.CTkCanvas):
+    """Canvas-based horizontal stacked bar showing support breakdown."""
+
+    def __init__(
+        self,
+        master,
+        height: int = 20,
+        **kwargs
+    ):
+        """Initialize the stacked bar widget.
+
+        Args:
+            master: Parent widget
+            height: Height of the bar
+            **kwargs: Additional arguments passed to CTkCanvas
+        """
+        super().__init__(
+            master,
+            height=height,
+            bg=COLORS['bg_medium'],
+            highlightthickness=0,
+            **kwargs
+        )
+
+        self._height = height
         self._supported = 0
         self._partial = 0
         self._unsupported = 0
         self._total = 0
         self._animation_progress = 0.0
-        self._animation = None
-        self.setMinimumHeight(20)
-        self.setMaximumHeight(20)
+        self._animation_id = None
 
-    def set_values(self, supported: int, partial: int, unsupported: int, animate: bool = True):
-        """Set the bar values."""
+        # Bind resize event
+        self.bind("<Configure>", self._on_resize)
+
+    def set_values(
+        self,
+        supported: int,
+        partial: int,
+        unsupported: int,
+        animate: bool = True
+    ):
+        """Set the bar values.
+
+        Args:
+            supported: Number of supported features
+            partial: Number of partially supported features
+            unsupported: Number of unsupported features
+            animate: Whether to animate the fill
+        """
         self._supported = supported
         self._partial = partial
         self._unsupported = unsupported
@@ -36,43 +69,27 @@ class StackedBarWidget(QWidget):
             self._animate_fill()
         else:
             self._animation_progress = 1.0
-            self.update()
+            self._draw()
 
-    def get_animation_progress(self) -> float:
-        return self._animation_progress
+    def _on_resize(self, event):
+        """Handle resize event."""
+        self._draw()
 
-    def set_animation_progress(self, value: float):
-        self._animation_progress = value
-        self.update()
+    def _draw(self):
+        """Draw the stacked bar."""
+        self.delete("all")
 
-    animation_progress = pyqtProperty(float, get_animation_progress, set_animation_progress)
-
-    def _animate_fill(self):
-        """Animate the bar filling."""
-        if self._animation:
-            self._animation.stop()
-
-        self._animation_progress = 0.0
-        self._animation = QPropertyAnimation(self, b"animation_progress")
-        self._animation.setDuration(600)
-        self._animation.setStartValue(0.0)
-        self._animation.setEndValue(1.0)
-        self._animation.setEasingCurve(QEasingCurve.Type.OutCubic)
-        self._animation.start()
-
-    def paintEvent(self, event):
-        """Paint the stacked bar."""
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
-
-        width = self.width()
-        height = self.height()
+        width = self.winfo_width()
+        height = self._height
         radius = 4
 
         # Draw background
-        painter.setBrush(QColor("#e0e0e0"))
-        painter.setPen(Qt.PenStyle.NoPen)
-        painter.drawRoundedRect(0, 0, width, height, radius, radius)
+        self.create_rectangle(
+            0, 0, width, height,
+            fill=COLORS['bg_light'],
+            outline="",
+            tags="background"
+        )
 
         if self._total == 0:
             return
@@ -87,43 +104,86 @@ class StackedBarWidget(QWidget):
 
         # Draw supported (green)
         if supported_width > 0:
-            painter.setBrush(QColor("#4CAF50"))
-            rect = QRectF(x, 0, supported_width, height)
-            if x == 0:
-                painter.drawRoundedRect(rect, radius, radius)
-            else:
-                painter.drawRect(rect)
+            self.create_rectangle(
+                x, 0, x + supported_width, height,
+                fill=COLORS['success'],
+                outline="",
+                tags="supported"
+            )
             x += supported_width
 
         # Draw partial (orange)
         if partial_width > 0:
-            painter.setBrush(QColor("#FF9800"))
-            painter.drawRect(QRectF(x, 0, partial_width, height))
+            self.create_rectangle(
+                x, 0, x + partial_width, height,
+                fill=COLORS['warning'],
+                outline="",
+                tags="partial"
+            )
             x += partial_width
 
         # Draw unsupported (red)
         if unsupported_width > 0:
-            painter.setBrush(QColor("#F44336"))
-            rect = QRectF(x, 0, unsupported_width, height)
-            if x + unsupported_width >= animated_width - 1:
-                painter.drawRoundedRect(rect, radius, radius)
-            else:
-                painter.drawRect(rect)
+            self.create_rectangle(
+                x, 0, x + unsupported_width, height,
+                fill=COLORS['danger'],
+                outline="",
+                tags="unsupported"
+            )
 
-
-class BrowserCard(QFrame):
-    """Card displaying browser compatibility with mini bar chart."""
-
-    def __init__(self, browser_name: str, version: str,
-                 supported: int, partial: int, unsupported: int,
-                 compatibility_pct: float,
-                 unsupported_features: Optional[List[str]] = None,
-                 partial_features: Optional[List[str]] = None,
-                 parent=None):
-        """
-        Initialize the browser card.
+    def _animate_fill(self, duration: int = None):
+        """Animate the bar filling.
 
         Args:
+            duration: Animation duration in milliseconds
+        """
+        if duration is None:
+            duration = ANIMATION['normal']
+
+        # Cancel any existing animation
+        if self._animation_id:
+            self.after_cancel(self._animation_id)
+
+        self._animation_progress = 0.0
+        steps = max(1, duration // 16)  # ~60fps
+
+        def animate_step(step: int):
+            if step >= steps:
+                self._animation_progress = 1.0
+                self._draw()
+                self._animation_id = None
+                return
+
+            # Ease out cubic
+            t = step / steps
+            self._animation_progress = 1 - pow(1 - t, 3)
+            self._draw()
+
+            self._animation_id = self.after(16, lambda: animate_step(step + 1))
+
+        animate_step(0)
+
+
+class BrowserCard(ctk.CTkFrame):
+    """Card displaying browser compatibility with mini bar chart."""
+
+    def __init__(
+        self,
+        master,
+        browser_name: str,
+        version: str,
+        supported: int,
+        partial: int,
+        unsupported: int,
+        compatibility_pct: float,
+        unsupported_features: Optional[List[str]] = None,
+        partial_features: Optional[List[str]] = None,
+        **kwargs
+    ):
+        """Initialize the browser card.
+
+        Args:
+            master: Parent widget
             browser_name: Name of the browser
             version: Browser version
             supported: Number of supported features
@@ -132,9 +192,15 @@ class BrowserCard(QFrame):
             compatibility_pct: Compatibility percentage
             unsupported_features: List of unsupported feature names
             partial_features: List of partially supported feature names
-            parent: Parent widget
+            **kwargs: Additional arguments passed to CTkFrame
         """
-        super().__init__(parent)
+        super().__init__(
+            master,
+            fg_color=COLORS['bg_medium'],
+            corner_radius=8,
+            **kwargs
+        )
+
         self.browser_name = browser_name
         self.version = version
         self.supported = supported
@@ -144,128 +210,160 @@ class BrowserCard(QFrame):
         self.unsupported_features = unsupported_features or []
         self.partial_features = partial_features or []
         self._details_visible = False
+
         self._init_ui()
 
     def _init_ui(self):
         """Initialize the user interface."""
-        self.setObjectName("enhancedBrowserCard")
-        self.setStyleSheet("""
-            QFrame#enhancedBrowserCard {
-                background-color: #ffffff;
-                border: 1px solid #e0e0e0;
-                border-radius: 8px;
-            }
-            QFrame#enhancedBrowserCard:hover {
-                border-color: #2196F3;
-            }
-        """)
-
-        layout = QVBoxLayout(self)
-        layout.setSpacing(8)
-        layout.setContentsMargins(12, 10, 12, 10)
+        # Configure hover effect
+        self.bind("<Enter>", self._on_hover_enter)
+        self.bind("<Leave>", self._on_hover_leave)
 
         # Header row
-        header = QHBoxLayout()
+        header_frame = ctk.CTkFrame(self, fg_color="transparent")
+        header_frame.pack(fill="x", padx=12, pady=(10, 8))
 
         # Browser name and version
-        name_label = QLabel(f"{self.browser_name.upper()} {self.version}")
-        name_label.setStyleSheet("font-size: 14px; font-weight: bold; color: #333;")
-        header.addWidget(name_label)
-
-        header.addStretch()
+        name_label = ctk.CTkLabel(
+            header_frame,
+            text=f"{self.browser_name.upper()} {self.version}",
+            font=ctk.CTkFont(size=14, weight="bold"),
+            text_color=COLORS['text_primary'],
+        )
+        name_label.pack(side="left")
 
         # Compatibility percentage
-        pct_label = QLabel(f"{self.compatibility_pct:.1f}%")
-        color = self._get_color_for_score(self.compatibility_pct)
-        pct_label.setStyleSheet(f"font-size: 16px; font-weight: bold; color: {color};")
-        header.addWidget(pct_label)
-
-        layout.addLayout(header)
+        color = get_score_color(self.compatibility_pct)
+        pct_label = ctk.CTkLabel(
+            header_frame,
+            text=f"{self.compatibility_pct:.1f}%",
+            font=ctk.CTkFont(size=16, weight="bold"),
+            text_color=color,
+        )
+        pct_label.pack(side="right")
 
         # Stacked bar chart
-        self.bar_widget = StackedBarWidget()
+        bar_frame = ctk.CTkFrame(self, fg_color="transparent")
+        bar_frame.pack(fill="x", padx=12, pady=(0, 8))
+
+        self.bar_widget = StackedBarWidget(bar_frame, height=16)
+        self.bar_widget.pack(fill="x", expand=True)
         self.bar_widget.set_values(self.supported, self.partial, self.unsupported)
-        layout.addWidget(self.bar_widget)
 
         # Stats row
-        stats = QHBoxLayout()
-        stats.setSpacing(16)
+        stats_frame = ctk.CTkFrame(self, fg_color="transparent")
+        stats_frame.pack(fill="x", padx=12, pady=(0, 10))
 
-        supported_label = QLabel(f"Supported: {self.supported}")
-        supported_label.setStyleSheet("font-size: 12px; color: #4CAF50; font-weight: bold;")
-        stats.addWidget(supported_label)
+        # Supported count
+        supported_label = ctk.CTkLabel(
+            stats_frame,
+            text=f"Supported: {self.supported}",
+            font=ctk.CTkFont(size=12, weight="bold"),
+            text_color=COLORS['success'],
+        )
+        supported_label.pack(side="left", padx=(0, 16))
 
-        partial_label = QLabel(f"Partial: {self.partial}")
-        partial_label.setStyleSheet("font-size: 12px; color: #FF9800; font-weight: bold;")
-        stats.addWidget(partial_label)
+        # Partial count
+        partial_label = ctk.CTkLabel(
+            stats_frame,
+            text=f"Partial: {self.partial}",
+            font=ctk.CTkFont(size=12, weight="bold"),
+            text_color=COLORS['warning'],
+        )
+        partial_label.pack(side="left", padx=(0, 16))
 
-        unsupported_label = QLabel(f"Unsupported: {self.unsupported}")
-        unsupported_label.setStyleSheet("font-size: 12px; color: #F44336; font-weight: bold;")
-        stats.addWidget(unsupported_label)
-
-        stats.addStretch()
+        # Unsupported count
+        unsupported_label = ctk.CTkLabel(
+            stats_frame,
+            text=f"Unsupported: {self.unsupported}",
+            font=ctk.CTkFont(size=12, weight="bold"),
+            text_color=COLORS['danger'],
+        )
+        unsupported_label.pack(side="left")
 
         # Toggle details button (only if there are issues)
         if self.unsupported_features or self.partial_features:
-            self.toggle_btn = QPushButton("Show Details")
-            self.toggle_btn.setStyleSheet("""
-                QPushButton {
-                    background-color: transparent;
-                    border: 1px solid #ddd;
-                    border-radius: 4px;
-                    padding: 4px 8px;
-                    font-size: 11px;
-                    color: #666;
-                }
-                QPushButton:hover {
-                    background-color: #f5f5f5;
-                    border-color: #2196F3;
-                    color: #2196F3;
-                }
-            """)
-            self.toggle_btn.clicked.connect(self._toggle_details)
-            stats.addWidget(self.toggle_btn)
-
-        layout.addLayout(stats)
+            self.toggle_btn = ctk.CTkButton(
+                stats_frame,
+                text="Show Details",
+                font=ctk.CTkFont(size=11),
+                width=100,
+                height=28,
+                fg_color="transparent",
+                border_width=1,
+                border_color=COLORS['border'],
+                text_color=COLORS['text_muted'],
+                hover_color=COLORS['hover_bg'],
+                command=self._toggle_details,
+            )
+            self.toggle_btn.pack(side="right")
 
         # Details section (hidden by default)
-        self.details_widget = QWidget()
-        self.details_widget.setVisible(False)
-        details_layout = QVBoxLayout(self.details_widget)
-        details_layout.setContentsMargins(0, 8, 0, 0)
-        details_layout.setSpacing(4)
+        self.details_frame = ctk.CTkFrame(
+            self,
+            fg_color="transparent",
+        )
+        # Don't pack initially - hidden
 
         if self.unsupported_features:
-            unsup_text = QLabel(f"Not supported: {', '.join(self.unsupported_features[:8])}")
+            features_text = ', '.join(self.unsupported_features[:8])
             if len(self.unsupported_features) > 8:
-                unsup_text.setText(unsup_text.text() + f" (+{len(self.unsupported_features) - 8} more)")
-            unsup_text.setWordWrap(True)
-            unsup_text.setStyleSheet("font-size: 11px; color: #d32f2f; background-color: #ffebee; padding: 6px; border-radius: 4px;")
-            details_layout.addWidget(unsup_text)
+                features_text += f" (+{len(self.unsupported_features) - 8} more)"
+
+            unsup_frame = ctk.CTkFrame(
+                self.details_frame,
+                fg_color="#3d2020",  # Dark red background
+                corner_radius=4,
+            )
+            unsup_frame.pack(fill="x", padx=12, pady=(0, 4))
+
+            unsup_label = ctk.CTkLabel(
+                unsup_frame,
+                text=f"Not supported: {features_text}",
+                font=ctk.CTkFont(size=11),
+                text_color="#ff8080",
+                wraplength=500,
+                justify="left",
+            )
+            unsup_label.pack(padx=8, pady=6, anchor="w")
 
         if self.partial_features:
-            part_text = QLabel(f"Partial support: {', '.join(self.partial_features[:8])}")
+            features_text = ', '.join(self.partial_features[:8])
             if len(self.partial_features) > 8:
-                part_text.setText(part_text.text() + f" (+{len(self.partial_features) - 8} more)")
-            part_text.setWordWrap(True)
-            part_text.setStyleSheet("font-size: 11px; color: #e65100; background-color: #fff3e0; padding: 6px; border-radius: 4px;")
-            details_layout.addWidget(part_text)
+                features_text += f" (+{len(self.partial_features) - 8} more)"
 
-        layout.addWidget(self.details_widget)
+            part_frame = ctk.CTkFrame(
+                self.details_frame,
+                fg_color="#3d3020",  # Dark orange background
+                corner_radius=4,
+            )
+            part_frame.pack(fill="x", padx=12, pady=(0, 4))
 
-    def _get_color_for_score(self, score: float) -> str:
-        """Get color hex based on score."""
-        if score >= 90:
-            return "#4CAF50"
-        elif score >= 70:
-            return "#8BC34A"
-        elif score >= 50:
-            return "#FF9800"
-        else:
-            return "#F44336"
+            part_label = ctk.CTkLabel(
+                part_frame,
+                text=f"Partial support: {features_text}",
+                font=ctk.CTkFont(size=11),
+                text_color="#ffb366",
+                wraplength=500,
+                justify="left",
+            )
+            part_label.pack(padx=8, pady=6, anchor="w")
+
+    def _on_hover_enter(self, event):
+        """Handle mouse enter - highlight border."""
+        self.configure(border_width=1, border_color=COLORS['primary'])
+
+    def _on_hover_leave(self, event):
+        """Handle mouse leave - remove border highlight."""
+        self.configure(border_width=0)
 
     def _toggle_details(self):
         """Toggle the details section visibility."""
         self._details_visible = not self._details_visible
-        self.details_widget.setVisible(self._details_visible)
-        self.toggle_btn.setText("Hide Details" if self._details_visible else "Show Details")
+
+        if self._details_visible:
+            self.details_frame.pack(fill="x", pady=(0, 10))
+            self.toggle_btn.configure(text="Hide Details")
+        else:
+            self.details_frame.pack_forget()
+            self.toggle_btn.configure(text="Show Details")
