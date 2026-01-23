@@ -1,0 +1,19 @@
+/* Test file for custom rule detection */
+
+.card-container {
+  container-type: inline-size;
+  container-name: card;
+}
+
+@container card (min-width: 400px) {
+  .card {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@container (min-width: 700px) {
+  .card {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}

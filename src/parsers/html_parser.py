@@ -16,6 +16,7 @@ from .html_feature_maps import (
     HTML_ATTRIBUTE_VALUES,
     ALL_HTML_FEATURES
 )
+from .custom_rules_loader import get_custom_html_rules
 from ..utils.config import get_logger
 
 # Module logger
@@ -30,6 +31,19 @@ class HTMLParser:
         self.features_found = set()
         self.elements_found = []
         self.attributes_found = []
+        
+        # Merge built-in rules with custom rules
+        custom_html = get_custom_html_rules()
+        self._elements = {**HTML_ELEMENTS, **custom_html.get('elements', {})}
+        self._input_types = {**HTML_INPUT_TYPES, **custom_html.get('input_types', {})}
+        self._attributes = {**HTML_ATTRIBUTES, **custom_html.get('attributes', {})}
+        # Parse attribute_values from "attr:value" format to tuple format
+        custom_attr_values = {}
+        for key, value in custom_html.get('attribute_values', {}).items():
+            if ':' in key:
+                attr, val = key.split(':', 1)
+                custom_attr_values[(attr, val)] = value
+        self._attribute_values = {**HTML_ATTRIBUTE_VALUES, **custom_attr_values}
         
     def parse_file(self, filepath: str) -> Set[str]:
         """Parse an HTML file and extract features.
@@ -92,7 +106,7 @@ class HTMLParser:
         Args:
             soup: BeautifulSoup parsed HTML
         """
-        for element_name, feature_id in HTML_ELEMENTS.items():
+        for element_name, feature_id in self._elements.items():
             elements = soup.find_all(element_name)
             
             if elements:
@@ -115,8 +129,8 @@ class HTMLParser:
         for input_elem in inputs:
             input_type = input_elem.get('type', '').lower()
             
-            if input_type in HTML_INPUT_TYPES:
-                feature_id = HTML_INPUT_TYPES[input_type]
+            if input_type in self._input_types:
+                feature_id = self._input_types[input_type]
                 self.features_found.add(feature_id)
                 self.elements_found.append({
                     'element': f'input[type="{input_type}"]',
@@ -135,8 +149,8 @@ class HTMLParser:
         
         for element in all_elements:
             for attr_name in element.attrs:
-                if attr_name in HTML_ATTRIBUTES:
-                    feature_id = HTML_ATTRIBUTES[attr_name]
+                if attr_name in self._attributes:
+                    feature_id = self._attributes[attr_name]
                     self.features_found.add(feature_id)
                     self.attributes_found.append({
                         'attribute': attr_name,
@@ -160,8 +174,8 @@ class HTMLParser:
                 for value in values:
                     key = (attr_name, value.lower() if isinstance(value, str) else value)
                     
-                    if key in HTML_ATTRIBUTE_VALUES:
-                        feature_id = HTML_ATTRIBUTE_VALUES[key]
+                    if key in self._attribute_values:
+                        feature_id = self._attribute_values[key]
                         self.features_found.add(feature_id)
                         self.attributes_found.append({
                             'attribute': f'{attr_name}="{value}"',

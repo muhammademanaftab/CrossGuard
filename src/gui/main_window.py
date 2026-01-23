@@ -22,6 +22,7 @@ from .widgets.charts import CompatibilityBarChart
 from .widgets.messagebox import (
     show_info, show_warning, show_error, ask_question, ProgressDialog
 )
+from .widgets.rules_manager import show_rules_manager
 
 
 class MainWindow(ctk.CTkFrame):
@@ -106,9 +107,26 @@ class MainWindow(ctk.CTkFrame):
         )
         title_label.pack(side="left")
 
+        # Buttons frame (right side)
+        buttons_frame = ctk.CTkFrame(header_inner, fg_color="transparent")
+        buttons_frame.pack(side="right")
+
+        # Custom Rules button
+        rules_btn = ctk.CTkButton(
+            buttons_frame,
+            text="⚙ Custom Rules",
+            font=ctk.CTkFont(size=13, weight="bold"),
+            width=140,
+            height=40,
+            fg_color=COLORS['bg_light'],
+            hover_color=COLORS['hover_bg'],
+            command=self._open_rules_manager,
+        )
+        rules_btn.pack(side="left", padx=(0, 10))
+
         # Update Database button
         update_btn = ctk.CTkButton(
-            header_inner,
+            buttons_frame,
             text="Update Database",
             font=ctk.CTkFont(size=13, weight="bold"),
             width=160,
@@ -117,7 +135,7 @@ class MainWindow(ctk.CTkFrame):
             hover_color=COLORS['primary_dark'],
             command=self._update_database,
         )
-        update_btn.pack(side="right")
+        update_btn.pack(side="left")
 
     def _create_file_selectors(self):
         """Create the file selection sections."""
@@ -521,3 +539,12 @@ class MainWindow(ctk.CTkFrame):
 
         except Exception as e:
             show_error(self.master, "Error", str(e))
+
+    def _open_rules_manager(self):
+        """Open the custom rules manager dialog."""
+        def on_rules_changed():
+            # Reload custom rules when they change
+            from src.parsers.custom_rules_loader import reload_custom_rules
+            reload_custom_rules()
+        
+        show_rules_manager(self.master, on_rules_changed)

@@ -1,0 +1,41 @@
+{
+  "_description": "Custom detection rules for Cross Guard. Users can extend the built-in feature detection by adding rules here.",
+  "_instructions": "Each rule maps a pattern to a Can I Use feature ID. Patterns are regular expressions.",
+  
+  "css": {
+    "_example_comment": "Example: detect a custom CSS property",
+    "container-queries": {
+      "patterns": ["@container", "container-type\\s*:"],
+      "description": "CSS Container Queries",
+      "keywords": ["container queries", "@container"]
+    }
+  },
+  
+  "javascript": {
+    "_example_comment": "Example: detect a new JS API",
+    "scheduler-api": {
+      "patterns": ["scheduler\\.postTask", "scheduler\\.yield"],
+      "description": "Scheduler API",
+      "keywords": ["scheduler", "postTask"]
+    }
+  },
+  
+  "html": {
+    "elements": {
+      "_example_comment": "Map element names to Can I Use feature IDs",
+      "popover": "popover-api"
+    },
+    "attributes": {
+      "_example_comment": "Map attribute names to Can I Use feature IDs",
+      "popover": "popover-api",
+      "popovertarget": "popover-api"
+    },
+    "input_types": {
+      "_example_comment": "Map input type values to Can I Use feature IDs"
+    },
+    "attribute_values": {
+      "_example_comment": "Map (attribute, value) pairs to Can I Use feature IDs. Format: 'attribute:value'",
+      "blocking:render": "render-blocking"
+    }
+  }
+}
