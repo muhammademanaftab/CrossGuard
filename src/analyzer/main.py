@@ -15,7 +15,7 @@ from ..parsers.css_parser import CSSParser
 from .database import get_database
 from .compatibility import CompatibilityAnalyzer
 from .scorer import CompatibilityScorer
-from ..utils.config import get_logger
+from ..utils.config import get_logger, LATEST_VERSIONS
 
 # Module logger
 logger = get_logger('analyzer.main')
@@ -473,10 +473,10 @@ class CrossGuardAnalyzer:
             Dict of default browsers and their latest versions
         """
         return {
-            'chrome': '144',
-            'firefox': '146',
-            'safari': '18.4',
-            'edge': '144'
+            'chrome': LATEST_VERSIONS['chrome'],
+            'firefox': LATEST_VERSIONS['firefox'],
+            'safari': LATEST_VERSIONS['safari'],
+            'edge': LATEST_VERSIONS['edge']
         }
     
     def export_report(self, report: Dict, output_file: str, format: str = 'json'):

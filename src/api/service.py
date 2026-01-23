@@ -18,6 +18,7 @@ from .schemas import (
     DatabaseUpdateResult,
     ProgressCallback,
 )
+from src.utils.config import LATEST_VERSIONS
 
 
 class AnalyzerService:
@@ -28,12 +29,12 @@ class AnalyzerService:
     providing a clean interface that doesn't expose implementation details.
     """
 
-    # Default target browsers - can be overridden
+    # Default target browsers - uses centralized config
     DEFAULT_BROWSERS = {
-        'chrome': '120',
-        'firefox': '121',
-        'safari': '17.2',
-        'edge': '120'
+        'chrome': LATEST_VERSIONS['chrome'],
+        'firefox': LATEST_VERSIONS['firefox'],
+        'safari': LATEST_VERSIONS['safari'],
+        'edge': LATEST_VERSIONS['edge']
     }
 
     def __init__(self):
