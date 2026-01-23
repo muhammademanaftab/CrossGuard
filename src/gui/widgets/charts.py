@@ -1,39 +1,54 @@
 """
-Chart widgets for data visualization using matplotlib.
+Chart widgets for data visualization using matplotlib with Tkinter backend.
 """
 
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QSizePolicy
-from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
-from matplotlib.figure import Figure
-import matplotlib.pyplot as plt
 from typing import Dict
 
+import customtkinter as ctk
+from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+from matplotlib.figure import Figure
+import matplotlib.pyplot as plt
 
-class CompatibilityBarChart(QWidget):
+from ..theme import COLORS
+
+
+class CompatibilityBarChart(ctk.CTkFrame):
     """Horizontal bar chart comparing browser compatibility."""
 
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    def __init__(self, master, **kwargs):
+        """Initialize the compatibility bar chart.
+
+        Args:
+            master: Parent widget
+            **kwargs: Additional arguments passed to CTkFrame
+        """
+        super().__init__(
+            master,
+            fg_color=COLORS['bg_medium'],
+            corner_radius=8,
+            **kwargs
+        )
+
         self._browsers_data = {}
         self._init_ui()
 
     def _init_ui(self):
         """Initialize the user interface."""
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
+        # Use dark background style for matplotlib
+        plt.style.use('dark_background')
 
-        # Create matplotlib figure
-        self.figure = Figure(figsize=(6, 3), dpi=100)
-        self.figure.patch.set_facecolor('white')
-        self.canvas = FigureCanvas(self.figure)
-        self.canvas.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
-        self.canvas.setMinimumHeight(180)
+        # Create matplotlib figure with dark theme colors
+        self.figure = Figure(figsize=(6, 3), dpi=100, facecolor=COLORS['bg_medium'])
+        self.figure.patch.set_facecolor(COLORS['bg_medium'])
 
-        layout.addWidget(self.canvas)
+        # Create canvas and embed in frame
+        self.canvas = FigureCanvasTkAgg(self.figure, master=self)
+        canvas_widget = self.canvas.get_tk_widget()
+        canvas_widget.configure(bg=COLORS['bg_medium'], highlightthickness=0)
+        canvas_widget.pack(fill="both", expand=True, padx=5, pady=5)
 
     def set_data(self, browsers_data: Dict):
-        """
-        Set the browser compatibility data.
+        """Set the browser compatibility data.
 
         Args:
             browsers_data: Dictionary with browser data
@@ -54,9 +69,11 @@ class CompatibilityBarChart(QWidget):
         self.figure.clear()
 
         if not self._browsers_data:
+            self.canvas.draw()
             return
 
         ax = self.figure.add_subplot(111)
+        ax.set_facecolor(COLORS['bg_medium'])
 
         browsers = list(self._browsers_data.keys())
         supported = []
@@ -71,31 +88,63 @@ class CompatibilityBarChart(QWidget):
 
         y_pos = range(len(browsers))
 
-        # Create stacked horizontal bars
-        bars1 = ax.barh(y_pos, supported, color='#4CAF50', label='Supported', height=0.6)
-        bars2 = ax.barh(y_pos, partial, left=supported, color='#FF9800', label='Partial', height=0.6)
-        bars3 = ax.barh(y_pos, unsupported,
-                        left=[s + p for s, p in zip(supported, partial)],
-                        color='#F44336', label='Unsupported', height=0.6)
+        # Create stacked horizontal bars with theme colors
+        bars1 = ax.barh(
+            y_pos, supported,
+            color=COLORS['success'],
+            label='Supported',
+            height=0.6
+        )
+        bars2 = ax.barh(
+            y_pos, partial,
+            left=supported,
+            color=COLORS['warning'],
+            label='Partial',
+            height=0.6
+        )
+        bars3 = ax.barh(
+            y_pos, unsupported,
+            left=[s + p for s, p in zip(supported, partial)],
+            color=COLORS['danger'],
+            label='Unsupported',
+            height=0.6
+        )
 
-        # Customize appearance
+        # Customize appearance for dark theme
         ax.set_yticks(y_pos)
-        ax.set_yticklabels([b.capitalize() for b in browsers])
-        ax.set_xlabel('Features', fontsize=10)
-        ax.legend(loc='upper right', fontsize=8)
+        ax.set_yticklabels(
+            [b.capitalize() for b in browsers],
+            fontsize=10,
+            color=COLORS['text_primary']
+        )
+        ax.set_xlabel('Features', fontsize=10, color=COLORS['text_secondary'])
+        ax.tick_params(axis='x', colors=COLORS['text_muted'])
+
+        # Legend with dark theme styling
+        legend = ax.legend(
+            loc='upper right',
+            fontsize=8,
+            facecolor=COLORS['bg_light'],
+            edgecolor=COLORS['border'],
+            labelcolor=COLORS['text_primary']
+        )
 
         # Add percentage labels on the right
         for i, browser in enumerate(browsers):
             pct = self._browsers_data[browser].get('compatibility_percentage', 0)
             total = supported[i] + partial[i] + unsupported[i]
-            ax.text(total + 1, i, f'{pct:.0f}%',
-                    va='center', ha='left', fontsize=9, fontweight='bold',
-                    color='#333')
+            ax.text(
+                total + 1, i, f'{pct:.0f}%',
+                va='center', ha='left',
+                fontsize=9, fontweight='bold',
+                color=COLORS['text_primary']
+            )
 
-        # Style the chart
+        # Style the chart for dark theme
         ax.spines['top'].set_visible(False)
         ax.spines['right'].set_visible(False)
-        ax.tick_params(axis='both', which='major', labelsize=9)
+        ax.spines['bottom'].set_color(COLORS['border'])
+        ax.spines['left'].set_color(COLORS['border'])
 
         # Adjust layout
         self.figure.tight_layout()
@@ -107,31 +156,43 @@ class CompatibilityBarChart(QWidget):
         self.canvas.draw()
 
 
-class FeatureDistributionChart(QWidget):
+class FeatureDistributionChart(ctk.CTkFrame):
     """Donut chart showing feature type distribution."""
 
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    def __init__(self, master, **kwargs):
+        """Initialize the feature distribution chart.
+
+        Args:
+            master: Parent widget
+            **kwargs: Additional arguments passed to CTkFrame
+        """
+        super().__init__(
+            master,
+            fg_color=COLORS['bg_medium'],
+            corner_radius=8,
+            **kwargs
+        )
+
         self._data = {}
         self._init_ui()
 
     def _init_ui(self):
         """Initialize the user interface."""
-        layout = QVBoxLayout(self)
-        layout.setContentsMargins(0, 0, 0, 0)
+        # Use dark background style
+        plt.style.use('dark_background')
 
-        # Create matplotlib figure
-        self.figure = Figure(figsize=(4, 4), dpi=100)
-        self.figure.patch.set_facecolor('white')
-        self.canvas = FigureCanvas(self.figure)
-        self.canvas.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Fixed)
-        self.canvas.setFixedSize(200, 200)
+        # Create matplotlib figure with dark theme
+        self.figure = Figure(figsize=(4, 4), dpi=100, facecolor=COLORS['bg_medium'])
+        self.figure.patch.set_facecolor(COLORS['bg_medium'])
 
-        layout.addWidget(self.canvas)
+        # Create canvas
+        self.canvas = FigureCanvasTkAgg(self.figure, master=self)
+        canvas_widget = self.canvas.get_tk_widget()
+        canvas_widget.configure(bg=COLORS['bg_medium'], highlightthickness=0)
+        canvas_widget.pack(fill="both", expand=True, padx=5, pady=5)
 
     def set_data(self, html_count: int, css_count: int, js_count: int):
-        """
-        Set the feature distribution data.
+        """Set the feature distribution data.
 
         Args:
             html_count: Number of HTML features
@@ -162,16 +223,28 @@ class FeatureDistributionChart(QWidget):
                 filtered_colors.append(colors[i])
 
         if not sizes:
+            self.canvas.draw()
             return
 
         ax = self.figure.add_subplot(111)
+        ax.set_facecolor(COLORS['bg_medium'])
 
         # Create donut chart
-        wedges, texts = ax.pie(sizes, colors=filtered_colors, startangle=90,
-                               wedgeprops=dict(width=0.5, edgecolor='white'))
+        wedges, texts = ax.pie(
+            sizes,
+            colors=filtered_colors,
+            startangle=90,
+            wedgeprops=dict(width=0.5, edgecolor=COLORS['bg_medium'])
+        )
 
-        # Add legend
-        ax.legend(wedges, labels, loc='center', fontsize=8, frameon=False)
+        # Add legend with dark theme styling
+        legend = ax.legend(
+            wedges, labels,
+            loc='center',
+            fontsize=8,
+            frameon=False,
+            labelcolor=COLORS['text_primary']
+        )
 
         ax.set_aspect('equal')
         self.figure.tight_layout()

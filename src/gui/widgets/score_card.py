@@ -1,159 +1,233 @@
 """
 ScoreCard widget for displaying compatibility scores with circular progress.
+Canvas-based implementation for CustomTkinter.
 """
 
-from PyQt6.QtWidgets import QWidget, QVBoxLayout, QLabel
-from PyQt6.QtCore import Qt, QPropertyAnimation, QEasingCurve, pyqtProperty, QRectF
-from PyQt6.QtGui import QPainter, QPen, QColor, QFont
+import math
+from typing import Optional
+
+import customtkinter as ctk
+
+from ..theme import COLORS, get_score_color, ANIMATION
 
 
-class CircularProgress(QWidget):
-    """Circular progress indicator with animated fill."""
+class CircularProgress(ctk.CTkCanvas):
+    """Canvas-based circular progress indicator with animated fill."""
 
-    def __init__(self, parent=None):
-        super().__init__(parent)
+    def __init__(
+        self,
+        master,
+        size: int = 120,
+        line_width: int = 8,
+        **kwargs
+    ):
+        """Initialize the circular progress.
+
+        Args:
+            master: Parent widget
+            size: Size of the widget (width and height)
+            line_width: Width of the progress arc
+            **kwargs: Additional arguments passed to CTkCanvas
+        """
+        super().__init__(
+            master,
+            width=size,
+            height=size,
+            bg=COLORS['bg_medium'],
+            highlightthickness=0,
+            **kwargs
+        )
+
+        self._size = size
+        self._line_width = line_width
         self._progress = 0.0
-        self._animation = None
-        self.setMinimumSize(120, 120)
-        self.setMaximumSize(120, 120)
+        self._target_progress = 0.0
+        self._animation_id = None
 
-    def get_progress(self) -> float:
-        return self._progress
+        # Draw initial state
+        self._draw()
 
-    def set_progress(self, value: float):
-        self._progress = max(0.0, min(100.0, value))
-        self.update()
-
-    progress = pyqtProperty(float, get_progress, set_progress)
-
-    def animate_to(self, target_value: float, duration: int = 800):
-        """Animate the progress to a target value."""
-        if self._animation:
-            self._animation.stop()
-
-        self._animation = QPropertyAnimation(self, b"progress")
-        self._animation.setDuration(duration)
-        self._animation.setStartValue(self._progress)
-        self._animation.setEndValue(target_value)
-        self._animation.setEasingCurve(QEasingCurve.Type.OutCubic)
-        self._animation.start()
-
-    def _get_color_for_score(self, score: float) -> QColor:
-        """Get color based on score (red -> yellow -> green gradient)."""
-        if score >= 90:
-            return QColor("#4CAF50")  # Green
-        elif score >= 70:
-            return QColor("#8BC34A")  # Light green
-        elif score >= 50:
-            return QColor("#FF9800")  # Orange
-        elif score >= 30:
-            return QColor("#FF5722")  # Deep orange
-        else:
-            return QColor("#F44336")  # Red
-
-    def paintEvent(self, event):
-        """Paint the circular progress."""
-        painter = QPainter(self)
-        painter.setRenderHint(QPainter.RenderHint.Antialiasing)
+    def _draw(self):
+        """Draw the circular progress indicator."""
+        self.delete("all")
 
         # Calculate dimensions
-        width = self.width()
-        height = self.height()
-        size = min(width, height) - 10
-        x = (width - size) / 2
-        y = (height - size) / 2
-        rect = QRectF(x, y, size, size)
+        padding = self._line_width + 2
+        x0 = padding
+        y0 = padding
+        x1 = self._size - padding
+        y1 = self._size - padding
 
-        # Draw background circle
-        pen = QPen(QColor("#e0e0e0"))
-        pen.setWidth(8)
-        pen.setCapStyle(Qt.PenCapStyle.RoundCap)
-        painter.setPen(pen)
-        painter.drawArc(rect, 0, 360 * 16)
+        # Draw background circle (gray)
+        self.create_arc(
+            x0, y0, x1, y1,
+            start=90,
+            extent=-360,
+            style="arc",
+            outline=COLORS['bg_light'],
+            width=self._line_width,
+            tags="background"
+        )
 
         # Draw progress arc
         if self._progress > 0:
-            color = self._get_color_for_score(self._progress)
-            pen = QPen(color)
-            pen.setWidth(8)
-            pen.setCapStyle(Qt.PenCapStyle.RoundCap)
-            painter.setPen(pen)
+            color = get_score_color(self._progress)
+            extent = -(self._progress / 100.0) * 360
+            self.create_arc(
+                x0, y0, x1, y1,
+                start=90,
+                extent=extent,
+                style="arc",
+                outline=color,
+                width=self._line_width,
+                tags="progress"
+            )
 
-            # Start from top (90 degrees) and go clockwise
-            start_angle = 90 * 16
-            span_angle = -int((self._progress / 100.0) * 360 * 16)
-            painter.drawArc(rect, start_angle, span_angle)
-
-
-class ScoreCard(QWidget):
-    """Card displaying a compatibility score with circular progress."""
-
-    def __init__(self, score: float = 0.0, grade: str = "N/A",
-                 label: str = "Compatibility", parent=None):
-        """
-        Initialize the score card.
+    def set_progress(self, value: float, animate: bool = False):
+        """Set the progress value.
 
         Args:
+            value: Progress percentage (0-100)
+            animate: Whether to animate the change
+        """
+        value = max(0.0, min(100.0, value))
+
+        if animate:
+            self._animate_to(value)
+        else:
+            self._progress = value
+            self._draw()
+
+    def _animate_to(self, target: float, duration: int = None):
+        """Animate the progress to a target value.
+
+        Args:
+            target: Target progress value (0-100)
+            duration: Animation duration in milliseconds
+        """
+        if duration is None:
+            duration = ANIMATION['progress']
+
+        # Cancel any existing animation
+        if self._animation_id:
+            self.after_cancel(self._animation_id)
+
+        self._target_progress = target
+        start_value = self._progress
+        steps = max(1, duration // 16)  # ~60fps
+        step_size = (target - start_value) / steps
+
+        def animate_step(step: int):
+            if step >= steps:
+                self._progress = target
+                self._draw()
+                self._animation_id = None
+                return
+
+            # Ease out cubic
+            t = step / steps
+            eased_t = 1 - pow(1 - t, 3)
+            self._progress = start_value + (target - start_value) * eased_t
+            self._draw()
+
+            self._animation_id = self.after(16, lambda: animate_step(step + 1))
+
+        animate_step(0)
+
+    def get_progress(self) -> float:
+        """Get the current progress value."""
+        return self._progress
+
+
+class ScoreCard(ctk.CTkFrame):
+    """Card displaying a compatibility score with circular progress."""
+
+    def __init__(
+        self,
+        master,
+        score: float = 0.0,
+        grade: str = "N/A",
+        label: str = "Compatibility",
+        **kwargs
+    ):
+        """Initialize the score card.
+
+        Args:
+            master: Parent widget
             score: The score percentage (0-100)
             grade: The grade letter (A, B, C, D, F)
             label: Label text for the score
-            parent: Parent widget
+            **kwargs: Additional arguments passed to CTkFrame
         """
-        super().__init__(parent)
+        super().__init__(
+            master,
+            fg_color=COLORS['bg_medium'],
+            corner_radius=12,
+            **kwargs
+        )
+
         self._score = score
         self._grade = grade
         self._label = label
+
         self._init_ui()
 
     def _init_ui(self):
         """Initialize the user interface."""
-        self.setObjectName("scoreCard")
-        self.setStyleSheet("""
-            QWidget#scoreCard {
-                background-color: white;
-                border: 1px solid #e0e0e0;
-                border-radius: 12px;
-            }
-        """)
+        # Main container with padding
+        self.grid_columnconfigure(0, weight=1)
 
-        layout = QVBoxLayout(self)
-        layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.setSpacing(8)
-        layout.setContentsMargins(20, 20, 20, 20)
+        # Container for circular progress and grade
+        progress_container = ctk.CTkFrame(
+            self,
+            fg_color="transparent",
+            width=120,
+            height=120,
+        )
+        progress_container.pack(pady=(20, 8))
 
         # Circular progress
-        self.progress_widget = CircularProgress()
-        layout.addWidget(self.progress_widget, alignment=Qt.AlignmentFlag.AlignCenter)
+        self.progress_widget = CircularProgress(
+            progress_container,
+            size=120,
+            line_width=8,
+        )
+        self.progress_widget.place(relx=0.5, rely=0.5, anchor="center")
 
-        # Grade label (centered over progress)
-        self.grade_label = QLabel(self._grade)
-        self.grade_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        font = QFont()
-        font.setPointSize(28)
-        font.setBold(True)
-        self.grade_label.setFont(font)
-        self.grade_label.setStyleSheet("color: #2196F3;")
-
-        # Create overlay layout for grade
-        self.progress_widget.setLayout(QVBoxLayout())
-        self.progress_widget.layout().addWidget(self.grade_label)
-        self.progress_widget.layout().setAlignment(Qt.AlignmentFlag.AlignCenter)
+        # Grade label (centered over progress using place)
+        self.grade_label = ctk.CTkLabel(
+            progress_container,
+            text=self._grade,
+            font=ctk.CTkFont(size=28, weight="bold"),
+            text_color=COLORS['primary'],
+        )
+        self.grade_label.place(relx=0.5, rely=0.5, anchor="center")
 
         # Score percentage
-        self.score_label = QLabel(f"{self._score:.1f}%")
-        self.score_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.score_label.setStyleSheet("font-size: 16px; font-weight: bold; color: #333;")
-        layout.addWidget(self.score_label)
+        self.score_label = ctk.CTkLabel(
+            self,
+            text=f"{self._score:.1f}%",
+            font=ctk.CTkFont(size=16, weight="bold"),
+            text_color=COLORS['text_primary'],
+        )
+        self.score_label.pack(pady=(4, 2))
 
-        # Label
-        self.label_widget = QLabel(self._label)
-        self.label_widget.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.label_widget.setStyleSheet("font-size: 13px; color: #666;")
-        layout.addWidget(self.label_widget)
+        # Description label
+        self.label_widget = ctk.CTkLabel(
+            self,
+            text=self._label,
+            font=ctk.CTkFont(size=13),
+            text_color=COLORS['text_muted'],
+        )
+        self.label_widget.pack(pady=(0, 20))
 
-    def set_score(self, score: float, grade: str = None, animate: bool = True):
-        """
-        Update the score display.
+    def set_score(
+        self,
+        score: float,
+        grade: Optional[str] = None,
+        animate: bool = True
+    ):
+        """Update the score display.
 
         Args:
             score: New score percentage
@@ -161,18 +235,29 @@ class ScoreCard(QWidget):
             animate: Whether to animate the change
         """
         self._score = score
-        self.score_label.setText(f"{score:.1f}%")
+        self.score_label.configure(text=f"{score:.1f}%")
 
         if grade:
             self._grade = grade
-            self.grade_label.setText(grade)
+            self.grade_label.configure(text=grade)
+            # Update grade color based on score
+            self.grade_label.configure(text_color=get_score_color(score))
 
-        if animate:
-            self.progress_widget.animate_to(score)
-        else:
-            self.progress_widget.set_progress(score)
+        self.progress_widget.set_progress(score, animate=animate)
 
     def set_label(self, label: str):
-        """Update the label text."""
+        """Update the label text.
+
+        Args:
+            label: New label text
+        """
         self._label = label
-        self.label_widget.setText(label)
+        self.label_widget.configure(text=label)
+
+    def get_score(self) -> float:
+        """Get the current score value."""
+        return self._score
+
+    def get_grade(self) -> str:
+        """Get the current grade."""
+        return self._grade

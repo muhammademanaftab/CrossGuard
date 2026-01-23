@@ -1,6 +1,6 @@
 # GUI Framework
-PyQt6>=6.6.0
-PyQt6-Qt6>=6.6.0
+customtkinter>=5.2.0
+tkinterdnd2>=0.3.0
 
 # Parsing Libraries
 beautifulsoup4>=4.12.0
@@ -14,7 +14,6 @@ regex>=2023.12.0
 # Visualization
 matplotlib>=3.8.0
 numpy>=1.26.0
-pyqtgraph>=0.13.0
 
 # PDF Generation
 reportlab>=4.0.0
