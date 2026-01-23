@@ -2,14 +2,14 @@
 Custom message dialog widgets for CustomTkinter.
 
 Provides show_info, show_warning, show_error, and ask_question dialogs
-that match the dark blue theme.
+that match the modern charcoal + cyan theme.
 """
 
 from typing import Optional
 
 import customtkinter as ctk
 
-from ..theme import COLORS
+from ..theme import COLORS, SPACING, ICONS
 
 
 class MessageDialog(ctk.CTkToplevel):
@@ -39,7 +39,7 @@ class MessageDialog(ctk.CTkToplevel):
 
         # Configure window
         self.title(title)
-        self.configure(fg_color=COLORS['bg_dark'])
+        self.configure(fg_color=COLORS['bg_medium'])
         self.resizable(False, False)
 
         # Make modal
@@ -59,34 +59,34 @@ class MessageDialog(ctk.CTkToplevel):
         """Build the dialog UI."""
         # Main frame
         main_frame = ctk.CTkFrame(self, fg_color="transparent")
-        main_frame.pack(fill="both", expand=True, padx=20, pady=20)
+        main_frame.pack(fill="both", expand=True, padx=SPACING['xl'], pady=SPACING['xl'])
 
         # Icon and message row
         content_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
-        content_frame.pack(fill="x", pady=(0, 20))
+        content_frame.pack(fill="x", pady=(0, SPACING['xl']))
 
         # Icon
         icon_colors = {
-            "info": COLORS['primary'],
+            "info": COLORS['accent'],
             "warning": COLORS['warning'],
             "error": COLORS['danger'],
-            "question": COLORS['primary'],
+            "question": COLORS['accent'],
         }
         icon_symbols = {
-            "info": "ℹ",
-            "warning": "⚠",
-            "error": "✕",
+            "info": ICONS['info'],
+            "warning": ICONS['warning'],
+            "error": ICONS['error'],
             "question": "?",
         }
 
         icon_label = ctk.CTkLabel(
             content_frame,
-            text=icon_symbols.get(icon_type, "ℹ"),
+            text=icon_symbols.get(icon_type, ICONS['info']),
             font=ctk.CTkFont(size=32),
-            text_color=icon_colors.get(icon_type, COLORS['primary']),
+            text_color=icon_colors.get(icon_type, COLORS['accent']),
             width=50,
         )
-        icon_label.pack(side="left", padx=(0, 16))
+        icon_label.pack(side="left", padx=(0, SPACING['lg']))
 
         # Message
         message_label = ctk.CTkLabel(
@@ -112,14 +112,14 @@ class MessageDialog(ctk.CTkToplevel):
                 font=ctk.CTkFont(size=13, weight="bold" if is_primary else "normal"),
                 width=100,
                 height=36,
-                fg_color=COLORS['primary'] if is_primary else "transparent",
+                fg_color=COLORS['accent'] if is_primary else "transparent",
                 border_width=1 if not is_primary else 0,
                 border_color=COLORS['border'],
                 text_color=COLORS['text_primary'],
-                hover_color=COLORS['primary_dark'] if is_primary else COLORS['hover_bg'],
+                hover_color=COLORS['accent_dim'] if is_primary else COLORS['hover_bg'],
                 command=lambda t=btn_text: self._on_button_click(t),
             )
-            btn.pack(side="right", padx=(8, 0))
+            btn.pack(side="right", padx=(SPACING['sm'], 0))
 
     def _center_on_parent(self, parent):
         """Center the dialog on the parent window."""
@@ -244,7 +244,7 @@ class ProgressDialog(ctk.CTkToplevel):
 
         # Configure window
         self.title(title)
-        self.configure(fg_color=COLORS['bg_dark'])
+        self.configure(fg_color=COLORS['bg_medium'])
         self.resizable(False, False)
 
         # Make modal
@@ -264,7 +264,7 @@ class ProgressDialog(ctk.CTkToplevel):
         """Build the dialog UI."""
         # Main frame
         main_frame = ctk.CTkFrame(self, fg_color="transparent")
-        main_frame.pack(fill="both", expand=True, padx=30, pady=25)
+        main_frame.pack(fill="both", expand=True, padx=SPACING['xxl'], pady=SPACING['xl'])
 
         # Status message
         self.status_label = ctk.CTkLabel(
@@ -273,7 +273,7 @@ class ProgressDialog(ctk.CTkToplevel):
             font=ctk.CTkFont(size=13),
             text_color=COLORS['text_primary'],
         )
-        self.status_label.pack(pady=(0, 15))
+        self.status_label.pack(pady=(0, SPACING['md']))
 
         # Progress bar
         self.progress_bar = ctk.CTkProgressBar(
@@ -282,7 +282,7 @@ class ProgressDialog(ctk.CTkToplevel):
             height=12,
             corner_radius=6,
             fg_color=COLORS['bg_light'],
-            progress_color=COLORS['primary'],
+            progress_color=COLORS['accent'],
         )
         self.progress_bar.pack()
         self.progress_bar.set(0)
@@ -294,7 +294,7 @@ class ProgressDialog(ctk.CTkToplevel):
             font=ctk.CTkFont(size=12),
             text_color=COLORS['text_muted'],
         )
-        self.percent_label.pack(pady=(8, 0))
+        self.percent_label.pack(pady=(SPACING['sm'], 0))
 
     def _center_on_parent(self, parent):
         """Center the dialog on the parent window."""

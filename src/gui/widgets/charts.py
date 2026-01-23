@@ -1,5 +1,6 @@
 """
 Chart widgets for data visualization using matplotlib with Tkinter backend.
+Modern charcoal theme with cyan accents.
 """
 
 from typing import Dict
@@ -13,7 +14,10 @@ from ..theme import COLORS
 
 
 class CompatibilityBarChart(ctk.CTkFrame):
-    """Horizontal bar chart comparing browser compatibility."""
+    """Horizontal bar chart comparing browser compatibility.
+
+    Modern design with charcoal background and semantic colors.
+    """
 
     def __init__(self, master, **kwargs):
         """Initialize the compatibility bar chart.
@@ -113,7 +117,7 @@ class CompatibilityBarChart(ctk.CTkFrame):
         # Customize appearance for dark theme
         ax.set_yticks(y_pos)
         ax.set_yticklabels(
-            [b.capitalize() for b in browsers],
+            [b.title() for b in browsers],
             fontsize=10,
             color=COLORS['text_primary']
         )
@@ -157,7 +161,10 @@ class CompatibilityBarChart(ctk.CTkFrame):
 
 
 class FeatureDistributionChart(ctk.CTkFrame):
-    """Donut chart showing feature type distribution."""
+    """Donut chart showing feature type distribution.
+
+    Modern design with file type colors (HTML, CSS, JS).
+    """
 
     def __init__(self, master, **kwargs):
         """Initialize the feature distribution chart.
@@ -213,7 +220,8 @@ class FeatureDistributionChart(ctk.CTkFrame):
         # Filter out zero values
         labels = []
         sizes = []
-        colors = ['#E34C26', '#264DE4', '#F7DF1E']  # HTML red, CSS blue, JS yellow
+        # Use file type colors from theme
+        colors = [COLORS['html_color'], COLORS['css_color'], COLORS['js_color']]
         filtered_colors = []
 
         for i, (label, size) in enumerate(self._data.items()):
@@ -241,7 +249,7 @@ class FeatureDistributionChart(ctk.CTkFrame):
         legend = ax.legend(
             wedges, labels,
             loc='center',
-            fontsize=8,
+            fontsize=9,
             frameon=False,
             labelcolor=COLORS['text_primary']
         )

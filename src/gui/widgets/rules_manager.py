@@ -207,8 +207,8 @@ class RulesManagerDialog(ctk.CTkToplevel):
                 width=100,
                 height=35,
                 corner_radius=6,
-                fg_color=COLORS['primary'] if category == "css" else COLORS['bg_medium'],
-                hover_color=COLORS['primary_dark'],
+                fg_color=COLORS['accent'] if category == "css" else COLORS['bg_medium'],
+                hover_color=COLORS['accent_dim'],
                 command=lambda c=category: self._select_tab(c),
             )
             btn.pack(side="left", padx=(0, 8))
@@ -263,8 +263,8 @@ class RulesManagerDialog(ctk.CTkToplevel):
             width=160,
             height=32,
             fg_color=COLORS['input_bg'],
-            button_color=COLORS['primary'],
-            button_hover_color=COLORS['primary_dark'],
+            button_color=COLORS['accent'],
+            button_hover_color=COLORS['accent_dim'],
             dropdown_fg_color=COLORS['bg_medium'],
             command=lambda _: self._refresh_rules_list(),
         )
@@ -278,24 +278,11 @@ class RulesManagerDialog(ctk.CTkToplevel):
             width=160,
             height=32,
             fg_color=COLORS['input_bg'],
-            button_color=COLORS['primary'],
-            button_hover_color=COLORS['primary_dark'],
+            button_color=COLORS['accent'],
+            button_hover_color=COLORS['accent_dim'],
             dropdown_fg_color=COLORS['bg_medium'],
             command=lambda _: self._refresh_rules_list(),
         )
-
-        # Add New Rule button
-        self._add_btn = ctk.CTkButton(
-            inner,
-            text="+ Add New Rule",
-            font=ctk.CTkFont(size=12, weight="bold"),
-            width=130,
-            height=32,
-            fg_color=COLORS['success'],
-            hover_color=COLORS['success_dark'],
-            command=self._show_add_form,
-        )
-        self._add_btn.pack(side="right", padx=(15, 0))
 
     def _build_rules_list_panel(self, parent):
         """Build the left panel with rules list."""
@@ -315,6 +302,21 @@ class RulesManagerDialog(ctk.CTkToplevel):
         )
         self._rules_count_label.pack(side="left")
 
+        # Add New Rule button - in the rules panel header
+        self._add_btn = ctk.CTkButton(
+            header_frame,
+            text="+",
+            font=ctk.CTkFont(size=16, weight="bold"),
+            width=28,
+            height=28,
+            fg_color=COLORS['accent'],
+            hover_color=COLORS['accent_dim'],
+            text_color=COLORS['bg_darkest'],
+            corner_radius=6,
+            command=self._show_add_form,
+        )
+        self._add_btn.pack(side="right")
+
         # Scrollable list
         self._rules_list_frame = ctk.CTkScrollableFrame(
             left_panel,
@@ -332,7 +334,7 @@ class RulesManagerDialog(ctk.CTkToplevel):
             self._details_panel,
             fg_color="transparent",
             scrollbar_button_color=COLORS['bg_light'],
-            scrollbar_button_hover_color=COLORS['primary'],
+            scrollbar_button_hover_color=COLORS['accent'],
         )
         self._details_frame.pack(fill="both", expand=True, padx=15, pady=15)
 
@@ -346,7 +348,7 @@ class RulesManagerDialog(ctk.CTkToplevel):
 
         # Update tab button colors
         for cat, btn in self._tab_buttons.items():
-            btn.configure(fg_color=COLORS['primary'] if cat == category else COLORS['bg_medium'])
+            btn.configure(fg_color=COLORS['accent'] if cat == category else COLORS['bg_medium'])
 
         # Update filter dropdown
         if category == "css":
@@ -540,7 +542,7 @@ class RulesManagerDialog(ctk.CTkToplevel):
                 self._rules_list_frame,
                 text=rule_type,
                 font=ctk.CTkFont(size=11, weight="bold"),
-                text_color=COLORS['primary_light'],
+                text_color=COLORS['accent_bright'],
             ).pack(anchor="w", padx=10, pady=(10, 5))
 
             for name, rule_data, is_custom in items:
@@ -569,7 +571,7 @@ class RulesManagerDialog(ctk.CTkToplevel):
                 item_frame,
                 text="Custom",
                 font=ctk.CTkFont(size=9, weight="bold"),
-                text_color=COLORS['primary'],
+                text_color=COLORS['accent'],
                 fg_color=COLORS['bg_dark'],
                 corner_radius=4,
                 width=50,
@@ -602,7 +604,7 @@ class RulesManagerDialog(ctk.CTkToplevel):
                 item_frame,
                 text="Custom",
                 font=ctk.CTkFont(size=9, weight="bold"),
-                text_color=COLORS['primary'],
+                text_color=COLORS['accent'],
                 fg_color=COLORS['bg_dark'],
                 corner_radius=4,
                 width=50,
@@ -660,7 +662,7 @@ class RulesManagerDialog(ctk.CTkToplevel):
                 text="Custom",
                 font=ctk.CTkFont(size=10, weight="bold"),
                 text_color=COLORS['text_primary'],
-                fg_color=COLORS['primary'],
+                fg_color=COLORS['accent'],
                 corner_radius=4,
                 width=60,
                 height=22,
@@ -728,8 +730,8 @@ class RulesManagerDialog(ctk.CTkToplevel):
                 font=ctk.CTkFont(size=12, weight="bold"),
                 width=100,
                 height=35,
-                fg_color=COLORS['primary'],
-                hover_color=COLORS['primary_dark'],
+                fg_color=COLORS['accent'],
+                hover_color=COLORS['accent_dim'],
                 command=lambda: self._show_edit_form(feature_id, rule_data),
             ).pack(side="left", padx=(0, 10))
 
@@ -768,7 +770,7 @@ class RulesManagerDialog(ctk.CTkToplevel):
                 text="Custom",
                 font=ctk.CTkFont(size=10, weight="bold"),
                 text_color=COLORS['text_primary'],
-                fg_color=COLORS['primary'],
+                fg_color=COLORS['accent'],
                 corner_radius=4,
                 width=60,
                 height=22,
@@ -811,8 +813,8 @@ class RulesManagerDialog(ctk.CTkToplevel):
                 font=ctk.CTkFont(size=12, weight="bold"),
                 width=100,
                 height=35,
-                fg_color=COLORS['primary'],
-                hover_color=COLORS['primary_dark'],
+                fg_color=COLORS['accent'],
+                hover_color=COLORS['accent_dim'],
                 command=lambda: self._show_html_edit_form(name, maps_to, rule_type),
             ).pack(side="left", padx=(0, 10))
 
@@ -996,8 +998,8 @@ class RulesManagerDialog(ctk.CTkToplevel):
             width=200,
             height=36,
             fg_color=COLORS['input_bg'],
-            button_color=COLORS['primary'],
-            button_hover_color=COLORS['primary_dark'],
+            button_color=COLORS['accent'],
+            button_hover_color=COLORS['accent_dim'],
             dropdown_fg_color=COLORS['bg_medium'],
         )
         type_dropdown.pack(anchor="w", pady=(0, 15))
