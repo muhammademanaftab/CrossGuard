@@ -1,52 +1,93 @@
 """
-Dark Blue Theme Configuration for Cross Guard GUI.
+Cross Guard Theme Configuration - Professional Charcoal + Cyan Design.
 
-This module defines the dark blue color scheme and theme settings
-for the CustomTkinter-based GUI.
+This module defines the modern dark theme with charcoal backgrounds
+and cyan accents, inspired by VS Code and GitHub's dark mode.
 """
 
 # =============================================================================
-# Dark Blue Color Palette
+# Charcoal + Cyan Color Palette (GitHub-inspired)
 # =============================================================================
 
 COLORS = {
-    # Background colors (dark to light)
-    'bg_dark': '#1a1a2e',       # Darkest background (main window)
-    'bg_medium': '#2b2b40',     # Medium background (cards, panels)
-    'bg_light': '#3d3d5c',      # Lighter background (borders, hover)
+    # Backgrounds (charcoal gradient - darkest to lightest)
+    'bg_darkest': '#0d1117',    # GitHub-style darkest (window bg)
+    'bg_dark': '#161b22',       # Main background
+    'bg_medium': '#21262d',     # Cards/panels
+    'bg_light': '#30363d',      # Borders/hover states
+    'bg_elevated': '#1c2128',   # Elevated surfaces (modals, dropdowns)
 
-    # Primary accent (blue)
-    'primary': '#2196F3',       # Main blue accent
-    'primary_dark': '#1976D2',  # Blue hover/pressed
-    'primary_light': '#64B5F6', # Light blue highlights
+    # Accent colors (Cyan/Teal)
+    'accent': '#58a6ff',        # Primary cyan accent
+    'accent_bright': '#79c0ff', # Hover/highlight state
+    'accent_dim': '#388bfd',    # Pressed/active state
+    'accent_muted': '#1a3a5c',   # Muted accent (no alpha)
+    'accent_glow': '#152d47',    # Glow effect (no alpha)
+
+    # Legacy mappings for compatibility
+    'primary': '#58a6ff',
+    'primary_dark': '#388bfd',
+    'primary_light': '#79c0ff',
 
     # Text colors
-    'text_primary': '#ffffff',  # Main text (white)
-    'text_secondary': '#e0e0e0', # Secondary text
-    'text_muted': '#888888',    # Muted/placeholder text
+    'text_primary': '#f0f6fc',   # Bright white (main text)
+    'text_secondary': '#c9d1d9', # Light gray (secondary text)
+    'text_muted': '#8b949e',     # Gray (dimmed text)
+    'text_disabled': '#6e7681',  # Dark gray (disabled)
+    'text_link': '#58a6ff',      # Link color (cyan)
 
-    # Status colors
-    'success': '#4CAF50',       # Green (supported)
-    'success_dark': '#388E3C',  # Dark green
-    'warning': '#FF9800',       # Orange (partial)
-    'warning_dark': '#F57C00',  # Dark orange
-    'danger': '#F44336',        # Red (unsupported)
-    'danger_dark': '#D32F2F',   # Dark red
+    # Status colors (semantic)
+    'success': '#3fb950',        # Green - supported/success
+    'success_dark': '#238636',   # Dark green (hover)
+    'success_muted': '#1a3d24',   # Muted green (no alpha)
+
+    'warning': '#d29922',        # Amber - partial/warning
+    'warning_dark': '#9e6a03',   # Dark amber (hover)
+    'warning_muted': '#3d3314',   # Muted amber (no alpha)
+
+    'danger': '#f85149',         # Red - unsupported/error
+    'danger_dark': '#da3633',    # Dark red (hover)
+    'danger_muted': '#4a1e1c',    # Muted red (no alpha)
+
+    'info': '#58a6ff',           # Cyan - info
+    'info_dark': '#388bfd',      # Dark cyan
 
     # Border colors
-    'border': '#3d3d5c',        # Default border
-    'border_light': '#4a4a6a',  # Light border
-    'border_focus': '#2196F3',  # Focus border (blue)
+    'border': '#30363d',         # Default border (subtle)
+    'border_light': '#3d444d',   # Light border
+    'border_focus': '#58a6ff',   # Focus border (accent)
+    'border_muted': '#21262d',   # Very subtle border
 
-    # Special backgrounds
-    'input_bg': '#252538',      # Input/entry background
-    'hover_bg': '#363650',      # Hover state background
-    'selected_bg': '#1976D2',   # Selected item background
+    # Interactive states
+    'input_bg': '#0d1117',       # Input background (darkest)
+    'hover_bg': '#30363d',       # Hover state background
+    'selected_bg': '#388bfd',    # Selected item background
+    'active_bg': '#1f6feb',      # Active/pressed background
 
     # Drop zone states
-    'drop_zone_normal': '#252538',
-    'drop_zone_hover': '#2b3d4f',
-    'drop_zone_active': '#1e3a5f',
+    'drop_zone_normal': '#161b22',
+    'drop_zone_hover': '#1c2128',
+    'drop_zone_active': '#0d419d',
+    'drop_zone_border': '#30363d',
+    'drop_zone_border_active': '#58a6ff',
+
+    # File type colors (semantic)
+    'html_color': '#e34c26',     # HTML orange
+    'css_color': '#264de4',      # CSS blue
+    'js_color': '#f7df1e',       # JS yellow
+
+    # Sidebar specific
+    'sidebar_bg': '#0d1117',
+    'sidebar_active': '#1a3a5c',       # Active item background (blended color, no alpha)
+    'sidebar_hover': '#21262d',
+    'sidebar_indicator': '#58a6ff',
+
+    # Table specific
+    'table_header_bg': '#161b22',
+    'table_row_even': '#0d1117',
+    'table_row_odd': '#161b22',
+    'table_row_hover': '#21262d',
+    'table_row_selected': '#1a3552',  # Selected row (no alpha)
 }
 
 # =============================================================================
@@ -54,17 +95,20 @@ COLORS = {
 # =============================================================================
 
 FONTS = {
-    'family': 'Segoe UI',       # Primary font (falls back to system)
+    'family': 'SF Pro Display',  # macOS system font (falls back gracefully)
+    'family_mono': 'SF Mono',    # Monospace font
+    'size_xs': 10,
     'size_small': 11,
     'size_normal': 12,
     'size_medium': 13,
     'size_large': 14,
     'size_title': 18,
     'size_header': 22,
+    'size_display': 28,
 }
 
 # =============================================================================
-# Spacing
+# Spacing System (8px base grid)
 # =============================================================================
 
 SPACING = {
@@ -74,6 +118,7 @@ SPACING = {
     'lg': 16,
     'xl': 24,
     'xxl': 32,
+    '3xl': 48,
 }
 
 # =============================================================================
@@ -81,10 +126,13 @@ SPACING = {
 # =============================================================================
 
 RADIUS = {
+    'xs': 2,
     'sm': 4,
     'md': 6,
     'lg': 8,
     'xl': 12,
+    'xxl': 16,
+    'full': 9999,
 }
 
 # =============================================================================
@@ -92,10 +140,11 @@ RADIUS = {
 # =============================================================================
 
 ANIMATION = {
+    'instant': 50,
     'fast': 150,
-    'normal': 300,
-    'slow': 500,
-    'progress': 800,
+    'normal': 250,
+    'slow': 400,
+    'progress': 600,
 }
 
 # =============================================================================
@@ -104,10 +153,82 @@ ANIMATION = {
 
 WINDOW = {
     'min_width': 1000,
-    'min_height': 850,
-    'default_width': 1100,
-    'default_height': 900,
+    'min_height': 700,
+    'default_width': 1200,
+    'default_height': 800,
 }
+
+# =============================================================================
+# Sidebar Settings
+# =============================================================================
+
+SIDEBAR = {
+    'width_collapsed': 56,
+    'width_expanded': 200,
+    'icon_size': 20,
+}
+
+# =============================================================================
+# Icon Definitions (Unicode symbols)
+# =============================================================================
+
+ICONS = {
+    # Navigation (simple ASCII-compatible symbols that render everywhere)
+    'files': '\u2630',           # ☰ Trigram - hamburger menu (3 lines)
+    'results': '\u25CF',         # ● Black circle (simple, distinct)
+    'settings': '\u2699',        # ⚙ Gear
+    'help': '?',                 # Simple question mark
+
+    # File types
+    'html': '\u25B6',            # ▶ Play triangle
+    'css': '\u25C6',             # ◆ Black diamond
+    'js': '\u2605',              # ★ Black star
+    'file': '\u25A0',            # ■ Black square
+
+    # Actions
+    'add': '\u002B',             # Plus
+    'remove': '\u2212',          # Minus
+    'delete': '\u2715',          # Multiplication X
+    'check': '\u2713',           # Check mark
+    'close': '\u2715',           # X
+    'refresh': '\u21BB',         # Clockwise arrow
+    'export': '\u2913',          # Downwards arrow
+    'upload': '\u2912',          # Upwards arrow
+
+    # Status
+    'success': '\u2713',         # Check mark
+    'warning': '\u26A0',         # Warning sign
+    'error': '\u2715',           # X
+    'info': '\u2139',            # Information source
+
+    # Navigation arrows
+    'arrow_left': '\u2190',      # Left arrow
+    'arrow_right': '\u2192',     # Right arrow
+    'arrow_up': '\u2191',        # Up arrow
+    'arrow_down': '\u2193',      # Down arrow
+    'chevron_right': '\u203A',   # Single right guillemet
+    'chevron_down': '\u2304',    # Down arrowhead
+
+    # Misc
+    'folder': '\u2302',          # House
+    'search': '\u2315',          # Telephone recorder
+    'menu': '\u2630',            # Trigram for heaven
+    'dot': '\u2022',             # Bullet
+    'diamond': '\u25C6',         # Black diamond
+}
+
+# =============================================================================
+# Logo (ASCII Art options)
+# =============================================================================
+
+LOGO_SIMPLE = "\u25C7 CROSS GUARD"  # Diamond + text
+LOGO_COMPACT = "CG"
+
+LOGO_ASCII = """
+ \u2554\u2550\u2557\u252C\u2500\u252C\u250C\u2500\u2510\u250C\u2500\u2510\u250C\u2500\u2510  \u2554\u2550\u2557\u252C \u252C\u250C\u2500\u2510\u252C\u2500\u252C\u250C\u252C\u2510
+ \u2551  \u251C\u252C\u2518\u2502 \u2502\u251C\u2500\u2524\u251C\u2500\u2524  \u2551 \u2551\u2502 \u2502\u251C\u2500\u2524\u251C\u252C\u2518 \u2502\u2502
+ \u255A\u2550\u255D\u2534\u2514\u2500\u2514\u2500\u2518\u2514\u2500\u2518\u2514\u2500\u2518  \u255A\u2550\u255D\u2514\u2500\u2518\u2534 \u2534\u2534\u2514\u2500\u2500\u2534\u2518
+"""
 
 # =============================================================================
 # Helper Functions
@@ -137,12 +258,12 @@ def get_score_color(score: float) -> str:
     """
     if score >= 90:
         return COLORS['success']
-    elif score >= 70:
-        return '#8BC34A'  # Light green
-    elif score >= 50:
+    elif score >= 75:
+        return '#56d364'  # Light green
+    elif score >= 60:
         return COLORS['warning']
-    elif score >= 30:
-        return '#FF5722'  # Deep orange
+    elif score >= 40:
+        return '#f0883e'  # Orange
     else:
         return COLORS['danger']
 
@@ -158,18 +279,37 @@ def get_grade_color(grade: str) -> str:
     """
     grade_colors = {
         'A': COLORS['success'],
-        'B': '#8BC34A',
+        'B': '#56d364',
         'C': COLORS['warning'],
-        'D': '#FF5722',
+        'D': '#f0883e',
         'F': COLORS['danger'],
     }
     return grade_colors.get(grade.upper(), COLORS['text_muted'])
 
 
+def get_file_type_color(file_type: str) -> str:
+    """Get color based on file type.
+
+    Args:
+        file_type: File type ('html', 'css', 'js', 'javascript')
+
+    Returns:
+        Hex color string
+    """
+    type_colors = {
+        'html': COLORS['html_color'],
+        'htm': COLORS['html_color'],
+        'css': COLORS['css_color'],
+        'js': COLORS['js_color'],
+        'javascript': COLORS['js_color'],
+    }
+    return type_colors.get(file_type.lower(), COLORS['text_muted'])
+
+
 def configure_ctk_theme():
     """Configure CustomTkinter appearance settings.
 
-    Call this at application startup to set up the dark blue theme.
+    Call this at application startup to set up the dark theme.
     """
     import customtkinter as ctk
 

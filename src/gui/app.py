@@ -28,7 +28,7 @@ def main():
     app.title("Cross Guard - Browser Compatibility Checker")
     app.geometry(f"{WINDOW['default_width']}x{WINDOW['default_height']}")
     app.minsize(WINDOW['min_width'], WINDOW['min_height'])
-    app.configure(fg_color=COLORS['bg_dark'])
+    app.configure(fg_color=COLORS['bg_darkest'])
 
     # Center on screen
     x = (app.winfo_screenwidth() // 2) - (WINDOW['default_width'] // 2)
