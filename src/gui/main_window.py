@@ -21,7 +21,9 @@ from .widgets import (
     DropZone,
     ScoreCard,
     BrowserCard,
+    BrowserRadarChart,
     CompatibilityBarChart,
+    FeatureDistributionChart,
     show_info,
     show_warning,
     show_error,
@@ -387,24 +389,155 @@ class MainWindow(ctk.CTkFrame):
                 text_color=COLORS['text_primary'],
             ).pack(side="right")
 
-        # Browser comparison chart
-        browsers = report.get('browsers', {})
-        if browsers:
-            chart_section = ctk.CTkFrame(
+        # Detected Features section - show what was actually detected
+        features = report.get('features', {})
+        if features and any([features.get('html'), features.get('css'), features.get('js')]):
+            features_section = ctk.CTkFrame(
                 scroll_frame,
                 fg_color=COLORS['bg_medium'],
                 corner_radius=8,
                 border_width=1,
                 border_color=COLORS['border'],
             )
-            chart_section.pack(fill="x", pady=(0, SPACING['xl']))
+            features_section.pack(fill="x", pady=(0, SPACING['xl']))
+
+            # Header
+            features_header = ctk.CTkFrame(features_section, fg_color="transparent")
+            features_header.pack(fill="x", padx=SPACING['lg'], pady=(SPACING['lg'], SPACING['sm']))
 
             ctk.CTkLabel(
-                chart_section,
-                text="Browser Comparison",
+                features_header,
+                text="Detected Features",
                 font=ctk.CTkFont(size=14, weight="bold"),
                 text_color=COLORS['text_primary'],
-            ).pack(anchor="w", padx=SPACING['md'], pady=(SPACING['md'], SPACING['sm']))
+            ).pack(side="left")
+
+            ctk.CTkLabel(
+                features_header,
+                text=f"(These patterns were found in your code and checked for browser support)",
+                font=ctk.CTkFont(size=11),
+                text_color=COLORS['text_muted'],
+            ).pack(side="left", padx=(SPACING['sm'], 0))
+
+            # Features by type
+            features_content = ctk.CTkFrame(features_section, fg_color="transparent")
+            features_content.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['lg']))
+
+            feature_types = [
+                ("HTML", features.get('html', []), COLORS['html_color']),
+                ("CSS", features.get('css', []), COLORS['css_color']),
+                ("JavaScript", features.get('js', []), COLORS['js_color']),
+            ]
+
+            for type_name, feature_list, color in feature_types:
+                if feature_list:
+                    type_frame = ctk.CTkFrame(features_content, fg_color="transparent")
+                    type_frame.pack(fill="x", pady=(0, SPACING['sm']))
+
+                    # Type badge
+                    badge = ctk.CTkLabel(
+                        type_frame,
+                        text=f" {type_name} ({len(feature_list)}) ",
+                        font=ctk.CTkFont(size=11, weight="bold"),
+                        text_color=COLORS['text_primary'],
+                        fg_color=color,
+                        corner_radius=4,
+                    )
+                    badge.pack(side="left")
+
+                    # Features list (wrapped)
+                    features_text = ", ".join(feature_list[:15])
+                    if len(feature_list) > 15:
+                        features_text += f", ... (+{len(feature_list) - 15} more)"
+
+                    ctk.CTkLabel(
+                        type_frame,
+                        text=features_text,
+                        font=ctk.CTkFont(size=11),
+                        text_color=COLORS['text_secondary'],
+                        wraplength=700,
+                        justify="left",
+                    ).pack(side="left", padx=(SPACING['sm'], 0))
+
+        # Unrecognized Patterns section - patterns not matched by any rule
+        unrecognized = report.get('unrecognized', {})
+        if unrecognized and unrecognized.get('total', 0) > 0:
+            unrecognized_section = ctk.CTkFrame(
+                scroll_frame,
+                fg_color=COLORS['bg_medium'],
+                corner_radius=8,
+                border_width=1,
+                border_color=COLORS['warning'],
+            )
+            unrecognized_section.pack(fill="x", pady=(0, SPACING['xl']))
+
+            # Header
+            unrec_header = ctk.CTkFrame(unrecognized_section, fg_color="transparent")
+            unrec_header.pack(fill="x", padx=SPACING['lg'], pady=(SPACING['lg'], SPACING['sm']))
+
+            ctk.CTkLabel(
+                unrec_header,
+                text=f"Unrecognized Patterns ({unrecognized.get('total', 0)})",
+                font=ctk.CTkFont(size=14, weight="bold"),
+                text_color=COLORS['warning'],
+            ).pack(side="left")
+
+            ctk.CTkLabel(
+                unrec_header,
+                text="(These patterns were found but have no detection rules - consider adding custom rules)",
+                font=ctk.CTkFont(size=11),
+                text_color=COLORS['text_muted'],
+            ).pack(side="left", padx=(SPACING['sm'], 0))
+
+            # Patterns by type
+            unrec_content = ctk.CTkFrame(unrecognized_section, fg_color="transparent")
+            unrec_content.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['lg']))
+
+            unrec_types = [
+                ("HTML", unrecognized.get('html', []), COLORS['html_color']),
+                ("CSS", unrecognized.get('css', []), COLORS['css_color']),
+                ("JavaScript", unrecognized.get('js', []), COLORS['js_color']),
+            ]
+
+            for type_name, pattern_list, color in unrec_types:
+                if pattern_list:
+                    type_frame = ctk.CTkFrame(unrec_content, fg_color="transparent")
+                    type_frame.pack(fill="x", pady=(0, SPACING['sm']))
+
+                    # Type badge
+                    badge = ctk.CTkLabel(
+                        type_frame,
+                        text=f" {type_name} ({len(pattern_list)}) ",
+                        font=ctk.CTkFont(size=11, weight="bold"),
+                        text_color=COLORS['text_primary'],
+                        fg_color=color,
+                        corner_radius=4,
+                    )
+                    badge.pack(side="left")
+
+                    # Patterns list (wrapped)
+                    patterns_text = ", ".join(pattern_list[:10])
+                    if len(pattern_list) > 10:
+                        patterns_text += f", ... (+{len(pattern_list) - 10} more)"
+
+                    ctk.CTkLabel(
+                        type_frame,
+                        text=patterns_text,
+                        font=ctk.CTkFont(size=11),
+                        text_color=COLORS['text_muted'],
+                        wraplength=700,
+                        justify="left",
+                    ).pack(side="left", padx=(SPACING['sm'], 0))
+
+        # Charts section - Radar chart and Feature distribution side by side
+        browsers = report.get('browsers', {})
+        if browsers:
+            charts_frame = ctk.CTkFrame(scroll_frame, fg_color="transparent")
+            charts_frame.pack(fill="x", pady=(0, SPACING['xl']))
+
+            # Configure grid for side-by-side layout
+            charts_frame.grid_columnconfigure(0, weight=1)
+            charts_frame.grid_columnconfigure(1, weight=1)
 
             chart_data = {
                 name: {
@@ -416,9 +549,24 @@ class MainWindow(ctk.CTkFrame):
                 for name, d in browsers.items()
             }
 
-            chart = CompatibilityBarChart(chart_section)
-            chart.pack(fill="x", padx=SPACING['md'], pady=(0, SPACING['md']))
-            chart.set_data(chart_data)
+            # Radar chart (left side)
+            radar_chart = BrowserRadarChart(charts_frame)
+            radar_chart.grid(row=0, column=0, sticky="nsew", padx=(0, SPACING['sm']))
+            radar_chart.set_data(chart_data)
+
+            # Feature distribution chart (right side)
+            feature_chart = FeatureDistributionChart(charts_frame)
+            feature_chart.grid(row=0, column=1, sticky="nsew", padx=(SPACING['sm'], 0))
+            feature_chart.set_data(
+                summary.get('html_features', 0),
+                summary.get('css_features', 0),
+                summary.get('js_features', 0)
+            )
+
+            # Feature Support Breakdown (full width below)
+            breakdown_chart = CompatibilityBarChart(scroll_frame)
+            breakdown_chart.pack(fill="x", pady=(0, SPACING['xl']))
+            breakdown_chart.set_data(chart_data)
 
         # Browser details section
         if browsers:
@@ -750,8 +898,8 @@ class MainWindow(ctk.CTkFrame):
     def _open_rules_manager(self):
         """Open the custom rules manager dialog."""
         def on_rules_changed():
-            from src.parsers.custom_rules_loader import reload_custom_rules
-            reload_custom_rules()
+            # Reload custom rules AND reset the analyzer to pick them up
+            self._analyzer_service.reload_custom_rules()
 
         show_rules_manager(self.master, on_rules_changed)
 

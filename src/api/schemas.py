@@ -61,6 +61,24 @@ class FeatureSummary:
 
 
 @dataclass
+class DetectedFeatures:
+    """List of detected features by type."""
+    html: List[str] = field(default_factory=list)
+    css: List[str] = field(default_factory=list)
+    js: List[str] = field(default_factory=list)
+    all: List[str] = field(default_factory=list)
+
+
+@dataclass
+class UnrecognizedPatterns:
+    """List of unrecognized patterns by type (not matched by any rule)."""
+    html: List[str] = field(default_factory=list)
+    css: List[str] = field(default_factory=list)
+    js: List[str] = field(default_factory=list)
+    total: int = 0
+
+
+@dataclass
 class CompatibilityScore:
     """Compatibility score details."""
     grade: str = "N/A"
@@ -89,6 +107,8 @@ class AnalysisResult:
     summary: Optional[FeatureSummary] = None
     scores: Optional[CompatibilityScore] = None
     browsers: Dict[str, BrowserCompatibility] = field(default_factory=dict)
+    detected_features: Optional[DetectedFeatures] = None
+    unrecognized_patterns: Optional[UnrecognizedPatterns] = None
     recommendations: List[str] = field(default_factory=list)
     error: Optional[str] = None
 
@@ -131,11 +151,31 @@ class AnalysisResult:
                 partial_features=browser_data.get('partial_features', []),
             )
 
+        # Parse detected features
+        features_data = data.get('features', {})
+        detected_features = DetectedFeatures(
+            html=features_data.get('html', []),
+            css=features_data.get('css', []),
+            js=features_data.get('js', []),
+            all=features_data.get('all', []),
+        )
+
+        # Parse unrecognized patterns
+        unrecognized_data = data.get('unrecognized', {})
+        unrecognized_patterns = UnrecognizedPatterns(
+            html=unrecognized_data.get('html', []),
+            css=unrecognized_data.get('css', []),
+            js=unrecognized_data.get('js', []),
+            total=unrecognized_data.get('total', 0),
+        )
+
         return cls(
             success=True,
             summary=summary,
             scores=scores,
             browsers=browsers,
+            detected_features=detected_features,
+            unrecognized_patterns=unrecognized_patterns,
             recommendations=data.get('recommendations', []),
         )
 
@@ -170,6 +210,18 @@ class AnalysisResult:
                     'partial_features': browser.partial_features,
                 }
                 for name, browser in self.browsers.items()
+            },
+            'features': {
+                'html': self.detected_features.html if self.detected_features else [],
+                'css': self.detected_features.css if self.detected_features else [],
+                'js': self.detected_features.js if self.detected_features else [],
+                'all': self.detected_features.all if self.detected_features else [],
+            },
+            'unrecognized': {
+                'html': self.unrecognized_patterns.html if self.unrecognized_patterns else [],
+                'css': self.unrecognized_patterns.css if self.unrecognized_patterns else [],
+                'js': self.unrecognized_patterns.js if self.unrecognized_patterns else [],
+                'total': self.unrecognized_patterns.total if self.unrecognized_patterns else 0,
             },
             'recommendations': self.recommendations,
         }

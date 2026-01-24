@@ -40,6 +40,10 @@ class CrossGuardAnalyzer:
         self.all_features = set()
         self.errors = []
         self.warnings = []
+        # Unrecognized patterns (not matched by any rule)
+        self.unrecognized_html = set()
+        self.unrecognized_css = set()
+        self.unrecognized_js = set()
         
     def analyze_project(
         self,
@@ -152,6 +156,9 @@ class CrossGuardAnalyzer:
         self.all_features = set()
         self.errors = []
         self.warnings = []
+        self.unrecognized_html = set()
+        self.unrecognized_css = set()
+        self.unrecognized_js = set()
     
     def _validate_inputs(
         self,
@@ -188,6 +195,8 @@ class CrossGuardAnalyzer:
             try:
                 features = self.html_parser.parse_file(filepath)
                 self.html_features.update(features)
+                # Collect unrecognized patterns
+                self.unrecognized_html.update(self.html_parser.unrecognized_patterns)
                 logger.info(f"Parsed HTML: {Path(filepath).name} ({len(features)} features)")
             except Exception as e:
                 error_msg = f"Error parsing HTML file {filepath}: {str(e)}"
@@ -200,6 +209,8 @@ class CrossGuardAnalyzer:
             try:
                 features = self.css_parser.parse_file(filepath)
                 self.css_features.update(features)
+                # Collect unrecognized patterns
+                self.unrecognized_css.update(self.css_parser.unrecognized_patterns)
                 logger.info(f"Parsed CSS: {Path(filepath).name} ({len(features)} features)")
             except Exception as e:
                 error_msg = f"Error parsing CSS file {filepath}: {str(e)}"
@@ -212,6 +223,8 @@ class CrossGuardAnalyzer:
             try:
                 features = self.js_parser.parse_file(filepath)
                 self.js_features.update(features)
+                # Collect unrecognized patterns
+                self.unrecognized_js.update(self.js_parser.unrecognized_patterns)
                 logger.info(f"Parsed JS: {Path(filepath).name} ({len(features)} features)")
             except Exception as e:
                 error_msg = f"Error parsing JS file {filepath}: {str(e)}"
@@ -382,6 +395,12 @@ class CrossGuardAnalyzer:
                 'css': sorted(list(self.css_features)),
                 'js': sorted(list(self.js_features)),
                 'all': sorted(list(self.all_features))
+            },
+            'unrecognized': {
+                'html': sorted(list(self.unrecognized_html)),
+                'css': sorted(list(self.unrecognized_css)),
+                'js': sorted(list(self.unrecognized_js)),
+                'total': len(self.unrecognized_html) + len(self.unrecognized_css) + len(self.unrecognized_js)
             },
             'issues': {
                 'critical': sorted(list(critical_issues)),
