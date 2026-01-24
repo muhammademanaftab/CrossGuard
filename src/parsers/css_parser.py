@@ -18,11 +18,12 @@ logger = get_logger('parsers.css')
 
 class CSSParser:
     """Parser for extracting CSS features from CSS files."""
-    
+
     def __init__(self):
         """Initialize the CSS parser."""
         self.features_found = set()
         self.feature_details = []
+        self.unrecognized_patterns = set()  # Patterns not matched by any rule
         # Merge built-in rules with custom rules
         self._all_features = {**ALL_CSS_FEATURES, **get_custom_css_rules()}
         
@@ -57,23 +58,27 @@ class CSSParser:
     
     def parse_string(self, css_content: str) -> Set[str]:
         """Parse CSS string and extract features.
-        
+
         Args:
             css_content: CSS content as string
-            
+
         Returns:
             Set of Can I Use feature IDs found
         """
         # Reset state
         self.features_found = set()
         self.feature_details = []
-        
+        self.unrecognized_patterns = set()
+
         # Remove comments to avoid false positives
         css_content = self._remove_comments(css_content)
-        
+
         # Detect features using regex patterns
         self._detect_features(css_content)
-        
+
+        # Find unrecognized patterns
+        self._find_unrecognized_patterns(css_content)
+
         return self.features_found
     
     def _remove_comments(self, css_content: str) -> str:
@@ -116,16 +121,135 @@ class CSSParser:
                     logger.warning(f"Invalid regex pattern for {feature_id}: {e}")
                     continue
     
+    def _find_unrecognized_patterns(self, css_content: str):
+        """Find CSS properties/features that don't match any known rule.
+
+        Args:
+            css_content: CSS code (without comments)
+        """
+        # Common/basic CSS properties that are universally supported - skip these
+        basic_properties = {
+            # Colors and backgrounds
+            'color', 'background', 'background-color', 'background-image',
+            'background-position', 'background-repeat', 'background-size',
+            'background-attachment', 'background-origin', 'background-clip',
+            'opacity',
+            # Box model
+            'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
+            'padding', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left',
+            'border', 'border-width', 'border-style', 'border-color',
+            'border-top', 'border-right', 'border-bottom', 'border-left',
+            'border-radius', 'border-top-left-radius', 'border-top-right-radius',
+            'border-bottom-left-radius', 'border-bottom-right-radius',
+            'box-shadow', 'box-sizing',
+            # Sizing
+            'width', 'height', 'min-width', 'max-width', 'min-height', 'max-height',
+            # Typography
+            'font', 'font-family', 'font-size', 'font-weight', 'font-style',
+            'font-variant', 'text-align', 'text-decoration', 'text-shadow',
+            'line-height', 'letter-spacing', 'word-spacing', 'text-indent',
+            'text-transform', 'white-space', 'word-wrap', 'word-break',
+            # Layout
+            'display', 'position', 'top', 'right', 'bottom', 'left',
+            'float', 'clear', 'overflow', 'overflow-x', 'overflow-y',
+            'visibility', 'z-index', 'clip',
+            # Flex/Grid basics (feature detection handles advanced)
+            'flex', 'flex-direction', 'flex-wrap', 'flex-flow',
+            'flex-grow', 'flex-shrink', 'flex-basis',
+            'justify-content', 'align-items', 'align-content', 'align-self',
+            'order', 'gap', 'row-gap', 'column-gap',
+            # Animation/transition (feature detection handles these)
+            'animation', 'animation-name', 'animation-duration', 'animation-timing-function',
+            'animation-delay', 'animation-iteration-count', 'animation-direction',
+            'animation-fill-mode', 'animation-play-state',
+            'transition', 'transition-property', 'transition-duration',
+            'transition-timing-function', 'transition-delay',
+            # Transform
+            'transform', 'transform-origin', 'transform-style', 'perspective',
+            # Other common
+            'cursor', 'outline', 'outline-width', 'outline-style', 'outline-color',
+            'outline-offset', 'list-style', 'list-style-type', 'list-style-position',
+            'list-style-image', 'vertical-align', 'content', 'quotes',
+            'counter-reset', 'counter-increment',
+            # Table
+            'table-layout', 'border-collapse', 'border-spacing', 'caption-side',
+            'empty-cells',
+            # Misc
+            'direction', 'unicode-bidi', 'speak', 'resize', 'pointer-events',
+            'user-select', 'appearance',
+            # @font-face properties
+            'src', 'font-display',
+        }
+
+        # Extract all CSS properties from declarations
+        # Match property: value patterns
+        property_pattern = r'([a-z][-a-z0-9]*)\s*:'
+        found_properties = set(re.findall(property_pattern, css_content, re.IGNORECASE))
+
+        # Extract @-rules (like @keyframes, @media, etc.)
+        at_rule_pattern = r'@([a-z][-a-z0-9]*)'
+        found_at_rules = set(re.findall(at_rule_pattern, css_content, re.IGNORECASE))
+
+        # Check each property against our feature rules
+        for prop in found_properties:
+            prop_lower = prop.lower()
+
+            # Skip basic properties
+            if prop_lower in basic_properties:
+                continue
+
+            # Check if this property matches any feature pattern
+            matched = False
+            for feature_info in self._all_features.values():
+                patterns = feature_info.get('patterns', [])
+                for pattern in patterns:
+                    try:
+                        if re.search(pattern, prop, re.IGNORECASE):
+                            matched = True
+                            break
+                    except re.error:
+                        continue
+                if matched:
+                    break
+
+            if not matched:
+                self.unrecognized_patterns.add(f"property: {prop}")
+
+        # Check @-rules
+        basic_at_rules = {'media', 'import', 'charset', 'font-face', 'page'}
+        for at_rule in found_at_rules:
+            at_rule_lower = at_rule.lower()
+            if at_rule_lower in basic_at_rules:
+                continue
+
+            # Check if matches any feature
+            matched = False
+            for feature_info in self._all_features.values():
+                patterns = feature_info.get('patterns', [])
+                for pattern in patterns:
+                    try:
+                        if re.search(pattern, f"@{at_rule}", re.IGNORECASE):
+                            matched = True
+                            break
+                    except re.error:
+                        continue
+                if matched:
+                    break
+
+            if not matched:
+                self.unrecognized_patterns.add(f"@-rule: @{at_rule}")
+
     def get_detailed_report(self) -> Dict:
         """Get detailed report of found features.
-        
+
         Returns:
             Dict with detailed information about found features
         """
         return {
             'total_features': len(self.features_found),
             'features': sorted(list(self.features_found)),
-            'feature_details': self.feature_details
+            'feature_details': self.feature_details,
+            'unrecognized': sorted(list(self.unrecognized_patterns))
         }
     
     def parse_multiple_files(self, filepaths: List[str]) -> Set[str]:

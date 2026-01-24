@@ -5,7 +5,13 @@ Custom widgets for Cross Guard GUI (CustomTkinter implementation).
 from .drop_zone import DropZone
 from .score_card import ScoreCard, CircularProgress
 from .browser_card import BrowserCard, StackedBarWidget
-from .charts import CompatibilityBarChart, FeatureDistributionChart
+from .charts import (
+    BrowserRadarChart,
+    CompatibilityBarChart,
+    FeatureDistributionChart,
+    ScoreGaugeChart,
+    SupportStatusChart,
+)
 from .messagebox import (
     MessageDialog,
     ProgressDialog,
@@ -32,8 +38,11 @@ __all__ = [
     'StackedBarWidget',
 
     # Charts
+    'BrowserRadarChart',
     'CompatibilityBarChart',
     'FeatureDistributionChart',
+    'ScoreGaugeChart',
+    'SupportStatusChart',
 
     # Message dialogs
     'MessageDialog',

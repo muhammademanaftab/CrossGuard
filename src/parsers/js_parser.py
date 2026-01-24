@@ -18,11 +18,12 @@ logger = get_logger('parsers.js')
 
 class JavaScriptParser:
     """Parser for extracting JavaScript features from JS files."""
-    
+
     def __init__(self):
         """Initialize the JavaScript parser."""
         self.features_found = set()
         self.feature_details = []
+        self.unrecognized_patterns = set()  # Patterns not matched by any rule
         # Merge built-in rules with custom rules
         self._all_features = {**ALL_JS_FEATURES, **get_custom_js_rules()}
         
@@ -57,23 +58,27 @@ class JavaScriptParser:
     
     def parse_string(self, js_content: str) -> Set[str]:
         """Parse JavaScript string and extract features.
-        
+
         Args:
             js_content: JavaScript content as string
-            
+
         Returns:
             Set of Can I Use feature IDs found
         """
         # Reset state
         self.features_found = set()
         self.feature_details = []
-        
+        self.unrecognized_patterns = set()
+
         # Remove comments to avoid false positives
         js_content = self._remove_comments(js_content)
-        
+
         # Detect features using regex patterns
         self._detect_features(js_content)
-        
+
+        # Find unrecognized patterns
+        self._find_unrecognized_patterns(js_content)
+
         return self.features_found
     
     def _remove_comments(self, js_content: str) -> str:
@@ -119,16 +124,101 @@ class JavaScriptParser:
                     logger.warning(f"Invalid regex pattern for {feature_id}: {e}")
                     continue
     
+    def _find_unrecognized_patterns(self, js_content: str):
+        """Find JS APIs/methods that don't match any known rule.
+
+        Args:
+            js_content: JavaScript code (without comments)
+        """
+        # Basic JS constructs that are universally supported - skip these
+        basic_patterns = {
+            'function', 'return', 'if', 'else', 'for', 'while', 'do',
+            'switch', 'case', 'break', 'continue', 'try', 'catch', 'throw',
+            'new', 'this', 'typeof', 'instanceof', 'delete', 'void', 'in',
+            'true', 'false', 'null', 'undefined', 'var', 'with',
+            # Common methods that are very old and universal
+            'toString', 'valueOf', 'hasOwnProperty', 'isPrototypeOf',
+            'push', 'pop', 'shift', 'unshift', 'slice', 'splice', 'concat',
+            'join', 'reverse', 'sort', 'indexOf', 'lastIndexOf',
+            'charAt', 'charCodeAt', 'substring', 'substr', 'toLowerCase', 'toUpperCase',
+            'split', 'replace', 'match', 'search', 'trim',
+            'Math', 'Date', 'String', 'Number', 'Boolean', 'Array', 'Object',
+            'RegExp', 'Error', 'JSON', 'parseInt', 'parseFloat', 'isNaN', 'isFinite',
+            'encodeURI', 'decodeURI', 'encodeURIComponent', 'decodeURIComponent',
+            'setTimeout', 'setInterval', 'clearTimeout', 'clearInterval',
+            'alert', 'confirm', 'prompt', 'console', 'log', 'warn', 'error',
+            'document', 'window', 'location', 'history', 'navigator',
+            'getElementById', 'getElementsByClassName', 'getElementsByTagName',
+            'createElement', 'appendChild', 'removeChild', 'setAttribute', 'getAttribute',
+            'addEventListener', 'removeEventListener', 'preventDefault', 'stopPropagation',
+            'innerHTML', 'textContent', 'style', 'className', 'parentNode', 'childNodes',
+            'length', 'prototype', 'constructor', 'call', 'apply', 'bind',
+        }
+
+        # Find potential API calls and method usage
+        # Pattern for method calls: .methodName( or Object.method(
+        method_pattern = r'\.([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\('
+        found_methods = set(re.findall(method_pattern, js_content))
+
+        # Pattern for global objects/APIs: CapitalizedName.
+        global_api_pattern = r'\b([A-Z][a-zA-Z0-9_$]*)\.'
+        found_globals = set(re.findall(global_api_pattern, js_content))
+
+        # Check methods
+        for method in found_methods:
+            if method.lower() in [b.lower() for b in basic_patterns]:
+                continue
+
+            # Check if matches any feature pattern
+            matched = False
+            for feature_info in self._all_features.values():
+                patterns = feature_info.get('patterns', [])
+                for pattern in patterns:
+                    try:
+                        if re.search(pattern, f".{method}(", re.IGNORECASE):
+                            matched = True
+                            break
+                    except re.error:
+                        continue
+                if matched:
+                    break
+
+            if not matched and len(method) > 2:  # Skip very short names
+                self.unrecognized_patterns.add(f"method: .{method}()")
+
+        # Check global APIs
+        for global_api in found_globals:
+            if global_api in basic_patterns:
+                continue
+
+            # Check if matches any feature pattern
+            matched = False
+            for feature_info in self._all_features.values():
+                patterns = feature_info.get('patterns', [])
+                for pattern in patterns:
+                    try:
+                        if re.search(pattern, global_api, re.IGNORECASE):
+                            matched = True
+                            break
+                    except re.error:
+                        continue
+                if matched:
+                    break
+
+            if not matched:
+                self.unrecognized_patterns.add(f"API: {global_api}")
+
     def get_detailed_report(self) -> Dict:
         """Get detailed report of found features.
-        
+
         Returns:
             Dict with detailed information about found features
         """
         return {
             'total_features': len(self.features_found),
             'features': sorted(list(self.features_found)),
-            'feature_details': self.feature_details
+            'feature_details': self.feature_details,
+            'unrecognized': sorted(list(self.unrecognized_patterns))
         }
     
     def parse_multiple_files(self, filepaths: List[str]) -> Set[str]:

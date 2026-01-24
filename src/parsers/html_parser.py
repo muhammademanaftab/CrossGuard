@@ -25,13 +25,14 @@ logger = get_logger('parsers.html')
 
 class HTMLParser:
     """Parser for extracting HTML5 features from HTML files."""
-    
+
     def __init__(self):
         """Initialize the HTML parser."""
         self.features_found = set()
         self.elements_found = []
         self.attributes_found = []
-        
+        self.unrecognized_patterns = set()  # Patterns not matched by any rule
+
         # Merge built-in rules with custom rules
         custom_html = get_custom_html_rules()
         self._elements = {**HTML_ELEMENTS, **custom_html.get('elements', {})}
@@ -76,10 +77,10 @@ class HTMLParser:
     
     def parse_string(self, html_content: str) -> Set[str]:
         """Parse HTML string and extract features.
-        
+
         Args:
             html_content: HTML content as string
-            
+
         Returns:
             Set of Can I Use feature IDs found
         """
@@ -87,17 +88,21 @@ class HTMLParser:
         self.features_found = set()
         self.elements_found = []
         self.attributes_found = []
-        
+        self.unrecognized_patterns = set()
+
         # Parse HTML with BeautifulSoup
         soup = BeautifulSoup(html_content, 'html.parser')
-        
+
         # Extract features
         self._detect_elements(soup)
         self._detect_input_types(soup)
         self._detect_attributes(soup)
         self._detect_attribute_values(soup)
         self._detect_special_patterns(soup)
-        
+
+        # Find unrecognized patterns
+        self._find_unrecognized_patterns(soup)
+
         return self.features_found
     
     def _detect_elements(self, soup: BeautifulSoup):
@@ -252,9 +257,108 @@ class HTMLParser:
         # Note: meta charset is universally supported and not tracked in Can I Use
         # so we don't detect it to avoid "feature not found" warnings
     
+    def _find_unrecognized_patterns(self, soup: BeautifulSoup):
+        """Find HTML elements/attributes that don't match any known rule.
+
+        Args:
+            soup: BeautifulSoup parsed HTML
+        """
+        # Basic HTML elements that are universally supported - skip these
+        basic_elements = {
+            'html', 'head', 'body', 'title', 'meta', 'link', 'script', 'style',
+            'div', 'span', 'p', 'a', 'img', 'br', 'hr',
+            'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+            'ul', 'ol', 'li', 'dl', 'dt', 'dd',
+            'table', 'tr', 'td', 'th', 'thead', 'tbody', 'tfoot', 'caption', 'colgroup', 'col',
+            'form', 'input', 'button', 'select', 'option', 'optgroup', 'textarea', 'label', 'fieldset', 'legend',
+            'iframe', 'object', 'embed', 'param',
+            'strong', 'em', 'b', 'i', 'u', 's', 'small', 'big', 'sub', 'sup',
+            'code', 'pre', 'blockquote', 'q', 'cite', 'abbr', 'acronym',
+            'ins', 'del', 'dfn', 'kbd', 'samp', 'var', 'address',
+            'noscript', 'map', 'area', 'base',
+            # HTML5 semantic elements that are well-supported
+            'header', 'footer', 'nav', 'article', 'section', 'aside', 'main',
+            'figure', 'figcaption', 'time', 'mark', 'wbr',
+        }
+
+        # Basic attributes that are universally supported
+        basic_attributes = {
+            'id', 'class', 'style', 'title', 'lang', 'dir',
+            'href', 'src', 'alt', 'name', 'value', 'type',
+            'width', 'height', 'border', 'align', 'valign',
+            'colspan', 'rowspan', 'cellpadding', 'cellspacing',
+            'action', 'method', 'enctype', 'target', 'rel',
+            'disabled', 'readonly', 'checked', 'selected', 'multiple',
+            'maxlength', 'size', 'rows', 'cols', 'tabindex', 'accesskey',
+            'onclick', 'onsubmit', 'onchange', 'onload', 'onerror',
+            'onmouseover', 'onmouseout', 'onfocus', 'onblur', 'onkeydown', 'onkeyup',
+            'onkeypress', 'ondblclick', 'onmousedown', 'onmouseup', 'onmousemove',
+            'onreset', 'onselect', 'oninput', 'onfocusin', 'onfocusout',
+            'charset', 'content', 'http-equiv', 'media',
+            'for', 'form', 'accept', 'accept-charset',
+            'usemap', 'ismap', 'coords', 'shape',
+            'xmlns', 'xml:lang', 'role', 'aria-label', 'aria-hidden',
+            # Media attributes
+            'controls', 'autoplay', 'loop', 'muted', 'preload', 'poster',
+            'playsinline', 'crossorigin',
+            # Iframe attributes
+            'frameborder', 'scrolling', 'allowfullscreen', 'sandbox',
+            # Link/script attributes
+            'async', 'defer', 'integrity', 'nonce', 'referrerpolicy',
+            # Other common attributes
+            'placeholder', 'pattern', 'min', 'max', 'step', 'list',
+            'autocomplete', 'autofocus', 'required', 'novalidate',
+            'hidden', 'spellcheck', 'translate', 'contenteditable', 'draggable',
+            # Data attributes are handled separately
+        }
+
+        # Get all elements in the document
+        all_elements = soup.find_all()
+
+        # Track unique element names
+        found_element_names = set()
+        for elem in all_elements:
+            if elem.name:
+                found_element_names.add(elem.name.lower())
+
+        # Check for unrecognized elements (custom elements with hyphens)
+        for elem_name in found_element_names:
+            if elem_name in basic_elements:
+                continue
+            if elem_name in self._elements:
+                continue
+
+            # Custom elements (contain hyphen) that aren't in our rules
+            if '-' in elem_name:
+                self.unrecognized_patterns.add(f"element: <{elem_name}>")
+
+        # Check for unrecognized attributes
+        found_attributes = set()
+        for elem in all_elements:
+            for attr_name in elem.attrs:
+                if isinstance(attr_name, str):
+                    found_attributes.add(attr_name.lower())
+
+        for attr_name in found_attributes:
+            # Skip basic attributes
+            if attr_name in basic_attributes:
+                continue
+            # Skip data-* attributes (handled elsewhere)
+            if attr_name.startswith('data-'):
+                continue
+            # Skip aria-* attributes
+            if attr_name.startswith('aria-'):
+                continue
+            # Skip if in our rules
+            if attr_name in self._attributes:
+                continue
+
+            # This attribute is unrecognized
+            self.unrecognized_patterns.add(f"attribute: {attr_name}")
+
     def get_detailed_report(self) -> Dict:
         """Get detailed report of found features.
-        
+
         Returns:
             Dict with detailed information about found features
         """
@@ -262,7 +366,8 @@ class HTMLParser:
             'total_features': len(self.features_found),
             'features': sorted(list(self.features_found)),
             'elements_found': self.elements_found,
-            'attributes_found': self.attributes_found
+            'attributes_found': self.attributes_found,
+            'unrecognized': sorted(list(self.unrecognized_patterns))
         }
     
     def parse_multiple_files(self, filepaths: List[str]) -> Set[str]:

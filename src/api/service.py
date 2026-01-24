@@ -204,6 +204,16 @@ class AnalyzerService:
         except Exception:
             pass  # Silently fail, will be picked up on next analysis
 
+    def reload_custom_rules(self):
+        """Reload custom rules and reset analyzer to pick them up."""
+        try:
+            from src.parsers.custom_rules_loader import reload_custom_rules
+            reload_custom_rules()
+            # Reset analyzer to pick up new rules
+            self._analyzer = None
+        except Exception:
+            pass
+
     def get_default_browsers(self) -> Dict[str, str]:
         """Get the default target browsers configuration."""
         return self.DEFAULT_BROWSERS.copy()
