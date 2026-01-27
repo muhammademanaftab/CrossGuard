@@ -1,0 +1,1 @@
+"""Attribute value detection tests."""

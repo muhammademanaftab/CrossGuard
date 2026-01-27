@@ -1,0 +1,1 @@
+"""Input type detection tests."""

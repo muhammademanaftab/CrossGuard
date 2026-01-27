@@ -37,6 +37,9 @@ from .ml_risk_card import MLRiskCard, MLFeatureImportanceCard
 # Browser Selection
 from .browser_selector import BrowserSelector, get_available_browsers
 
+# Version Range Display (like Can I Use)
+from .version_range_card import VersionRangeCard, VersionRangeBar, VersionRangePopup
+
 __all__ = [
     # Drop zone
     'DropZone',
@@ -90,4 +93,9 @@ __all__ = [
     # Browser Selection
     'BrowserSelector',
     'get_available_browsers',
+
+    # Version Range Display
+    'VersionRangeCard',
+    'VersionRangeBar',
+    'VersionRangePopup',
 ]

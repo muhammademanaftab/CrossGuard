@@ -1,0 +1,1 @@
+"""Special pattern detection tests."""
