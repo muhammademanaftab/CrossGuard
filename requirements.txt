@@ -26,3 +26,6 @@ typing_extensions>=4.0.0
 # Machine Learning
 scikit-learn>=1.0.0
 joblib>=1.2.0
+
+# macOS dock icon (optional, macOS only)
+pyobjc-framework-Cocoa>=10.0; sys_platform == 'darwin'

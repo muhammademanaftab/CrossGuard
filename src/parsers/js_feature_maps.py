@@ -258,11 +258,6 @@ JS_API_FEATURES = {
         'keywords': ['SharedWorker'],
         'description': 'Shared Web Workers'
     },
-    'webrtc': {
-        'patterns': [r'RTCPeerConnection', r'webkitRTCPeerConnection'],
-        'keywords': ['RTCPeerConnection'],
-        'description': 'WebRTC Peer-to-peer connections'
-    },
     'rtcpeerconnection': {
         'patterns': [r'RTCPeerConnection', r'webkitRTCPeerConnection'],
         'keywords': ['RTCPeerConnection'],
@@ -339,14 +334,9 @@ JS_API_FEATURES = {
         'description': 'Touch Events'
     },
     'deviceorientation': {
-        'patterns': [r'DeviceOrientationEvent', r'deviceorientation'],
-        'keywords': ['DeviceOrientationEvent'],
-        'description': 'Device Orientation'
-    },
-    'devicemotion': {
-        'patterns': [r'DeviceMotionEvent', r'devicemotion'],
-        'keywords': ['DeviceMotionEvent'],
-        'description': 'Device Motion'
+        'patterns': [r'DeviceOrientationEvent', r'deviceorientation', r'DeviceMotionEvent', r'devicemotion'],
+        'keywords': ['DeviceOrientationEvent', 'DeviceMotionEvent'],
+        'description': 'Device Orientation and Motion'
     },
     'ambient-light': {
         'patterns': [r'AmbientLightSensor', r'new AmbientLightSensor'],
@@ -1013,14 +1003,9 @@ JS_ARRAY_METHODS = {
         'description': 'Array.includes'
     },
     'array-find': {
-        'patterns': [r'\.find\s*\(', r'\.findIndex\s*\('],
-        'keywords': ['.find', '.findIndex'],
-        'description': 'Array.find/findIndex'
-    },
-    'array-find-last': {
-        'patterns': [r'\.findLast\s*\(', r'\.findLastIndex\s*\('],
-        'keywords': ['.findLast', '.findLastIndex'],
-        'description': 'Array.findLast/findLastIndex'
+        'patterns': [r'\.find\s*\(', r'\.findIndex\s*\(', r'\.findLast\s*\(', r'\.findLastIndex\s*\('],
+        'keywords': ['.find', '.findIndex', '.findLast', '.findLastIndex'],
+        'description': 'Array.find/findIndex/findLast/findLastIndex'
     },
 }
 
@@ -1287,6 +1272,170 @@ JS_DOM_APIS = {
         'patterns': [r'shadowrootmode', r'shadowroot'],
         'keywords': ['shadowrootmode'],
         'description': 'Declarative Shadow DOM'
+    },
+    # Additional HTML/DOM features accessible via JavaScript
+    'dialog': {
+        'patterns': [r'\.showModal\s*\(', r'\.close\s*\(', r'HTMLDialogElement'],
+        'keywords': ['showModal', 'HTMLDialogElement'],
+        'description': 'Dialog element (JS API)'
+    },
+    'template': {
+        'patterns': [r'\.content\b', r'HTMLTemplateElement', r'document\.importNode'],
+        'keywords': ['template.content'],
+        'description': 'HTML templates (JS API)'
+    },
+    'picture': {
+        'patterns': [r'HTMLPictureElement'],
+        'keywords': ['HTMLPictureElement'],
+        'description': 'Picture element (JS API)'
+    },
+    'indeterminate-checkbox': {
+        'patterns': [r'\.indeterminate\s*=', r'\.indeterminate\b'],
+        'keywords': ['indeterminate'],
+        'description': 'Indeterminate checkbox state'
+    },
+    'maxlength': {
+        'patterns': [r'\.maxLength', r'maxlength'],
+        'keywords': ['maxLength'],
+        'description': 'maxlength attribute (JS access)'
+    },
+    'readonly-attr': {
+        'patterns': [r'\.readOnly\s*=', r'\.readOnly\b'],
+        'keywords': ['readOnly'],
+        'description': 'readonly attribute (JS access)'
+    },
+    'input-autocomplete-onoff': {
+        'patterns': [r'\.autocomplete\s*='],
+        'keywords': ['autocomplete'],
+        'description': 'autocomplete attribute (JS access)'
+    },
+    'input-inputmode': {
+        'patterns': [r'\.inputMode\s*=', r'inputmode'],
+        'keywords': ['inputMode'],
+        'description': 'inputmode attribute (JS access)'
+    },
+    'meta-theme-color': {
+        'patterns': [r'theme-color', r'meta.*theme-color'],
+        'keywords': ['theme-color'],
+        'description': 'theme-color meta tag (JS access)'
+    },
+    'script-async': {
+        'patterns': [r'\.async\s*=\s*true', r'script\.async'],
+        'keywords': ['script.async'],
+        'description': 'async attribute for scripts (JS access)'
+    },
+    'script-defer': {
+        'patterns': [r'\.defer\s*=\s*true', r'script\.defer'],
+        'keywords': ['script.defer'],
+        'description': 'defer attribute for scripts (JS access)'
+    },
+    'link-rel-preload': {
+        'patterns': [r'rel\s*=\s*["\']preload', r'link\.rel.*preload'],
+        'keywords': ['preload'],
+        'description': 'Resource Hints: preload (JS access)'
+    },
+    'link-rel-prefetch': {
+        'patterns': [r'rel\s*=\s*["\']prefetch', r'link\.rel.*prefetch'],
+        'keywords': ['prefetch'],
+        'description': 'Resource Hints: prefetch (JS access)'
+    },
+    'link-rel-preconnect': {
+        'patterns': [r'rel\s*=\s*["\']preconnect'],
+        'keywords': ['preconnect'],
+        'description': 'Resource Hints: preconnect (JS access)'
+    },
+    'link-rel-dns-prefetch': {
+        'patterns': [r'rel\s*=\s*["\']dns-prefetch'],
+        'keywords': ['dns-prefetch'],
+        'description': 'Resource Hints: dns-prefetch (JS access)'
+    },
+    'link-rel-modulepreload': {
+        'patterns': [r'rel\s*=\s*["\']modulepreload'],
+        'keywords': ['modulepreload'],
+        'description': 'Resource Hints: modulepreload (JS access)'
+    },
+    'link-rel-prerender': {
+        'patterns': [r'rel\s*=\s*["\']prerender'],
+        'keywords': ['prerender'],
+        'description': 'Resource Hints: prerender (JS access)'
+    },
+    'rel-noopener': {
+        'patterns': [r'rel\s*=\s*["\'].*noopener', r'\.relList\.add\s*\(\s*["\']noopener'],
+        'keywords': ['noopener'],
+        'description': 'rel=noopener (JS access)'
+    },
+    'rel-noreferrer': {
+        'patterns': [r'rel\s*=\s*["\'].*noreferrer', r'\.relList\.add\s*\(\s*["\']noreferrer'],
+        'keywords': ['noreferrer'],
+        'description': 'rel=noreferrer (JS access)'
+    },
+    'input-file-directory': {
+        'patterns': [r'webkitdirectory', r'\.webkitdirectory'],
+        'keywords': ['webkitdirectory'],
+        'description': 'Directory selection from file input (JS access)'
+    },
+    # WebAssembly features
+    'wasm': {
+        'patterns': [r'WebAssembly\.', r'WebAssembly\.instantiate', r'WebAssembly\.compile', r'\.wasm'],
+        'keywords': ['WebAssembly', 'wasm'],
+        'description': 'WebAssembly'
+    },
+    'wasm-bigint': {
+        'patterns': [r'WebAssembly.*BigInt', r'i64.*BigInt'],
+        'keywords': ['wasm bigint'],
+        'description': 'WebAssembly BigInt to i64 conversion'
+    },
+    'wasm-threads': {
+        'patterns': [r'SharedArrayBuffer', r'Atomics\.'],
+        'keywords': ['SharedArrayBuffer', 'Atomics'],
+        'description': 'WebAssembly Threads and Atomics'
+    },
+    'wasm-simd': {
+        'patterns': [r'v128', r'SIMD'],
+        'keywords': ['wasm simd'],
+        'description': 'WebAssembly SIMD'
+    },
+    'wasm-bulk-memory': {
+        'patterns': [r'memory\.copy', r'memory\.fill'],
+        'keywords': ['bulk memory'],
+        'description': 'WebAssembly Bulk Memory Operations'
+    },
+    'wasm-multi-value': {
+        'patterns': [r'multi-value', r'multivalue'],
+        'keywords': ['multi-value'],
+        'description': 'WebAssembly Multi-Value'
+    },
+    'wasm-mutable-globals': {
+        'patterns': [r'WebAssembly\.Global', r'mutable.*global'],
+        'keywords': ['mutable globals'],
+        'description': 'WebAssembly Import/Export of Mutable Globals'
+    },
+    'wasm-reference-types': {
+        'patterns': [r'externref', r'funcref'],
+        'keywords': ['externref', 'funcref'],
+        'description': 'WebAssembly Reference Types'
+    },
+    'wasm-signext': {
+        'patterns': [r'i32\.extend8_s', r'i32\.extend16_s', r'i64\.extend8_s'],
+        'keywords': ['sign extension'],
+        'description': 'WebAssembly Sign Extension Operators'
+    },
+    'wasm-nontrapping-fptoint': {
+        'patterns': [r'i32\.trunc_sat', r'i64\.trunc_sat'],
+        'keywords': ['trunc_sat'],
+        'description': 'WebAssembly Non-trapping float-to-int Conversion'
+    },
+    # Data URIs
+    'datauri': {
+        'patterns': [r'data:', r'data:image/', r'data:text/', r'data:application/'],
+        'keywords': ['data:'],
+        'description': 'Data URIs'
+    },
+    # URL Scroll-To-Text Fragment
+    'url-scroll-to-text-fragment': {
+        'patterns': [r':~:text=', r'text='],
+        'keywords': ['scroll-to-text'],
+        'description': 'URL Scroll-To-Text Fragment'
     },
 }
 

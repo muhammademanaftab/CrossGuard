@@ -926,12 +926,18 @@ class MainWindow(ctk.CTkFrame):
             # Show ML Risk Card (Best Model - Gradient Boosting)
             ml_risk_card = MLRiskCard(self._ml_content_frame, title="Compatibility Risk Prediction")
             ml_risk_card.pack(fill="x", pady=(0, SPACING['sm']))
+
+            # Use actual model confidence, not hardcoded value
+            model_confidence = gb_data.get('avg_confidence', 0.5)
+            model_accuracy = gb_data.get('accuracy', 0.93)  # Gradient Boosting accuracy
+
             ml_risk_card.set_risk_data(
                 risk_level=gb_data.get('overall_risk', 'low'),
-                confidence=0.7 if predictor.is_model_loaded() else 0.5,
+                confidence=model_confidence,
                 factors=factors,
                 high_risk_count=flagged_count,
                 total_features=self._ml_total_features,
+                model_accuracy=model_accuracy,  # Pass model accuracy for display
             )
 
             # Show Feature Importance Card (if available)

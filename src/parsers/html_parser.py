@@ -14,6 +14,10 @@ from .html_feature_maps import (
     HTML_INPUT_TYPES,
     HTML_ATTRIBUTES,
     HTML_ATTRIBUTE_VALUES,
+    HTML_SPECIAL_ELEMENTS,
+    HTML_ARIA_ATTRIBUTES,
+    HTML_MEDIA_TYPE_VALUES,
+    HTML_CSP_ATTRIBUTES,
     ALL_HTML_FEATURES
 )
 from .custom_rules_loader import get_custom_html_rules
@@ -35,16 +39,16 @@ class HTMLParser:
 
         # Merge built-in rules with custom rules
         custom_html = get_custom_html_rules()
-        self._elements = {**HTML_ELEMENTS, **custom_html.get('elements', {})}
+        self._elements = {**HTML_ELEMENTS, **HTML_SPECIAL_ELEMENTS, **custom_html.get('elements', {})}
         self._input_types = {**HTML_INPUT_TYPES, **custom_html.get('input_types', {})}
-        self._attributes = {**HTML_ATTRIBUTES, **custom_html.get('attributes', {})}
+        self._attributes = {**HTML_ATTRIBUTES, **HTML_ARIA_ATTRIBUTES, **custom_html.get('attributes', {})}
         # Parse attribute_values from "attr:value" format to tuple format
         custom_attr_values = {}
         for key, value in custom_html.get('attribute_values', {}).items():
             if ':' in key:
                 attr, val = key.split(':', 1)
                 custom_attr_values[(attr, val)] = value
-        self._attribute_values = {**HTML_ATTRIBUTE_VALUES, **custom_attr_values}
+        self._attribute_values = {**HTML_ATTRIBUTE_VALUES, **HTML_MEDIA_TYPE_VALUES, **HTML_CSP_ATTRIBUTES, **custom_attr_values}
         
     def parse_file(self, filepath: str) -> Set[str]:
         """Parse an HTML file and extract features.
@@ -190,7 +194,7 @@ class HTMLParser:
     
     def _detect_special_patterns(self, soup: BeautifulSoup):
         """Detect special HTML patterns and features.
-        
+
         Args:
             soup: BeautifulSoup parsed HTML
         """
@@ -198,19 +202,19 @@ class HTMLParser:
         elements_with_srcset = soup.find_all(attrs={'srcset': True})
         if elements_with_srcset:
             self.features_found.add('srcset')
-        
+
         # Detect sizes attribute (responsive images)
         elements_with_sizes = soup.find_all(attrs={'sizes': True})
         if elements_with_sizes:
             self.features_found.add('srcset')  # Part of same feature
-        
+
         # Detect picture element with source
         pictures = soup.find_all('picture')
         for picture in pictures:
             sources = picture.find_all('source')
             if sources:
                 self.features_found.add('picture')
-        
+
         # Detect data attributes (data-*)
         all_elements = soup.find_all()
         for element in all_elements:
@@ -218,7 +222,7 @@ class HTMLParser:
                 if attr.startswith('data-'):
                     self.features_found.add('dataset')
                     break
-        
+
         # Detect async/defer on scripts
         scripts = soup.find_all('script')
         for script in scripts:
@@ -228,14 +232,14 @@ class HTMLParser:
                 self.features_found.add('script-defer')
             if script.get('type') == 'module':
                 self.features_found.add('es6-module')
-        
+
         # Detect link rel preload/prefetch
         links = soup.find_all('link')
         for link in links:
             rel = link.get('rel', [])
             if isinstance(rel, str):
                 rel = [rel]
-            
+
             for rel_value in rel:
                 rel_lower = rel_value.lower()
                 if rel_lower == 'preload':
@@ -248,14 +252,208 @@ class HTMLParser:
                     self.features_found.add('link-rel-preconnect')
                 elif rel_lower == 'modulepreload':
                     self.features_found.add('link-rel-modulepreload')
-        
+
         # Detect meta viewport
         viewport_meta = soup.find('meta', attrs={'name': 'viewport'})
         if viewport_meta:
             self.features_found.add('viewport-units')
-        
+
+        # Detect meta theme-color
+        theme_color_meta = soup.find('meta', attrs={'name': 'theme-color'})
+        if theme_color_meta:
+            self.features_found.add('meta-theme-color')
+
+        # Detect SVG in img src
+        self._detect_svg_in_img(soup)
+
+        # Detect SVG fragments
+        self._detect_svg_fragments(soup)
+
+        # Detect media fragments
+        self._detect_media_fragments(soup)
+
+        # Detect custom elements (hyphenated tag names)
+        self._detect_custom_elements(soup)
+
+        # Detect fieldset with disabled attribute
+        self._detect_fieldset_disabled(soup)
+
+        # Detect track elements in audio/video
+        self._detect_track_elements(soup)
+
+        # Detect WebVTT (.vtt files in track elements)
+        self._detect_webvtt(soup)
+
+        # Detect data URIs
+        self._detect_data_uris(soup)
+
+        # Detect XHTML (application/xhtml+xml)
+        self._detect_xhtml(soup)
+
         # Note: meta charset is universally supported and not tracked in Can I Use
         # so we don't detect it to avoid "feature not found" warnings
+
+    def _detect_svg_in_img(self, soup: BeautifulSoup):
+        """Detect SVG images in img src attributes.
+
+        Args:
+            soup: BeautifulSoup parsed HTML
+        """
+        svg_pattern = re.compile(r'\.svg(\?.*)?$', re.IGNORECASE)
+
+        # Check img elements
+        for img in soup.find_all('img'):
+            src = img.get('src', '')
+            if svg_pattern.search(src):
+                self.features_found.add('svg-img')
+                return
+
+        # Check source elements in picture
+        for source in soup.find_all('source'):
+            srcset = source.get('srcset', '')
+            if svg_pattern.search(srcset):
+                self.features_found.add('svg-img')
+                return
+
+    def _detect_svg_fragments(self, soup: BeautifulSoup):
+        """Detect SVG fragment identifiers (use href with #id).
+
+        Args:
+            soup: BeautifulSoup parsed HTML
+        """
+        # Check <use> elements with href containing fragment
+        for use in soup.find_all('use'):
+            href = use.get('href', '') or use.get('xlink:href', '')
+            if '#' in href:
+                self.features_found.add('svg-fragment')
+                return
+
+        # Check any element with svg fragment reference
+        fragment_pattern = re.compile(r'\.svg#\w+', re.IGNORECASE)
+        all_elements = soup.find_all()
+        for element in all_elements:
+            for attr_value in element.attrs.values():
+                if isinstance(attr_value, str) and fragment_pattern.search(attr_value):
+                    self.features_found.add('svg-fragment')
+                    return
+
+    def _detect_media_fragments(self, soup: BeautifulSoup):
+        """Detect media fragment URIs (#t=start,end for time fragments).
+
+        Args:
+            soup: BeautifulSoup parsed HTML
+        """
+        # Pattern for media fragments: #t=, #track=, #xywh=
+        fragment_pattern = re.compile(r'#(t|track|xywh|id)=', re.IGNORECASE)
+
+        # Check video and audio elements
+        for media in soup.find_all(['video', 'audio']):
+            src = media.get('src', '')
+            if fragment_pattern.search(src):
+                self.features_found.add('media-fragments')
+                return
+
+            # Check nested source elements
+            for source in media.find_all('source'):
+                src = source.get('src', '')
+                if fragment_pattern.search(src):
+                    self.features_found.add('media-fragments')
+                    return
+
+    def _detect_custom_elements(self, soup: BeautifulSoup):
+        """Detect custom elements (hyphenated tag names).
+
+        Args:
+            soup: BeautifulSoup parsed HTML
+        """
+        # Custom elements must contain a hyphen
+        all_elements = soup.find_all()
+        for element in all_elements:
+            if element.name and '-' in element.name:
+                # Skip known SVG elements with hyphens
+                svg_elements = {'font-face', 'font-face-src', 'font-face-uri',
+                               'font-face-format', 'font-face-name', 'missing-glyph',
+                               'color-profile', 'glyph-ref'}
+                if element.name.lower() not in svg_elements:
+                    self.features_found.add('custom-elementsv1')
+                    return
+
+    def _detect_fieldset_disabled(self, soup: BeautifulSoup):
+        """Detect fieldset elements with disabled attribute.
+
+        Args:
+            soup: BeautifulSoup parsed HTML
+        """
+        for fieldset in soup.find_all('fieldset'):
+            if fieldset.has_attr('disabled'):
+                self.features_found.add('fieldset-disabled')
+                return
+
+    def _detect_track_elements(self, soup: BeautifulSoup):
+        """Detect track elements in audio/video for subtitles/captions.
+
+        Args:
+            soup: BeautifulSoup parsed HTML
+        """
+        # Check video elements for track children
+        for video in soup.find_all('video'):
+            tracks = video.find_all('track')
+            if tracks:
+                self.features_found.add('videotracks')
+
+        # Check audio elements for track children
+        for audio in soup.find_all('audio'):
+            tracks = audio.find_all('track')
+            if tracks:
+                self.features_found.add('audiotracks')
+
+    def _detect_webvtt(self, soup: BeautifulSoup):
+        """Detect WebVTT usage (.vtt files in track elements).
+
+        Args:
+            soup: BeautifulSoup parsed HTML
+        """
+        vtt_pattern = re.compile(r'\.vtt(\?.*)?$', re.IGNORECASE)
+
+        for track in soup.find_all('track'):
+            src = track.get('src', '')
+            if vtt_pattern.search(src):
+                self.features_found.add('webvtt')
+                return
+
+    def _detect_data_uris(self, soup: BeautifulSoup):
+        """Detect data URIs in src, href, and other URL attributes.
+
+        Args:
+            soup: BeautifulSoup parsed HTML
+        """
+        data_uri_pattern = re.compile(r'^data:', re.IGNORECASE)
+
+        # Check common URL attributes
+        url_attrs = ['src', 'href', 'poster', 'data']
+        for attr in url_attrs:
+            for element in soup.find_all(attrs={attr: data_uri_pattern}):
+                self.features_found.add('datauri')
+                return
+
+        # Check srcset for data URIs
+        for element in soup.find_all(attrs={'srcset': True}):
+            srcset = element.get('srcset', '')
+            if 'data:' in srcset:
+                self.features_found.add('datauri')
+                return
+
+    def _detect_xhtml(self, soup: BeautifulSoup):
+        """Detect XHTML namespace declaration.
+
+        Args:
+            soup: BeautifulSoup parsed HTML
+        """
+        html_elem = soup.find('html')
+        if html_elem:
+            xmlns = html_elem.get('xmlns', '')
+            if 'xhtml' in xmlns.lower():
+                self.features_found.add('xhtml')
     
     def _find_unrecognized_patterns(self, soup: BeautifulSoup):
         """Find HTML elements/attributes that don't match any known rule.
