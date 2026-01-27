@@ -11,7 +11,7 @@ from typing import Dict, Optional, Callable, List, Tuple
 
 import customtkinter as ctk
 
-from ..theme import COLORS, SPACING
+from ..theme import COLORS, SPACING, enable_smooth_scrolling
 from .messagebox import show_info, show_error, show_warning, ask_question
 
 # Import built-in feature maps
@@ -324,6 +324,7 @@ class RulesManagerDialog(ctk.CTkToplevel):
             corner_radius=6,
         )
         self._rules_list_frame.pack(fill="both", expand=True, padx=10, pady=(0, 15))
+        enable_smooth_scrolling(self._rules_list_frame)
 
     def _build_details_panel(self, parent):
         """Build the right panel for rule details."""
@@ -337,6 +338,7 @@ class RulesManagerDialog(ctk.CTkToplevel):
             scrollbar_button_hover_color=COLORS['accent'],
         )
         self._details_frame.pack(fill="both", expand=True, padx=15, pady=15)
+        enable_smooth_scrolling(self._details_frame)
 
         self._show_details_placeholder()
 

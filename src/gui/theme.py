@@ -88,6 +88,10 @@ COLORS = {
     'table_row_odd': '#161b22',
     'table_row_hover': '#21262d',
     'table_row_selected': '#1a3552',  # Selected row (no alpha)
+
+    # Card/Surface specific (for widgets like AccessibilityCard)
+    'card_bg': '#21262d',            # Card background (same as bg_medium)
+    'surface': '#30363d',            # Surface elements inside cards (same as bg_light)
 }
 
 # =============================================================================
@@ -315,3 +319,82 @@ def configure_ctk_theme():
 
     ctk.set_appearance_mode("dark")
     ctk.set_default_color_theme("blue")
+
+
+def enable_smooth_scrolling(scrollable_frame, scroll_speed: float = 1.0):
+    """Enable smooth trackpad/mousewheel scrolling for a CTkScrollableFrame.
+
+    This fixes the common issue where two-finger trackpad scrolling
+    doesn't work properly in CustomTkinter.
+
+    Args:
+        scrollable_frame: A CTkScrollableFrame widget
+        scroll_speed: Multiplier for scroll speed (higher = faster)
+    """
+    import platform
+
+    # Get the internal canvas and frame
+    try:
+        # CTkScrollableFrame has _parent_canvas attribute
+        canvas = scrollable_frame._parent_canvas
+    except AttributeError:
+        # Fallback - try to find canvas in children
+        for child in scrollable_frame.winfo_children():
+            if child.winfo_class() == 'Canvas':
+                canvas = child
+                break
+        else:
+            return  # No canvas found
+
+    def _on_mousewheel(event):
+        """Handle mousewheel/trackpad scroll events."""
+        # macOS trackpad gives delta in pixels, need to scale down for smoothness
+        if platform.system() == 'Darwin':
+            # macOS - event.delta is in pixels, scale down significantly for smooth scrolling
+            # Negative delta = scroll down, positive = scroll up
+            delta = -event.delta / 120 * scroll_speed
+        elif platform.system() == 'Windows':
+            # Windows - event.delta is in units of 120
+            delta = -event.delta / 120 * scroll_speed
+        else:
+            # Linux - uses Button-4/5 instead
+            delta = -1 if event.num == 4 else 1
+
+        # Scroll the canvas - use smaller units for smoother feel
+        canvas.yview_scroll(int(delta), "units")
+
+    def _on_linux_scroll(event):
+        """Handle Linux scroll events (Button-4/5)."""
+        if event.num == 4:
+            canvas.yview_scroll(-1, "units")
+        elif event.num == 5:
+            canvas.yview_scroll(1, "units")
+
+    def _bind_to_widget(widget):
+        """Recursively bind scroll events to widget and all children."""
+        if platform.system() == 'Linux':
+            widget.bind('<Button-4>', _on_linux_scroll, add='+')
+            widget.bind('<Button-5>', _on_linux_scroll, add='+')
+        else:
+            widget.bind('<MouseWheel>', _on_mousewheel, add='+')
+
+        # Bind to all children
+        for child in widget.winfo_children():
+            _bind_to_widget(child)
+
+    def _bind_all_children(event=None):
+        """Bind scroll to all children when frame is configured."""
+        _bind_to_widget(scrollable_frame)
+
+    # Bind to the scrollable frame and all its children
+    _bind_to_widget(scrollable_frame)
+
+    # Also bind to canvas directly
+    if platform.system() == 'Linux':
+        canvas.bind('<Button-4>', _on_linux_scroll, add='+')
+        canvas.bind('<Button-5>', _on_linux_scroll, add='+')
+    else:
+        canvas.bind('<MouseWheel>', _on_mousewheel, add='+')
+
+    # Re-bind when new children are added
+    scrollable_frame.bind('<Configure>', _bind_all_children, add='+')

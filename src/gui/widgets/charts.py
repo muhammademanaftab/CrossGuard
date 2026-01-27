@@ -322,6 +322,7 @@ class FeatureDistributionChart(ctk.CTkFrame):
         )
 
         self._data = {}
+        self._total_unique = None
         self._init_ui()
 
     def _init_ui(self):
@@ -347,13 +348,21 @@ class FeatureDistributionChart(ctk.CTkFrame):
         canvas_widget.configure(bg=COLORS['bg_medium'], highlightthickness=0)
         canvas_widget.pack(fill="both", expand=True, padx=8, pady=(0, 12))
 
-    def set_data(self, html_count: int, css_count: int, js_count: int):
-        """Set the feature distribution data."""
+    def set_data(self, html_count: int, css_count: int, js_count: int, total_unique: int = None):
+        """Set the feature distribution data.
+
+        Args:
+            html_count: Number of HTML features
+            css_count: Number of CSS features
+            js_count: Number of JavaScript features
+            total_unique: Total unique features (if None, sum of counts is used)
+        """
         self._data = {
             'HTML': html_count or 0,
             'CSS': css_count or 0,
             'JavaScript': js_count or 0
         }
+        self._total_unique = total_unique
         self._draw_chart()
 
     def _draw_chart(self):
@@ -390,7 +399,8 @@ class FeatureDistributionChart(ctk.CTkFrame):
         ax = self.figure.add_subplot(111)
         ax.set_facecolor(COLORS['bg_medium'])
 
-        total = sum(sizes)
+        # Use unique total if provided, otherwise sum individual counts
+        total = self._total_unique if self._total_unique is not None else sum(sizes)
 
         # Create donut chart
         wedges, texts = ax.pie(

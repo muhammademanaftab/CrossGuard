@@ -25,6 +25,12 @@ from .header_bar import HeaderBar
 from .status_bar import StatusBar
 from .file_table import FileTable, FileTableRow, FileTableHeader
 
+# New progressive disclosure widgets
+from .build_badge import BuildBadge
+from .collapsible import CollapsibleSection
+from .issue_card import IssueCard, IssuesSummary
+from .quick_stats import QuickStatsBar, StatCard
+
 __all__ = [
     # Drop zone
     'DropZone',
@@ -62,4 +68,12 @@ __all__ = [
     'FileTable',
     'FileTableRow',
     'FileTableHeader',
+
+    # Progressive disclosure widgets
+    'BuildBadge',
+    'CollapsibleSection',
+    'IssueCard',
+    'IssuesSummary',
+    'QuickStatsBar',
+    'StatCard',
 ]

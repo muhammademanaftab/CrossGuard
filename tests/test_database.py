@@ -13,118 +13,72 @@ from src.analyzer.scorer import CompatibilityScorer
 
 def test_database_loading():
     """Test database loading functionality."""
-    print("\n" + "="*60)
-    print("TEST 1: Database Loading")
-    print("="*60)
-    
     db = CanIUseDatabase()
     success = db.load()
-    
-    if success:
-        print("✓ Database loaded successfully")
-        stats = db.get_statistics()
-        print(f"✓ Total features: {stats['total_features']}")
-        print(f"✓ Total categories: {stats['total_categories']}")
-        print(f"✓ Index size: {stats['index_size']}")
-        return True
-    else:
-        print("✗ Failed to load database")
-        return False
+
+    assert success, "Failed to load database"
+
+    stats = db.get_statistics()
+    assert stats['total_features'] > 0, "No features loaded"
+    assert stats['total_categories'] > 0, "No categories loaded"
+    assert stats['index_size'] > 0, "Index is empty"
 
 
 def test_feature_lookup():
     """Test feature lookup functionality."""
-    print("\n" + "="*60)
-    print("TEST 2: Feature Lookup")
-    print("="*60)
-    
     db = get_database()
-    
+
     # Test getting a feature
     feature = db.get_feature('flexbox')
-    if feature:
-        print(f"✓ Found feature: {feature.get('title', 'Unknown')}")
-        print(f"  Description: {feature.get('description', 'N/A')[:80]}...")
-        print(f"  Categories: {feature.get('categories', [])}")
-    else:
-        print("✗ Could not find 'flexbox' feature")
-        return False
-    
+    assert feature is not None, "Could not find 'flexbox' feature"
+    assert 'title' in feature or 'description' in feature
+
     # Test feature info
     info = db.get_feature_info('css-grid')
-    if info:
-        print(f"✓ Feature info for CSS Grid:")
-        print(f"  Title: {info['title']}")
-        print(f"  Status: {info['status']}")
-    
-    return True
+    assert info is not None, "Could not get info for 'css-grid'"
+    assert 'title' in info
+    assert 'status' in info
 
 
 def test_browser_support():
     """Test browser support checking."""
-    print("\n" + "="*60)
-    print("TEST 3: Browser Support Checking")
-    print("="*60)
-    
     db = get_database()
-    
-    # Test features
+
+    # Test features - these should all be supported in modern browsers
     test_cases = [
         ('flexbox', 'chrome', '144'),
         ('css-grid', 'firefox', '146'),
         ('css-variables', 'safari', '18.4'),
         ('arrow-functions', 'edge', '141'),
     ]
-    
+
     for feature_id, browser, version in test_cases:
         status = db.check_support(feature_id, browser, version)
-        status_text = {
-            'y': '✓ Fully Supported',
-            'a': '⚠ Partially Supported',
-            'n': '✗ Not Supported',
-            'u': '? Unknown',
-            'x': '⚠ Requires Prefix',
-            'p': 'ℹ Polyfill Available'
-        }.get(status, '? Unknown')
-        
-        print(f"{status_text}: {feature_id} in {browser} {version}")
-    
-    return True
+        # Status should be one of: y (yes), a (partial), n (no), u (unknown), x (prefix), p (polyfill)
+        assert status in ('y', 'a', 'n', 'u', 'x', 'p'), f"Invalid status '{status}' for {feature_id}"
+        # Modern browsers should support these features
+        assert status in ('y', 'a'), f"{feature_id} should be supported in {browser} {version}, got {status}"
 
 
 def test_search():
     """Test feature search functionality."""
-    print("\n" + "="*60)
-    print("TEST 4: Feature Search")
-    print("="*60)
-    
     db = get_database()
-    
+
     # Search for grid-related features
     results = db.search_features('grid')
-    print(f"✓ Found {len(results)} features matching 'grid':")
-    for i, feature_id in enumerate(results[:5], 1):
-        info = db.get_feature_info(feature_id)
-        if info:
-            print(f"  {i}. {feature_id}: {info['title']}")
-    
-    if len(results) > 5:
-        print(f"  ... and {len(results) - 5} more")
-    
-    return True
+    assert len(results) > 0, "No results found for 'grid' search"
+
+    # css-grid should be in results
+    assert 'css-grid' in results, "'css-grid' not found in search results"
 
 
 def test_compatibility_analyzer():
     """Test compatibility analyzer."""
-    print("\n" + "="*60)
-    print("TEST 5: Compatibility Analysis")
-    print("="*60)
-    
     analyzer = CompatibilityAnalyzer()
-    
+
     # Test features
     features = {'flexbox', 'css-grid', 'css-variables', 'arrow-functions'}
-    
+
     # Target browsers
     target_browsers = {
         'chrome': '144',
@@ -132,40 +86,25 @@ def test_compatibility_analyzer():
         'safari': '18.4',
         'edge': '141'
     }
-    
-    print(f"Analyzing {len(features)} features across {len(target_browsers)} browsers...")
-    
+
     report = analyzer.analyze(features, target_browsers)
-    
-    print(f"\n✓ Analysis complete!")
-    print(f"  Overall Score: {report.overall_score:.2f}%")
-    print(f"  Features Analyzed: {report.features_analyzed}")
-    print(f"  Critical Issues: {report.critical_issues}")
-    print(f"  High Issues: {report.high_issues}")
-    print(f"  Medium Issues: {report.medium_issues}")
-    print(f"  Low Issues: {report.low_issues}")
-    
-    print(f"\n  Browser Scores:")
-    for browser, score in report.browser_scores.items():
-        print(f"    {browser}: {score.score:.2f}% ({score.supported_count}/{score.total_features} supported)")
-    
+
+    # Verify report structure
+    assert report.overall_score >= 0, "Overall score should be non-negative"
+    assert report.features_analyzed == len(features), "Features analyzed count mismatch"
+    assert len(report.browser_scores) == len(target_browsers), "Browser scores count mismatch"
+
     # Get summary
     summary = analyzer.get_summary_statistics(report)
-    print(f"\n  Grade: {summary['grade']}")
-    print(f"  Best Browser: {summary['best_browser']}")
-    print(f"  Worst Browser: {summary['worst_browser']}")
-    
-    return True
+    assert 'grade' in summary, "Summary missing grade"
+    assert 'best_browser' in summary, "Summary missing best_browser"
+    assert 'worst_browser' in summary, "Summary missing worst_browser"
 
 
 def test_scorer():
     """Test scoring algorithms."""
-    print("\n" + "="*60)
-    print("TEST 6: Scoring Algorithms")
-    print("="*60)
-    
     scorer = CompatibilityScorer()
-    
+
     # Test support status
     support_status = {
         'chrome': 'y',
@@ -174,47 +113,33 @@ def test_scorer():
         'edge': 'y',
         'ie': 'n'
     }
-    
+
     # Simple score
     simple_score = scorer.calculate_simple_score(support_status)
-    print(f"✓ Simple Score: {simple_score:.2f}%")
-    
+    assert 0 <= simple_score <= 100, "Simple score out of range"
+
     # Weighted score
     weighted = scorer.calculate_weighted_score(support_status)
-    print(f"✓ Weighted Score: {weighted.weighted_score:.2f}%")
-    print(f"  Breakdown:")
-    for browser, score in weighted.breakdown.items():
-        weight = weighted.weights[browser]
-        print(f"    {browser}: {score}% (weight: {weight})")
-    
+    assert 0 <= weighted.weighted_score <= 100, "Weighted score out of range"
+    assert len(weighted.breakdown) > 0, "Weighted breakdown is empty"
+
     # Compatibility index
     index = scorer.calculate_compatibility_index(support_status)
-    print(f"\n✓ Compatibility Index:")
-    print(f"  Grade: {index['grade']}")
-    print(f"  Risk Level: {index['risk_level']}")
-    print(f"  Support Percentage: {index['support_percentage']}%")
-    print(f"  Supported: {index['supported_count']}/{index['total_browsers']}")
-    
-    return True
+    assert 'grade' in index, "Index missing grade"
+    assert 'risk_level' in index, "Index missing risk_level"
+    assert 'support_percentage' in index, "Index missing support_percentage"
 
 
 def test_categories():
     """Test category functionality."""
-    print("\n" + "="*60)
-    print("TEST 7: Feature Categories")
-    print("="*60)
-    
     db = get_database()
     categories = db.get_feature_categories()
-    
-    print(f"✓ Found {len(categories)} categories:")
-    
-    # Show top categories
-    sorted_cats = sorted(categories.items(), key=lambda x: len(x[1]), reverse=True)
-    for i, (category, features) in enumerate(sorted_cats[:10], 1):
-        print(f"  {i}. {category}: {len(features)} features")
-    
-    return True
+
+    assert len(categories) > 0, "No categories found"
+
+    # Each category should have at least one feature
+    for category, features in categories.items():
+        assert len(features) > 0, f"Category '{category}' has no features"
 
 
 def run_all_tests():

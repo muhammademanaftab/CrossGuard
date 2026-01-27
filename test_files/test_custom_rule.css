@@ -10,8 +10,7 @@
 }
 
 .box {
-    /* Another custom property */
-    special-animation: bounce;
+    /* REMOVED special-animation for re-check test */
 
     /* Standard CSS */
     border-radius: 10px;

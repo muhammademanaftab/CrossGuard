@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import List, Callable, Optional, Tuple, Dict
 import customtkinter as ctk
 
-from ..theme import COLORS, SPACING, ICONS, get_file_type_color
+from ..theme import COLORS, SPACING, ICONS, get_file_type_color, enable_smooth_scrolling
 
 
 class FileTableRow(ctk.CTkFrame):
@@ -403,6 +403,7 @@ class FileTable(ctk.CTkFrame):
             scrollbar_button_hover_color=COLORS['accent'],
         )
         self.rows_container.pack(fill="both", expand=True)
+        enable_smooth_scrolling(self.rows_container)
 
         # Empty state label
         self.empty_label = ctk.CTkLabel(
