@@ -445,6 +445,14 @@ class MainWindow(ctk.CTkFrame):
 
             # Add browser cards to collapsible content
             browser_content = browser_section.get_content_frame()
+
+            # Collect all detected features for version range display
+            all_detected_features = []
+            if features:
+                all_detected_features.extend(features.get('html', []))
+                all_detected_features.extend(features.get('css', []))
+                all_detected_features.extend(features.get('js', []))
+
             for browser_name, details in browsers.items():
                 card = BrowserCard(
                     browser_content,
@@ -456,6 +464,8 @@ class MainWindow(ctk.CTkFrame):
                     compatibility_pct=details.get('compatibility_percentage', 0),
                     unsupported_features=details.get('unsupported_features', []),
                     partial_features=details.get('partial_features', []),
+                    supported_features=details.get('supported_features', []),
+                    all_features=all_detected_features,
                 )
                 card.pack(fill="x", pady=(0, SPACING['sm']))
 

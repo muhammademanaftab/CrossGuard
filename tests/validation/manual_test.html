@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manual Validation Test</title>
+
+    <!-- Feature 1: link-rel-preload -->
+    <link rel="preload" href="style.css" as="style">
+
+    <!-- Feature 2: es6-module -->
+    <script type="module" src="app.js"></script>
+</head>
+<body>
+    <main>
+        <!-- Feature 3: dialog -->
+        <dialog id="myDialog">
+            <p>This is a dialog box</p>
+            <button>Close</button>
+        </dialog>
+
+        <!-- Feature 4: details -->
+        <details>
+            <summary>Click to expand</summary>
+            <p>Hidden content here</p>
+        </details>
+
+        <!-- Feature 5: input-datetime -->
+        <form>
+            <label>Select Date:</label>
+            <input type="date" name="date">
+
+            <!-- Feature 6: input-color -->
+            <label>Pick Color:</label>
+            <input type="color" name="color" value="#ff0000">
+        </form>
+
+        <!-- Feature 7: video -->
+        <video controls width="400">
+            <source src="movie.mp4" type="video/mp4">
+        </video>
+
+        <!-- Feature 8: canvas -->
+        <canvas id="myCanvas" width="200" height="100"></canvas>
+
+        <!-- Feature 9: picture element (responsive images) -->
+        <picture>
+            <source media="(min-width: 800px)" srcset="large.jpg">
+            <source media="(min-width: 400px)" srcset="medium.jpg">
+            <img src="small.jpg" alt="Responsive image">
+        </picture>
+    </main>
+</body>
+</html>

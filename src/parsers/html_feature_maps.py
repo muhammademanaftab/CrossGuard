@@ -12,7 +12,8 @@ HTML_ELEMENTS = {
     'summary': 'details',  # Part of details element
     'template': 'template',
     'picture': 'picture',
-    'source': 'picture',  # Used with picture
+    # Note: 'source' is NOT mapped here because it's used in video/audio too
+    # The 'picture' feature is detected when <picture> element is found
     'track': 'webvtt',  # Track element for captions (maps to WebVTT)
     'video': 'video',
     'audio': 'audio',
