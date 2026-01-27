@@ -31,6 +31,12 @@ from .collapsible import CollapsibleSection
 from .issue_card import IssueCard, IssuesSummary
 from .quick_stats import QuickStatsBar, StatCard
 
+# ML Risk Assessment widgets
+from .ml_risk_card import MLRiskCard, MLFeatureImportanceCard
+
+# Browser Selection
+from .browser_selector import BrowserSelector, get_available_browsers
+
 __all__ = [
     # Drop zone
     'DropZone',
@@ -76,4 +82,12 @@ __all__ = [
     'IssuesSummary',
     'QuickStatsBar',
     'StatCard',
+
+    # ML Risk Assessment
+    'MLRiskCard',
+    'MLFeatureImportanceCard',
+
+    # Browser Selection
+    'BrowserSelector',
+    'get_available_browsers',
 ]
