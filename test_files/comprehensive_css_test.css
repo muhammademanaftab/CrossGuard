@@ -1,0 +1,1163 @@
+/**
+ * Comprehensive CSS Test File
+ *
+ * This file contains ALL detectable CSS features from the Cross Guard parser.
+ * Each section tests specific feature categories from css_feature_maps.py.
+ * Total: ~179 features across all categories.
+ */
+
+/* ============================================================================
+   CSS LAYOUT FEATURES (7)
+   ============================================================================ */
+
+/* flexbox */
+.flex-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    align-items: center;
+}
+
+/* flexbox-gap */
+.flex-gap {
+    display: flex;
+    gap: 10px;
+    row-gap: 20px;
+    column-gap: 15px;
+}
+
+/* css-grid */
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: auto;
+    grid-column: 1 / 3;
+    grid-row: 1;
+}
+
+/* multicolumn */
+.multi-column {
+    column-count: 3;
+    column-width: 200px;
+    column-gap: 20px;
+    column-rule: 1px solid #ccc;
+}
+
+/* inline-block */
+.inline-block {
+    display: inline-block;
+}
+
+/* flow-root */
+.flow-root {
+    display: flow-root;
+}
+
+/* run-in */
+.run-in {
+    display: run-in;
+}
+
+/* ============================================================================
+   CSS TRANSFORM & ANIMATION (5)
+   ============================================================================ */
+
+/* transforms2d */
+.transform-2d {
+    transform: rotate(45deg);
+    transform: translate(10px, 20px);
+    transform: scale(1.5);
+    transform: skew(10deg);
+}
+
+/* transforms3d */
+.transform-3d {
+    transform: translate3d(10px, 20px, 30px);
+    transform: rotateX(45deg);
+    transform: rotateY(45deg);
+    transform: rotateZ(45deg);
+    perspective: 1000px;
+}
+
+/* css-animation */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+.animated {
+    animation: fadeIn 1s ease;
+    animation-name: fadeIn;
+    animation-duration: 1s;
+}
+
+/* css-transitions */
+.transition {
+    transition: all 0.3s ease;
+    transition-property: opacity;
+    transition-duration: 0.3s;
+}
+
+/* will-change */
+.will-change {
+    will-change: transform;
+}
+
+/* ============================================================================
+   CSS COLOR & BACKGROUND (11)
+   ============================================================================ */
+
+/* css3-colors */
+.colors {
+    color: rgba(255, 0, 0, 0.5);
+    background: hsla(120, 100%, 50%, 0.3);
+    border-color: #ff0000;
+}
+
+/* currentcolor */
+.currentcolor {
+    border-color: currentColor;
+}
+
+/* css-gradients */
+.gradient {
+    background: linear-gradient(to right, red, blue);
+    background: radial-gradient(circle, red, blue);
+    background: repeating-linear-gradient(45deg, red, blue 10px);
+}
+
+/* multibackgrounds */
+.multi-bg {
+    background: url('img1.png'), url('img2.png');
+    background-image: url('a.png'), url('b.png');
+}
+
+/* background-img-opts */
+.bg-opts {
+    background-size: cover;
+    background-origin: content-box;
+    background-clip: padding-box;
+}
+
+/* background-clip-text */
+.bg-clip-text {
+    background-clip: text;
+    -webkit-background-clip: text;
+}
+
+/* css-filter-function */
+.filter {
+    filter: blur(5px);
+    filter: brightness(1.2);
+    filter: contrast(1.5);
+    filter: grayscale(50%);
+}
+
+/* css-backdrop-filter */
+.backdrop {
+    backdrop-filter: blur(10px);
+}
+
+/* css-backgroundblendmode */
+.blend-bg {
+    background-blend-mode: multiply;
+}
+
+/* css-mixblendmode */
+.blend-mix {
+    mix-blend-mode: overlay;
+}
+
+/* css-conic-gradients */
+.conic {
+    background: conic-gradient(red, yellow, green);
+    background: repeating-conic-gradient(red 0deg, yellow 30deg);
+}
+
+/* ============================================================================
+   CSS TYPOGRAPHY (21)
+   ============================================================================ */
+
+/* fontface */
+@font-face {
+    font-family: 'CustomFont';
+    src: url('font.woff2') format('woff2');
+}
+
+/* woff */
+.woff {
+    src: url('font.woff') format('woff');
+}
+
+/* woff2 */
+.woff2 {
+    src: url('font.woff2') format('woff2');
+}
+
+/* ttf */
+.ttf {
+    src: url('font.ttf') format('truetype');
+}
+
+/* variable-fonts */
+.variable-fonts {
+    font-variation-settings: 'wght' 400;
+    font-optical-sizing: auto;
+}
+
+/* font-feature */
+.font-feature {
+    font-feature-settings: 'liga' 1;
+    font-variant-ligatures: common-ligatures;
+}
+
+/* font-kerning */
+.font-kerning {
+    font-kerning: normal;
+}
+
+/* font-size-adjust */
+.font-size-adjust {
+    font-size-adjust: 0.5;
+}
+
+/* font-smooth */
+.font-smooth {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* font-variant-alternates */
+.font-alternates {
+    font-variant-alternates: stylistic(salt);
+}
+
+/* font-variant-numeric */
+.font-numeric {
+    font-variant-numeric: tabular-nums;
+}
+
+/* font-unicode-range */
+@font-face {
+    font-family: 'Subset';
+    unicode-range: U+0000-00FF;
+}
+
+/* font-family-system-ui */
+.system-ui {
+    font-family: system-ui, sans-serif;
+}
+
+/* extended-system-fonts */
+.extended-fonts {
+    font-family: ui-serif;
+    font-family: ui-sans-serif;
+    font-family: ui-monospace;
+    font-family: ui-rounded;
+}
+
+/* text-overflow */
+.text-overflow {
+    text-overflow: ellipsis;
+}
+
+/* text-decoration */
+.text-decoration {
+    text-decoration-line: underline;
+    text-decoration-style: wavy;
+    text-decoration-color: red;
+}
+
+/* text-emphasis */
+.text-emphasis {
+    text-emphasis: circle red;
+    text-emphasis-style: filled;
+}
+
+/* text-stroke */
+.text-stroke {
+    -webkit-text-stroke: 1px black;
+}
+
+/* text-size-adjust */
+.text-size-adjust {
+    text-size-adjust: 100%;
+}
+
+/* word-break */
+.word-break {
+    word-break: break-all;
+}
+
+/* wordwrap */
+.wordwrap {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+/* css3-tabsize */
+.tabsize {
+    tab-size: 4;
+}
+
+/* ============================================================================
+   CSS BOX MODEL & SIZING (5)
+   ============================================================================ */
+
+/* css3-boxsizing */
+.boxsizing {
+    box-sizing: border-box;
+    box-sizing: content-box;
+}
+
+/* minmaxwh */
+.minmax {
+    min-width: 100px;
+    min-height: 50px;
+    max-width: 500px;
+    max-height: 300px;
+}
+
+/* intrinsic-width */
+.intrinsic {
+    width: min-content;
+    width: max-content;
+    width: fit-content;
+}
+
+/* object-fit */
+.object-fit {
+    object-fit: cover;
+    object-position: center;
+}
+
+/* css-aspect-ratio */
+.aspect-ratio {
+    aspect-ratio: 16 / 9;
+}
+
+/* ============================================================================
+   CSS BORDER & OUTLINE (4)
+   ============================================================================ */
+
+/* border-image */
+.border-image {
+    border-image: url('border.png') 30 stretch;
+    border-image-source: url('border.png');
+}
+
+/* border-radius */
+.border-radius {
+    border-radius: 10px;
+}
+
+/* outline */
+.outline {
+    outline: 2px solid blue;
+    outline-width: 2px;
+    outline-style: solid;
+    outline-color: blue;
+}
+
+/* css-boxdecorationbreak */
+.box-decoration-break {
+    box-decoration-break: clone;
+}
+
+/* ============================================================================
+   CSS SHADOW & EFFECTS (3)
+   ============================================================================ */
+
+/* css-boxshadow */
+.box-shadow {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* css-textshadow */
+.text-shadow {
+    text-shadow: 2px 2px 4px #000;
+}
+
+/* ============================================================================
+   CSS SELECTORS (20)
+   ============================================================================ */
+
+/* css-sel2 */
+[data-attr] { color: red; }
+:hover { color: blue; }
+:active { color: green; }
+:focus { outline: none; }
+
+/* css-sel3 */
+:nth-child(2n) { color: red; }
+:nth-of-type(odd) { color: blue; }
+:first-of-type { font-weight: bold; }
+:last-of-type { font-style: italic; }
+:not(.hidden) { display: block; }
+
+/* css-gencontent */
+.before::before { content: 'Before'; }
+.after::after { content: 'After'; }
+:before { content: ''; }
+:after { content: ''; }
+
+/* css-first-letter */
+p::first-letter { font-size: 2em; }
+p:first-letter { font-size: 2em; }
+
+/* css-first-line */
+p::first-line { font-weight: bold; }
+p:first-line { font-weight: bold; }
+
+/* css-selection */
+::selection { background: yellow; }
+
+/* css-placeholder */
+::placeholder { color: gray; }
+::-webkit-input-placeholder { color: gray; }
+
+/* css-marker-pseudo */
+li::marker { color: red; }
+
+/* css-case-insensitive */
+[data-value="test" i] { color: red; }
+
+/* css-optional-pseudo */
+:optional { border: 1px solid gray; }
+:required { border: 1px solid red; }
+
+/* css-placeholder-shown */
+:placeholder-shown { background: #f0f0f0; }
+
+/* css-default-pseudo */
+:default { font-weight: bold; }
+
+/* css-indeterminate-pseudo */
+:indeterminate { opacity: 0.5; }
+
+/* css-dir-pseudo */
+:dir(ltr) { text-align: left; }
+
+/* css-any-link */
+:any-link { color: blue; }
+
+/* css-read-only-write */
+:read-only { background: #eee; }
+:read-write { background: white; }
+
+/* css-scope-pseudo */
+:scope { border: 1px solid black; }
+
+/* css-matches-pseudo */
+:is(.a, .b) { color: red; }
+:matches(.c, .d) { color: blue; }
+:where(.e, .f) { color: green; }
+
+/* css-has */
+:has(.child) { background: yellow; }
+
+/* css-focus-within */
+:focus-within { box-shadow: 0 0 5px blue; }
+
+/* css-focus-visible */
+:focus-visible { outline: 2px solid blue; }
+
+/* ============================================================================
+   CSS MEDIA QUERIES (5)
+   ============================================================================ */
+
+/* css-mediaqueries */
+@media screen and (min-width: 768px) {
+    .responsive { display: block; }
+}
+@media (max-width: 480px) {
+    .mobile { display: none; }
+}
+
+/* prefers-color-scheme */
+@media (prefers-color-scheme: dark) {
+    body { background: #1a1a1a; }
+}
+
+/* prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+    * { animation: none; }
+}
+
+/* css-media-resolution */
+@media (min-resolution: 2dppx) {
+    .retina { background-image: url('2x.png'); }
+}
+@media (max-resolution: 1dppx) {
+    .standard { background-image: url('1x.png'); }
+}
+
+/* css-media-range-syntax */
+@media (width >= 768px) {
+    .range { display: block; }
+}
+
+/* css-media-interaction */
+@media (hover: hover) {
+    .hover-device { cursor: pointer; }
+}
+@media (pointer: fine) {
+    .precise-pointer { font-size: 14px; }
+}
+
+/* css-media-scripting */
+@media (scripting: enabled) {
+    .scripting { display: block; }
+}
+
+/* ============================================================================
+   CSS UNITS (5)
+   ============================================================================ */
+
+/* rem */
+.rem-unit {
+    font-size: 1.5rem;
+    margin: 2rem;
+}
+
+/* viewport-units */
+.viewport-units {
+    width: 100vw;
+    height: 100vh;
+    min-height: 50vmin;
+    max-width: 80vmax;
+}
+
+/* viewport-unit-variants */
+.viewport-variants {
+    height: 100svh;
+    height: 100lvh;
+    height: 100dvh;
+    width: 100svw;
+    width: 100lvw;
+    width: 100dvw;
+}
+
+/* calc */
+.calc {
+    width: calc(100% - 20px);
+}
+
+/* ch-unit */
+.ch-unit {
+    width: 40ch;
+}
+
+/* ============================================================================
+   CSS VARIABLES (1)
+   ============================================================================ */
+
+/* css-variables */
+:root {
+    --primary-color: #3498db;
+    --spacing: 16px;
+}
+.css-vars {
+    color: var(--primary-color);
+    padding: var(--spacing);
+}
+
+/* ============================================================================
+   CSS AT-RULES (6)
+   ============================================================================ */
+
+/* css-featurequeries */
+@supports (display: grid) {
+    .grid-support { display: grid; }
+}
+
+/* css-counters */
+.counter {
+    counter-reset: section;
+    counter-increment: section;
+}
+.counter::before {
+    content: counter(section);
+}
+
+/* css-page-break */
+.page-break {
+    page-break-before: always;
+    page-break-after: avoid;
+    page-break-inside: avoid;
+}
+
+/* css-paged-media */
+@page {
+    margin: 1in;
+}
+
+/* css-when-else */
+@when media(width >= 400px) {
+    .when-else { display: block; }
+}
+
+/* ============================================================================
+   CSS POSITIONING & DISPLAY (3)
+   ============================================================================ */
+
+/* css-sticky */
+.sticky {
+    position: sticky;
+    top: 0;
+}
+
+/* css-fixed */
+.fixed {
+    position: fixed;
+    top: 0;
+    left: 0;
+}
+
+/* css-table */
+.table {
+    display: table;
+}
+.table-cell {
+    display: table-cell;
+}
+
+/* ============================================================================
+   CSS OVERFLOW & CLIPPING (3)
+   ============================================================================ */
+
+/* css-overflow */
+.overflow {
+    overflow: auto;
+    overflow-x: hidden;
+    overflow-y: scroll;
+}
+
+/* css-overflow-anchor */
+.overflow-anchor {
+    overflow-anchor: none;
+}
+
+/* css-clip-path */
+.clip-path {
+    clip-path: circle(50%);
+}
+
+/* ============================================================================
+   CSS INTERACTION (12)
+   ============================================================================ */
+
+/* css-resize */
+.resize {
+    resize: both;
+}
+
+/* pointer-events */
+.pointer-events {
+    pointer-events: none;
+}
+
+/* user-select-none */
+.user-select {
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+/* css-appearance */
+.appearance {
+    appearance: none;
+    -webkit-appearance: none;
+}
+
+/* css-caret-color */
+.caret {
+    caret-color: red;
+}
+
+/* css-touch-action */
+.touch-action {
+    touch-action: none;
+}
+
+/* css-scroll-behavior */
+.scroll-behavior {
+    scroll-behavior: smooth;
+}
+
+/* css3-cursors */
+.cursor {
+    cursor: pointer;
+}
+
+/* css3-cursors-grab */
+.cursor-grab {
+    cursor: grab;
+    cursor: grabbing;
+}
+
+/* css3-cursors-newer */
+.cursor-zoom {
+    cursor: zoom-in;
+    cursor: zoom-out;
+}
+
+/* ============================================================================
+   CSS MISCELLANEOUS (25+)
+   ============================================================================ */
+
+/* css-opacity */
+.opacity {
+    opacity: 0.5;
+}
+
+/* css-zoom */
+.zoom {
+    zoom: 1.5;
+}
+
+/* css-all */
+.all {
+    all: unset;
+}
+
+/* css-unset-value */
+.unset {
+    color: unset;
+}
+
+/* css-initial-value */
+.initial {
+    color: initial;
+}
+
+/* css-revert-value */
+.revert {
+    color: revert;
+}
+
+/* css-widows-orphans */
+.widows-orphans {
+    widows: 3;
+    orphans: 2;
+}
+
+/* css-writing-mode */
+.writing-mode {
+    writing-mode: vertical-rl;
+}
+
+/* css-logical-props */
+.logical {
+    margin-inline: 10px;
+    padding-block: 20px;
+    inset-inline: 0;
+}
+
+/* css-print-color-adjust */
+.print-color {
+    print-color-adjust: exact;
+    color-adjust: exact;
+}
+
+/* css-image-set */
+.image-set {
+    background-image: image-set(url('1x.png') 1x, url('2x.png') 2x);
+}
+
+/* css-element-function */
+.element-fn {
+    background: element(#myElement);
+}
+
+/* css-cross-fade */
+.cross-fade {
+    background: cross-fade(url('a.png'), url('b.png'), 50%);
+}
+
+/* css-crisp-edges */
+.crisp {
+    image-rendering: crisp-edges;
+    image-rendering: pixelated;
+}
+
+/* css-unicode-bidi */
+.unicode-bidi {
+    unicode-bidi: embed;
+}
+
+/* css3-attr */
+.attr {
+    content: attr(data-label);
+}
+
+/* kerning-pairs-ligatures */
+.kerning {
+    text-rendering: optimizeLegibility;
+}
+
+/* justify-content-space-evenly */
+.space-evenly {
+    justify-content: space-evenly;
+}
+
+/* background-position-x-y */
+.bg-position {
+    background-position-x: 50%;
+    background-position-y: 25%;
+}
+
+/* background-repeat-round-space */
+.bg-repeat {
+    background-repeat: round;
+    background-repeat: space;
+}
+
+/* background-attachment */
+.bg-attachment {
+    background-attachment: fixed;
+}
+
+/* webkit-user-drag */
+.user-drag {
+    -webkit-user-drag: none;
+}
+
+/* ============================================================================
+   CSS CONTAINER QUERIES (2)
+   ============================================================================ */
+
+/* css-container-queries */
+.container-parent {
+    container-type: inline-size;
+    container-name: sidebar;
+}
+@container sidebar (min-width: 400px) {
+    .container-child { display: flex; }
+}
+
+/* css-container-query-units */
+.container-units {
+    width: 50cqw;
+    height: 50cqh;
+    font-size: 2cqi;
+    padding: 1cqb;
+}
+
+/* ============================================================================
+   CSS SUBGRID (1)
+   ============================================================================ */
+
+/* css-subgrid */
+.subgrid {
+    grid-template-columns: subgrid;
+    grid-template-rows: subgrid;
+}
+
+/* ============================================================================
+   CSS CASCADE LAYERS (1)
+   ============================================================================ */
+
+/* css-cascade-layers */
+@layer base {
+    .layer { color: red; }
+}
+
+/* ============================================================================
+   CSS NESTING (1)
+   ============================================================================ */
+
+/* css-nesting */
+.parent {
+    & .child { color: blue; }
+    &:hover { background: gray; }
+}
+
+/* ============================================================================
+   CSS ADDITIONAL FEATURES - PART 1 (19)
+   ============================================================================ */
+
+/* css-anchor-positioning */
+.anchor {
+    anchor-name: --my-anchor;
+    position-anchor: --my-anchor;
+    top: anchor(bottom);
+}
+
+/* css-at-counter-style */
+@counter-style thumbs {
+    system: cyclic;
+    symbols: '\1F44D';
+}
+
+/* css-canvas */
+.canvas {
+    background: -webkit-canvas(myCanvas);
+}
+
+/* css-cascade-scope */
+@scope (.component) {
+    .scoped { color: red; }
+}
+
+/* css-color-function */
+.color-fn {
+    color: color(display-p3 1 0.5 0);
+}
+
+/* css-container-queries-style */
+@container style(--theme: dark) {
+    .style-query { background: black; }
+}
+
+/* css-containment */
+.contain {
+    contain: layout;
+}
+
+/* css-content-visibility */
+.content-vis {
+    content-visibility: auto;
+}
+
+/* css-descendant-gtgt */
+.descendant >> .deep { color: red; }
+
+/* css-deviceadaptation */
+@viewport {
+    width: device-width;
+}
+
+/* css-display-contents */
+.display-contents {
+    display: contents;
+}
+
+/* css-env-function */
+.env {
+    padding-top: env(safe-area-inset-top);
+}
+
+/* css-exclusions */
+.exclusions {
+    wrap-flow: both;
+    wrap-through: none;
+}
+
+/* css-filters - covered above */
+
+/* css-font-palette */
+.font-palette {
+    font-palette: --custom;
+}
+
+/* css-font-rendering-controls */
+@font-face {
+    font-family: 'Display';
+    font-display: swap;
+}
+
+/* ============================================================================
+   CSS ADDITIONAL FEATURES - PART 2 (17)
+   ============================================================================ */
+
+/* css-font-stretch */
+.font-stretch {
+    font-stretch: condensed;
+}
+
+/* css-hanging-punctuation */
+.hanging-punct {
+    hanging-punctuation: first;
+}
+
+/* css-hyphens */
+.hyphens {
+    hyphens: auto;
+}
+
+/* css-if */
+.css-if {
+    color: if(style(--dark: true), white, black);
+}
+
+/* css-image-orientation */
+.img-orientation {
+    image-orientation: from-image;
+}
+
+/* css-in-out-of-range */
+:in-range { border-color: green; }
+:out-of-range { border-color: red; }
+
+/* css-initial-letter */
+.initial-letter {
+    initial-letter: 3;
+}
+
+/* css-lch-lab */
+.lch-lab {
+    color: lch(50% 100 200);
+    background: lab(50% 50 -50);
+}
+
+/* css-letter-spacing */
+.letter-spacing {
+    letter-spacing: 0.1em;
+}
+
+/* css-line-clamp */
+.line-clamp {
+    line-clamp: 3;
+    -webkit-line-clamp: 3;
+}
+
+/* css-masks */
+.mask {
+    mask: url('mask.svg');
+    mask-image: linear-gradient(black, transparent);
+    mask-border: url('border.svg') 30;
+}
+
+/* css-math-functions */
+.math-fn {
+    width: min(100%, 500px);
+    height: max(200px, 50vh);
+    font-size: clamp(12px, 2vw, 24px);
+}
+
+/* css-motion-paths */
+.motion-path {
+    offset-path: path('M 0 0 L 100 100');
+    offset-distance: 50%;
+    offset-rotate: auto;
+}
+
+/* css-namespaces */
+@namespace svg url(http://www.w3.org/2000/svg);
+
+/* css-not-sel-list */
+:not(.a, .b) { color: red; }
+
+/* css-nth-child-of */
+:nth-child(2n of .item) { background: yellow; }
+
+/* css-overflow-overlay */
+.overflow-overlay {
+    overflow: overlay;
+}
+
+/* ============================================================================
+   CSS ADDITIONAL FEATURES - PART 3 (19)
+   ============================================================================ */
+
+/* css-overscroll-behavior */
+.overscroll {
+    overscroll-behavior: contain;
+}
+
+/* css-paint-api */
+.paint {
+    background: paint(myPainter);
+}
+
+/* css-rebeccapurple */
+.rebeccapurple {
+    color: rebeccapurple;
+}
+
+/* css-reflections */
+.reflections {
+    -webkit-box-reflect: below;
+}
+
+/* css-regions */
+.regions {
+    flow-into: myFlow;
+    flow-from: myFlow;
+}
+
+/* css-repeating-gradients */
+.repeating-gradient {
+    background: repeating-linear-gradient(45deg, red, blue 10px);
+    background: repeating-radial-gradient(circle, red, blue 10px);
+}
+
+/* css-rrggbbaa */
+.rrggbbaa {
+    color: #ff000080;
+}
+
+/* css-scrollbar */
+.scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: gray white;
+}
+
+/* css-shapes */
+.shapes {
+    shape-outside: circle(50%);
+    shape-margin: 10px;
+    clip-path: polygon(0 0, 100% 0, 100% 100%);
+}
+
+/* css-snappoints */
+.snap {
+    scroll-snap-type: x mandatory;
+    scroll-snap-align: start;
+}
+
+/* css-text-align-last */
+.text-align-last {
+    text-align-last: justify;
+}
+
+/* css-text-box-trim */
+.text-box-trim {
+    text-box-trim: both;
+    leading-trim: both;
+}
+
+/* css-text-indent */
+.text-indent {
+    text-indent: 2em;
+}
+
+/* css-text-justify */
+.text-justify {
+    text-justify: inter-word;
+}
+
+/* css-text-orientation */
+.text-orientation {
+    text-orientation: mixed;
+}
+
+/* css-text-spacing */
+.text-spacing {
+    text-spacing: normal;
+}
+
+/* css-text-wrap-balance */
+.text-wrap-balance {
+    text-wrap: balance;
+}
+
+/* cross-document-view-transitions */
+@view-transition {
+    navigation: auto;
+}
+.view-transition {
+    view-transition-name: main;
+}
+
+/* fullscreen */
+:fullscreen { background: black; }
+
+/* style-scoped - HTML-related, keeping pattern for reference */
+/* scoped style is primarily HTML attribute */
+
+/* svg-css */
+.svg-bg {
+    background: url('image.svg');
+    background-image: url('icon.svg');
+}

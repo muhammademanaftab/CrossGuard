@@ -81,19 +81,41 @@ class CSSParser:
 
         return self.features_found
     
-    def _remove_comments(self, css_content: str) -> str:
-        """Remove CSS comments from code.
-        
+    def _remove_comments_and_strings(self, css_content: str) -> str:
+        """Remove CSS comments and string literals from code.
+
+        This prevents false positives from features mentioned in:
+        - CSS comments /* ... */
+        - content: "..." strings
+        - url("...") strings
+
         Args:
             css_content: CSS code
-            
+
         Returns:
-            Code without comments
+            Code without comments and string literals
         """
         # Remove CSS comments /* ... */
         css_content = re.sub(r'/\*.*?\*/', '', css_content, flags=re.DOTALL)
-        
+
+        # Remove string literals (both single and double quoted)
+        # This handles content: "...", url("..."), etc.
+        # Be careful to handle escaped quotes
+        css_content = re.sub(r'"(?:[^"\\]|\\.)*"', '""', css_content)
+        css_content = re.sub(r"'(?:[^'\\]|\\.)*'", "''", css_content)
+
         return css_content
+
+    def _remove_comments(self, css_content: str) -> str:
+        """Remove CSS comments and strings from code.
+
+        Args:
+            css_content: CSS code
+
+        Returns:
+            Code without comments and strings
+        """
+        return self._remove_comments_and_strings(css_content)
     
     def _detect_features(self, css_content: str):
         """Detect CSS features using regex patterns.
@@ -179,12 +201,17 @@ class CSSParser:
             'user-select', 'appearance',
             # @font-face properties
             'src', 'font-display',
+            # Object fit/position (feature detection handles these but they're also common)
+            'object-fit', 'object-position',
         }
 
-        # Extract all CSS properties from declarations
-        # Match property: value patterns
-        property_pattern = r'([a-z][-a-z0-9]*)\s*:'
-        found_properties = set(re.findall(property_pattern, css_content, re.IGNORECASE))
+        # Extract CSS properties ONLY from inside declaration blocks
+        # This avoids matching class names in selectors like .back-btn:hover
+        # We look for property: value patterns that are preceded by { or ;
+        # Pattern: after { or ; or newline, capture property name before :
+        # But NOT after a . (class selector) or # (id selector)
+        property_pattern = r'(?:^|[{;])\s*([a-z][-a-z0-9]*)\s*:'
+        found_properties = set(re.findall(property_pattern, css_content, re.IGNORECASE | re.MULTILINE))
 
         # Extract @-rules (like @keyframes, @media, etc.)
         at_rule_pattern = r'@([a-z][-a-z0-9]*)'
@@ -199,12 +226,14 @@ class CSSParser:
                 continue
 
             # Check if this property matches any feature pattern
+            # We test against "property:" to match how patterns are written
+            test_string = f"{prop}:"
             matched = False
             for feature_info in self._all_features.values():
                 patterns = feature_info.get('patterns', [])
                 for pattern in patterns:
                     try:
-                        if re.search(pattern, prop, re.IGNORECASE):
+                        if re.search(pattern, test_string, re.IGNORECASE):
                             matched = True
                             break
                     except re.error:

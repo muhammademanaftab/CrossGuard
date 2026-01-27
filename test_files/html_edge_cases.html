@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<!--
+    HTML Edge Case Test File
+
+    This file tests patterns that should NOT trigger feature detection.
+    All HTML features here are either:
+    1. Inside HTML comments
+    2. Inside text content (not actual elements/attributes)
+    3. Basic HTML without modern features
+
+    Expected result: MINIMAL features detected (only basic form/semantic elements)
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>HTML Edge Cases - No Modern Features</title>
+    <!-- Note: meta viewport is so common it might be detected, but it's not a "feature" per se -->
+</head>
+<body>
+    <!-- ========================================================================
+         FEATURES IN HTML COMMENTS - SHOULD NOT BE DETECTED
+         ======================================================================== -->
+
+    <!-- <video controls></video> -->
+    <!-- <audio controls></audio> -->
+    <!-- <canvas id="canvas"></canvas> -->
+    <!-- <dialog></dialog> -->
+    <!-- <details><summary>Info</summary></details> -->
+    <!-- <template></template> -->
+    <!-- <picture><source srcset="img.webp"></picture> -->
+    <!-- <progress value="50" max="100"></progress> -->
+    <!-- <meter value="0.7"></meter> -->
+    <!-- <output></output> -->
+    <!-- <datalist id="list"></datalist> -->
+    <!-- <input type="date"> -->
+    <!-- <input type="color"> -->
+    <!-- <input type="range"> -->
+    <!-- <input type="email" required> -->
+    <!-- <img loading="lazy"> -->
+    <!-- <img decoding="async"> -->
+    <!-- <div contenteditable="true"></div> -->
+    <!-- <a download>Download</a> -->
+    <!-- <script type="module" src="app.js"></script> -->
+    <!-- <link rel="preload" href="style.css"> -->
+    <!-- <iframe sandbox srcdoc="<p>content</p>"></iframe> -->
+
+    <!--
+    Multi-line comment with features:
+    <video controls>
+        <source src="video.mp4" type="video/mp4">
+        <track kind="subtitles" src="subs.vtt">
+    </video>
+    <canvas id="myCanvas"></canvas>
+    <dialog id="modal"><p>Dialog</p></dialog>
+    <input type="date" required autofocus>
+    <link rel="preload" href="font.woff2" as="font">
+    -->
+
+    <!-- ========================================================================
+         TEXT CONTENT THAT MENTIONS FEATURES - SHOULD NOT TRIGGER
+         ======================================================================== -->
+
+    <h1>HTML Feature Documentation</h1>
+
+    <p>The video element is great for embedding media content.</p>
+    <p>You can use canvas for drawing graphics with JavaScript.</p>
+    <p>The dialog element creates modal popups.</p>
+    <p>Use details and summary for expandable content.</p>
+    <p>The template element stores reusable HTML fragments.</p>
+    <p>Input type="date" creates a native date picker.</p>
+    <p>Input type="email" validates email addresses.</p>
+    <p>The loading="lazy" attribute delays image loading.</p>
+    <p>Use contenteditable="true" for in-place editing.</p>
+    <p>The download attribute triggers file downloads.</p>
+    <p>Script type="module" enables ES6 modules.</p>
+    <p>Link rel="preload" preloads critical resources.</p>
+
+    <div>
+        <h2>Code Examples (as text)</h2>
+        <pre>
+            &lt;video controls&gt;&lt;/video&gt;
+            &lt;audio controls&gt;&lt;/audio&gt;
+            &lt;canvas id="canvas"&gt;&lt;/canvas&gt;
+            &lt;input type="date"&gt;
+            &lt;input type="color"&gt;
+            &lt;img loading="lazy"&gt;
+        </pre>
+    </div>
+
+    <!-- ========================================================================
+         ATTRIBUTE VALUES CONTAINING FEATURE KEYWORDS - SHOULD NOT TRIGGER
+         ======================================================================== -->
+
+    <div data-info="loading=lazy is useful">Data attribute with feature text</div>
+    <div data-type="video element">Another data attribute</div>
+    <div data-hint="input type=date">Date picker hint</div>
+    <div data-desc="use canvas for graphics">Canvas description</div>
+    <div data-example="contenteditable=true">Contenteditable example</div>
+    <div data-feature="dialog element">Dialog feature</div>
+    <div data-note="template element">Template note</div>
+    <div data-tip="async and defer">Script loading tip</div>
+
+    <!-- Custom data attributes with feature-like names (but not actual features) -->
+    <div data-video="none">No video here</div>
+    <div data-canvas="disabled">Canvas disabled</div>
+    <div data-loading="complete">Loading complete</div>
+    <div data-async="false">Not async</div>
+    <div data-defer="false">Not deferred</div>
+    <div data-required="optional">Not required</div>
+
+    <!-- ========================================================================
+         CLASS NAMES THAT LOOK LIKE FEATURES - NOT ACTUAL FEATURES
+         ======================================================================== -->
+
+    <div class="video-placeholder">Video placeholder</div>
+    <div class="canvas-container">Canvas container</div>
+    <div class="dialog-wrapper">Dialog wrapper</div>
+    <div class="template-holder">Template holder</div>
+    <div class="lazy-load">Lazy load class</div>
+    <div class="async-content">Async content class</div>
+    <div class="contenteditable-area">Contenteditable area</div>
+    <div class="download-button">Download button class</div>
+
+    <!-- ========================================================================
+         ID ATTRIBUTES THAT LOOK LIKE FEATURES - NOT ACTUAL FEATURES
+         ======================================================================== -->
+
+    <div id="video-section">Video section</div>
+    <div id="canvas-area">Canvas area</div>
+    <div id="dialog-container">Dialog container</div>
+    <div id="template-zone">Template zone</div>
+    <div id="lazy-images">Lazy images section</div>
+    <div id="async-loader">Async loader</div>
+
+    <!-- ========================================================================
+         BASIC HTML ELEMENTS (universally supported, not "features")
+         ======================================================================== -->
+
+    <div>Basic div element</div>
+    <span>Basic span element</span>
+    <p>Basic paragraph element</p>
+    <a href="#">Basic anchor element</a>
+    <strong>Strong text</strong>
+    <em>Emphasized text</em>
+    <ul>
+        <li>List item 1</li>
+        <li>List item 2</li>
+    </ul>
+    <ol>
+        <li>Ordered item 1</li>
+        <li>Ordered item 2</li>
+    </ol>
+    <table>
+        <tr>
+            <th>Header</th>
+            <td>Cell</td>
+        </tr>
+    </table>
+    <img src="basic-image.jpg" alt="Basic image">
+    <br>
+    <hr>
+
+    <!-- ========================================================================
+         BASIC FORM ELEMENTS (widely supported)
+         ======================================================================== -->
+
+    <!--
+    Note: These ARE "form" features in the parser but are so basic
+    they're universally supported. The test should verify these
+    don't trigger FALSE positives for MODERN features like
+    input-datetime, input-color, etc.
+    -->
+
+    <form action="/submit" method="post">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name">
+
+        <label for="pass">Password:</label>
+        <input type="password" id="pass" name="pass">
+
+        <label for="msg">Message:</label>
+        <textarea id="msg" name="msg"></textarea>
+
+        <label for="choice">Choice:</label>
+        <select id="choice" name="choice">
+            <option value="1">Option 1</option>
+            <option value="2">Option 2</option>
+        </select>
+
+        <label>
+            <input type="checkbox" name="agree"> I agree
+        </label>
+
+        <label>
+            <input type="radio" name="option" value="a"> Option A
+        </label>
+        <label>
+            <input type="radio" name="option" value="b"> Option B
+        </label>
+
+        <input type="hidden" name="token" value="abc123">
+        <input type="submit" value="Submit">
+        <input type="reset" value="Reset">
+        <button type="button">Click Me</button>
+    </form>
+
+    <!-- ========================================================================
+         BASIC SCRIPT TAG (without type="module")
+         ======================================================================== -->
+
+    <script>
+        // Basic JavaScript without modern features
+        var greeting = "Hello, World!";
+        function sayHello() {
+            alert(greeting);
+        }
+    </script>
+
+    <!-- ========================================================================
+         BASIC STYLE TAG
+         ======================================================================== -->
+
+    <style>
+        /* Basic CSS without modern features */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
+        h1 {
+            color: #333;
+        }
+        p {
+            line-height: 1.6;
+        }
+    </style>
+
+    <!-- ========================================================================
+         ESCAPED HTML IN TEXT
+         ======================================================================== -->
+
+    <div>
+        Element syntax: &lt;video&gt; &lt;canvas&gt; &lt;dialog&gt;
+    </div>
+    <div>
+        Attribute syntax: loading=&quot;lazy&quot; type=&quot;date&quot;
+    </div>
+    <div>
+        Link syntax: rel=&quot;preload&quot; rel=&quot;prefetch&quot;
+    </div>
+
+</body>
+</html>

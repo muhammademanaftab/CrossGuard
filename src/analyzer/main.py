@@ -276,44 +276,68 @@ class CrossGuardAnalyzer:
         target_browsers: Dict[str, str]
     ) -> Dict:
         """Calculate compatibility scores.
-        
+
         Returns:
             Dict with various scoring metrics
         """
-        # Prepare support status for scorer
-        support_status = {}
+        total_features = len(self.all_features)
+
+        # Calculate per-browser compatibility percentages
+        browser_percentages = {}
         for browser, results in compatibility_results.items():
-            total = len(self.all_features)
-            if total == 0:
-                support_status[browser] = 'y'
+            if total_features == 0:
+                browser_percentages[browser] = 100.0
                 continue
-            
+
             supported = len(results['supported'])
             partial = len(results['partial'])
-            unsupported = len(results['unsupported'])
-            
-            # Determine overall status
-            if unsupported == 0 and partial == 0:
-                support_status[browser] = 'y'
-            elif unsupported > total * 0.2:  # More than 20% unsupported
-                support_status[browser] = 'n'
-            else:
-                support_status[browser] = 'a'
-        
-        # Calculate scores
-        simple_score = self.scorer.calculate_simple_score(support_status)
-        weighted_score_obj = self.scorer.calculate_weighted_score(support_status)
-        compatibility_index = self.scorer.calculate_compatibility_index(support_status)
-        
-        # Extract weighted score value
-        weighted_score = weighted_score_obj.weighted_score if hasattr(weighted_score_obj, 'weighted_score') else weighted_score_obj
-        
+
+            # Calculate actual percentage: supported=100%, partial=50%, unsupported=0%
+            compatibility_pct = ((supported * 100) + (partial * 50)) / total_features
+            browser_percentages[browser] = compatibility_pct
+
+        # Calculate weighted score as average of browser percentages
+        if browser_percentages:
+            weighted_score = sum(browser_percentages.values()) / len(browser_percentages)
+        else:
+            weighted_score = 0.0
+
+        # Determine grade based on weighted score
+        if weighted_score >= 90:
+            grade = 'A'
+        elif weighted_score >= 80:
+            grade = 'B'
+        elif weighted_score >= 70:
+            grade = 'C'
+        elif weighted_score >= 60:
+            grade = 'D'
+        else:
+            grade = 'F'
+
+        # Determine risk level
+        unsupported_count = sum(
+            len(results['unsupported'])
+            for results in compatibility_results.values()
+        )
+        if unsupported_count == 0:
+            risk_level = 'none'
+        elif weighted_score >= 80:
+            risk_level = 'low'
+        elif weighted_score >= 60:
+            risk_level = 'medium'
+        else:
+            risk_level = 'high'
+
         return {
-            'simple_score': simple_score,
+            'simple_score': weighted_score,  # Same as weighted for consistency
             'weighted_score': weighted_score,
-            'compatibility_index': compatibility_index,
-            'grade': compatibility_index['grade'],
-            'risk_level': compatibility_index['risk_level']
+            'compatibility_index': {
+                'score': weighted_score,
+                'grade': grade,
+                'risk_level': risk_level
+            },
+            'grade': grade,
+            'risk_level': risk_level
         }
     
     def _generate_report(

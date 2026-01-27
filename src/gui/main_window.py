@@ -12,7 +12,7 @@ import customtkinter as ctk
 # API Layer imports
 from src.api import get_analyzer_service, AnalysisResult
 
-from .theme import COLORS, SPACING, ICONS, WINDOW, LOGO_SIMPLE
+from .theme import COLORS, SPACING, ICONS, WINDOW, LOGO_SIMPLE, enable_smooth_scrolling
 from .widgets import (
     Sidebar,
     HeaderBar,
@@ -29,9 +29,17 @@ from .widgets import (
     show_error,
     ask_question,
     ProgressDialog,
+    # New progressive disclosure widgets
+    BuildBadge,
+    CollapsibleSection,
+    IssuesSummary,
+    QuickStatsBar,
 )
 from .widgets.rules_manager import show_rules_manager
 from .export_manager import ExportManager
+
+# Import feature name utilities
+from src.utils.feature_names import get_feature_name, get_fix_suggestion
 
 
 class MainWindow(ctk.CTkFrame):
@@ -144,6 +152,7 @@ class MainWindow(ctk.CTkFrame):
             scrollbar_button_hover_color=COLORS['accent'],
         )
         scroll_frame.pack(fill="both", expand=True, padx=SPACING['xl'], pady=SPACING['xl'])
+        enable_smooth_scrolling(scroll_frame)
 
         # Title section
         title_frame = ctk.CTkFrame(scroll_frame, fg_color="transparent")
@@ -233,7 +242,16 @@ class MainWindow(ctk.CTkFrame):
         self._update_status()
 
     def _build_results_view(self):
-        """Build the results view with scores and browser details."""
+        """Build the results view with progressive disclosure design.
+
+        Layout:
+        1. Build Badge Hero (always visible)
+        2. Quick Stats Bar (always visible)
+        3. Issues Summary (if problems exist)
+        4. Browser Support (collapsed by default)
+        5. Technical Details (collapsed by default)
+        6. Export Actions (bottom)
+        """
         if not self.current_report:
             # No results yet
             empty_frame = ctk.CTkFrame(self.content_frame, fg_color="transparent")
@@ -278,151 +296,90 @@ class MainWindow(ctk.CTkFrame):
             scrollbar_button_hover_color=COLORS['accent'],
         )
         scroll_frame.pack(fill="both", expand=True, padx=SPACING['xl'], pady=SPACING['xl'])
+        enable_smooth_scrolling(scroll_frame)
 
-        # Header with actions
-        header_frame = ctk.CTkFrame(scroll_frame, fg_color="transparent")
-        header_frame.pack(fill="x", pady=(0, SPACING['xl']))
-
-        title_label = ctk.CTkLabel(
-            header_frame,
-            text="Analysis Complete",
-            font=ctk.CTkFont(size=20, weight="bold"),
-            text_color=COLORS['text_primary'],
-        )
-        title_label.pack(side="left")
-
-        # Action buttons
-        actions = ctk.CTkFrame(header_frame, fg_color="transparent")
-        actions.pack(side="right")
-
-        recheck_btn = ctk.CTkButton(
-            actions,
-            text=f"{ICONS['refresh']} Re-check",
-            font=ctk.CTkFont(size=12),
-            width=100,
-            height=36,
-            fg_color=COLORS['bg_light'],
-            hover_color=COLORS['hover_bg'],
-            command=self._recheck_files,
-        )
-        recheck_btn.pack(side="left", padx=(0, SPACING['sm']))
-
-        export_pdf_btn = ctk.CTkButton(
-            actions,
-            text="Export PDF",
-            font=ctk.CTkFont(size=12),
-            width=100,
-            height=36,
-            fg_color=COLORS['bg_light'],
-            hover_color=COLORS['hover_bg'],
-            command=lambda: self.export_manager.export_pdf(self.current_report),
-        )
-        export_pdf_btn.pack(side="left", padx=(0, SPACING['sm']))
-
-        export_json_btn = ctk.CTkButton(
-            actions,
-            text="Export JSON",
-            font=ctk.CTkFont(size=12),
-            width=100,
-            height=36,
-            fg_color=COLORS['bg_light'],
-            hover_color=COLORS['hover_bg'],
-            command=lambda: self.export_manager.export_json(self.current_report),
-        )
-        export_json_btn.pack(side="left")
-
-        # Score and summary section
-        summary_frame = ctk.CTkFrame(scroll_frame, fg_color="transparent")
-        summary_frame.pack(fill="x", pady=(0, SPACING['xl']))
-
-        # Score card
+        # Extract report data
         scores = report.get('scores', {})
+        summary = report.get('summary', {})
+        browsers = report.get('browsers', {})
+        features = report.get('features', {})
+
         weighted_score = scores.get('weighted_score', 0)
         grade = scores.get('grade', 'N/A')
+        total_features = summary.get('total_features', 0)
+        browsers_count = len(browsers)
 
-        score_card = ScoreCard(
-            summary_frame,
+        # Calculate issues count
+        issues_count = self._count_issues(browsers)
+
+        # ===== SECTION 1: Build Badge Hero (Always Visible) =====
+        build_badge = BuildBadge(scroll_frame)
+        build_badge.pack(fill="x", pady=(0, SPACING['lg']))
+        build_badge.set_data(
+            score=weighted_score,
+            total_features=total_features,
+            issues_count=issues_count,
+            browsers_count=browsers_count,
+            animate=True
+        )
+
+        # ===== SECTION 2: Quick Stats Bar (Always Visible) =====
+        quick_stats = QuickStatsBar(scroll_frame)
+        quick_stats.pack(fill="x", pady=(0, SPACING['lg']))
+        quick_stats.set_data(
             score=weighted_score,
             grade=grade,
-            label="Weighted Score",
+            browsers_count=browsers_count,
+            features_count=total_features
         )
-        score_card.pack(side="left", padx=(0, SPACING['xl']))
-        score_card.set_score(weighted_score, grade, animate=True)
 
-        # Summary stats
-        stats_frame = ctk.CTkFrame(
-            summary_frame,
-            fg_color=COLORS['bg_medium'],
-            corner_radius=12,
-            border_width=1,
-            border_color=COLORS['border'],
-        )
-        stats_frame.pack(side="left", fill="both", expand=True)
+        # ===== SECTION 3: Issues Summary (If Problems Exist) =====
+        issues = self._extract_issues(browsers)
+        if issues:
+            issues_summary = IssuesSummary(scroll_frame, issues=issues)
+            issues_summary.pack(fill="x", pady=(0, SPACING['lg']))
 
-        stats_inner = ctk.CTkFrame(stats_frame, fg_color="transparent")
-        stats_inner.pack(fill="both", expand=True, padx=SPACING['lg'], pady=SPACING['lg'])
-
-        summary = report.get('summary', {})
-        stats_data = [
-            ("Total Features", str(summary.get('total_features', 0))),
-            ("HTML Features", str(summary.get('html_features', 0))),
-            ("CSS Features", str(summary.get('css_features', 0))),
-            ("JS Features", str(summary.get('js_features', 0))),
-            ("Risk Level", scores.get('risk_level', 'N/A').upper()),
-        ]
-
-        for label, value in stats_data:
-            row = ctk.CTkFrame(stats_inner, fg_color="transparent")
-            row.pack(fill="x", pady=SPACING['xs'])
-
-            ctk.CTkLabel(
-                row,
-                text=label,
-                font=ctk.CTkFont(size=12),
-                text_color=COLORS['text_muted'],
-            ).pack(side="left")
-
-            ctk.CTkLabel(
-                row,
-                text=value,
-                font=ctk.CTkFont(size=12, weight="bold"),
-                text_color=COLORS['text_primary'],
-            ).pack(side="right")
-
-        # Detected Features section - show what was actually detected
-        features = report.get('features', {})
-        if features and any([features.get('html'), features.get('css'), features.get('js')]):
-            features_section = ctk.CTkFrame(
+        # ===== SECTION 4: Browser Support (Collapsed by Default) =====
+        if browsers:
+            browser_section = CollapsibleSection(
                 scroll_frame,
-                fg_color=COLORS['bg_medium'],
-                corner_radius=8,
-                border_width=1,
-                border_color=COLORS['border'],
+                title="Browser Support",
+                badge_text=f"{browsers_count} browsers",
+                badge_color=COLORS['accent'],
+                expanded=False,
             )
-            features_section.pack(fill="x", pady=(0, SPACING['xl']))
+            browser_section.pack(fill="x", pady=(0, SPACING['lg']))
 
-            # Header
-            features_header = ctk.CTkFrame(features_section, fg_color="transparent")
-            features_header.pack(fill="x", padx=SPACING['lg'], pady=(SPACING['lg'], SPACING['sm']))
+            # Add browser cards to collapsible content
+            browser_content = browser_section.get_content_frame()
+            for browser_name, details in browsers.items():
+                card = BrowserCard(
+                    browser_content,
+                    browser_name=browser_name,
+                    version=details.get('version', ''),
+                    supported=details.get('supported', 0),
+                    partial=details.get('partial', 0),
+                    unsupported=details.get('unsupported', 0),
+                    compatibility_pct=details.get('compatibility_percentage', 0),
+                    unsupported_features=details.get('unsupported_features', []),
+                    partial_features=details.get('partial_features', []),
+                )
+                card.pack(fill="x", pady=(0, SPACING['sm']))
 
-            ctk.CTkLabel(
-                features_header,
-                text="Detected Features",
-                font=ctk.CTkFont(size=14, weight="bold"),
-                text_color=COLORS['text_primary'],
-            ).pack(side="left")
+        # ===== SECTION 5: Technical Details (Collapsed by Default) =====
 
-            ctk.CTkLabel(
-                features_header,
-                text=f"(These patterns were found in your code and checked for browser support)",
-                font=ctk.CTkFont(size=11),
-                text_color=COLORS['text_muted'],
-            ).pack(side="left", padx=(SPACING['sm'], 0))
+        # 5a. Detected Features
+        if features and any([features.get('html'), features.get('css'), features.get('js')]):
+            features_section = CollapsibleSection(
+                scroll_frame,
+                title="Detected Features",
+                badge_text=str(total_features),
+                badge_color=COLORS['info'],
+                expanded=False,
+            )
+            features_section.pack(fill="x", pady=(0, SPACING['lg']))
 
-            # Features by type
-            features_content = ctk.CTkFrame(features_section, fg_color="transparent")
-            features_content.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['lg']))
-
+            features_content = features_section.get_content_frame()
             feature_types = [
                 ("HTML", features.get('html', []), COLORS['html_color']),
                 ("CSS", features.get('css', []), COLORS['css_color']),
@@ -434,7 +391,6 @@ class MainWindow(ctk.CTkFrame):
                     type_frame = ctk.CTkFrame(features_content, fg_color="transparent")
                     type_frame.pack(fill="x", pady=(0, SPACING['sm']))
 
-                    # Type badge
                     badge = ctk.CTkLabel(
                         type_frame,
                         text=f" {type_name} ({len(feature_list)}) ",
@@ -445,8 +401,9 @@ class MainWindow(ctk.CTkFrame):
                     )
                     badge.pack(side="left")
 
-                    # Features list (wrapped)
-                    features_text = ", ".join(feature_list[:15])
+                    # Show human-readable names
+                    readable_features = [get_feature_name(f) for f in feature_list[:15]]
+                    features_text = ", ".join(readable_features)
                     if len(feature_list) > 15:
                         features_text += f", ... (+{len(feature_list) - 15} more)"
 
@@ -455,87 +412,27 @@ class MainWindow(ctk.CTkFrame):
                         text=features_text,
                         font=ctk.CTkFont(size=11),
                         text_color=COLORS['text_secondary'],
-                        wraplength=700,
+                        wraplength=600,
                         justify="left",
                     ).pack(side="left", padx=(SPACING['sm'], 0))
 
-        # Unrecognized Patterns section - patterns not matched by any rule
-        unrecognized = report.get('unrecognized', {})
-        if unrecognized and unrecognized.get('total', 0) > 0:
-            unrecognized_section = ctk.CTkFrame(
-                scroll_frame,
-                fg_color=COLORS['bg_medium'],
-                corner_radius=8,
-                border_width=1,
-                border_color=COLORS['warning'],
-            )
-            unrecognized_section.pack(fill="x", pady=(0, SPACING['xl']))
-
-            # Header
-            unrec_header = ctk.CTkFrame(unrecognized_section, fg_color="transparent")
-            unrec_header.pack(fill="x", padx=SPACING['lg'], pady=(SPACING['lg'], SPACING['sm']))
-
-            ctk.CTkLabel(
-                unrec_header,
-                text=f"Unrecognized Patterns ({unrecognized.get('total', 0)})",
-                font=ctk.CTkFont(size=14, weight="bold"),
-                text_color=COLORS['warning'],
-            ).pack(side="left")
-
-            ctk.CTkLabel(
-                unrec_header,
-                text="(These patterns were found but have no detection rules - consider adding custom rules)",
-                font=ctk.CTkFont(size=11),
-                text_color=COLORS['text_muted'],
-            ).pack(side="left", padx=(SPACING['sm'], 0))
-
-            # Patterns by type
-            unrec_content = ctk.CTkFrame(unrecognized_section, fg_color="transparent")
-            unrec_content.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['lg']))
-
-            unrec_types = [
-                ("HTML", unrecognized.get('html', []), COLORS['html_color']),
-                ("CSS", unrecognized.get('css', []), COLORS['css_color']),
-                ("JavaScript", unrecognized.get('js', []), COLORS['js_color']),
-            ]
-
-            for type_name, pattern_list, color in unrec_types:
-                if pattern_list:
-                    type_frame = ctk.CTkFrame(unrec_content, fg_color="transparent")
-                    type_frame.pack(fill="x", pady=(0, SPACING['sm']))
-
-                    # Type badge
-                    badge = ctk.CTkLabel(
-                        type_frame,
-                        text=f" {type_name} ({len(pattern_list)}) ",
-                        font=ctk.CTkFont(size=11, weight="bold"),
-                        text_color=COLORS['text_primary'],
-                        fg_color=color,
-                        corner_radius=4,
-                    )
-                    badge.pack(side="left")
-
-                    # Patterns list (wrapped)
-                    patterns_text = ", ".join(pattern_list[:10])
-                    if len(pattern_list) > 10:
-                        patterns_text += f", ... (+{len(pattern_list) - 10} more)"
-
-                    ctk.CTkLabel(
-                        type_frame,
-                        text=patterns_text,
-                        font=ctk.CTkFont(size=11),
-                        text_color=COLORS['text_muted'],
-                        wraplength=700,
-                        justify="left",
-                    ).pack(side="left", padx=(SPACING['sm'], 0))
-
-        # Charts section - Radar chart and Feature distribution side by side
-        browsers = report.get('browsers', {})
+        # 5b. Visualizations
         if browsers:
-            charts_frame = ctk.CTkFrame(scroll_frame, fg_color="transparent")
-            charts_frame.pack(fill="x", pady=(0, SPACING['xl']))
+            viz_section = CollapsibleSection(
+                scroll_frame,
+                title="Visualizations",
+                badge_text="Charts",
+                badge_color=COLORS['accent_dim'],
+                expanded=False,
+            )
+            viz_section.pack(fill="x", pady=(0, SPACING['lg']))
 
-            # Configure grid for side-by-side layout
+            viz_content = viz_section.get_content_frame()
+
+            # Charts container
+            charts_frame = ctk.CTkFrame(viz_content, fg_color="transparent")
+            charts_frame.pack(fill="x", pady=(0, SPACING['sm']))
+
             charts_frame.grid_columnconfigure(0, weight=1)
             charts_frame.grid_columnconfigure(1, weight=1)
 
@@ -560,64 +457,91 @@ class MainWindow(ctk.CTkFrame):
             feature_chart.set_data(
                 summary.get('html_features', 0),
                 summary.get('css_features', 0),
-                summary.get('js_features', 0)
+                summary.get('js_features', 0),
+                summary.get('total_features', None)
             )
 
             # Feature Support Breakdown (full width below)
-            breakdown_chart = CompatibilityBarChart(scroll_frame)
-            breakdown_chart.pack(fill="x", pady=(0, SPACING['xl']))
+            breakdown_chart = CompatibilityBarChart(viz_content)
+            breakdown_chart.pack(fill="x", pady=(SPACING['sm'], 0))
             breakdown_chart.set_data(chart_data)
 
-        # Browser details section
-        if browsers:
-            details_label = ctk.CTkLabel(
+        # 5c. Unrecognized Patterns
+        unrecognized = report.get('unrecognized', {})
+        if unrecognized and unrecognized.get('total', 0) > 0:
+            unrec_section = CollapsibleSection(
                 scroll_frame,
-                text="Browser Details",
-                font=ctk.CTkFont(size=16, weight="bold"),
-                text_color=COLORS['text_primary'],
+                title="Unrecognized Patterns",
+                badge_text=str(unrecognized.get('total', 0)),
+                badge_color=COLORS['warning'],
+                expanded=False,
             )
-            details_label.pack(anchor="w", pady=(0, SPACING['sm']))
+            unrec_section.pack(fill="x", pady=(0, SPACING['lg']))
 
-            for browser_name, details in browsers.items():
-                card = BrowserCard(
-                    scroll_frame,
-                    browser_name=browser_name,
-                    version=details.get('version', ''),
-                    supported=details.get('supported', 0),
-                    partial=details.get('partial', 0),
-                    unsupported=details.get('unsupported', 0),
-                    compatibility_pct=details.get('compatibility_percentage', 0),
-                    unsupported_features=details.get('unsupported_features', []),
-                    partial_features=details.get('partial_features', []),
-                )
-                card.pack(fill="x", pady=(0, SPACING['sm']))
+            unrec_content = unrec_section.get_content_frame()
 
-        # Recommendations section
+            # Info message
+            ctk.CTkLabel(
+                unrec_content,
+                text="These patterns were found but have no detection rules. Consider adding custom rules.",
+                font=ctk.CTkFont(size=11),
+                text_color=COLORS['text_muted'],
+            ).pack(anchor="w", pady=(0, SPACING['sm']))
+
+            unrec_types = [
+                ("HTML", unrecognized.get('html', []), COLORS['html_color']),
+                ("CSS", unrecognized.get('css', []), COLORS['css_color']),
+                ("JavaScript", unrecognized.get('js', []), COLORS['js_color']),
+            ]
+
+            for type_name, pattern_list, color in unrec_types:
+                if pattern_list:
+                    type_frame = ctk.CTkFrame(unrec_content, fg_color="transparent")
+                    type_frame.pack(fill="x", pady=(0, SPACING['sm']))
+
+                    badge = ctk.CTkLabel(
+                        type_frame,
+                        text=f" {type_name} ({len(pattern_list)}) ",
+                        font=ctk.CTkFont(size=11, weight="bold"),
+                        text_color=COLORS['text_primary'],
+                        fg_color=color,
+                        corner_radius=4,
+                    )
+                    badge.pack(side="left")
+
+                    patterns_text = ", ".join(pattern_list[:10])
+                    if len(pattern_list) > 10:
+                        patterns_text += f", ... (+{len(pattern_list) - 10} more)"
+
+                    ctk.CTkLabel(
+                        type_frame,
+                        text=patterns_text,
+                        font=ctk.CTkFont(size=11),
+                        text_color=COLORS['text_muted'],
+                        wraplength=600,
+                        justify="left",
+                    ).pack(side="left", padx=(SPACING['sm'], 0))
+
+        # 5d. Recommendations
         recommendations = report.get('recommendations', [])
         if recommendations:
-            rec_section = ctk.CTkFrame(
+            rec_section = CollapsibleSection(
                 scroll_frame,
-                fg_color=COLORS['bg_medium'],
-                corner_radius=8,
-                border_width=1,
-                border_color=COLORS['border'],
+                title="Recommendations",
+                badge_text=str(len(recommendations)),
+                badge_color=COLORS['info'],
+                expanded=False,
             )
-            rec_section.pack(fill="x", pady=(SPACING['md'], 0))
+            rec_section.pack(fill="x", pady=(0, SPACING['lg']))
 
-            ctk.CTkLabel(
-                rec_section,
-                text="Recommendations",
-                font=ctk.CTkFont(size=14, weight="bold"),
-                text_color=COLORS['text_primary'],
-            ).pack(anchor="w", padx=SPACING['md'], pady=(SPACING['md'], SPACING['sm']))
-
+            rec_content = rec_section.get_content_frame()
             for i, rec in enumerate(recommendations, 1):
                 rec_frame = ctk.CTkFrame(
-                    rec_section,
+                    rec_content,
                     fg_color=COLORS['bg_light'],
                     corner_radius=4,
                 )
-                rec_frame.pack(fill="x", padx=SPACING['md'], pady=(0, SPACING['sm']))
+                rec_frame.pack(fill="x", pady=(0, SPACING['sm']))
 
                 ctk.CTkLabel(
                     rec_frame,
@@ -627,6 +551,117 @@ class MainWindow(ctk.CTkFrame):
                     wraplength=600,
                     justify="left",
                 ).pack(anchor="w", padx=SPACING['sm'], pady=SPACING['sm'])
+
+        # ===== SECTION 6: Export Actions (Bottom) =====
+        actions_frame = ctk.CTkFrame(
+            scroll_frame,
+            fg_color=COLORS['bg_medium'],
+            corner_radius=8,
+            border_width=1,
+            border_color=COLORS['border'],
+        )
+        actions_frame.pack(fill="x", pady=(SPACING['md'], 0))
+
+        actions_inner = ctk.CTkFrame(actions_frame, fg_color="transparent")
+        actions_inner.pack(fill="x", padx=SPACING['lg'], pady=SPACING['md'])
+
+        recheck_btn = ctk.CTkButton(
+            actions_inner,
+            text=f"{ICONS['refresh']} Re-check",
+            font=ctk.CTkFont(size=12),
+            width=110,
+            height=36,
+            fg_color=COLORS['bg_light'],
+            hover_color=COLORS['hover_bg'],
+            command=self._recheck_files,
+        )
+        recheck_btn.pack(side="left", padx=(0, SPACING['sm']))
+
+        export_pdf_btn = ctk.CTkButton(
+            actions_inner,
+            text="Export PDF",
+            font=ctk.CTkFont(size=12),
+            width=110,
+            height=36,
+            fg_color=COLORS['accent'],
+            hover_color=COLORS['accent_dim'],
+            command=lambda: self.export_manager.export_pdf(self.current_report),
+        )
+        export_pdf_btn.pack(side="left", padx=(0, SPACING['sm']))
+
+        export_json_btn = ctk.CTkButton(
+            actions_inner,
+            text="Export JSON",
+            font=ctk.CTkFont(size=12),
+            width=110,
+            height=36,
+            fg_color=COLORS['bg_light'],
+            hover_color=COLORS['hover_bg'],
+            command=lambda: self.export_manager.export_json(self.current_report),
+        )
+        export_json_btn.pack(side="left")
+
+    def _count_issues(self, browsers: Dict) -> int:
+        """Count total issues (unsupported + partial) across all browsers."""
+        issues = set()
+        for browser_data in browsers.values():
+            for feature in browser_data.get('unsupported_features', []):
+                issues.add(feature)
+            for feature in browser_data.get('partial_features', []):
+                issues.add(feature)
+        return len(issues)
+
+    def _extract_issues(self, browsers: Dict) -> List[dict]:
+        """Extract issues from browser data for IssuesSummary.
+
+        Returns list of issue dicts with:
+        - feature_name: Human-readable name
+        - feature_id: Technical ID
+        - severity: 'critical' or 'warning'
+        - browsers: List of affected browsers
+        - fix_suggestion: Optional fix text
+        """
+        # Group issues by feature
+        unsupported_map = {}  # feature_id -> list of browsers
+        partial_map = {}  # feature_id -> list of browsers
+
+        for browser_name, data in browsers.items():
+            browser_display = f"{browser_name.title()} {data.get('version', '')}"
+
+            for feature in data.get('unsupported_features', []):
+                if feature not in unsupported_map:
+                    unsupported_map[feature] = []
+                unsupported_map[feature].append(browser_display)
+
+            for feature in data.get('partial_features', []):
+                if feature not in partial_map:
+                    partial_map[feature] = []
+                partial_map[feature].append(browser_display)
+
+        issues = []
+
+        # Add critical issues (unsupported)
+        for feature_id, affected_browsers in unsupported_map.items():
+            issues.append({
+                'feature_name': get_feature_name(feature_id),
+                'feature_id': feature_id,
+                'severity': 'critical',
+                'browsers': affected_browsers,
+                'fix_suggestion': get_fix_suggestion(feature_id),
+            })
+
+        # Add warning issues (partial) - only if not already critical
+        for feature_id, affected_browsers in partial_map.items():
+            if feature_id not in unsupported_map:
+                issues.append({
+                    'feature_name': get_feature_name(feature_id),
+                    'feature_id': feature_id,
+                    'severity': 'warning',
+                    'browsers': affected_browsers,
+                    'fix_suggestion': get_fix_suggestion(feature_id),
+                })
+
+        return issues
 
     def _build_settings_view(self):
         """Build the settings view."""
@@ -817,7 +852,7 @@ class MainWindow(ctk.CTkFrame):
             progress.set_progress(10)
             self.master.update()
 
-            progress.set_progress(30, "Analyzing files...")
+            progress.set_progress(30, "Analyzing browser compatibility...")
             result = self._analyzer_service.analyze_files(
                 html_files=html_files if html_files else None,
                 css_files=css_files if css_files else None,

@@ -1,8 +1,19 @@
 {
-  "css": {},
+  "css": {
+    "special-animation-custom": {
+      "patterns": ["special-animation"],
+      "description": "Special Animation Property"
+    },
+    "my-custom-property": {
+      "patterns": ["my-custom-property"],
+      "description": "My Custom Property"
+    }
+  },
   "javascript": {},
   "html": {
-    "elements": {},
+    "elements": {
+      "my-component": "custom-elementsv1"
+    },
     "attributes": {},
     "input_types": {},
     "attribute_values": {}

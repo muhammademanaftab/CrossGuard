@@ -81,22 +81,118 @@ class JavaScriptParser:
 
         return self.features_found
     
-    def _remove_comments(self, js_content: str) -> str:
-        """Remove JavaScript comments from code.
-        
+    def _remove_comments_and_strings(self, js_content: str) -> str:
+        """Remove JavaScript comments and string literals from code.
+
+        This prevents false positives from features mentioned in:
+        - Single-line comments //
+        - Multi-line comments /* */
+        - String literals "..." and '...'
+        - Template literals `...` (but not the backticks themselves)
+
+        The order of operations is important:
+        1. First remove strings (so // inside strings doesn't get treated as comment)
+        2. Then remove comments
+
         Args:
             js_content: JavaScript code
-            
+
         Returns:
-            Code without comments
+            Code without comments and string literals
         """
-        # Remove single-line comments
-        js_content = re.sub(r'//.*?$', '', js_content, flags=re.MULTILINE)
-        
-        # Remove multi-line comments
-        js_content = re.sub(r'/\*.*?\*/', '', js_content, flags=re.DOTALL)
-        
-        return js_content
+        result = []
+        i = 0
+        length = len(js_content)
+
+        while i < length:
+            # Check for single-line comment
+            if i < length - 1 and js_content[i:i+2] == '//':
+                # Skip until end of line
+                while i < length and js_content[i] != '\n':
+                    i += 1
+                continue
+
+            # Check for multi-line comment
+            if i < length - 1 and js_content[i:i+2] == '/*':
+                # Skip until */
+                i += 2
+                while i < length - 1 and js_content[i:i+2] != '*/':
+                    i += 1
+                i += 2  # Skip */
+                continue
+
+            # Check for double-quoted string
+            if js_content[i] == '"':
+                result.append('"')  # Keep opening quote
+                i += 1
+                while i < length:
+                    if js_content[i] == '\\' and i + 1 < length:
+                        i += 2  # Skip escaped character
+                    elif js_content[i] == '"':
+                        result.append('"')  # Keep closing quote
+                        i += 1
+                        break
+                    else:
+                        i += 1
+                continue
+
+            # Check for single-quoted string
+            if js_content[i] == "'":
+                result.append("'")  # Keep opening quote
+                i += 1
+                while i < length:
+                    if js_content[i] == '\\' and i + 1 < length:
+                        i += 2  # Skip escaped character
+                    elif js_content[i] == "'":
+                        result.append("'")  # Keep closing quote
+                        i += 1
+                        break
+                    else:
+                        i += 1
+                continue
+
+            # Check for template literal
+            if js_content[i] == '`':
+                result.append('`')  # Keep backtick for template-literal detection
+                i += 1
+                while i < length:
+                    if js_content[i] == '\\' and i + 1 < length:
+                        i += 2  # Skip escaped character
+                    elif js_content[i] == '`':
+                        result.append('`')  # Keep closing backtick
+                        i += 1
+                        break
+                    elif js_content[i:i+2] == '${':
+                        # Keep ${x} structure for template literal detection
+                        result.append('${x}')
+                        i += 2
+                        depth = 1
+                        while i < length and depth > 0:
+                            if js_content[i] == '{':
+                                depth += 1
+                            elif js_content[i] == '}':
+                                depth -= 1
+                            i += 1
+                    else:
+                        i += 1
+                continue
+
+            # Regular character - keep it
+            result.append(js_content[i])
+            i += 1
+
+        return ''.join(result)
+
+    def _remove_comments(self, js_content: str) -> str:
+        """Remove JavaScript comments and strings from code.
+
+        Args:
+            js_content: JavaScript code
+
+        Returns:
+            Code without comments and string content
+        """
+        return self._remove_comments_and_strings(js_content)
     
     def _detect_features(self, js_content: str):
         """Detect JavaScript features using regex patterns.
@@ -153,6 +249,38 @@ class JavaScriptParser:
             'addEventListener', 'removeEventListener', 'preventDefault', 'stopPropagation',
             'innerHTML', 'textContent', 'style', 'className', 'parentNode', 'childNodes',
             'length', 'prototype', 'constructor', 'call', 'apply', 'bind',
+            # Math methods (universally supported ES1-ES5)
+            'floor', 'ceil', 'round', 'random', 'abs', 'max', 'min', 'pow', 'sqrt',
+            'sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'atan2', 'exp', 'log',
+            # JSON methods (ES5, universally supported)
+            'parse', 'stringify',
+            # Array methods (ES5, universally supported)
+            'forEach', 'map', 'filter', 'reduce', 'reduceRight', 'every', 'some',
+            # Object methods (ES5, universally supported)
+            'keys', 'create', 'defineProperty', 'defineProperties', 'getOwnPropertyDescriptor',
+            'getOwnPropertyNames', 'getPrototypeOf', 'freeze', 'seal', 'preventExtensions',
+            'isSealed', 'isFrozen', 'isExtensible',
+            # DOM attribute methods (universally supported)
+            'hasAttribute', 'removeAttribute', 'getAttributeNode', 'setAttributeNode',
+            # DOM table methods (universally supported)
+            'insertRow', 'deleteRow', 'insertCell', 'deleteCell',
+            # localStorage/sessionStorage methods (covered by namevalue-storage feature)
+            'getItem', 'setItem', 'removeItem', 'clear',
+            # Array static methods (ES5)
+            'isArray',
+            # classList methods (covered by classlist feature)
+            'add', 'remove', 'toggle', 'contains', 'item',
+            # String trim methods (ES5)
+            'trimStart', 'trimEnd', 'trimLeft', 'trimRight',
+            # Common DOM traversal
+            'firstChild', 'lastChild', 'nextSibling', 'previousSibling',
+            'firstElementChild', 'lastElementChild', 'nextElementSibling', 'previousElementSibling',
+            # Common DOM properties
+            'nodeName', 'nodeType', 'nodeValue', 'ownerDocument',
+            # Array static methods covered by specific features
+            'from', 'of',
+            # DataTransfer methods (covered by dragndrop feature)
+            'setData', 'getData', 'clearData', 'setDragImage',
         }
 
         # Find potential API calls and method usage

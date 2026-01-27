@@ -309,6 +309,15 @@ class HTMLParser:
             'placeholder', 'pattern', 'min', 'max', 'step', 'list',
             'autocomplete', 'autofocus', 'required', 'novalidate',
             'hidden', 'spellcheck', 'translate', 'contenteditable', 'draggable',
+            # SVG attributes (part of SVG spec, well-supported)
+            'd', 'fill', 'fill-rule', 'fill-opacity', 'stroke', 'stroke-width',
+            'stroke-linecap', 'stroke-linejoin', 'stroke-opacity', 'stroke-dasharray',
+            'viewbox', 'viewBox', 'preserveaspectratio', 'preserveAspectRatio',
+            'cx', 'cy', 'r', 'rx', 'ry', 'x', 'y', 'x1', 'y1', 'x2', 'y2',
+            'points', 'transform', 'path', 'xmlns:xlink', 'xlink:href',
+            'clip-path', 'clip-rule', 'mask', 'opacity', 'filter',
+            'stop-color', 'stop-opacity', 'offset', 'gradientunits', 'gradientUnits',
+            'patternunits', 'patternUnits', 'spreadmethod', 'spreadMethod',
             # Data attributes are handled separately
         }
 
