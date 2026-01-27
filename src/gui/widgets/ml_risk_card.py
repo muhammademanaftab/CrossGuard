@@ -193,15 +193,17 @@ class MLRiskCard(ctk.CTkFrame):
         factors: List[str],
         high_risk_count: int = 0,
         total_features: int = 0,
+        model_accuracy: Optional[float] = None,
     ):
         """Update the risk assessment display.
 
         Args:
             risk_level: Risk level ('low', 'medium', 'high')
-            confidence: Confidence score (0.0 - 1.0)
+            confidence: Confidence score (0.0 - 1.0) - actual prediction confidence
             factors: List of contributing factor strings
             high_risk_count: Number of high-risk features
             total_features: Total features analyzed
+            model_accuracy: Model's test accuracy (optional, for display)
         """
         # Update risk level display
         risk_level = risk_level.lower()
@@ -215,15 +217,18 @@ class MLRiskCard(ctk.CTkFrame):
         )
         self.risk_level_frame.configure(border_width=1, border_color=color)
 
-        # Update status indicator
+        # Update status indicator - show flagged count and model accuracy
+        status_parts = []
         if total_features > 0:
-            self.status_indicator.configure(
-                text=f"{high_risk_count}/{total_features} features flagged"
-            )
+            status_parts.append(f"{high_risk_count}/{total_features} flagged")
+        if model_accuracy is not None:
+            status_parts.append(f"Model: {model_accuracy * 100:.0f}% accurate")
+        if status_parts:
+            self.status_indicator.configure(text=" | ".join(status_parts))
 
-        # Update confidence
+        # Update confidence bar and label
         self.confidence_bar.set(confidence)
-        self.confidence_label.configure(text=f"{confidence * 100:.0f}%")
+        self.confidence_label.configure(text=f"{confidence * 100:.1f}%")
 
         # Update factors
         for widget in self.factors_frame.winfo_children():

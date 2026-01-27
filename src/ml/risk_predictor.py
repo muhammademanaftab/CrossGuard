@@ -719,6 +719,10 @@ def get_all_models_aggregate(feature_ids: List[str], full_analysis: bool = True)
         # Get actual flagged features (HIGH and MEDIUM risk)
         flagged_predictions = [p for p in counts['predictions'] if p['risk'] in ['high', 'medium']]
 
+        # Calculate average confidence from all predictions
+        all_confidences = [p['confidence'] for p in counts['predictions'] if 'confidence' in p]
+        avg_confidence = sum(all_confidences) / len(all_confidences) if all_confidences else 0.5
+
         model_summaries[model_name] = {
             'overall_risk': overall_risk,
             'high_count': counts['high'],
@@ -726,6 +730,8 @@ def get_all_models_aggregate(feature_ids: List[str], full_analysis: bool = True)
             'low_count': counts['low'],
             'display_name': MODEL_DISPLAY_NAMES[model_name],
             'predictions': flagged_predictions,  # Only include flagged features
+            'avg_confidence': avg_confidence,  # Real confidence from model
+            'accuracy': MODEL_ACCURACIES.get(model_name, 0.0),  # Model's test accuracy
         }
 
     # Calculate consensus

@@ -138,6 +138,26 @@ CSS_TYPOGRAPHY = {
         'keywords': ['ttf', 'otf'],
         'description': 'TTF/OTF - TrueType and OpenType font support'
     },
+    'eot': {
+        'patterns': [r'\.eot', r'format\s*\(\s*["\']embedded-opentype["\']'],
+        'keywords': ['eot', 'embedded-opentype'],
+        'description': 'EOT - Embedded OpenType fonts'
+    },
+    'colr': {
+        'patterns': [r'format\s*\(\s*["\']colr["\']', r'font-technology\s*\(\s*colr\s*\)'],
+        'keywords': ['colr'],
+        'description': 'COLR/CPAL(v0) Font Formats'
+    },
+    'colr-v1': {
+        'patterns': [r'format\s*\(\s*["\']colr-v1["\']', r'colr-v1'],
+        'keywords': ['colr-v1'],
+        'description': 'COLR/CPAL(v1) Font Formats'
+    },
+    'svg-fonts': {
+        'patterns': [r'format\s*\(\s*["\']svg["\']', r'\.svg#'],
+        'keywords': ['svg fonts'],
+        'description': 'SVG fonts'
+    },
     'variable-fonts': {
         'patterns': [r'font-variation-settings', r'font-optical-sizing'],
         'keywords': ['variable fonts'],
@@ -251,11 +271,6 @@ CSS_BOX_MODEL = {
         'patterns': [r'object-fit\s*:', r'object-position\s*:'],
         'keywords': ['object-fit', 'object-position'],
         'description': 'CSS3 object-fit/object-position'
-    },
-    'css-aspect-ratio': {
-        'patterns': [r'aspect-ratio\s*:'],
-        'keywords': ['aspect-ratio'],
-        'description': 'CSS aspect-ratio property'
     },
 }
 
@@ -384,7 +399,7 @@ CSS_SELECTORS = {
         'keywords': ['read-only', 'read-write'],
         'description': 'CSS :read-only and :read-write selectors'
     },
-    'css-scope-pseudo': {
+    'css-cascade-scope': {
         'patterns': [r':scope'],
         'keywords': ['scope'],
         'description': 'CSS :scope pseudo-class'
@@ -646,10 +661,10 @@ CSS_MISC = {
         'keywords': ['logical properties'],
         'description': 'CSS Logical Properties'
     },
-    'css-print-color-adjust': {
+    'css-color-adjust': {
         'patterns': [r'print-color-adjust\s*:', r'color-adjust\s*:'],
-        'keywords': ['print-color-adjust'],
-        'description': 'CSS print-color-adjust'
+        'keywords': ['print-color-adjust', 'color-adjust'],
+        'description': 'CSS color-adjust/print-color-adjust'
     },
     'css-image-set': {
         'patterns': [r'image-set\('],

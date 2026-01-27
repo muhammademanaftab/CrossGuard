@@ -146,15 +146,17 @@ class IssueCard(ctk.CTkFrame):
 
 
 class IssuesSummary(ctk.CTkFrame):
-    """Container for multiple issue cards with a header.
+    """Container for multiple issue cards with a collapsible header.
 
     Shows "What Needs Your Attention" section with sorted issues.
+    Can be expanded/collapsed by clicking the header.
     """
 
     def __init__(
         self,
         master,
         issues: List[dict],
+        expanded: bool = False,
         **kwargs
     ):
         """Initialize the issues summary.
@@ -167,6 +169,7 @@ class IssuesSummary(ctk.CTkFrame):
                 - severity: 'critical' or 'warning'
                 - browsers: List of affected browsers
                 - fix_suggestion: Optional fix text
+            expanded: Whether to start expanded (default: False)
             **kwargs: Additional arguments passed to CTkFrame
         """
         super().__init__(
@@ -179,29 +182,41 @@ class IssuesSummary(ctk.CTkFrame):
         )
 
         self._issues = issues
+        self._expanded = expanded
         self._init_ui()
 
     def _init_ui(self):
         """Initialize the user interface."""
-        # Header
-        header = ctk.CTkFrame(self, fg_color="transparent")
-        header.pack(fill="x", padx=SPACING['lg'], pady=(SPACING['lg'], SPACING['md']))
+        # Count issues
+        critical_count = sum(1 for i in self._issues if i.get('severity') == 'critical')
+        warning_count = len(self._issues) - critical_count
+
+        # Header (clickable)
+        self._header = ctk.CTkFrame(self, fg_color="transparent", cursor="hand2")
+        self._header.pack(fill="x", padx=SPACING['lg'], pady=SPACING['md'])
+
+        # Toggle indicator
+        self._toggle_indicator = ctk.CTkLabel(
+            self._header,
+            text="▶" if not self._expanded else "▼",
+            font=ctk.CTkFont(size=10),
+            text_color=COLORS['text_muted'],
+            width=16,
+        )
+        self._toggle_indicator.pack(side="left", padx=(0, SPACING['xs']))
 
         title = ctk.CTkLabel(
-            header,
+            self._header,
             text="WHAT NEEDS YOUR ATTENTION",
             font=ctk.CTkFont(size=12, weight="bold"),
             text_color=COLORS['text_primary'],
         )
         title.pack(side="left")
 
-        # Count badge
-        critical_count = sum(1 for i in self._issues if i.get('severity') == 'critical')
-        warning_count = len(self._issues) - critical_count
-
+        # Count badges
         if critical_count > 0:
             critical_badge = ctk.CTkLabel(
-                header,
+                self._header,
                 text=f" {critical_count} critical ",
                 font=ctk.CTkFont(size=11),
                 text_color=COLORS['text_primary'],
@@ -212,7 +227,7 @@ class IssuesSummary(ctk.CTkFrame):
 
         if warning_count > 0:
             warning_badge = ctk.CTkLabel(
-                header,
+                self._header,
                 text=f" {warning_count} warning ",
                 font=ctk.CTkFont(size=11),
                 text_color=COLORS['text_primary'],
@@ -221,9 +236,22 @@ class IssuesSummary(ctk.CTkFrame):
             )
             warning_badge.pack(side="left", padx=(SPACING['sm'], 0))
 
-        # Issues container
-        issues_container = ctk.CTkFrame(self, fg_color="transparent")
-        issues_container.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['lg']))
+        # "Click to expand" hint
+        self._hint_label = ctk.CTkLabel(
+            self._header,
+            text="Click to view" if not self._expanded else "",
+            font=ctk.CTkFont(size=10),
+            text_color=COLORS['text_muted'],
+        )
+        self._hint_label.pack(side="right")
+
+        # Bind click events to header and all its children
+        self._header.bind("<Button-1>", lambda e: self._toggle())
+        for child in self._header.winfo_children():
+            child.bind("<Button-1>", lambda e: self._toggle())
+
+        # Issues container (collapsible)
+        self._issues_container = ctk.CTkFrame(self, fg_color="transparent")
 
         # Sort issues: critical first, then warning
         sorted_issues = sorted(
@@ -234,7 +262,7 @@ class IssuesSummary(ctk.CTkFrame):
         # Create issue cards
         for issue in sorted_issues:
             card = IssueCard(
-                issues_container,
+                self._issues_container,
                 feature_name=issue.get('feature_name', issue.get('feature_id', 'Unknown')),
                 feature_id=issue.get('feature_id', ''),
                 severity=issue.get('severity', 'warning'),
@@ -242,6 +270,33 @@ class IssuesSummary(ctk.CTkFrame):
                 fix_suggestion=issue.get('fix_suggestion'),
             )
             card.pack(fill="x", pady=(0, SPACING['sm']))
+
+        # Show/hide based on initial state
+        if self._expanded:
+            self._issues_container.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['lg']))
+
+    def _toggle(self):
+        """Toggle the expanded/collapsed state."""
+        self._expanded = not self._expanded
+
+        if self._expanded:
+            self._toggle_indicator.configure(text="▼")
+            self._hint_label.configure(text="")
+            self._issues_container.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['lg']))
+        else:
+            self._toggle_indicator.configure(text="▶")
+            self._hint_label.configure(text="Click to view")
+            self._issues_container.pack_forget()
+
+    def expand(self):
+        """Expand the issues section."""
+        if not self._expanded:
+            self._toggle()
+
+    def collapse(self):
+        """Collapse the issues section."""
+        if self._expanded:
+            self._toggle()
 
     def has_issues(self) -> bool:
         """Check if there are any issues to display."""
