@@ -34,6 +34,12 @@ from .widgets import (
     CollapsibleSection,
     IssuesSummary,
     QuickStatsBar,
+    # ML Risk Assessment widgets
+    MLRiskCard,
+    MLFeatureImportanceCard,
+    # Browser Selection
+    BrowserSelector,
+    get_available_browsers,
 )
 from .widgets.rules_manager import show_rules_manager
 from .export_manager import ExportManager
@@ -64,6 +70,9 @@ class MainWindow(ctk.CTkFrame):
 
         # Store last analyzed files for re-checking
         self._last_files: List[str] = []
+
+        # Store selected browsers for analysis (default: Chrome, Firefox, Safari, Edge)
+        self._selected_browsers: Dict[str, str] = None  # Will use widget defaults
 
         # Build the layout
         self._init_layout()
@@ -222,6 +231,36 @@ class MainWindow(ctk.CTkFrame):
             if existing_files:
                 self.file_table.add_files(existing_files)
 
+        # Browser Selector section
+        browser_header = ctk.CTkFrame(scroll_frame, fg_color="transparent")
+        browser_header.pack(fill="x", pady=(SPACING['lg'], SPACING['sm']))
+
+        browser_title = ctk.CTkLabel(
+            browser_header,
+            text="Target Browsers",
+            font=ctk.CTkFont(size=16, weight="bold"),
+            text_color=COLORS['text_primary'],
+        )
+        browser_title.pack(side="left")
+
+        browser_subtitle = ctk.CTkLabel(
+            browser_header,
+            text="Select which browsers to check compatibility for",
+            font=ctk.CTkFont(size=12),
+            text_color=COLORS['text_muted'],
+        )
+        browser_subtitle.pack(side="left", padx=(SPACING['md'], 0))
+
+        # Browser selector widget
+        self.browser_selector = BrowserSelector(
+            scroll_frame,
+            on_selection_change=self._on_browser_selection_change,
+        )
+        self.browser_selector.pack(fill="x", pady=(0, SPACING['xl']))
+
+        # Initialize selected browsers from widget
+        self._selected_browsers = self.browser_selector.get_selected_browsers()
+
         # Action buttons
         actions_frame = ctk.CTkFrame(scroll_frame, fg_color="transparent")
         actions_frame.pack(fill="x")
@@ -332,6 +371,60 @@ class MainWindow(ctk.CTkFrame):
             browsers_count=browsers_count,
             features_count=total_features
         )
+
+        # ===== SECTION 2.5: ML Risk Assessment (On-Demand) =====
+        # Store features for later ML analysis
+        self._ml_features = features
+        self._ml_total_features = total_features
+
+        ml_section = CollapsibleSection(
+            scroll_frame,
+            title="ML Risk Assessment",
+            badge_text="AI",
+            badge_color=COLORS['accent'],
+            expanded=True,
+        )
+        ml_section.pack(fill="x", pady=(0, SPACING['lg']))
+
+        ml_content = ml_section.get_content_frame()
+
+        # Container for ML content (will be updated when button clicked)
+        self._ml_content_frame = ctk.CTkFrame(ml_content, fg_color="transparent")
+        self._ml_content_frame.pack(fill="x")
+
+        # Initial state: Show button to run ML analysis
+        self._ml_button_frame = ctk.CTkFrame(self._ml_content_frame, fg_color=COLORS['bg_medium'], corner_radius=8)
+        self._ml_button_frame.pack(fill="x", pady=SPACING['sm'])
+
+        ml_info_frame = ctk.CTkFrame(self._ml_button_frame, fg_color="transparent")
+        ml_info_frame.pack(fill="x", padx=SPACING['lg'], pady=SPACING['lg'])
+
+        ctk.CTkLabel(
+            ml_info_frame,
+            text="🤖 ML-Powered Risk Analysis",
+            font=ctk.CTkFont(size=14, weight="bold"),
+            text_color=COLORS['text_primary'],
+        ).pack(anchor="w")
+
+        ctk.CTkLabel(
+            ml_info_frame,
+            text="Use machine learning to predict compatibility risks based on feature characteristics,\nspec status, browser bugs, and historical patterns.",
+            font=ctk.CTkFont(size=12),
+            text_color=COLORS['text_muted'],
+            justify="left",
+        ).pack(anchor="w", pady=(SPACING['xs'], SPACING['md']))
+
+        self._run_ml_button = ctk.CTkButton(
+            ml_info_frame,
+            text="▶  Run ML Analysis",
+            font=ctk.CTkFont(size=13, weight="bold"),
+            fg_color=COLORS['accent'],
+            hover_color=COLORS['accent_bright'],
+            height=40,
+            width=180,
+            command=self._run_ml_analysis,
+        )
+        self._run_ml_button.pack(anchor="w")
 
         # ===== SECTION 3: Issues Summary (If Problems Exist) =====
         issues = self._extract_issues(browsers)
@@ -663,6 +756,465 @@ class MainWindow(ctk.CTkFrame):
 
         return issues
 
+    def _get_ml_risk_assessment(self, features: Dict) -> Optional[Dict]:
+        """Get ML-based risk assessment for detected features.
+
+        Args:
+            features: Dict with 'html', 'css', 'js' feature lists
+
+        Returns:
+            Dict with ML risk assessment data, or None if unavailable
+        """
+        try:
+            # Import ML module (lazy import to avoid startup delay)
+            from src.ml.risk_predictor import get_risk_predictor, RiskCategory
+
+            # Collect all feature IDs (limit to first 50 for performance)
+            all_features = []
+            for key in ['html', 'css', 'js']:
+                all_features.extend(features.get(key, []))
+
+            if not all_features:
+                return None
+
+            # Limit features to prevent slow analysis
+            all_features = all_features[:50]
+
+            predictor = get_risk_predictor()
+
+            # Quick aggregate prediction instead of individual predictions
+            high_risk_count = 0
+            medium_risk_count = 0
+            low_risk_count = 0
+            sample_factors = []
+
+            # Only predict for a sample of features (faster)
+            sample_size = min(10, len(all_features))
+            sample_features = all_features[:sample_size]
+
+            for fid in sample_features:
+                try:
+                    pred = predictor.predict(fid)
+                    if pred.risk_level == RiskCategory.HIGH:
+                        high_risk_count += 1
+                    elif pred.risk_level == RiskCategory.MEDIUM:
+                        medium_risk_count += 1
+                    else:
+                        low_risk_count += 1
+
+                    if len(sample_factors) < 5:
+                        sample_factors.extend(pred.contributing_factors[:1])
+                except Exception:
+                    continue  # Skip features that fail
+
+            # Determine overall risk level from sample
+            total = high_risk_count + medium_risk_count + low_risk_count
+            if total == 0:
+                return None
+
+            if high_risk_count > total * 0.3:
+                overall_risk = 'high'
+            elif high_risk_count > 0 or medium_risk_count > total * 0.3:
+                overall_risk = 'medium'
+            else:
+                overall_risk = 'low'
+
+            # Deduplicate factors
+            unique_factors = list(dict.fromkeys(sample_factors))[:5]
+
+            # Get feature importance (fast - just reads from model)
+            feature_importance = predictor.get_feature_importance()
+            if feature_importance:
+                sorted_importance = sorted(
+                    feature_importance.items(),
+                    key=lambda x: x[1],
+                    reverse=True
+                )[:5]
+            else:
+                sorted_importance = None
+
+            # Extrapolate counts to full feature set
+            scale = len(all_features) / sample_size if sample_size > 0 else 1
+            return {
+                'risk_level': overall_risk,
+                'confidence': 0.7 if predictor.is_model_loaded() else 0.5,
+                'factors': unique_factors if unique_factors else ["Analysis based on feature characteristics"],
+                'high_risk_count': int(high_risk_count * scale),
+                'medium_risk_count': int(medium_risk_count * scale),
+                'low_risk_count': int(low_risk_count * scale),
+                'feature_importance': sorted_importance,
+                'model_loaded': predictor.is_model_loaded(),
+            }
+
+        except ImportError:
+            # ML module not available
+            return None
+        except Exception as e:
+            # Log error but don't crash
+            import traceback
+            traceback.print_exc()
+            return None
+
+    def _run_ml_analysis(self):
+        """Run ML analysis when user clicks the button."""
+        # Disable button and show loading state
+        self._run_ml_button.configure(state="disabled", text="Analyzing...")
+
+        # Schedule the actual analysis (allows UI to update)
+        self.after(100, self._perform_ml_analysis)
+
+    def _perform_ml_analysis(self):
+        """Perform the actual ML analysis."""
+        try:
+            # Collect all feature IDs
+            from src.ml.risk_predictor import get_all_models_aggregate, get_risk_predictor
+
+            all_features = []
+            for key in ['html', 'css', 'js']:
+                all_features.extend(self._ml_features.get(key, []))
+
+            if not all_features:
+                self._ml_button_frame.destroy()
+                self._show_ml_error("No features to analyze")
+                return
+
+            # === SINGLE SOURCE OF TRUTH ===
+            # Get all models data (full analysis) - this is the ONLY data source
+            all_models_data = get_all_models_aggregate(all_features, full_analysis=True)
+
+            if not all_models_data or not all_models_data.get('models'):
+                self._ml_button_frame.destroy()
+                self._show_ml_error("ML models not available. Make sure models are trained.")
+                return
+
+            # Extract Gradient Boosting data for main card (it's the best model)
+            gb_data = all_models_data['models'].get('gradient_boosting', {})
+
+            if not gb_data:
+                # Fallback to any available model
+                gb_data = list(all_models_data['models'].values())[0] if all_models_data['models'] else {}
+
+            # Calculate flagged count from actual data
+            flagged_count = gb_data.get('high_count', 0) + gb_data.get('medium_count', 0)
+
+            # Get feature importance from the predictor
+            predictor = get_risk_predictor()
+            feature_importance = predictor.get_feature_importance()
+            sorted_importance = None
+            if feature_importance:
+                sorted_importance = sorted(
+                    feature_importance.items(),
+                    key=lambda x: x[1],
+                    reverse=True
+                )[:5]
+
+            # Generate contributing factors from flagged features
+            factors = []
+            flagged_features = gb_data.get('predictions', [])
+            high_risk_features = [p for p in flagged_features if p.get('risk') == 'high']
+            if high_risk_features:
+                factors.append(f"{len(high_risk_features)} features with HIGH risk detected")
+            medium_risk_features = [p for p in flagged_features if p.get('risk') == 'medium']
+            if medium_risk_features:
+                factors.append(f"{len(medium_risk_features)} features with MEDIUM risk detected")
+            if not factors:
+                factors.append("All features have LOW risk")
+
+            # Clear the button frame
+            self._ml_button_frame.destroy()
+
+            # Show ML Risk Card (Best Model - Gradient Boosting)
+            ml_risk_card = MLRiskCard(self._ml_content_frame, title="Compatibility Risk Prediction")
+            ml_risk_card.pack(fill="x", pady=(0, SPACING['sm']))
+            ml_risk_card.set_risk_data(
+                risk_level=gb_data.get('overall_risk', 'low'),
+                confidence=0.7 if predictor.is_model_loaded() else 0.5,
+                factors=factors,
+                high_risk_count=flagged_count,
+                total_features=self._ml_total_features,
+            )
+
+            # Show Feature Importance Card (if available)
+            if sorted_importance:
+                importance_card = MLFeatureImportanceCard(self._ml_content_frame)
+                importance_card.pack(fill="x", pady=(0, SPACING['sm']))
+                importance_card.set_importances(sorted_importance)
+
+            # Advanced Details Section (All 3 Models)
+            self._create_advanced_section(all_models_data)
+
+        except Exception as e:
+            # Show error
+            import traceback
+            traceback.print_exc()
+
+            try:
+                self._ml_button_frame.destroy()
+            except:
+                pass
+
+            error_frame = ctk.CTkFrame(self._ml_content_frame, fg_color=COLORS['bg_medium'], corner_radius=8)
+            error_frame.pack(fill="x", pady=SPACING['sm'])
+
+            self._show_ml_error(f"Error running ML analysis: {str(e)}")
+
+    def _show_ml_error(self, message: str):
+        """Show an error message in the ML section."""
+        error_frame = ctk.CTkFrame(self._ml_content_frame, fg_color=COLORS['bg_medium'], corner_radius=8)
+        error_frame.pack(fill="x", pady=SPACING['sm'])
+
+        ctk.CTkLabel(
+            error_frame,
+            text=message,
+            font=ctk.CTkFont(size=12),
+            text_color=COLORS['warning'],
+        ).pack(padx=SPACING['lg'], pady=SPACING['lg'])
+
+    def _create_advanced_section(self, all_models_data: dict):
+        """Create the Advanced Details section showing all 3 models."""
+        # Advanced section container
+        advanced_frame = ctk.CTkFrame(
+            self._ml_content_frame,
+            fg_color=COLORS['bg_medium'],
+            corner_radius=8,
+            border_width=1,
+            border_color=COLORS['border'],
+        )
+        advanced_frame.pack(fill="x", pady=(SPACING['sm'], 0))
+
+        # Header with toggle button
+        header_frame = ctk.CTkFrame(advanced_frame, fg_color="transparent")
+        header_frame.pack(fill="x", padx=SPACING['lg'], pady=SPACING['sm'])
+
+        self._advanced_expanded = False
+        self._advanced_toggle_btn = ctk.CTkButton(
+            header_frame,
+            text="▶  View All Models",
+            font=ctk.CTkFont(size=12),
+            fg_color="transparent",
+            hover_color=COLORS['bg_light'],
+            text_color=COLORS['text_secondary'],
+            anchor="w",
+            command=lambda: self._toggle_advanced_section(all_models_data),
+        )
+        self._advanced_toggle_btn.pack(side="left", fill="x", expand=True)
+
+        # Content frame (initially hidden)
+        self._advanced_content = ctk.CTkFrame(advanced_frame, fg_color="transparent")
+        # Don't pack yet - will be shown when expanded
+
+        # Populate content
+        self._populate_advanced_content(all_models_data)
+
+    def _toggle_advanced_section(self, all_models_data: dict):
+        """Toggle the advanced section visibility."""
+        self._advanced_expanded = not self._advanced_expanded
+
+        if self._advanced_expanded:
+            self._advanced_toggle_btn.configure(text="▼  View All Models")
+            self._advanced_content.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['lg']))
+        else:
+            self._advanced_toggle_btn.configure(text="▶  View All Models")
+            self._advanced_content.pack_forget()
+
+    def _populate_advanced_content(self, all_models_data: dict):
+        """Populate the advanced content with all models comparison."""
+        models = all_models_data.get('models', {})
+
+        # Risk colors
+        risk_colors = {
+            'low': COLORS['success'],
+            'medium': COLORS['warning'],
+            'high': COLORS['danger'],
+        }
+
+        # Model order
+        model_order = ['gradient_boosting', 'random_forest', 'logistic_regression']
+
+        for model_name in model_order:
+            if model_name not in models:
+                continue
+
+            model_data = models[model_name]
+
+            # Model container
+            model_frame = ctk.CTkFrame(self._advanced_content, fg_color=COLORS['bg_light'], corner_radius=6)
+            model_frame.pack(fill="x", pady=(0, SPACING['sm']))
+
+            # Model header row
+            header_row = ctk.CTkFrame(model_frame, fg_color="transparent")
+            header_row.pack(fill="x", padx=SPACING['md'], pady=SPACING['sm'])
+
+            # Model name
+            name_text = model_data.get('display_name', model_name)
+            name_label = ctk.CTkLabel(
+                header_row,
+                text=name_text,
+                font=ctk.CTkFont(size=12, weight="bold"),
+                text_color=COLORS['text_primary'],
+                width=160,
+                anchor="w",
+            )
+            name_label.pack(side="left")
+
+            # Risk level badge
+            risk = model_data.get('overall_risk', 'unknown')
+            risk_color = risk_colors.get(risk, COLORS['text_muted'])
+
+            risk_label = ctk.CTkLabel(
+                header_row,
+                text=f" {risk.upper()} RISK ",
+                font=ctk.CTkFont(size=11, weight="bold"),
+                text_color=risk_color,
+                fg_color=COLORS['bg_medium'],
+                corner_radius=4,
+            )
+            risk_label.pack(side="left", padx=(SPACING['sm'], 0))
+
+            # Flagged count
+            high_count = model_data.get('high_count', 0)
+            medium_count = model_data.get('medium_count', 0)
+            flagged = high_count + medium_count
+            total = self._ml_total_features
+
+            flagged_label = ctk.CTkLabel(
+                header_row,
+                text=f"{flagged}/{total} flagged",
+                font=ctk.CTkFont(size=11),
+                text_color=COLORS['text_muted'],
+            )
+            flagged_label.pack(side="right")
+
+            # Flagged features details (get from predictions)
+            predictions = model_data.get('predictions', [])
+            flagged_predictions = [p for p in predictions if p.get('risk') in ['high', 'medium']]
+
+            if flagged_predictions:
+                # Divider line
+                divider = ctk.CTkFrame(model_frame, fg_color=COLORS['border'], height=1)
+                divider.pack(fill="x", padx=SPACING['md'], pady=(0, SPACING['xs']))
+
+                # Flagged features header with toggle
+                header_frame = ctk.CTkFrame(model_frame, fg_color="transparent")
+                header_frame.pack(fill="x", padx=SPACING['md'], pady=(0, SPACING['xs']))
+
+                flagged_header = ctk.CTkLabel(
+                    header_frame,
+                    text="Flagged Features:",
+                    font=ctk.CTkFont(size=10),
+                    text_color=COLORS['text_muted'],
+                )
+                flagged_header.pack(side="left")
+
+                # Container for features list
+                features_container = ctk.CTkFrame(model_frame, fg_color="transparent")
+                features_container.pack(fill="x", padx=SPACING['md'], pady=(0, SPACING['sm']))
+
+                # Initially visible features (first 5)
+                initial_frame = ctk.CTkFrame(features_container, fg_color="transparent")
+                initial_frame.pack(fill="x")
+
+                # Hidden features (rest)
+                hidden_frame = ctk.CTkFrame(features_container, fg_color="transparent")
+                # Don't pack yet - will show on toggle
+
+                # Create feature rows
+                for idx, pred in enumerate(flagged_predictions):
+                    feature_id = pred.get('feature', 'unknown')
+                    feature_risk = pred.get('risk', 'unknown')
+                    feature_reason = pred.get('reason', 'Risk detected by ML model')
+                    feature_color = risk_colors.get(feature_risk, COLORS['text_muted'])
+
+                    # Decide which frame to add to
+                    parent_frame = initial_frame if idx < 5 else hidden_frame
+
+                    # Feature row container
+                    feature_row = ctk.CTkFrame(parent_frame, fg_color=COLORS['bg_medium'], corner_radius=4)
+                    feature_row.pack(fill="x", pady=(0, 4))
+
+                    feature_inner = ctk.CTkFrame(feature_row, fg_color="transparent")
+                    feature_inner.pack(fill="x", padx=SPACING['sm'], pady=SPACING['xs'])
+
+                    # Left side: bullet + feature name
+                    left_frame = ctk.CTkFrame(feature_inner, fg_color="transparent")
+                    left_frame.pack(side="left", fill="x", expand=True)
+
+                    # Bullet point
+                    bullet = ctk.CTkLabel(
+                        left_frame,
+                        text="•",
+                        font=ctk.CTkFont(size=11),
+                        text_color=feature_color,
+                        width=15,
+                    )
+                    bullet.pack(side="left")
+
+                    # Feature name
+                    feature_name_label = ctk.CTkLabel(
+                        left_frame,
+                        text=feature_id,
+                        font=ctk.CTkFont(size=11, weight="bold"),
+                        text_color=COLORS['text_primary'],
+                        anchor="w",
+                    )
+                    feature_name_label.pack(side="left")
+
+                    # Risk badge
+                    risk_badge = ctk.CTkLabel(
+                        feature_inner,
+                        text=f" {feature_risk.upper()} ",
+                        font=ctk.CTkFont(size=9, weight="bold"),
+                        text_color=feature_color,
+                    )
+                    risk_badge.pack(side="right")
+
+                    # Reason row (below feature name)
+                    reason_label = ctk.CTkLabel(
+                        feature_row,
+                        text=f"    {feature_reason}",
+                        font=ctk.CTkFont(size=10),
+                        text_color=COLORS['text_muted'],
+                        anchor="w",
+                    )
+                    reason_label.pack(fill="x", padx=SPACING['sm'], pady=(0, SPACING['xs']))
+
+                # Toggle button if more than 5 features
+                if len(flagged_predictions) > 5:
+                    toggle_frame = ctk.CTkFrame(features_container, fg_color="transparent")
+                    toggle_frame.pack(fill="x", pady=(SPACING['xs'], 0))
+
+                    # Store state for this model's toggle
+                    is_expanded = [False]  # Use list to allow mutation in closure
+
+                    def make_toggle_callback(hf, tf, exp, count):
+                        def toggle():
+                            exp[0] = not exp[0]
+                            if exp[0]:
+                                hf.pack(fill="x")
+                                tf.configure(text=f"▲ Show less")
+                            else:
+                                hf.pack_forget()
+                                tf.configure(text=f"▼ Show all {count} flagged features")
+                        return toggle
+
+                    toggle_btn = ctk.CTkButton(
+                        toggle_frame,
+                        text=f"▼ Show all {len(flagged_predictions)} flagged features",
+                        font=ctk.CTkFont(size=10),
+                        fg_color="transparent",
+                        hover_color=COLORS['bg_light'],
+                        text_color=COLORS['accent'],
+                        height=24,
+                        anchor="w",
+                        command=make_toggle_callback(hidden_frame, None, is_expanded, len(flagged_predictions)),
+                    )
+                    toggle_btn.pack(side="left")
+
+                    # Update the callback to reference the button
+                    toggle_btn.configure(
+                        command=make_toggle_callback(hidden_frame, toggle_btn, is_expanded, len(flagged_predictions))
+                    )
+
     def _build_settings_view(self):
         """Build the settings view."""
         # Container
@@ -825,6 +1377,17 @@ class MainWindow(ctk.CTkFrame):
         else:
             self.status_bar.set_status("Ready", "normal")
 
+    def _on_browser_selection_change(self, selected_browsers: Dict[str, str]):
+        """Handle browser selection changes.
+
+        Args:
+            selected_browsers: Dict mapping browser_id to latest_version
+        """
+        self._selected_browsers = selected_browsers
+        browser_count = len(selected_browsers)
+        if browser_count > 0:
+            self.status_bar.set_status(f"{browser_count} browser(s) selected for analysis", "info")
+
     def _analyze_files(self):
         """Analyze selected files."""
         if not hasattr(self, 'file_table'):
@@ -835,7 +1398,13 @@ class MainWindow(ctk.CTkFrame):
             show_warning(self.master, "No Files", "Please select at least one file.")
             return
 
-        if ask_question(self.master, "Confirm", f"Analyze {len(files)} file(s)?"):
+        # Check if browsers are selected
+        if not self._selected_browsers:
+            show_warning(self.master, "No Browsers", "Please select at least one target browser.")
+            return
+
+        browser_count = len(self._selected_browsers)
+        if ask_question(self.master, "Confirm", f"Analyze {len(files)} file(s) against {browser_count} browser(s)?"):
             self._run_analysis(files)
 
     def _run_analysis(self, files: List[str]):
@@ -853,10 +1422,15 @@ class MainWindow(ctk.CTkFrame):
             self.master.update()
 
             progress.set_progress(30, "Analyzing browser compatibility...")
+
+            # Use selected browsers or fall back to service defaults
+            target_browsers = self._selected_browsers if self._selected_browsers else None
+
             result = self._analyzer_service.analyze_files(
                 html_files=html_files if html_files else None,
                 css_files=css_files if css_files else None,
                 js_files=js_files if js_files else None,
+                target_browsers=target_browsers,
             )
 
             progress.set_progress(100)
