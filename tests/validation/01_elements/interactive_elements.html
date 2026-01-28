@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Elements - Manual Validation Test</title>
+    <!--
+        Cross Guard Manual Validation Test
+        Category: 01_elements
+        File: interactive_elements.html
+
+        Expected Can I Use IDs:
+        - dialog: https://caniuse.com/dialog
+        - details: https://caniuse.com/details
+        - template: https://caniuse.com/template
+
+        Features tested:
+        - <dialog>
+        - <details>
+        - <summary>
+        - <template>
+    -->
+</head>
+<body>
+    <h1>HTML5 Interactive Elements Test</h1>
+    <p>This file tests detection of HTML5 interactive elements.</p>
+
+    <!-- Feature 1: <dialog> -->
+    <section>
+        <h2>Feature: dialog</h2>
+        <p>Can I Use ID: <code>dialog</code></p>
+        <p>URL: <a href="https://caniuse.com/dialog">caniuse.com/dialog</a></p>
+
+        <button id="openDialog">Open Dialog</button>
+
+        <dialog id="myDialog">
+            <h3>Dialog Title</h3>
+            <p>This is a native HTML dialog element.</p>
+            <p>It provides built-in modal functionality without JavaScript libraries.</p>
+            <form method="dialog">
+                <button value="cancel">Cancel</button>
+                <button value="confirm">Confirm</button>
+            </form>
+        </dialog>
+
+        <script>
+            document.getElementById('openDialog').addEventListener('click', function() {
+                document.getElementById('myDialog').showModal();
+            });
+        </script>
+
+        <p>The dialog element represents a dialog box or interactive component.</p>
+    </section>
+
+    <!-- Feature 2 & 3: <details> and <summary> -->
+    <section>
+        <h2>Feature: details</h2>
+        <p>Can I Use ID: <code>details</code></p>
+        <p>URL: <a href="https://caniuse.com/details">caniuse.com/details</a></p>
+
+        <details>
+            <summary>Feature: summary - Click to expand</summary>
+            <p>This content is hidden by default and revealed when the user clicks the summary.</p>
+            <p>The details element creates a disclosure widget from which the user can obtain additional information.</p>
+        </details>
+
+        <details open>
+            <summary>Pre-expanded details section</summary>
+            <p>This section starts expanded because of the <code>open</code> attribute.</p>
+            <ul>
+                <li>Item 1</li>
+                <li>Item 2</li>
+                <li>Item 3</li>
+            </ul>
+        </details>
+
+        <details>
+            <summary>Nested details example</summary>
+            <p>Details can contain any HTML content, including other details elements:</p>
+            <details>
+                <summary>Inner details</summary>
+                <p>Nested content here.</p>
+            </details>
+        </details>
+    </section>
+
+    <!-- Feature 4: <template> -->
+    <section>
+        <h2>Feature: template</h2>
+        <p>Can I Use ID: <code>template</code></p>
+        <p>URL: <a href="https://caniuse.com/template">caniuse.com/template</a></p>
+
+        <template id="cardTemplate">
+            <div class="card">
+                <h3 class="card-title"></h3>
+                <p class="card-content"></p>
+                <button class="card-action">Action</button>
+            </div>
+        </template>
+
+        <template id="listItemTemplate">
+            <li class="list-item">
+                <span class="item-text"></span>
+                <button class="remove-btn">Remove</button>
+            </li>
+        </template>
+
+        <div id="cardContainer"></div>
+
+        <script>
+            // Example of using template element
+            var template = document.getElementById('cardTemplate');
+            if ('content' in document.createElement('template')) {
+                var clone = template.content.cloneNode(true);
+                clone.querySelector('.card-title').textContent = 'Template Demo';
+                clone.querySelector('.card-content').textContent = 'Content created from template';
+                document.getElementById('cardContainer').appendChild(clone);
+            }
+        </script>
+
+        <p>The template element holds client-side content that is not rendered when the page loads but can be instantiated using JavaScript.</p>
+    </section>
+
+    <!-- Additional interactive elements for comprehensive testing -->
+    <section>
+        <h2>Combined Interactive Demo</h2>
+
+        <details>
+            <summary>Interactive Component Example</summary>
+
+            <button id="openDemo">Open Demo Dialog</button>
+
+            <dialog id="demoDialog">
+                <h3>Interactive Demo</h3>
+                <p>This demonstrates combining dialog, details, and template.</p>
+
+                <details>
+                    <summary>More Information</summary>
+                    <p>Nested details inside a dialog.</p>
+                </details>
+
+                <form method="dialog">
+                    <button>Close</button>
+                </form>
+            </dialog>
+
+            <script>
+                document.getElementById('openDemo').addEventListener('click', function() {
+                    document.getElementById('demoDialog').showModal();
+                });
+            </script>
+        </details>
+    </section>
+
+    <!--
+        VALIDATION INSTRUCTIONS:
+
+        1. Load this file in Cross Guard
+        2. Check that the following features are detected:
+           - dialog (Can I Use: dialog)
+           - details (Can I Use: details)
+           - summary (part of details feature)
+           - template (Can I Use: template)
+        3. Verify browser support for each matches their respective Can I Use pages
+        4. Record results in CHECKLIST.md
+    -->
+</body>
+</html>

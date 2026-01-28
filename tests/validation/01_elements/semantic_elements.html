@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semantic Elements - Manual Validation Test</title>
+    <!--
+        Cross Guard Manual Validation Test
+        Category: 01_elements
+        File: semantic_elements.html
+
+        Expected Can I Use ID: html5semantic
+        URL: https://caniuse.com/html5semantic
+
+        Features tested:
+        - <main>
+        - <section>
+        - <article>
+        - <aside>
+        - <header>
+        - <footer>
+        - <nav>
+        - <figure>
+        - <figcaption>
+        - <time>
+        - <mark>
+    -->
+</head>
+<body>
+    <h1>HTML5 Semantic Elements Test</h1>
+    <p>This file tests detection of HTML5 semantic elements.</p>
+
+    <!-- Feature 1: <header> -->
+    <header>
+        <h2>Feature: header</h2>
+        <p>Can I Use ID: <code>html5semantic</code></p>
+        <p>URL: <a href="https://caniuse.com/html5semantic">caniuse.com/html5semantic</a></p>
+
+        <!-- Feature 2: <nav> -->
+        <nav>
+            <h3>Feature: nav</h3>
+            <ul>
+                <li><a href="#main">Main Content</a></li>
+                <li><a href="#article">Article</a></li>
+                <li><a href="#aside">Sidebar</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <!-- Feature 3: <main> -->
+    <main id="main">
+        <h2>Feature: main</h2>
+        <p>The main element represents the dominant content of the body.</p>
+
+        <!-- Feature 4: <article> -->
+        <article id="article">
+            <h3>Feature: article</h3>
+            <p>An article represents a self-contained composition in a document.</p>
+
+            <!-- Feature 5: <section> -->
+            <section>
+                <h4>Feature: section</h4>
+                <p>A section represents a thematic grouping of content.</p>
+
+                <!-- Feature 6: <figure> and <figcaption> -->
+                <figure>
+                    <h5>Feature: figure</h5>
+                    <img src="placeholder.jpg" alt="Placeholder image" width="200" height="150">
+                    <figcaption>
+                        <strong>Feature: figcaption</strong> - Caption for the figure above.
+                    </figcaption>
+                </figure>
+            </section>
+
+            <!-- Feature 7: <time> -->
+            <section>
+                <h4>Feature: time</h4>
+                <p>Published on <time datetime="2024-01-15">January 15, 2024</time></p>
+                <p>Event starts at <time datetime="2024-06-01T14:30">2:30 PM on June 1st</time></p>
+            </section>
+
+            <!-- Feature 8: <mark> -->
+            <section>
+                <h4>Feature: mark</h4>
+                <p>This text contains a <mark>highlighted section</mark> using the mark element.</p>
+                <p>Search results: The <mark>query term</mark> appears multiple times.</p>
+            </section>
+        </article>
+
+        <!-- Feature 9: <aside> -->
+        <aside id="aside">
+            <h3>Feature: aside</h3>
+            <p>This sidebar content is tangentially related to the main content.</p>
+            <p>It could contain related links, advertisements, or supplementary information.</p>
+        </aside>
+    </main>
+
+    <!-- Feature 10: <footer> -->
+    <footer>
+        <h2>Feature: footer</h2>
+        <p>Can I Use ID: <code>html5semantic</code></p>
+        <p>&copy; 2024 Cross Guard Validation Tests</p>
+        <nav>
+            <a href="#privacy">Privacy Policy</a> |
+            <a href="#terms">Terms of Service</a>
+        </nav>
+    </footer>
+
+    <!--
+        VALIDATION INSTRUCTIONS:
+
+        1. Load this file in Cross Guard
+        2. Check that the following features are detected:
+           - html5semantic (covers main, section, article, aside, header, footer, nav, figure, figcaption, time, mark)
+        3. Verify browser support matches: https://caniuse.com/html5semantic
+        4. Record results in CHECKLIST.md
+    -->
+</body>
+</html>

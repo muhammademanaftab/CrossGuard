@@ -22,6 +22,7 @@ HTML_ELEMENTS = {
     'meter': 'meter',
     'progress': 'progress',
     'datalist': 'datalist',
+    'output': 'output-element',  # Output element for form calculations
     'time': 'html5semantic',
     'mark': 'html5semantic',
     'main': 'html5semantic',
@@ -63,6 +64,13 @@ HTML_INPUT_TYPES = {
 
 # HTML Attributes to Feature ID mapping
 HTML_ATTRIBUTES = {
+    'datetime': 'html5semantic',  # datetime attribute on <time> element
+    'open': 'details',  # open attribute on <details> element
+    'high': 'meter',  # high attribute on <meter> element
+    'low': 'meter',  # low attribute on <meter> element
+    'optimum': 'meter',  # optimum attribute on <meter> element
+    'as': 'link-rel-preload',  # as attribute for link preload (as="style", as="font", etc.)
+    'allow': 'permissions-policy',  # allow attribute on iframes for Permissions Policy
     'loading': 'loading-lazy-attr',
     'autocomplete': 'input-autocomplete-onoff',
     'autofocus': 'autofocus',

@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Referrer Policy Values - Manual Validation Test</title>
+    <!--
+        Cross Guard Manual Validation Test
+        Category: 04_attribute_values
+        File: referrerpolicy_values.html
+
+        Expected Can I Use ID: referrer-policy
+        URL: https://caniuse.com/referrer-policy
+
+        Features tested:
+        - referrerpolicy="no-referrer"
+        - referrerpolicy="no-referrer-when-downgrade"
+        - referrerpolicy="origin"
+        - referrerpolicy="origin-when-cross-origin"
+        - referrerpolicy="same-origin"
+        - referrerpolicy="strict-origin"
+        - referrerpolicy="strict-origin-when-cross-origin"
+        - referrerpolicy="unsafe-url"
+    -->
+
+    <!-- Document-level referrer policy -->
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+</head>
+<body>
+    <h1>HTML5 Referrer Policy Values Test</h1>
+    <p>This file tests detection of referrerpolicy attribute values.</p>
+
+    <p>Can I Use ID: <code>referrer-policy</code></p>
+    <p>URL: <a href="https://caniuse.com/referrer-policy">caniuse.com/referrer-policy</a></p>
+
+    <!-- Feature 1: no-referrer -->
+    <section>
+        <h2>Feature: referrerpolicy="no-referrer"</h2>
+
+        <h3>Links with no-referrer</h3>
+        <a href="https://example.com" referrerpolicy="no-referrer">Link with no referrer</a>
+
+        <h3>Images with no-referrer</h3>
+        <img src="https://example.com/image.jpg" referrerpolicy="no-referrer" alt="No referrer image">
+
+        <h3>Scripts with no-referrer</h3>
+        <script src="https://example.com/script.js" referrerpolicy="no-referrer"></script>
+
+        <h3>Iframes with no-referrer</h3>
+        <iframe src="https://example.com/embed" referrerpolicy="no-referrer" width="400" height="200"></iframe>
+
+        <pre><code>&lt;a href="https://example.com" referrerpolicy="no-referrer"&gt;...&lt;/a&gt;
+&lt;img src="image.jpg" referrerpolicy="no-referrer"&gt;
+&lt;script src="script.js" referrerpolicy="no-referrer"&gt;&lt;/script&gt;
+&lt;iframe src="embed.html" referrerpolicy="no-referrer"&gt;&lt;/iframe&gt;</code></pre>
+
+        <p>No referrer information is sent with the request.</p>
+    </section>
+
+    <!-- Feature 2: no-referrer-when-downgrade -->
+    <section>
+        <h2>Feature: referrerpolicy="no-referrer-when-downgrade"</h2>
+
+        <a href="https://example.com" referrerpolicy="no-referrer-when-downgrade">
+            Link - no referrer when downgrade
+        </a>
+
+        <img src="https://example.com/photo.jpg" referrerpolicy="no-referrer-when-downgrade"
+             alt="Photo" width="200" height="150">
+
+        <pre><code>&lt;a href="..." referrerpolicy="no-referrer-when-downgrade"&gt;...&lt;/a&gt;</code></pre>
+
+        <p>Full URL is sent except when going from HTTPS to HTTP (downgrade).</p>
+    </section>
+
+    <!-- Feature 3: origin -->
+    <section>
+        <h2>Feature: referrerpolicy="origin"</h2>
+
+        <a href="https://example.com" referrerpolicy="origin">Link with origin only</a>
+
+        <img src="https://cdn.example.com/image.png" referrerpolicy="origin"
+             alt="Origin policy image" width="100" height="100">
+
+        <script src="https://example.com/analytics.js" referrerpolicy="origin"></script>
+
+        <pre><code>&lt;a href="..." referrerpolicy="origin"&gt;...&lt;/a&gt;</code></pre>
+
+        <p>Only the origin (scheme, host, port) is sent, not the full path.</p>
+    </section>
+
+    <!-- Feature 4: origin-when-cross-origin -->
+    <section>
+        <h2>Feature: referrerpolicy="origin-when-cross-origin"</h2>
+
+        <a href="https://example.com" referrerpolicy="origin-when-cross-origin">
+            Cross-origin link (origin only)
+        </a>
+
+        <a href="/local-page.html" referrerpolicy="origin-when-cross-origin">
+            Same-origin link (full URL)
+        </a>
+
+        <img src="https://external.com/image.jpg" referrerpolicy="origin-when-cross-origin"
+             alt="Cross-origin image" width="150" height="100">
+
+        <pre><code>&lt;a href="..." referrerpolicy="origin-when-cross-origin"&gt;...&lt;/a&gt;</code></pre>
+
+        <p>Full URL for same-origin, origin only for cross-origin requests.</p>
+    </section>
+
+    <!-- Feature 5: same-origin -->
+    <section>
+        <h2>Feature: referrerpolicy="same-origin"</h2>
+
+        <a href="/internal-page.html" referrerpolicy="same-origin">Same-origin link</a>
+
+        <a href="https://external.com" referrerpolicy="same-origin">
+            Cross-origin link (no referrer)
+        </a>
+
+        <img src="/images/photo.jpg" referrerpolicy="same-origin" alt="Same origin image">
+
+        <pre><code>&lt;a href="..." referrerpolicy="same-origin"&gt;...&lt;/a&gt;</code></pre>
+
+        <p>Referrer is only sent for same-origin requests.</p>
+    </section>
+
+    <!-- Feature 6: strict-origin -->
+    <section>
+        <h2>Feature: referrerpolicy="strict-origin"</h2>
+
+        <a href="https://secure.example.com" referrerpolicy="strict-origin">
+            HTTPS to HTTPS (origin sent)
+        </a>
+
+        <a href="http://insecure.example.com" referrerpolicy="strict-origin">
+            HTTPS to HTTP (no referrer)
+        </a>
+
+        <img src="https://cdn.example.com/secure.jpg" referrerpolicy="strict-origin"
+             alt="Strict origin image" width="100" height="100">
+
+        <pre><code>&lt;a href="..." referrerpolicy="strict-origin"&gt;...&lt;/a&gt;</code></pre>
+
+        <p>Origin is sent for same-security requests, none for downgrades.</p>
+    </section>
+
+    <!-- Feature 7: strict-origin-when-cross-origin -->
+    <section>
+        <h2>Feature: referrerpolicy="strict-origin-when-cross-origin"</h2>
+
+        <a href="/same-origin.html" referrerpolicy="strict-origin-when-cross-origin">
+            Same-origin (full URL)
+        </a>
+
+        <a href="https://cross-origin.com" referrerpolicy="strict-origin-when-cross-origin">
+            Cross-origin HTTPS (origin only)
+        </a>
+
+        <a href="http://insecure.com" referrerpolicy="strict-origin-when-cross-origin">
+            Downgrade to HTTP (no referrer)
+        </a>
+
+        <img src="https://cdn.example.com/photo.jpg" referrerpolicy="strict-origin-when-cross-origin"
+             alt="Strict cross-origin image" width="200" height="150">
+
+        <pre><code>&lt;a href="..." referrerpolicy="strict-origin-when-cross-origin"&gt;...&lt;/a&gt;</code></pre>
+
+        <p>The recommended default policy. Full URL for same-origin, origin for cross-origin, none for downgrades.</p>
+    </section>
+
+    <!-- Feature 8: unsafe-url -->
+    <section>
+        <h2>Feature: referrerpolicy="unsafe-url"</h2>
+
+        <a href="https://example.com" referrerpolicy="unsafe-url">
+            Link with full URL (unsafe)
+        </a>
+
+        <a href="http://insecure.com" referrerpolicy="unsafe-url">
+            Link to HTTP with full URL (very unsafe!)
+        </a>
+
+        <pre><code>&lt;a href="..." referrerpolicy="unsafe-url"&gt;...&lt;/a&gt;</code></pre>
+
+        <p><strong>Warning:</strong> Always sends the full URL, even on downgrades. Use with caution!</p>
+    </section>
+
+    <!-- Document-level policy -->
+    <section>
+        <h2>Document-Level Referrer Policy</h2>
+
+        <pre><code>&lt;!-- Meta tag in &lt;head&gt; --&gt;
+&lt;meta name="referrer" content="strict-origin-when-cross-origin"&gt;
+
+&lt;!-- HTTP Header alternative --&gt;
+Referrer-Policy: strict-origin-when-cross-origin</code></pre>
+
+        <p>Sets the default referrer policy for the entire document.</p>
+    </section>
+
+    <!-- Summary table -->
+    <section>
+        <h2>Referrer Policy Summary</h2>
+
+        <table border="1" cellpadding="10">
+            <thead>
+                <tr>
+                    <th>Policy</th>
+                    <th>Same-Origin</th>
+                    <th>Cross-Origin (same security)</th>
+                    <th>Downgrade (HTTPS→HTTP)</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><code>no-referrer</code></td>
+                    <td>None</td>
+                    <td>None</td>
+                    <td>None</td>
+                </tr>
+                <tr>
+                    <td><code>no-referrer-when-downgrade</code></td>
+                    <td>Full URL</td>
+                    <td>Full URL</td>
+                    <td>None</td>
+                </tr>
+                <tr>
+                    <td><code>origin</code></td>
+                    <td>Origin</td>
+                    <td>Origin</td>
+                    <td>Origin</td>
+                </tr>
+                <tr>
+                    <td><code>origin-when-cross-origin</code></td>
+                    <td>Full URL</td>
+                    <td>Origin</td>
+                    <td>Origin</td>
+                </tr>
+                <tr>
+                    <td><code>same-origin</code></td>
+                    <td>Full URL</td>
+                    <td>None</td>
+                    <td>None</td>
+                </tr>
+                <tr>
+                    <td><code>strict-origin</code></td>
+                    <td>Origin</td>
+                    <td>Origin</td>
+                    <td>None</td>
+                </tr>
+                <tr>
+                    <td><code>strict-origin-when-cross-origin</code></td>
+                    <td>Full URL</td>
+                    <td>Origin</td>
+                    <td>None</td>
+                </tr>
+                <tr>
+                    <td><code>unsafe-url</code></td>
+                    <td>Full URL</td>
+                    <td>Full URL</td>
+                    <td>Full URL</td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+
+    <!--
+        VALIDATION INSTRUCTIONS:
+
+        1. Load this file in Cross Guard
+        2. Check that the following feature is detected:
+           - referrer-policy (covers all referrerpolicy values)
+        3. Verify browser support matches: https://caniuse.com/referrer-policy
+        4. Note: Individual policy values may have varying support
+        5. Record results in CHECKLIST.md
+    -->
+</body>
+</html>

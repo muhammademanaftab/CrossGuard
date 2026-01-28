@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Content Attributes - Manual Validation Test</title>
+    <!--
+        Cross Guard Manual Validation Test
+        Category: 03_attributes
+        File: content_attributes.html
+
+        Expected Can I Use IDs:
+        - contenteditable: https://caniuse.com/contenteditable
+        - dragndrop: https://caniuse.com/dragndrop
+        - hidden: https://caniuse.com/hidden
+        - download: https://caniuse.com/download
+
+        Features tested:
+        - contenteditable attribute
+        - draggable attribute
+        - hidden attribute
+        - download attribute
+        - spellcheck attribute
+    -->
+</head>
+<body>
+    <h1>HTML5 Content Attributes Test</h1>
+    <p>This file tests detection of HTML5 content manipulation attributes.</p>
+
+    <!-- Feature 1: contenteditable attribute -->
+    <section>
+        <h2>Feature: contenteditable attribute</h2>
+        <p>Can I Use ID: <code>contenteditable</code></p>
+        <p>URL: <a href="https://caniuse.com/contenteditable">caniuse.com/contenteditable</a></p>
+
+        <h3>Editable paragraph</h3>
+        <p contenteditable="true" style="border: 1px dashed #ccc; padding: 10px;">
+            Click here to edit this text. You can type, delete, and format content directly.
+        </p>
+
+        <h3>Editable div (rich text area)</h3>
+        <div contenteditable="true" style="border: 1px solid #999; padding: 15px; min-height: 100px;">
+            <p>This is an editable div that can contain:</p>
+            <ul>
+                <li>Lists</li>
+                <li>Formatted text</li>
+                <li>And more!</li>
+            </ul>
+        </div>
+
+        <h3>Non-editable child</h3>
+        <div contenteditable="true" style="border: 1px solid #999; padding: 10px;">
+            This parent is editable, but
+            <span contenteditable="false" style="background: #eee; padding: 2px 5px;">this span is not editable</span>
+            while the rest is.
+        </div>
+
+        <h3>Editable table cell</h3>
+        <table border="1">
+            <tr>
+                <td contenteditable="true">Edit me</td>
+                <td contenteditable="true">Edit me too</td>
+            </tr>
+        </table>
+
+        <p>The contenteditable attribute makes an element's content editable by the user.</p>
+    </section>
+
+    <!-- Feature 2: draggable attribute -->
+    <section>
+        <h2>Feature: draggable attribute</h2>
+        <p>Can I Use ID: <code>dragndrop</code></p>
+        <p>URL: <a href="https://caniuse.com/dragndrop">caniuse.com/dragndrop</a></p>
+
+        <h3>Draggable elements</h3>
+        <div style="display: flex; gap: 20px;">
+            <div id="dragZone" style="border: 2px dashed #ccc; padding: 20px; min-width: 200px;">
+                <p draggable="true" id="drag1" style="background: #4CAF50; color: white; padding: 10px; cursor: move;">
+                    Drag me (draggable="true")
+                </p>
+                <p draggable="true" id="drag2" style="background: #2196F3; color: white; padding: 10px; cursor: move;">
+                    Drag me too
+                </p>
+                <p draggable="false" style="background: #9E9E9E; color: white; padding: 10px;">
+                    Can't drag me (draggable="false")
+                </p>
+            </div>
+
+            <div id="dropZone" style="border: 2px dashed #999; padding: 20px; min-width: 200px; min-height: 150px;">
+                <p>Drop zone</p>
+            </div>
+        </div>
+
+        <h3>Draggable image</h3>
+        <img src="icon.png" draggable="true" alt="Draggable icon" width="64" height="64"
+             style="cursor: move; border: 1px solid #ccc;">
+
+        <h3>Non-draggable image</h3>
+        <img src="photo.jpg" draggable="false" alt="Non-draggable photo" width="100" height="100">
+
+        <script>
+            // Basic drag and drop handlers for demonstration
+            document.querySelectorAll('[draggable="true"]').forEach(function(elem) {
+                elem.addEventListener('dragstart', function(e) {
+                    e.dataTransfer.setData('text/plain', e.target.id);
+                });
+            });
+
+            document.getElementById('dropZone').addEventListener('dragover', function(e) {
+                e.preventDefault();
+            });
+
+            document.getElementById('dropZone').addEventListener('drop', function(e) {
+                e.preventDefault();
+                var data = e.dataTransfer.getData('text/plain');
+                var elem = document.getElementById(data);
+                if (elem) {
+                    e.target.appendChild(elem);
+                }
+            });
+        </script>
+
+        <p>The draggable attribute specifies whether an element is draggable.</p>
+    </section>
+
+    <!-- Feature 3: hidden attribute -->
+    <section>
+        <h2>Feature: hidden attribute</h2>
+        <p>Can I Use ID: <code>hidden</code></p>
+        <p>URL: <a href="https://caniuse.com/hidden">caniuse.com/hidden</a></p>
+
+        <p>This paragraph is visible.</p>
+
+        <p hidden>This paragraph is hidden and should not be visible.</p>
+
+        <div hidden>
+            <p>This entire div is hidden.</p>
+            <p>Including all its contents.</p>
+        </div>
+
+        <p id="toggleParagraph" hidden>This paragraph can be toggled.</p>
+        <button onclick="toggleHidden()">Toggle Hidden Paragraph</button>
+
+        <script>
+            function toggleHidden() {
+                var p = document.getElementById('toggleParagraph');
+                p.hidden = !p.hidden;
+            }
+        </script>
+
+        <h3>Hidden form field</h3>
+        <form>
+            <input type="text" name="visible" placeholder="Visible input">
+            <input type="text" name="hiddenInput" hidden value="hidden-value">
+            <button hidden>Hidden button</button>
+        </form>
+
+        <p>The hidden attribute indicates that an element is not yet, or no longer, relevant.</p>
+    </section>
+
+    <!-- Feature 4: download attribute -->
+    <section>
+        <h2>Feature: download attribute</h2>
+        <p>Can I Use ID: <code>download</code></p>
+        <p>URL: <a href="https://caniuse.com/download">caniuse.com/download</a></p>
+
+        <h3>Simple download link</h3>
+        <a href="document.pdf" download>Download PDF</a>
+
+        <h3>Download with custom filename</h3>
+        <a href="report-2024-01-15.pdf" download="monthly-report.pdf">Download Report</a>
+
+        <h3>Download image</h3>
+        <a href="photo.jpg" download="my-photo.jpg">
+            <img src="photo-thumb.jpg" alt="Click to download" width="100" height="100">
+        </a>
+
+        <h3>Download different file types</h3>
+        <ul>
+            <li><a href="data.csv" download>Download CSV</a></li>
+            <li><a href="config.json" download="settings.json">Download JSON</a></li>
+            <li><a href="archive.zip" download>Download ZIP</a></li>
+            <li><a href="video.mp4" download="my-video.mp4">Download Video</a></li>
+        </ul>
+
+        <h3>Download blob (JavaScript-generated content)</h3>
+        <button onclick="downloadBlob()">Generate and Download Text File</button>
+
+        <script>
+            function downloadBlob() {
+                var content = 'Hello, this is generated content!';
+                var blob = new Blob([content], { type: 'text/plain' });
+                var url = URL.createObjectURL(blob);
+                var a = document.createElement('a');
+                a.href = url;
+                a.download = 'generated-file.txt';
+                a.click();
+                URL.revokeObjectURL(url);
+            }
+        </script>
+
+        <p>The download attribute prompts the user to save the linked resource instead of navigating to it.</p>
+    </section>
+
+    <!-- Feature 5: spellcheck attribute -->
+    <section>
+        <h2>Feature: spellcheck attribute</h2>
+        <p>Can I Use ID: <code>spellcheck</code> (part of HTML5 editing features)</p>
+
+        <h3>Spellcheck enabled (default)</h3>
+        <textarea spellcheck="true" rows="3" cols="50" placeholder="Type misspelled words here...">
+        </textarea>
+
+        <h3>Spellcheck disabled</h3>
+        <textarea spellcheck="false" rows="3" cols="50" placeholder="Spellcheck is disabled here...">
+        </textarea>
+
+        <h3>Contenteditable with spellcheck</h3>
+        <div contenteditable="true" spellcheck="true" style="border: 1px solid #ccc; padding: 10px;">
+            Edit this text - spellcheck is enabled.
+        </div>
+
+        <div contenteditable="true" spellcheck="false" style="border: 1px solid #ccc; padding: 10px; margin-top: 10px;">
+            Edit this text - spellcheck is disabled.
+        </div>
+
+        <p>The spellcheck attribute enables or disables spell checking for an element.</p>
+    </section>
+
+    <!-- Combined example -->
+    <section>
+        <h2>Combined Content Editor</h2>
+
+        <div style="border: 2px solid #333; padding: 15px;">
+            <h3>Rich Text Editor</h3>
+
+            <div id="toolbar" style="margin-bottom: 10px;">
+                <button onclick="document.execCommand('bold')">Bold</button>
+                <button onclick="document.execCommand('italic')">Italic</button>
+                <button onclick="document.execCommand('underline')">Underline</button>
+                <a href="#" download="editor-content.html" id="downloadLink">Download Content</a>
+            </div>
+
+            <div contenteditable="true" spellcheck="true"
+                 style="border: 1px solid #999; padding: 15px; min-height: 150px;"
+                 id="editorContent">
+                <p>This is an editable area with:</p>
+                <ul>
+                    <li>contenteditable="true"</li>
+                    <li>spellcheck="true"</li>
+                </ul>
+                <p>Try editing this content!</p>
+            </div>
+
+            <p hidden id="hiddenStatus">Content has been modified</p>
+        </div>
+    </section>
+
+    <!--
+        VALIDATION INSTRUCTIONS:
+
+        1. Load this file in Cross Guard
+        2. Check that the following features are detected:
+           - contenteditable (Can I Use: contenteditable)
+           - draggable/dragndrop (Can I Use: dragndrop)
+           - hidden (Can I Use: hidden)
+           - download (Can I Use: download)
+        3. Note: spellcheck may be grouped with contenteditable
+        4. Verify browser support for each matches their respective Can I Use pages
+        5. Record results in CHECKLIST.md
+    -->
+</body>
+</html>

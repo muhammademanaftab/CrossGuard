@@ -532,7 +532,7 @@ class BrowserCard(ctk.CTkFrame):
                 self.partial_features +
                 self.supported_features +
                 self.all_features
-            ))[:10]  # Limit to 10 features
+            ))  # Show all features (removed limit)
 
             if not features_to_show:
                 ctk.CTkLabel(
