@@ -491,8 +491,11 @@ class MainWindow(ctk.CTkFrame):
 
             for type_name, feature_list, color in feature_types:
                 if feature_list:
-                    type_frame = ctk.CTkFrame(features_content, fg_color="transparent")
-                    type_frame.pack(fill="x", pady=(0, SPACING['sm']))
+                    type_container = ctk.CTkFrame(features_content, fg_color="transparent")
+                    type_container.pack(fill="x", pady=(0, SPACING['sm']))
+
+                    type_frame = ctk.CTkFrame(type_container, fg_color="transparent")
+                    type_frame.pack(fill="x")
 
                     badge = ctk.CTkLabel(
                         type_frame,
@@ -504,20 +507,53 @@ class MainWindow(ctk.CTkFrame):
                     )
                     badge.pack(side="left")
 
-                    # Show human-readable names
-                    readable_features = [get_feature_name(f) for f in feature_list[:15]]
-                    features_text = ", ".join(readable_features)
-                    if len(feature_list) > 15:
-                        features_text += f", ... (+{len(feature_list) - 15} more)"
+                    # Get all readable feature names
+                    all_readable = [get_feature_name(f) for f in feature_list]
 
-                    ctk.CTkLabel(
+                    # Show first 15 features
+                    short_text = ", ".join(all_readable[:15])
+                    if len(feature_list) > 15:
+                        short_text += f", ... (+{len(feature_list) - 15} more)"
+
+                    # Create label for short text
+                    features_label = ctk.CTkLabel(
                         type_frame,
-                        text=features_text,
+                        text=short_text,
                         font=ctk.CTkFont(size=11),
                         text_color=COLORS['text_secondary'],
                         wraplength=600,
                         justify="left",
-                    ).pack(side="left", padx=(SPACING['sm'], 0))
+                    )
+                    features_label.pack(side="left", padx=(SPACING['sm'], 0))
+
+                    # Add toggle button if more than 15 features
+                    if len(feature_list) > 15:
+                        full_text = ", ".join(all_readable)
+                        is_expanded = [False]  # Use list for mutable closure
+
+                        def make_toggle(label, short, full, expanded, btn):
+                            def toggle():
+                                expanded[0] = not expanded[0]
+                                if expanded[0]:
+                                    label.configure(text=full)
+                                    btn.configure(text="▲ Less")
+                                else:
+                                    label.configure(text=short)
+                                    btn.configure(text="▼ All")
+                            return toggle
+
+                        toggle_btn = ctk.CTkButton(
+                            type_frame,
+                            text="▼ All",
+                            font=ctk.CTkFont(size=10),
+                            width=50,
+                            height=20,
+                            fg_color="transparent",
+                            hover_color=COLORS['bg_light'],
+                            text_color=COLORS['accent'],
+                        )
+                        toggle_btn.pack(side="right", padx=(SPACING['sm'], 0))
+                        toggle_btn.configure(command=make_toggle(features_label, short_text, full_text, is_expanded, toggle_btn))
 
         # 5b. Visualizations
         if browsers:

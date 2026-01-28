@@ -71,6 +71,13 @@ HTML_ATTRIBUTES = {
     'optimum': 'meter',  # optimum attribute on <meter> element
     'as': 'link-rel-preload',  # as attribute for link preload (as="style", as="font", etc.)
     'allow': 'permissions-policy',  # allow attribute on iframes for Permissions Policy
+    'srcset': 'srcset',  # srcset attribute for responsive images
+    'sizes': 'srcset',  # sizes attribute for responsive images (part of srcset feature)
+    'default': 'webvtt',  # default attribute on <track> element
+    'kind': 'webvtt',  # kind attribute on <track> element (subtitles, captions, etc.)
+    'srclang': 'webvtt',  # srclang attribute on <track> element
+    'label': 'webvtt',  # label attribute on <track> element (also used on <option>)
+    'nomodule': 'es6-module',  # nomodule attribute for legacy browser fallback (part of ES6 modules)
     'loading': 'loading-lazy-attr',
     'autocomplete': 'input-autocomplete-onoff',
     'autofocus': 'autofocus',

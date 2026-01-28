@@ -169,20 +169,21 @@ class HTMLParser:
     
     def _detect_attribute_values(self, soup: BeautifulSoup):
         """Detect specific attribute value combinations.
-        
+
         Args:
             soup: BeautifulSoup parsed HTML
         """
         all_elements = soup.find_all()
-        
+
         for element in all_elements:
             for attr_name, attr_value in element.attrs.items():
                 # Handle both single values and lists
                 values = [attr_value] if isinstance(attr_value, str) else attr_value
-                
+
                 for value in values:
-                    key = (attr_name, value.lower() if isinstance(value, str) else value)
-                    
+                    value_lower = value.lower() if isinstance(value, str) else value
+                    key = (attr_name, value_lower)
+
                     if key in self._attribute_values:
                         feature_id = self._attribute_values[key]
                         self.features_found.add(feature_id)
@@ -191,6 +192,20 @@ class HTMLParser:
                             'element': element.name,
                             'feature': feature_id
                         })
+                    # Handle media types with codec parameters (e.g., "video/webm; codecs=vp9")
+                    elif attr_name == 'type' and isinstance(value_lower, str) and ';' in value_lower:
+                        # Extract base media type before semicolon
+                        base_type = value_lower.split(';')[0].strip()
+                        base_key = (attr_name, base_type)
+
+                        if base_key in self._attribute_values:
+                            feature_id = self._attribute_values[base_key]
+                            self.features_found.add(feature_id)
+                            self.attributes_found.append({
+                                'attribute': f'{attr_name}="{value}"',
+                                'element': element.name,
+                                'feature': feature_id
+                            })
     
     def _detect_special_patterns(self, soup: BeautifulSoup):
         """Detect special HTML patterns and features.
