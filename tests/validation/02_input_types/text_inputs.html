@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Input Types - Manual Validation Test</title>
+    <!--
+        Cross Guard Manual Validation Test
+        Category: 02_input_types
+        File: text_inputs.html
+
+        Expected Can I Use IDs:
+        - input-email-tel-url: https://caniuse.com/input-email-tel-url
+        - input-search: https://caniuse.com/input-search
+
+        Features tested:
+        - type="email"
+        - type="tel"
+        - type="url"
+        - type="search"
+    -->
+</head>
+<body>
+    <h1>HTML5 Text Input Types Test</h1>
+    <p>This file tests detection of HTML5 specialized text input types.</p>
+
+    <!-- Feature 1: type="email" -->
+    <section>
+        <h2>Feature: input type="email"</h2>
+        <p>Can I Use ID: <code>input-email-tel-url</code></p>
+        <p>URL: <a href="https://caniuse.com/input-email-tel-url">caniuse.com/input-email-tel-url</a></p>
+
+        <form>
+            <p>
+                <label for="userEmail">Email address:</label>
+                <input type="email" id="userEmail" name="userEmail"
+                       placeholder="user@example.com">
+            </p>
+
+            <p>
+                <label for="workEmail">Work email (required):</label>
+                <input type="email" id="workEmail" name="workEmail" required
+                       placeholder="name@company.com">
+            </p>
+
+            <p>
+                <label for="multiEmail">Multiple emails:</label>
+                <input type="email" id="multiEmail" name="multiEmail" multiple
+                       placeholder="email1@example.com, email2@example.com">
+            </p>
+
+            <p>
+                <label for="patternEmail">Corporate email (pattern):</label>
+                <input type="email" id="patternEmail" name="patternEmail"
+                       pattern=".+@company\.com"
+                       placeholder="name@company.com">
+            </p>
+        </form>
+
+        <p>The email input type provides email validation and specialized keyboards on mobile.</p>
+    </section>
+
+    <!-- Feature 2: type="tel" -->
+    <section>
+        <h2>Feature: input type="tel"</h2>
+        <p>Can I Use ID: <code>input-email-tel-url</code></p>
+        <p>URL: <a href="https://caniuse.com/input-email-tel-url">caniuse.com/input-email-tel-url</a></p>
+
+        <form>
+            <p>
+                <label for="phone">Phone number:</label>
+                <input type="tel" id="phone" name="phone"
+                       placeholder="(555) 123-4567">
+            </p>
+
+            <p>
+                <label for="mobilePhone">Mobile phone (required):</label>
+                <input type="tel" id="mobilePhone" name="mobilePhone" required
+                       placeholder="+1 555-123-4567">
+            </p>
+
+            <p>
+                <label for="usPhone">US Phone (pattern):</label>
+                <input type="tel" id="usPhone" name="usPhone"
+                       pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"
+                       placeholder="123-456-7890">
+            </p>
+
+            <p>
+                <label for="intlPhone">International phone:</label>
+                <input type="tel" id="intlPhone" name="intlPhone"
+                       pattern="\+[0-9]{1,3}[0-9]{10,14}"
+                       placeholder="+12025551234">
+            </p>
+        </form>
+
+        <p>The tel input type triggers a telephone keypad on mobile devices.</p>
+    </section>
+
+    <!-- Feature 3: type="url" -->
+    <section>
+        <h2>Feature: input type="url"</h2>
+        <p>Can I Use ID: <code>input-email-tel-url</code></p>
+        <p>URL: <a href="https://caniuse.com/input-email-tel-url">caniuse.com/input-email-tel-url</a></p>
+
+        <form>
+            <p>
+                <label for="website">Website URL:</label>
+                <input type="url" id="website" name="website"
+                       placeholder="https://example.com">
+            </p>
+
+            <p>
+                <label for="portfolio">Portfolio (required):</label>
+                <input type="url" id="portfolio" name="portfolio" required
+                       placeholder="https://myportfolio.com">
+            </p>
+
+            <p>
+                <label for="github">GitHub profile:</label>
+                <input type="url" id="github" name="github"
+                       pattern="https://github\.com/.*"
+                       placeholder="https://github.com/username">
+            </p>
+
+            <p>
+                <label for="linkedin">LinkedIn (with default):</label>
+                <input type="url" id="linkedin" name="linkedin"
+                       value="https://linkedin.com/in/">
+            </p>
+        </form>
+
+        <p>The url input type provides URL validation and appropriate keyboards.</p>
+    </section>
+
+    <!-- Feature 4: type="search" -->
+    <section>
+        <h2>Feature: input type="search"</h2>
+        <p>Can I Use ID: <code>input-search</code></p>
+        <p>URL: <a href="https://caniuse.com/input-search">caniuse.com/input-search</a></p>
+
+        <form>
+            <p>
+                <label for="siteSearch">Site search:</label>
+                <input type="search" id="siteSearch" name="siteSearch"
+                       placeholder="Search this site...">
+            </p>
+
+            <p>
+                <label for="productSearch">Product search (with autofocus):</label>
+                <input type="search" id="productSearch" name="productSearch"
+                       placeholder="Search products...">
+            </p>
+
+            <p>
+                <label for="filterSearch">Filter results:</label>
+                <input type="search" id="filterSearch" name="filterSearch"
+                       placeholder="Filter..." list="searchSuggestions">
+                <datalist id="searchSuggestions">
+                    <option value="JavaScript">
+                    <option value="Python">
+                    <option value="HTML">
+                    <option value="CSS">
+                </datalist>
+            </p>
+
+            <p>
+                <label for="instantSearch">Instant search:</label>
+                <input type="search" id="instantSearch" name="instantSearch"
+                       placeholder="Type to search..."
+                       oninput="console.log('Searching:', this.value)">
+            </p>
+        </form>
+
+        <p>The search input type provides search-specific styling and clear buttons.</p>
+    </section>
+
+    <!-- Combined example -->
+    <section>
+        <h2>Combined Contact Form</h2>
+
+        <form id="contactForm">
+            <fieldset>
+                <legend>Contact Information</legend>
+
+                <p>
+                    <label for="contactEmail">Email:</label>
+                    <input type="email" id="contactEmail" name="contactEmail" required
+                           placeholder="your@email.com">
+                </p>
+
+                <p>
+                    <label for="contactPhone">Phone:</label>
+                    <input type="tel" id="contactPhone" name="contactPhone"
+                           placeholder="555-123-4567">
+                </p>
+
+                <p>
+                    <label for="contactWebsite">Website:</label>
+                    <input type="url" id="contactWebsite" name="contactWebsite"
+                           placeholder="https://yoursite.com">
+                </p>
+
+                <p>
+                    <label for="contactSearch">Find contact:</label>
+                    <input type="search" id="contactSearch" name="contactSearch"
+                           placeholder="Search contacts...">
+                </p>
+
+                <button type="submit">Submit</button>
+            </fieldset>
+        </form>
+    </section>
+
+    <!--
+        VALIDATION INSTRUCTIONS:
+
+        1. Load this file in Cross Guard
+        2. Check that the following features are detected:
+           - input-email-tel-url (covers email, tel, url)
+           - input-search (separate feature ID)
+        3. Verify browser support matches:
+           - https://caniuse.com/input-email-tel-url
+           - https://caniuse.com/input-search
+        4. Record results in CHECKLIST.md
+    -->
+</body>
+</html>

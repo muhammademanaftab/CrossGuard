@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Attributes - Manual Validation Test</title>
+    <!--
+        Cross Guard Manual Validation Test
+        Category: 03_attributes
+        File: form_attributes.html
+
+        Expected Can I Use IDs:
+        - form-validation: https://caniuse.com/form-validation
+        - input-pattern: https://caniuse.com/input-pattern
+        - input-placeholder: https://caniuse.com/input-placeholder
+        - autofocus: https://caniuse.com/autofocus
+
+        Features tested:
+        - required attribute
+        - pattern attribute
+        - min/max attributes
+        - placeholder attribute
+        - autofocus attribute
+    -->
+</head>
+<body>
+    <h1>HTML5 Form Attributes Test</h1>
+    <p>This file tests detection of HTML5 form validation and input attributes.</p>
+
+    <!-- Feature 1: required attribute -->
+    <section>
+        <h2>Feature: required attribute</h2>
+        <p>Can I Use ID: <code>form-validation</code></p>
+        <p>URL: <a href="https://caniuse.com/form-validation">caniuse.com/form-validation</a></p>
+
+        <form id="requiredForm">
+            <p>
+                <label for="reqName">Name (required):</label>
+                <input type="text" id="reqName" name="reqName" required>
+            </p>
+
+            <p>
+                <label for="reqEmail">Email (required):</label>
+                <input type="email" id="reqEmail" name="reqEmail" required>
+            </p>
+
+            <p>
+                <label for="reqSelect">Choose option (required):</label>
+                <select id="reqSelect" name="reqSelect" required>
+                    <option value="">-- Select --</option>
+                    <option value="a">Option A</option>
+                    <option value="b">Option B</option>
+                </select>
+            </p>
+
+            <p>
+                <label>Accept terms (required):</label>
+                <input type="checkbox" id="reqCheck" name="reqCheck" required>
+                <label for="reqCheck">I accept the terms</label>
+            </p>
+
+            <p>
+                <label for="reqTextarea">Comments (required):</label><br>
+                <textarea id="reqTextarea" name="reqTextarea" required rows="3" cols="40"></textarea>
+            </p>
+
+            <button type="submit">Test Required Validation</button>
+        </form>
+
+        <p>The required attribute prevents form submission if the field is empty.</p>
+    </section>
+
+    <!-- Feature 2: pattern attribute -->
+    <section>
+        <h2>Feature: pattern attribute</h2>
+        <p>Can I Use ID: <code>input-pattern</code></p>
+        <p>URL: <a href="https://caniuse.com/input-pattern">caniuse.com/input-pattern</a></p>
+
+        <form id="patternForm">
+            <p>
+                <label for="patternZip">US ZIP code (5 digits):</label>
+                <input type="text" id="patternZip" name="patternZip"
+                       pattern="[0-9]{5}" title="Enter a 5-digit ZIP code">
+            </p>
+
+            <p>
+                <label for="patternPhone">Phone (xxx-xxx-xxxx):</label>
+                <input type="tel" id="patternPhone" name="patternPhone"
+                       pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"
+                       title="Format: 123-456-7890">
+            </p>
+
+            <p>
+                <label for="patternUsername">Username (alphanumeric, 3-16 chars):</label>
+                <input type="text" id="patternUsername" name="patternUsername"
+                       pattern="[a-zA-Z0-9]{3,16}"
+                       title="3-16 alphanumeric characters">
+            </p>
+
+            <p>
+                <label for="patternPassword">Password (min 8 chars, letter + number):</label>
+                <input type="password" id="patternPassword" name="patternPassword"
+                       pattern="(?=.*\d)(?=.*[a-zA-Z]).{8,}"
+                       title="At least 8 characters with letters and numbers">
+            </p>
+
+            <p>
+                <label for="patternHex">Hex color (#RRGGBB):</label>
+                <input type="text" id="patternHex" name="patternHex"
+                       pattern="#[0-9A-Fa-f]{6}"
+                       title="Hexadecimal color like #FF5733">
+            </p>
+
+            <button type="submit">Test Pattern Validation</button>
+        </form>
+
+        <p>The pattern attribute validates input against a regular expression.</p>
+    </section>
+
+    <!-- Feature 3: min/max attributes -->
+    <section>
+        <h2>Feature: min/max attributes</h2>
+        <p>Can I Use ID: <code>form-validation</code></p>
+        <p>URL: <a href="https://caniuse.com/form-validation">caniuse.com/form-validation</a></p>
+
+        <form id="minmaxForm">
+            <p>
+                <label for="minmaxAge">Age (18-120):</label>
+                <input type="number" id="minmaxAge" name="minmaxAge" min="18" max="120">
+            </p>
+
+            <p>
+                <label for="minmaxDate">Date (2024 only):</label>
+                <input type="date" id="minmaxDate" name="minmaxDate"
+                       min="2024-01-01" max="2024-12-31">
+            </p>
+
+            <p>
+                <label for="minmaxRange">Rating (1-10):</label>
+                <input type="range" id="minmaxRange" name="minmaxRange"
+                       min="1" max="10" value="5">
+                <output for="minmaxRange">5</output>
+            </p>
+
+            <p>
+                <label for="minmaxTime">Time (9AM-5PM):</label>
+                <input type="time" id="minmaxTime" name="minmaxTime"
+                       min="09:00" max="17:00">
+            </p>
+
+            <p>
+                <label for="minmaxLength">Text (5-100 chars):</label>
+                <input type="text" id="minmaxLength" name="minmaxLength"
+                       minlength="5" maxlength="100">
+            </p>
+
+            <button type="submit">Test Min/Max Validation</button>
+        </form>
+
+        <p>The min and max attributes constrain the acceptable range of values.</p>
+    </section>
+
+    <!-- Feature 4: placeholder attribute -->
+    <section>
+        <h2>Feature: placeholder attribute</h2>
+        <p>Can I Use ID: <code>input-placeholder</code></p>
+        <p>URL: <a href="https://caniuse.com/input-placeholder">caniuse.com/input-placeholder</a></p>
+
+        <form id="placeholderForm">
+            <p>
+                <label for="phText">Text input:</label>
+                <input type="text" id="phText" name="phText"
+                       placeholder="Enter your text here...">
+            </p>
+
+            <p>
+                <label for="phEmail">Email:</label>
+                <input type="email" id="phEmail" name="phEmail"
+                       placeholder="user@example.com">
+            </p>
+
+            <p>
+                <label for="phSearch">Search:</label>
+                <input type="search" id="phSearch" name="phSearch"
+                       placeholder="Search...">
+            </p>
+
+            <p>
+                <label for="phUrl">Website:</label>
+                <input type="url" id="phUrl" name="phUrl"
+                       placeholder="https://example.com">
+            </p>
+
+            <p>
+                <label for="phTextarea">Comments:</label><br>
+                <textarea id="phTextarea" name="phTextarea" rows="4" cols="40"
+                          placeholder="Enter your comments here..."></textarea>
+            </p>
+        </form>
+
+        <p>The placeholder attribute shows hint text when the field is empty.</p>
+    </section>
+
+    <!-- Feature 5: autofocus attribute -->
+    <section>
+        <h2>Feature: autofocus attribute</h2>
+        <p>Can I Use ID: <code>autofocus</code></p>
+        <p>URL: <a href="https://caniuse.com/autofocus">caniuse.com/autofocus</a></p>
+
+        <form id="autofocusForm">
+            <p>
+                <label for="afInput">Auto-focused input:</label>
+                <input type="text" id="afInput" name="afInput" autofocus
+                       placeholder="This field gets focus automatically">
+            </p>
+
+            <p>Note: Only one element per page should have autofocus.</p>
+        </form>
+
+        <p>The autofocus attribute automatically focuses the element when the page loads.</p>
+    </section>
+
+    <!-- Combined example -->
+    <section>
+        <h2>Combined Registration Form</h2>
+
+        <form id="registrationForm">
+            <fieldset>
+                <legend>User Registration</legend>
+
+                <p>
+                    <label for="regUsername">Username:</label>
+                    <input type="text" id="regUsername" name="regUsername"
+                           required pattern="[a-zA-Z0-9_]{3,20}"
+                           placeholder="3-20 characters, letters, numbers, underscore"
+                           minlength="3" maxlength="20">
+                </p>
+
+                <p>
+                    <label for="regEmail">Email:</label>
+                    <input type="email" id="regEmail" name="regEmail"
+                           required placeholder="your@email.com">
+                </p>
+
+                <p>
+                    <label for="regAge">Age:</label>
+                    <input type="number" id="regAge" name="regAge"
+                           required min="13" max="120"
+                           placeholder="Must be 13 or older">
+                </p>
+
+                <p>
+                    <label for="regPassword">Password:</label>
+                    <input type="password" id="regPassword" name="regPassword"
+                           required pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"
+                           placeholder="8+ chars with upper, lower, and number"
+                           minlength="8">
+                </p>
+
+                <p>
+                    <label for="regWebsite">Website (optional):</label>
+                    <input type="url" id="regWebsite" name="regWebsite"
+                           placeholder="https://yoursite.com">
+                </p>
+
+                <button type="submit">Register</button>
+            </fieldset>
+        </form>
+    </section>
+
+    <!--
+        VALIDATION INSTRUCTIONS:
+
+        1. Load this file in Cross Guard
+        2. Check that the following features are detected:
+           - form-validation (covers required, min, max)
+           - input-pattern (pattern attribute)
+           - input-placeholder (placeholder attribute)
+           - autofocus (autofocus attribute)
+        3. Verify browser support for each matches their respective Can I Use pages
+        4. Record results in CHECKLIST.md
+    -->
+</body>
+</html>

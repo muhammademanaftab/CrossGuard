@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loading Attributes - Manual Validation Test</title>
+    <!--
+        Cross Guard Manual Validation Test
+        Category: 03_attributes
+        File: loading_attributes.html
+
+        Expected Can I Use IDs:
+        - loading-lazy-attr: https://caniuse.com/loading-lazy-attr
+        - script-async: https://caniuse.com/script-async
+        - script-defer: https://caniuse.com/script-defer
+        - subresource-integrity: https://caniuse.com/subresource-integrity
+
+        Features tested:
+        - loading="lazy" attribute
+        - async attribute
+        - defer attribute
+        - integrity attribute
+        - crossorigin attribute
+    -->
+
+    <!-- Feature 2: async attribute -->
+    <script async src="https://example.com/analytics.js"></script>
+
+    <!-- Feature 3: defer attribute -->
+    <script defer src="https://example.com/main.js"></script>
+
+    <!-- Feature 4 & 5: integrity and crossorigin attributes -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.21/lodash.min.js"
+            integrity="sha512-WFN04846sdKMIP5LKNphMaWzU7YpMyCU245etK3g/2ARYbPK9Ub18eG+ljU96qKRCWh+quCY7yefSmlkQw1ANQ=="
+            crossorigin="anonymous"
+            referrerpolicy="no-referrer"></script>
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css"
+          integrity="sha512-NhSC1YmyruXifcj/KFRWoC561YpHpc5Jtzgvbuz5NV2hyfhNXTN7HlJl5R8MfPsc9jLEdKe7C8WYYjfDMU/EXQ=="
+          crossorigin="anonymous"
+          referrerpolicy="no-referrer">
+</head>
+<body>
+    <h1>HTML5 Loading Attributes Test</h1>
+    <p>This file tests detection of HTML5 loading and performance attributes.</p>
+
+    <!-- Feature 1: loading="lazy" attribute -->
+    <section>
+        <h2>Feature: loading="lazy" attribute</h2>
+        <p>Can I Use ID: <code>loading-lazy-attr</code></p>
+        <p>URL: <a href="https://caniuse.com/loading-lazy-attr">caniuse.com/loading-lazy-attr</a></p>
+
+        <h3>Images with lazy loading</h3>
+        <p>Scroll down to see images load on demand:</p>
+
+        <img src="image1.jpg" alt="Lazy loaded image 1" loading="lazy" width="800" height="600">
+        <img src="image2.jpg" alt="Lazy loaded image 2" loading="lazy" width="800" height="600">
+        <img src="image3.jpg" alt="Lazy loaded image 3" loading="lazy" width="800" height="600">
+
+        <h3>Eager loading (default behavior)</h3>
+        <img src="hero-image.jpg" alt="Eagerly loaded image" loading="eager" width="1200" height="400">
+
+        <h3>Iframes with lazy loading</h3>
+        <iframe src="https://example.com/embed" loading="lazy" width="560" height="315"></iframe>
+
+        <p>The loading="lazy" attribute defers loading of off-screen content until the user scrolls near it.</p>
+    </section>
+
+    <!-- Feature 2: async attribute -->
+    <section>
+        <h2>Feature: async attribute</h2>
+        <p>Can I Use ID: <code>script-async</code></p>
+        <p>URL: <a href="https://caniuse.com/script-async">caniuse.com/script-async</a></p>
+
+        <pre><code>&lt;script async src="analytics.js"&gt;&lt;/script&gt;</code></pre>
+
+        <!-- Additional async scripts for testing -->
+        <script async src="https://example.com/tracker.js"></script>
+        <script async src="https://example.com/widget.js"></script>
+
+        <p>The async attribute loads the script asynchronously while HTML parsing continues.</p>
+        <p>Scripts with async execute as soon as they're downloaded (order not guaranteed).</p>
+    </section>
+
+    <!-- Feature 3: defer attribute -->
+    <section>
+        <h2>Feature: defer attribute</h2>
+        <p>Can I Use ID: <code>script-defer</code></p>
+        <p>URL: <a href="https://caniuse.com/script-defer">caniuse.com/script-defer</a></p>
+
+        <pre><code>&lt;script defer src="main.js"&gt;&lt;/script&gt;</code></pre>
+
+        <!-- Additional defer scripts for testing -->
+        <script defer src="https://example.com/app.js"></script>
+        <script defer src="https://example.com/components.js"></script>
+
+        <p>The defer attribute delays script execution until after HTML parsing completes.</p>
+        <p>Scripts with defer execute in order after the document is parsed.</p>
+    </section>
+
+    <!-- Feature 4: integrity attribute (Subresource Integrity) -->
+    <section>
+        <h2>Feature: integrity attribute (SRI)</h2>
+        <p>Can I Use ID: <code>subresource-integrity</code></p>
+        <p>URL: <a href="https://caniuse.com/subresource-integrity">caniuse.com/subresource-integrity</a></p>
+
+        <pre><code>&lt;script src="library.js"
+        integrity="sha384-oqVuAfXRKap7fdgcCY5uykM6+R9GqQ8K/uxy9rx7HNQlGYl1kPzQho1wx4JwY8wC"
+        crossorigin="anonymous"&gt;&lt;/script&gt;</code></pre>
+
+        <!-- Scripts with SRI -->
+        <script src="https://cdn.example.com/jquery.min.js"
+                integrity="sha384-abc123def456..."
+                crossorigin="anonymous"></script>
+
+        <!-- Stylesheets with SRI -->
+        <link rel="stylesheet"
+              href="https://cdn.example.com/bootstrap.min.css"
+              integrity="sha384-xyz789..."
+              crossorigin="anonymous">
+
+        <p>Subresource Integrity (SRI) verifies that fetched resources haven't been tampered with.</p>
+    </section>
+
+    <!-- Feature 5: crossorigin attribute -->
+    <section>
+        <h2>Feature: crossorigin attribute</h2>
+        <p>Part of: <code>subresource-integrity</code> and CORS support</p>
+
+        <h3>Scripts with crossorigin</h3>
+        <script src="https://cdn.example.com/lib.js" crossorigin="anonymous"></script>
+        <script src="https://cdn.example.com/auth.js" crossorigin="use-credentials"></script>
+
+        <h3>Images with crossorigin</h3>
+        <img src="https://cdn.example.com/photo.jpg" crossorigin="anonymous" alt="CORS image">
+
+        <h3>Link elements with crossorigin</h3>
+        <link rel="preload" href="https://cdn.example.com/font.woff2" as="font"
+              type="font/woff2" crossorigin="anonymous">
+
+        <p>The crossorigin attribute enables CORS requests for the element's fetched data.</p>
+    </section>
+
+    <!-- Combined example -->
+    <section>
+        <h2>Combined Performance-Optimized Page</h2>
+
+        <pre><code>&lt;!-- In &lt;head&gt; --&gt;
+&lt;link rel="preload" href="critical.css" as="style"&gt;
+&lt;link rel="stylesheet" href="styles.css"
+      integrity="sha384-..." crossorigin="anonymous"&gt;
+&lt;script defer src="app.js"
+        integrity="sha384-..." crossorigin="anonymous"&gt;&lt;/script&gt;
+&lt;script async src="analytics.js"&gt;&lt;/script&gt;
+
+&lt;!-- In &lt;body&gt; --&gt;
+&lt;img src="hero.jpg" loading="eager" alt="Hero"&gt;
+&lt;img src="content1.jpg" loading="lazy" alt="Content"&gt;
+&lt;img src="content2.jpg" loading="lazy" alt="Content"&gt;
+&lt;iframe src="video.html" loading="lazy"&gt;&lt;/iframe&gt;</code></pre>
+    </section>
+
+    <!-- More lazy loading examples at the bottom of the page -->
+    <section>
+        <h2>More Lazy Loading Examples</h2>
+
+        <img src="gallery1.jpg" alt="Gallery 1" loading="lazy" width="400" height="300">
+        <img src="gallery2.jpg" alt="Gallery 2" loading="lazy" width="400" height="300">
+        <img src="gallery3.jpg" alt="Gallery 3" loading="lazy" width="400" height="300">
+        <img src="gallery4.jpg" alt="Gallery 4" loading="lazy" width="400" height="300">
+
+        <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" loading="lazy"
+                width="560" height="315" frameborder="0"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowfullscreen></iframe>
+    </section>
+
+    <!--
+        VALIDATION INSTRUCTIONS:
+
+        1. Load this file in Cross Guard
+        2. Check that the following features are detected:
+           - loading-lazy-attr (loading="lazy" on img/iframe)
+           - script-async (async attribute on scripts)
+           - script-defer (defer attribute on scripts)
+           - subresource-integrity (integrity attribute)
+        3. Verify browser support for each matches their respective Can I Use pages
+        4. Note: crossorigin is often detected as part of SRI or CORS features
+        5. Record results in CHECKLIST.md
+    -->
+</body>
+</html>

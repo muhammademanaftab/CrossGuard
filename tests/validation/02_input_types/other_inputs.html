@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Other Input Types - Manual Validation Test</title>
+    <!--
+        Cross Guard Manual Validation Test
+        Category: 02_input_types
+        File: other_inputs.html
+
+        Expected Can I Use IDs:
+        - input-color: https://caniuse.com/input-color
+        - input-range: https://caniuse.com/input-range
+        - input-number: https://caniuse.com/input-number
+        - input-file-accept: https://caniuse.com/input-file-accept
+
+        Features tested:
+        - type="color"
+        - type="range"
+        - type="number"
+        - type="file" with accept attribute
+    -->
+</head>
+<body>
+    <h1>HTML5 Other Input Types Test</h1>
+    <p>This file tests detection of HTML5 color, range, number, and file input types.</p>
+
+    <!-- Feature 1: type="color" -->
+    <section>
+        <h2>Feature: input type="color"</h2>
+        <p>Can I Use ID: <code>input-color</code></p>
+        <p>URL: <a href="https://caniuse.com/input-color">caniuse.com/input-color</a></p>
+
+        <form>
+            <p>
+                <label for="bgColor">Background color:</label>
+                <input type="color" id="bgColor" name="bgColor" value="#4CAF50">
+            </p>
+
+            <p>
+                <label for="textColor">Text color:</label>
+                <input type="color" id="textColor" name="textColor" value="#333333">
+            </p>
+
+            <p>
+                <label for="accentColor">Accent color:</label>
+                <input type="color" id="accentColor" name="accentColor" value="#2196F3">
+            </p>
+
+            <div id="colorPreview" style="width: 200px; height: 100px; border: 1px solid #ccc; margin-top: 10px;">
+                Color preview area
+            </div>
+
+            <script>
+                document.getElementById('bgColor').addEventListener('input', function(e) {
+                    document.getElementById('colorPreview').style.backgroundColor = e.target.value;
+                });
+            </script>
+        </form>
+
+        <p>The color input type provides a color picker interface.</p>
+    </section>
+
+    <!-- Feature 2: type="range" -->
+    <section>
+        <h2>Feature: input type="range"</h2>
+        <p>Can I Use ID: <code>input-range</code></p>
+        <p>URL: <a href="https://caniuse.com/input-range">caniuse.com/input-range</a></p>
+
+        <form>
+            <p>
+                <label for="volume">Volume (0-100):</label>
+                <input type="range" id="volume" name="volume" min="0" max="100" value="50">
+                <output for="volume">50</output>
+            </p>
+
+            <p>
+                <label for="brightness">Brightness (with steps):</label>
+                <input type="range" id="brightness" name="brightness"
+                       min="0" max="100" value="75" step="5">
+                <output for="brightness">75</output>
+            </p>
+
+            <p>
+                <label for="temperature">Temperature (-10 to 40):</label>
+                <input type="range" id="temperature" name="temperature"
+                       min="-10" max="40" value="22">
+                <output for="temperature">22°C</output>
+            </p>
+
+            <p>
+                <label for="price">Price range (with datalist):</label>
+                <input type="range" id="price" name="price" min="0" max="1000"
+                       step="100" list="priceMarks">
+                <datalist id="priceMarks">
+                    <option value="0" label="$0">
+                    <option value="250" label="$250">
+                    <option value="500" label="$500">
+                    <option value="750" label="$750">
+                    <option value="1000" label="$1000">
+                </datalist>
+                <output for="price">$500</output>
+            </p>
+
+            <script>
+                document.querySelectorAll('input[type="range"]').forEach(function(range) {
+                    range.addEventListener('input', function() {
+                        var output = this.nextElementSibling;
+                        if (output && output.tagName === 'OUTPUT') {
+                            var value = this.value;
+                            if (this.id === 'temperature') value += '°C';
+                            if (this.id === 'price') value = '$' + value;
+                            output.value = value;
+                        }
+                    });
+                });
+            </script>
+        </form>
+
+        <p>The range input type creates a slider control for selecting numeric values.</p>
+    </section>
+
+    <!-- Feature 3: type="number" -->
+    <section>
+        <h2>Feature: input type="number"</h2>
+        <p>Can I Use ID: <code>input-number</code></p>
+        <p>URL: <a href="https://caniuse.com/input-number">caniuse.com/input-number</a></p>
+
+        <form>
+            <p>
+                <label for="quantity">Quantity:</label>
+                <input type="number" id="quantity" name="quantity" value="1" min="1" max="99">
+            </p>
+
+            <p>
+                <label for="age">Age (10-120):</label>
+                <input type="number" id="age" name="age" min="10" max="120">
+            </p>
+
+            <p>
+                <label for="price2">Price (with decimals):</label>
+                <input type="number" id="price2" name="price2"
+                       min="0" max="9999.99" step="0.01" value="19.99">
+            </p>
+
+            <p>
+                <label for="rating">Rating (1-5, step 0.5):</label>
+                <input type="number" id="rating" name="rating"
+                       min="1" max="5" step="0.5" value="3.5">
+            </p>
+
+            <p>
+                <label for="negNumber">Negative allowed (-100 to 100):</label>
+                <input type="number" id="negNumber" name="negNumber"
+                       min="-100" max="100" value="0">
+            </p>
+        </form>
+
+        <p>The number input type provides spinner controls and numeric validation.</p>
+    </section>
+
+    <!-- Feature 4: type="file" with accept -->
+    <section>
+        <h2>Feature: input type="file" with accept attribute</h2>
+        <p>Can I Use ID: <code>input-file-accept</code></p>
+        <p>URL: <a href="https://caniuse.com/input-file-accept">caniuse.com/input-file-accept</a></p>
+
+        <form>
+            <p>
+                <label for="imageFile">Image files only:</label>
+                <input type="file" id="imageFile" name="imageFile"
+                       accept="image/*">
+            </p>
+
+            <p>
+                <label for="specificImages">Specific image types:</label>
+                <input type="file" id="specificImages" name="specificImages"
+                       accept="image/png, image/jpeg, image/gif">
+            </p>
+
+            <p>
+                <label for="documentFile">Documents (PDF, Word):</label>
+                <input type="file" id="documentFile" name="documentFile"
+                       accept=".pdf,.doc,.docx,application/pdf,application/msword">
+            </p>
+
+            <p>
+                <label for="videoFile">Video files:</label>
+                <input type="file" id="videoFile" name="videoFile"
+                       accept="video/*">
+            </p>
+
+            <p>
+                <label for="audioFile">Audio files:</label>
+                <input type="file" id="audioFile" name="audioFile"
+                       accept="audio/*">
+            </p>
+
+            <p>
+                <label for="multipleFiles">Multiple files:</label>
+                <input type="file" id="multipleFiles" name="multipleFiles"
+                       accept="image/*" multiple>
+            </p>
+
+            <p>
+                <label for="cameraCapture">Camera capture (mobile):</label>
+                <input type="file" id="cameraCapture" name="cameraCapture"
+                       accept="image/*" capture="environment">
+            </p>
+        </form>
+
+        <p>The accept attribute on file inputs restricts the types of files that can be selected.</p>
+    </section>
+
+    <!-- Combined example -->
+    <section>
+        <h2>Combined Settings Form</h2>
+
+        <form id="settingsForm">
+            <fieldset>
+                <legend>User Preferences</legend>
+
+                <p>
+                    <label for="themeColor">Theme color:</label>
+                    <input type="color" id="themeColor" name="themeColor" value="#3498db">
+                </p>
+
+                <p>
+                    <label for="fontSize">Font size:</label>
+                    <input type="range" id="fontSize" name="fontSize" min="12" max="24" value="16">
+                    <output for="fontSize">16px</output>
+                </p>
+
+                <p>
+                    <label for="itemsPerPage">Items per page:</label>
+                    <input type="number" id="itemsPerPage" name="itemsPerPage"
+                           min="5" max="100" step="5" value="25">
+                </p>
+
+                <p>
+                    <label for="profilePic">Profile picture:</label>
+                    <input type="file" id="profilePic" name="profilePic"
+                           accept="image/png, image/jpeg">
+                </p>
+
+                <button type="submit">Save Settings</button>
+            </fieldset>
+        </form>
+    </section>
+
+    <!--
+        VALIDATION INSTRUCTIONS:
+
+        1. Load this file in Cross Guard
+        2. Check that the following features are detected:
+           - input-color (Can I Use: input-color)
+           - input-range (Can I Use: input-range)
+           - input-number (Can I Use: input-number)
+           - input-file-accept (Can I Use: input-file-accept)
+        3. Verify browser support for each matches their respective Can I Use pages
+        4. Record results in CHECKLIST.md
+    -->
+</body>
+</html>

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Date/Time Input Types - Manual Validation Test</title>
+    <!--
+        Cross Guard Manual Validation Test
+        Category: 02_input_types
+        File: datetime_inputs.html
+
+        Expected Can I Use ID: input-datetime
+        URL: https://caniuse.com/input-datetime
+
+        Features tested:
+        - type="date"
+        - type="time"
+        - type="datetime-local"
+        - type="month"
+        - type="week"
+    -->
+</head>
+<body>
+    <h1>HTML5 Date/Time Input Types Test</h1>
+    <p>This file tests detection of HTML5 date and time input types.</p>
+    <p>Can I Use ID: <code>input-datetime</code></p>
+    <p>URL: <a href="https://caniuse.com/input-datetime">caniuse.com/input-datetime</a></p>
+
+    <!-- Feature 1: type="date" -->
+    <section>
+        <h2>Feature: input type="date"</h2>
+
+        <form>
+            <p>
+                <label for="birthdate">Birth date:</label>
+                <input type="date" id="birthdate" name="birthdate">
+            </p>
+
+            <p>
+                <label for="startDate">Start date (with min/max):</label>
+                <input type="date" id="startDate" name="startDate"
+                       min="2024-01-01" max="2024-12-31">
+            </p>
+
+            <p>
+                <label for="defaultDate">Date with default value:</label>
+                <input type="date" id="defaultDate" name="defaultDate" value="2024-06-15">
+            </p>
+        </form>
+
+        <p>The date input type provides a date picker interface for selecting dates.</p>
+    </section>
+
+    <!-- Feature 2: type="time" -->
+    <section>
+        <h2>Feature: input type="time"</h2>
+
+        <form>
+            <p>
+                <label for="meetingTime">Meeting time:</label>
+                <input type="time" id="meetingTime" name="meetingTime">
+            </p>
+
+            <p>
+                <label for="workStart">Work start (with constraints):</label>
+                <input type="time" id="workStart" name="workStart"
+                       min="06:00" max="18:00" step="1800">
+            </p>
+
+            <p>
+                <label for="defaultTime">Time with default:</label>
+                <input type="time" id="defaultTime" name="defaultTime" value="14:30">
+            </p>
+        </form>
+
+        <p>The time input type provides a time picker interface without timezone.</p>
+    </section>
+
+    <!-- Feature 3: type="datetime-local" -->
+    <section>
+        <h2>Feature: input type="datetime-local"</h2>
+
+        <form>
+            <p>
+                <label for="appointment">Appointment:</label>
+                <input type="datetime-local" id="appointment" name="appointment">
+            </p>
+
+            <p>
+                <label for="eventStart">Event start (with constraints):</label>
+                <input type="datetime-local" id="eventStart" name="eventStart"
+                       min="2024-01-01T00:00" max="2024-12-31T23:59">
+            </p>
+
+            <p>
+                <label for="defaultDateTime">With default value:</label>
+                <input type="datetime-local" id="defaultDateTime" name="defaultDateTime"
+                       value="2024-07-04T10:00">
+            </p>
+        </form>
+
+        <p>The datetime-local input type combines date and time selection without timezone.</p>
+    </section>
+
+    <!-- Feature 4: type="month" -->
+    <section>
+        <h2>Feature: input type="month"</h2>
+
+        <form>
+            <p>
+                <label for="billingMonth">Billing month:</label>
+                <input type="month" id="billingMonth" name="billingMonth">
+            </p>
+
+            <p>
+                <label for="fiscalMonth">Fiscal month (constrained):</label>
+                <input type="month" id="fiscalMonth" name="fiscalMonth"
+                       min="2024-01" max="2024-12">
+            </p>
+
+            <p>
+                <label for="defaultMonth">Month with default:</label>
+                <input type="month" id="defaultMonth" name="defaultMonth" value="2024-06">
+            </p>
+        </form>
+
+        <p>The month input type allows selection of a month and year.</p>
+    </section>
+
+    <!-- Feature 5: type="week" -->
+    <section>
+        <h2>Feature: input type="week"</h2>
+
+        <form>
+            <p>
+                <label for="vacationWeek">Vacation week:</label>
+                <input type="week" id="vacationWeek" name="vacationWeek">
+            </p>
+
+            <p>
+                <label for="sprintWeek">Sprint week (constrained):</label>
+                <input type="week" id="sprintWeek" name="sprintWeek"
+                       min="2024-W01" max="2024-W52">
+            </p>
+
+            <p>
+                <label for="defaultWeek">Week with default:</label>
+                <input type="week" id="defaultWeek" name="defaultWeek" value="2024-W26">
+            </p>
+        </form>
+
+        <p>The week input type allows selection of a week number and year.</p>
+    </section>
+
+    <!-- Combined example -->
+    <section>
+        <h2>Combined Date/Time Form</h2>
+
+        <form id="eventForm">
+            <fieldset>
+                <legend>Event Scheduling</legend>
+
+                <p>
+                    <label for="eventDate">Event Date:</label>
+                    <input type="date" id="eventDate" name="eventDate" required>
+                </p>
+
+                <p>
+                    <label for="eventTime">Event Time:</label>
+                    <input type="time" id="eventTime" name="eventTime" required>
+                </p>
+
+                <p>
+                    <label for="endDateTime">End Date/Time:</label>
+                    <input type="datetime-local" id="endDateTime" name="endDateTime">
+                </p>
+
+                <p>
+                    <label for="billingPeriod">Billing Period (Month):</label>
+                    <input type="month" id="billingPeriod" name="billingPeriod">
+                </p>
+
+                <p>
+                    <label for="reportWeek">Report Week:</label>
+                    <input type="week" id="reportWeek" name="reportWeek">
+                </p>
+
+                <button type="submit">Schedule Event</button>
+            </fieldset>
+        </form>
+    </section>
+
+    <!--
+        VALIDATION INSTRUCTIONS:
+
+        1. Load this file in Cross Guard
+        2. Check that the following features are detected:
+           - input-datetime (covers date, time, datetime-local, month, week)
+        3. Verify browser support matches: https://caniuse.com/input-datetime
+        4. Note: Browser support varies by input type (date has best support, week has least)
+        5. Record results in CHECKLIST.md
+    -->
+</body>
+</html>

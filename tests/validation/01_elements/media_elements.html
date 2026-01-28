@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Elements - Manual Validation Test</title>
+    <!--
+        Cross Guard Manual Validation Test
+        Category: 01_elements
+        File: media_elements.html
+
+        Expected Can I Use IDs:
+        - video: https://caniuse.com/video
+        - audio: https://caniuse.com/audio
+        - picture: https://caniuse.com/picture
+        - canvas: https://caniuse.com/canvas
+        - webvtt: https://caniuse.com/webvtt
+
+        Features tested:
+        - <video>
+        - <audio>
+        - <picture>
+        - <canvas>
+        - <track> (WebVTT)
+    -->
+</head>
+<body>
+    <h1>HTML5 Media Elements Test</h1>
+    <p>This file tests detection of HTML5 media elements.</p>
+
+    <!-- Feature 1: <video> -->
+    <section>
+        <h2>Feature: video</h2>
+        <p>Can I Use ID: <code>video</code></p>
+        <p>URL: <a href="https://caniuse.com/video">caniuse.com/video</a></p>
+
+        <video width="640" height="360" controls poster="poster.jpg">
+            <source src="video.mp4" type="video/mp4">
+            <source src="video.webm" type="video/webm">
+            <source src="video.ogv" type="video/ogg">
+
+            <!-- Feature 5: <track> (WebVTT) -->
+            <track kind="subtitles" src="subtitles_en.vtt" srclang="en" label="English" default>
+            <track kind="subtitles" src="subtitles_es.vtt" srclang="es" label="Spanish">
+            <track kind="captions" src="captions.vtt" srclang="en" label="Captions">
+
+            Your browser does not support the video element.
+        </video>
+
+        <p><strong>Track element (WebVTT)</strong> - Can I Use ID: <code>webvtt</code></p>
+        <p>URL: <a href="https://caniuse.com/webvtt">caniuse.com/webvtt</a></p>
+    </section>
+
+    <!-- Feature 2: <audio> -->
+    <section>
+        <h2>Feature: audio</h2>
+        <p>Can I Use ID: <code>audio</code></p>
+        <p>URL: <a href="https://caniuse.com/audio">caniuse.com/audio</a></p>
+
+        <audio controls>
+            <source src="audio.mp3" type="audio/mpeg">
+            <source src="audio.ogg" type="audio/ogg">
+            <source src="audio.wav" type="audio/wav">
+            Your browser does not support the audio element.
+        </audio>
+
+        <p>Audio element with multiple source formats for cross-browser compatibility.</p>
+    </section>
+
+    <!-- Feature 3: <picture> -->
+    <section>
+        <h2>Feature: picture</h2>
+        <p>Can I Use ID: <code>picture</code></p>
+        <p>URL: <a href="https://caniuse.com/picture">caniuse.com/picture</a></p>
+
+        <picture>
+            <source media="(min-width: 1200px)" srcset="image-large.webp" type="image/webp">
+            <source media="(min-width: 1200px)" srcset="image-large.jpg" type="image/jpeg">
+            <source media="(min-width: 768px)" srcset="image-medium.webp" type="image/webp">
+            <source media="(min-width: 768px)" srcset="image-medium.jpg" type="image/jpeg">
+            <source srcset="image-small.webp" type="image/webp">
+            <img src="image-fallback.jpg" alt="Responsive image example" width="800" height="600">
+        </picture>
+
+        <p>Picture element allows art direction and format selection for responsive images.</p>
+    </section>
+
+    <!-- Feature 4: <canvas> -->
+    <section>
+        <h2>Feature: canvas</h2>
+        <p>Can I Use ID: <code>canvas</code></p>
+        <p>URL: <a href="https://caniuse.com/canvas">caniuse.com/canvas</a></p>
+
+        <canvas id="myCanvas" width="400" height="200">
+            Your browser does not support the canvas element.
+        </canvas>
+
+        <script>
+            // Simple canvas drawing example
+            var canvas = document.getElementById('myCanvas');
+            if (canvas.getContext) {
+                var ctx = canvas.getContext('2d');
+                ctx.fillStyle = '#4CAF50';
+                ctx.fillRect(10, 10, 150, 100);
+                ctx.fillStyle = '#2196F3';
+                ctx.beginPath();
+                ctx.arc(300, 75, 50, 0, Math.PI * 2);
+                ctx.fill();
+            }
+        </script>
+
+        <p>Canvas element provides a drawing surface for JavaScript graphics.</p>
+    </section>
+
+    <!--
+        VALIDATION INSTRUCTIONS:
+
+        1. Load this file in Cross Guard
+        2. Check that the following features are detected:
+           - video (Can I Use: video)
+           - audio (Can I Use: audio)
+           - picture (Can I Use: picture)
+           - canvas (Can I Use: canvas)
+           - track/WebVTT (Can I Use: webvtt)
+        3. Verify browser support for each matches their respective Can I Use pages
+        4. Record results in CHECKLIST.md
+    -->
+</body>
+</html>
