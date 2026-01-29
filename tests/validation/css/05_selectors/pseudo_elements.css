@@ -1,0 +1,407 @@
+/*
+ * Cross Guard CSS Manual Validation Test
+ * Category: 05_selectors
+ * File: pseudo_elements.css
+ *
+ * Expected Can I Use IDs:
+ *   - css-gencontent: https://caniuse.com/css-gencontent
+ *   - css-marker-pseudo: https://caniuse.com/css-marker-pseudo
+ *
+ * VALIDATION STEPS:
+ *   1. Load this file in Cross Guard
+ *   2. Verify features detected: css-gencontent, css-marker-pseudo
+ *   3. Compare browser support with Can I Use links above
+ *   4. Record results in CSS_CHECKLIST.md
+ */
+
+/* =============================================
+   Feature: css-gencontent (::before, ::after)
+   Can I Use: https://caniuse.com/css-gencontent
+   ============================================= */
+
+/* Basic ::before and ::after */
+.element::before {
+    content: '';
+}
+
+.element::after {
+    content: '';
+}
+
+/* Text content */
+.required-label::after {
+    content: ' *';
+    color: red;
+}
+
+.external-link::after {
+    content: ' ↗';
+    font-size: 0.75em;
+}
+
+.quote::before {
+    content: '"';
+}
+
+.quote::after {
+    content: '"';
+}
+
+/* Content with attr() */
+.tooltip::after {
+    content: attr(data-tooltip);
+    position: absolute;
+    background: #333;
+    color: white;
+    padding: 5px 10px;
+}
+
+a[href^="http"]::after {
+    content: ' (' attr(href) ')';
+    font-size: 0.8em;
+    color: #666;
+}
+
+/* Content with url() */
+.icon-check::before {
+    content: url('icons/check.svg');
+}
+
+.icon-warning::before {
+    content: url('icons/warning.svg');
+}
+
+/* Content with counter() */
+.numbered-list {
+    counter-reset: item;
+}
+
+.numbered-list li::before {
+    counter-increment: item;
+    content: counter(item) '. ';
+    font-weight: bold;
+}
+
+/* Nested counters */
+.nested-list {
+    counter-reset: section;
+}
+
+.nested-list > li {
+    counter-reset: subsection;
+}
+
+.nested-list > li::before {
+    counter-increment: section;
+    content: counter(section) '. ';
+}
+
+.nested-list > li > ul > li::before {
+    counter-increment: subsection;
+    content: counter(section) '.' counter(subsection) ' ';
+}
+
+/* Content with counters() */
+ol.outline {
+    counter-reset: item;
+    list-style-type: none;
+}
+
+ol.outline li::before {
+    content: counters(item, '.') ' ';
+    counter-increment: item;
+}
+
+/* Decorative pseudo-elements */
+.divider::before {
+    content: '';
+    display: block;
+    width: 50px;
+    height: 3px;
+    background: #007bff;
+    margin-bottom: 1rem;
+}
+
+.card::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(to right, #007bff, #6f42c1);
+}
+
+/* Clearfix */
+.clearfix::after {
+    content: '';
+    display: table;
+    clear: both;
+}
+
+/* Overlay */
+.overlay-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+/* Custom checkbox */
+.custom-checkbox::before {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 2px solid #ccc;
+    border-radius: 4px;
+    margin-right: 8px;
+}
+
+.custom-checkbox:checked::before {
+    background: #007bff;
+    border-color: #007bff;
+}
+
+.custom-checkbox:checked::after {
+    content: '✓';
+    position: absolute;
+    color: white;
+}
+
+/* Blockquote styling */
+blockquote::before {
+    content: '"';
+    font-size: 4em;
+    color: #ddd;
+    position: absolute;
+    top: -20px;
+    left: -10px;
+}
+
+/* Badge */
+.badge::before {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: currentColor;
+    margin-right: 6px;
+}
+
+/* Practical examples */
+
+/* Breadcrumb separator */
+.breadcrumb li:not(:last-child)::after {
+    content: ' / ';
+    margin: 0 0.5rem;
+    color: #999;
+}
+
+/* Price before discount */
+.price-original::before {
+    content: 'Was: ';
+    font-size: 0.875em;
+    color: #666;
+}
+
+/* Form field icons */
+.input-email::before {
+    content: '📧';
+    position: absolute;
+    left: 10px;
+}
+
+.input-search::before {
+    content: '🔍';
+    position: absolute;
+    left: 10px;
+}
+
+/* =============================================
+   Feature: css-marker-pseudo
+   Can I Use: https://caniuse.com/css-marker-pseudo
+   ============================================= */
+
+/* Basic ::marker styling */
+li::marker {
+    color: #007bff;
+}
+
+/* ::marker with custom content */
+ul.custom-markers li::marker {
+    content: '→ ';
+    color: #28a745;
+}
+
+ol.custom-markers li::marker {
+    content: counter(list-item) ') ';
+    color: #6f42c1;
+    font-weight: bold;
+}
+
+/* ::marker font properties */
+li::marker {
+    font-size: 1.2em;
+    font-weight: bold;
+}
+
+/* ::marker with emoji */
+ul.emoji-list li::marker {
+    content: '✨ ';
+}
+
+ul.check-list li::marker {
+    content: '✓ ';
+    color: #28a745;
+}
+
+ul.arrow-list li::marker {
+    content: '▸ ';
+    color: #007bff;
+}
+
+/* ::marker with counter */
+ol.fancy-list li::marker {
+    content: '(' counter(list-item) ') ';
+    color: #e83e8c;
+    font-style: italic;
+}
+
+/* Different markers for different list types */
+ul.feature-list li::marker {
+    content: '★ ';
+    color: #ffc107;
+}
+
+ul.task-list li::marker {
+    content: '☐ ';
+}
+
+ul.task-list li.completed::marker {
+    content: '☑ ';
+    color: #28a745;
+}
+
+/* Summary ::marker */
+summary::marker {
+    color: #007bff;
+    font-size: 1.2em;
+}
+
+details[open] summary::marker {
+    content: '▼ ';
+}
+
+details:not([open]) summary::marker {
+    content: '▶ ';
+}
+
+/* Practical marker examples */
+
+/* Navigation list */
+.nav-list li::marker {
+    content: '';
+}
+
+/* Numbered steps */
+ol.steps li::marker {
+    content: 'Step ' counter(list-item) ': ';
+    color: #17a2b8;
+    font-weight: 600;
+}
+
+/* FAQ list */
+ol.faq li::marker {
+    content: 'Q' counter(list-item) '. ';
+    color: #6f42c1;
+}
+
+/* Additional pseudo-elements */
+
+/* ::first-line */
+p::first-line {
+    font-weight: bold;
+    font-size: 1.1em;
+}
+
+article p:first-of-type::first-line {
+    font-variant: small-caps;
+}
+
+/* ::first-letter */
+p::first-letter {
+    font-size: 2em;
+    font-weight: bold;
+    float: left;
+    margin-right: 0.1em;
+    line-height: 1;
+}
+
+.drop-cap::first-letter {
+    font-size: 4em;
+    font-weight: bold;
+    float: left;
+    margin: 0 0.1em 0 0;
+    line-height: 0.8;
+    color: #007bff;
+}
+
+/* ::selection */
+::selection {
+    background-color: #007bff;
+    color: white;
+}
+
+p::selection {
+    background-color: #ffc107;
+    color: #333;
+}
+
+/* ::placeholder */
+input::placeholder {
+    color: #999;
+    font-style: italic;
+}
+
+textarea::placeholder {
+    color: #aaa;
+}
+
+/* ::file-selector-button */
+input[type="file"]::file-selector-button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+input[type="file"]::file-selector-button:hover {
+    background-color: #0056b3;
+}
+
+/* ::backdrop */
+dialog::backdrop {
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* ::cue (for video captions) */
+video::cue {
+    background-color: rgba(0, 0, 0, 0.8);
+    color: white;
+}
+
+/* ::slotted (for web components) */
+::slotted(p) {
+    margin: 0;
+}
+
+::slotted(*) {
+    color: inherit;
+}

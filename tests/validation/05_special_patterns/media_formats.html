@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Formats - Manual Validation Test</title>
+    <!--
+        Cross Guard Manual Validation Test
+        Category: 05_special_patterns
+        File: media_formats.html
+
+        Expected Can I Use IDs:
+          - webm: https://caniuse.com/webm
+          - webp: https://caniuse.com/webp
+          - avif: https://caniuse.com/avif
+          - heif: https://caniuse.com/heif
+
+        VALIDATION STEPS:
+          1. Load this file in Cross Guard
+          2. Verify features detected: webm, webp, avif, heif
+          3. Compare browser support with Can I Use links above
+          4. Record results in CHECKLIST.md
+    -->
+</head>
+<body>
+    <h1>Media Formats Test</h1>
+    <p>This page tests modern media format support for Cross Guard validation.</p>
+
+    <!-- Feature: webp -->
+    <!-- Can I Use: https://caniuse.com/webp -->
+    <section>
+        <h2>WebP Image Format</h2>
+
+        <h3>Direct WebP Image</h3>
+        <img src="photo.webp" alt="WebP image" width="400" height="300">
+
+        <h3>Picture Element with WebP</h3>
+        <picture>
+            <source type="image/webp" srcset="hero.webp">
+            <source type="image/jpeg" srcset="hero.jpg">
+            <img src="hero.jpg" alt="Hero with WebP support" width="800" height="400">
+        </picture>
+
+        <h3>WebP with srcset</h3>
+        <img src="product.webp"
+             srcset="product-400.webp 400w,
+                     product-800.webp 800w,
+                     product-1200.webp 1200w"
+             sizes="(max-width: 600px) 100vw, 50vw"
+             alt="Product in WebP format"
+             width="600" height="400">
+    </section>
+
+    <!-- Feature: avif -->
+    <!-- Can I Use: https://caniuse.com/avif -->
+    <section>
+        <h2>AVIF Image Format</h2>
+
+        <h3>Direct AVIF Image</h3>
+        <img src="landscape.avif" alt="AVIF image" width="400" height="300">
+
+        <h3>Picture Element with AVIF (with fallbacks)</h3>
+        <picture>
+            <source type="image/avif" srcset="banner.avif">
+            <source type="image/webp" srcset="banner.webp">
+            <source type="image/jpeg" srcset="banner.jpg">
+            <img src="banner.jpg" alt="Banner with AVIF support" width="800" height="300">
+        </picture>
+
+        <h3>AVIF with Multiple Resolutions</h3>
+        <picture>
+            <source type="image/avif"
+                    srcset="gallery-400.avif 400w,
+                            gallery-800.avif 800w,
+                            gallery-1200.avif 1200w"
+                    sizes="(max-width: 600px) 100vw, 50vw">
+            <source type="image/webp"
+                    srcset="gallery-400.webp 400w,
+                            gallery-800.webp 800w,
+                            gallery-1200.webp 1200w"
+                    sizes="(max-width: 600px) 100vw, 50vw">
+            <img src="gallery-800.jpg"
+                 srcset="gallery-400.jpg 400w,
+                         gallery-800.jpg 800w,
+                         gallery-1200.jpg 1200w"
+                 sizes="(max-width: 600px) 100vw, 50vw"
+                 alt="Gallery with AVIF"
+                 width="600" height="400">
+        </picture>
+
+        <h3>AVIF Animation</h3>
+        <img src="animation.avif" alt="Animated AVIF" width="300" height="300">
+    </section>
+
+    <!-- Feature: heif -->
+    <!-- Can I Use: https://caniuse.com/heif -->
+    <section>
+        <h2>HEIF/HEIC Image Format</h2>
+
+        <h3>Direct HEIF Image</h3>
+        <img src="photo.heif" alt="HEIF image" width="400" height="300">
+        <img src="photo.heic" alt="HEIC image" width="400" height="300">
+
+        <h3>Picture Element with HEIF</h3>
+        <picture>
+            <source type="image/heif" srcset="portrait.heif">
+            <source type="image/heic" srcset="portrait.heic">
+            <source type="image/avif" srcset="portrait.avif">
+            <source type="image/webp" srcset="portrait.webp">
+            <source type="image/jpeg" srcset="portrait.jpg">
+            <img src="portrait.jpg" alt="Portrait with HEIF support" width="400" height="600">
+        </picture>
+    </section>
+
+    <!-- Feature: webm -->
+    <!-- Can I Use: https://caniuse.com/webm -->
+    <section>
+        <h2>WebM Video Format</h2>
+
+        <h3>WebM Video with Fallback</h3>
+        <video controls width="640" height="360">
+            <source src="video.webm" type="video/webm">
+            <source src="video.webm" type="video/webm; codecs=vp9">
+            <source src="video.webm" type="video/webm; codecs=vp8, vorbis">
+            <source src="video.mp4" type="video/mp4">
+            Your browser does not support the video element.
+        </video>
+
+        <h3>WebM with VP9 Codec</h3>
+        <video controls width="640" height="360">
+            <source src="hd-video.webm" type="video/webm; codecs=vp9, opus">
+            <source src="hd-video.webm" type="video/webm; codecs=vp9">
+            <source src="hd-video.mp4" type="video/mp4">
+            Your browser does not support the video element.
+        </video>
+
+        <h3>WebM with AV1 Codec</h3>
+        <video controls width="640" height="360">
+            <source src="modern-video.webm" type="video/webm; codecs=av01.0.05M.08">
+            <source src="modern-video.webm" type="video/webm; codecs=vp9">
+            <source src="modern-video.mp4" type="video/mp4">
+            Your browser does not support the video element.
+        </video>
+
+        <h3>WebM Audio</h3>
+        <audio controls>
+            <source src="music.webm" type="audio/webm">
+            <source src="music.webm" type="audio/webm; codecs=opus">
+            <source src="music.webm" type="audio/webm; codecs=vorbis">
+            <source src="music.ogg" type="audio/ogg">
+            <source src="music.mp3" type="audio/mpeg">
+            Your browser does not support the audio element.
+        </audio>
+    </section>
+
+    <section>
+        <h2>All Modern Formats Combined</h2>
+        <p>This section demonstrates using all modern formats with proper fallbacks:</p>
+
+        <h3>Optimal Image Stack (AVIF → WebP → JPEG)</h3>
+        <picture>
+            <source type="image/avif"
+                    srcset="optimal-small.avif 400w,
+                            optimal-medium.avif 800w,
+                            optimal-large.avif 1200w"
+                    sizes="(max-width: 600px) 100vw, (max-width: 1200px) 50vw, 33vw">
+            <source type="image/webp"
+                    srcset="optimal-small.webp 400w,
+                            optimal-medium.webp 800w,
+                            optimal-large.webp 1200w"
+                    sizes="(max-width: 600px) 100vw, (max-width: 1200px) 50vw, 33vw">
+            <img src="optimal-medium.jpg"
+                 srcset="optimal-small.jpg 400w,
+                         optimal-medium.jpg 800w,
+                         optimal-large.jpg 1200w"
+                 sizes="(max-width: 600px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                 alt="Optimal format stack"
+                 loading="lazy"
+                 width="800" height="600">
+        </picture>
+
+        <h3>Optimal Video Stack (AV1/WebM → VP9/WebM → H.264/MP4)</h3>
+        <video controls width="854" height="480" preload="metadata">
+            <source src="movie.webm" type="video/webm; codecs=av01.0.05M.08,opus">
+            <source src="movie.webm" type="video/webm; codecs=vp9,opus">
+            <source src="movie.webm" type="video/webm; codecs=vp8,vorbis">
+            <source src="movie.mp4" type="video/mp4; codecs=avc1.42E01E,mp4a.40.2">
+            <source src="movie.mp4" type="video/mp4">
+            <track kind="subtitles" src="subtitles-en.vtt" srclang="en" label="English">
+            Your browser does not support the video element.
+        </video>
+    </section>
+
+    <section>
+        <h2>Format Summary</h2>
+        <table border="1" cellpadding="10">
+            <thead>
+                <tr>
+                    <th>Format</th>
+                    <th>Type</th>
+                    <th>MIME Type</th>
+                    <th>Can I Use</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>WebP</td>
+                    <td>Image</td>
+                    <td><code>image/webp</code></td>
+                    <td><a href="https://caniuse.com/webp">caniuse.com/webp</a></td>
+                </tr>
+                <tr>
+                    <td>AVIF</td>
+                    <td>Image</td>
+                    <td><code>image/avif</code></td>
+                    <td><a href="https://caniuse.com/avif">caniuse.com/avif</a></td>
+                </tr>
+                <tr>
+                    <td>HEIF/HEIC</td>
+                    <td>Image</td>
+                    <td><code>image/heif</code>, <code>image/heic</code></td>
+                    <td><a href="https://caniuse.com/heif">caniuse.com/heif</a></td>
+                </tr>
+                <tr>
+                    <td>WebM</td>
+                    <td>Video/Audio</td>
+                    <td><code>video/webm</code>, <code>audio/webm</code></td>
+                    <td><a href="https://caniuse.com/webm">caniuse.com/webm</a></td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+</body>
+</html>

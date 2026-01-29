@@ -1,0 +1,243 @@
+/*
+ * Cross Guard CSS Manual Validation Test
+ * Category: 01_layout
+ * File: multicolumn.css
+ *
+ * Expected Can I Use IDs:
+ *   - multicolumn: https://caniuse.com/multicolumn
+ *
+ * VALIDATION STEPS:
+ *   1. Load this file in Cross Guard
+ *   2. Verify feature detected: multicolumn
+ *   3. Compare browser support with Can I Use link above
+ *   4. Record results in CSS_CHECKLIST.md
+ */
+
+/* =============================================
+   Feature: multicolumn
+   Can I Use: https://caniuse.com/multicolumn
+   ============================================= */
+
+/* Column count */
+.three-columns {
+    column-count: 3;
+}
+
+.four-columns {
+    column-count: 4;
+}
+
+.auto-columns {
+    column-count: auto;
+}
+
+/* Column width */
+.column-width {
+    column-width: 200px;
+}
+
+.column-width-large {
+    column-width: 300px;
+}
+
+/* Columns shorthand */
+.columns-shorthand {
+    columns: 3 200px;
+}
+
+.columns-count-only {
+    columns: 4;
+}
+
+.columns-width-only {
+    columns: 250px;
+}
+
+/* Column gap */
+.column-gap {
+    column-count: 3;
+    column-gap: 40px;
+}
+
+.column-gap-normal {
+    column-count: 2;
+    column-gap: normal;
+}
+
+/* Column rule */
+.column-rule {
+    column-count: 3;
+    column-rule: 1px solid #ccc;
+}
+
+.column-rule-thick {
+    column-count: 2;
+    column-rule: 3px double #007bff;
+}
+
+.column-rule-dashed {
+    column-count: 4;
+    column-rule-width: 2px;
+    column-rule-style: dashed;
+    column-rule-color: #28a745;
+}
+
+/* Column rule individual properties */
+.column-rule-separate {
+    column-count: 3;
+    column-rule-width: 1px;
+    column-rule-style: solid;
+    column-rule-color: rgba(0, 0, 0, 0.2);
+}
+
+/* Column span */
+.column-span-heading {
+    column-span: all;
+}
+
+.column-span-none {
+    column-span: none;
+}
+
+/* Column fill */
+.column-fill-auto {
+    column-count: 3;
+    column-fill: auto;
+    height: 400px;
+}
+
+.column-fill-balance {
+    column-count: 3;
+    column-fill: balance;
+}
+
+.column-fill-balance-all {
+    column-count: 4;
+    column-fill: balance-all;
+}
+
+/* Break inside */
+.no-break-inside {
+    break-inside: avoid;
+}
+
+.avoid-column-break {
+    break-inside: avoid-column;
+}
+
+/* Break before/after */
+.break-before-column {
+    break-before: column;
+}
+
+.break-after-column {
+    break-after: column;
+}
+
+.avoid-break-before {
+    break-before: avoid-column;
+}
+
+/* Practical multicolumn layouts */
+
+/* Newspaper-style article */
+.article-content {
+    column-count: 2;
+    column-gap: 2rem;
+    column-rule: 1px solid #e0e0e0;
+}
+
+.article-content h2 {
+    column-span: all;
+    margin: 1.5rem 0;
+}
+
+/* Magazine layout */
+.magazine-text {
+    columns: 3 180px;
+    column-gap: 30px;
+    column-rule: 1px dotted #999;
+}
+
+.magazine-text .pull-quote {
+    column-span: all;
+    font-size: 1.5em;
+    font-style: italic;
+    padding: 1rem 0;
+    border-top: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+}
+
+/* Card list in columns */
+.card-columns {
+    column-count: 3;
+    column-gap: 1.25rem;
+}
+
+.card-columns .card {
+    display: inline-block;
+    width: 100%;
+    break-inside: avoid;
+    margin-bottom: 1.25rem;
+}
+
+/* Footer links */
+.footer-links {
+    column-count: 4;
+    column-gap: 2rem;
+}
+
+.footer-links li {
+    break-inside: avoid;
+}
+
+/* Definition list */
+.definition-columns {
+    columns: 2 300px;
+    column-gap: 3rem;
+    column-rule: 2px solid #f0f0f0;
+}
+
+.definition-columns dt {
+    break-after: avoid;
+}
+
+.definition-columns dd {
+    break-before: avoid;
+    margin-bottom: 1rem;
+}
+
+/* Image gallery with masonry-like effect */
+.masonry-columns {
+    column-count: 4;
+    column-gap: 10px;
+}
+
+.masonry-columns img {
+    width: 100%;
+    display: block;
+    margin-bottom: 10px;
+    break-inside: avoid;
+}
+
+/* Responsive columns */
+@media (max-width: 768px) {
+    .responsive-columns {
+        column-count: 1;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    .responsive-columns {
+        column-count: 2;
+        column-gap: 2rem;
+    }
+}
+
+@media (min-width: 1025px) {
+    .responsive-columns {
+        column-count: 3;
+        column-gap: 2.5rem;
+        column-rule: 1px solid #ddd;
+    }
+}

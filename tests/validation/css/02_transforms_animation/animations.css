@@ -1,0 +1,324 @@
+/*
+ * Cross Guard CSS Manual Validation Test
+ * Category: 02_transforms_animation
+ * File: animations.css
+ *
+ * Expected Can I Use IDs:
+ *   - css-animation: https://caniuse.com/css-animation
+ *   - will-change: https://caniuse.com/will-change
+ *
+ * VALIDATION STEPS:
+ *   1. Load this file in Cross Guard
+ *   2. Verify features detected: css-animation, will-change
+ *   3. Compare browser support with Can I Use links above
+ *   4. Record results in CSS_CHECKLIST.md
+ */
+
+/* =============================================
+   Feature: css-animation
+   Can I Use: https://caniuse.com/css-animation
+   ============================================= */
+
+/* Basic keyframes */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes slideIn {
+    0% {
+        transform: translateX(-100%);
+        opacity: 0;
+    }
+    100% {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Multiple keyframe stops */
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    25% {
+        transform: translateY(-30px);
+    }
+    50% {
+        transform: translateY(-15px);
+    }
+    75% {
+        transform: translateY(-5px);
+    }
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.1);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+/* Color animation */
+@keyframes colorChange {
+    0% {
+        background-color: #007bff;
+    }
+    33% {
+        background-color: #28a745;
+    }
+    66% {
+        background-color: #ffc107;
+    }
+    100% {
+        background-color: #007bff;
+    }
+}
+
+/* Animation shorthand */
+.animate-fade {
+    animation: fadeIn 0.5s ease-in-out;
+}
+
+.animate-slide {
+    animation: slideIn 0.3s ease-out forwards;
+}
+
+.animate-bounce {
+    animation: bounce 1s infinite;
+}
+
+/* Animation individual properties */
+.animate-detailed {
+    animation-name: pulse;
+    animation-duration: 2s;
+    animation-timing-function: ease-in-out;
+    animation-delay: 0.5s;
+    animation-iteration-count: infinite;
+    animation-direction: alternate;
+    animation-fill-mode: both;
+    animation-play-state: running;
+}
+
+/* Animation timing functions */
+.timing-linear {
+    animation: slideIn 1s linear;
+}
+
+.timing-ease {
+    animation: slideIn 1s ease;
+}
+
+.timing-ease-in {
+    animation: slideIn 1s ease-in;
+}
+
+.timing-ease-out {
+    animation: slideIn 1s ease-out;
+}
+
+.timing-ease-in-out {
+    animation: slideIn 1s ease-in-out;
+}
+
+.timing-cubic-bezier {
+    animation: slideIn 1s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+}
+
+.timing-steps {
+    animation: slideIn 1s steps(5, end);
+}
+
+/* Animation iteration count */
+.iterate-once {
+    animation: pulse 1s 1;
+}
+
+.iterate-twice {
+    animation: pulse 1s 2;
+}
+
+.iterate-infinite {
+    animation: pulse 1s infinite;
+}
+
+/* Animation direction */
+.direction-normal {
+    animation: colorChange 2s normal infinite;
+}
+
+.direction-reverse {
+    animation: colorChange 2s reverse infinite;
+}
+
+.direction-alternate {
+    animation: bounce 1s alternate infinite;
+}
+
+.direction-alternate-reverse {
+    animation: bounce 1s alternate-reverse infinite;
+}
+
+/* Animation fill mode */
+.fill-none {
+    animation: fadeIn 1s forwards;
+    animation-fill-mode: none;
+}
+
+.fill-forwards {
+    animation: fadeIn 1s forwards;
+}
+
+.fill-backwards {
+    animation: fadeIn 1s 1s backwards;
+}
+
+.fill-both {
+    animation: fadeIn 1s 1s both;
+}
+
+/* Animation play state */
+.paused {
+    animation: pulse 2s infinite;
+    animation-play-state: paused;
+}
+
+.paused:hover {
+    animation-play-state: running;
+}
+
+/* Multiple animations */
+.multi-animate {
+    animation:
+        fadeIn 0.5s ease-out,
+        slideIn 0.3s ease-out,
+        pulse 2s 0.5s infinite;
+}
+
+/* Complex keyframes */
+@keyframes complexMotion {
+    0% {
+        transform: translateX(0) rotate(0deg);
+        opacity: 1;
+        background-color: #007bff;
+    }
+    25% {
+        transform: translateX(100px) rotate(90deg);
+        opacity: 0.8;
+        background-color: #28a745;
+    }
+    50% {
+        transform: translateX(100px) translateY(100px) rotate(180deg);
+        opacity: 0.6;
+        background-color: #ffc107;
+    }
+    75% {
+        transform: translateX(0) translateY(100px) rotate(270deg);
+        opacity: 0.8;
+        background-color: #dc3545;
+    }
+    100% {
+        transform: translateX(0) rotate(360deg);
+        opacity: 1;
+        background-color: #007bff;
+    }
+}
+
+.complex-animation {
+    animation: complexMotion 4s ease-in-out infinite;
+}
+
+/* Practical animations */
+
+/* Loading spinner */
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.spinner {
+    animation: spin 1s linear infinite;
+}
+
+/* Shake effect */
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+    20%, 40%, 60%, 80% { transform: translateX(5px); }
+}
+
+.shake-on-error {
+    animation: shake 0.5s ease-in-out;
+}
+
+/* Typing effect */
+@keyframes typing {
+    from { width: 0; }
+    to { width: 100%; }
+}
+
+@keyframes blink {
+    50% { border-color: transparent; }
+}
+
+.typewriter {
+    animation: typing 3s steps(30, end), blink 0.75s step-end infinite;
+}
+
+/* =============================================
+   Feature: will-change
+   Can I Use: https://caniuse.com/will-change
+   ============================================= */
+
+/* Will change for specific properties */
+.will-change-transform {
+    will-change: transform;
+}
+
+.will-change-opacity {
+    will-change: opacity;
+}
+
+.will-change-multiple {
+    will-change: transform, opacity;
+}
+
+.will-change-scroll {
+    will-change: scroll-position;
+}
+
+.will-change-contents {
+    will-change: contents;
+}
+
+/* Practical will-change usage */
+.animated-card {
+    will-change: transform;
+    transition: transform 0.3s ease;
+}
+
+.animated-card:hover {
+    transform: translateY(-10px);
+}
+
+.fade-element {
+    will-change: opacity;
+}
+
+.complex-animated {
+    will-change: transform, opacity, filter;
+}
+
+/* Auto value */
+.will-change-auto {
+    will-change: auto;
+}

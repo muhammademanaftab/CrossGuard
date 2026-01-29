@@ -1,0 +1,390 @@
+/*
+ * Cross Guard CSS Manual Validation Test
+ * Category: 08_interaction
+ * File: scroll.css
+ *
+ * Expected Can I Use IDs:
+ *   - css-snappoints: https://caniuse.com/css-snappoints
+ *   - css-scroll-behavior: https://caniuse.com/css-scroll-behavior
+ *   - css-scrollbar: https://caniuse.com/css-scrollbar
+ *
+ * VALIDATION STEPS:
+ *   1. Load this file in Cross Guard
+ *   2. Verify features detected: css-snappoints, css-scroll-behavior, css-scrollbar
+ *   3. Compare browser support with Can I Use links above
+ *   4. Record results in CSS_CHECKLIST.md
+ */
+
+/* =============================================
+   Feature: css-snappoints
+   Can I Use: https://caniuse.com/css-snappoints
+   ============================================= */
+
+/* Scroll snap container - type */
+.snap-x {
+    scroll-snap-type: x mandatory;
+    overflow-x: auto;
+}
+
+.snap-y {
+    scroll-snap-type: y mandatory;
+    overflow-y: auto;
+}
+
+.snap-both {
+    scroll-snap-type: both mandatory;
+    overflow: auto;
+}
+
+.snap-x-proximity {
+    scroll-snap-type: x proximity;
+    overflow-x: auto;
+}
+
+.snap-y-proximity {
+    scroll-snap-type: y proximity;
+    overflow-y: auto;
+}
+
+/* Scroll snap none */
+.snap-none {
+    scroll-snap-type: none;
+}
+
+/* Scroll snap align */
+.snap-start {
+    scroll-snap-align: start;
+}
+
+.snap-center {
+    scroll-snap-align: center;
+}
+
+.snap-end {
+    scroll-snap-align: end;
+}
+
+/* Two-value snap align */
+.snap-start-center {
+    scroll-snap-align: start center;
+}
+
+.snap-center-end {
+    scroll-snap-align: center end;
+}
+
+/* Scroll snap stop */
+.snap-stop-normal {
+    scroll-snap-stop: normal;
+}
+
+.snap-stop-always {
+    scroll-snap-stop: always;
+}
+
+/* Scroll padding */
+.scroll-padding {
+    scroll-padding: 20px;
+}
+
+.scroll-padding-x {
+    scroll-padding-left: 20px;
+    scroll-padding-right: 20px;
+}
+
+.scroll-padding-y {
+    scroll-padding-top: 80px;
+    scroll-padding-bottom: 20px;
+}
+
+.scroll-padding-inline {
+    scroll-padding-inline: 1rem;
+}
+
+.scroll-padding-block {
+    scroll-padding-block: 2rem;
+}
+
+/* Scroll margin */
+.scroll-margin {
+    scroll-margin: 20px;
+}
+
+.scroll-margin-top {
+    scroll-margin-top: 80px;
+}
+
+.scroll-margin-inline {
+    scroll-margin-inline: 1rem;
+}
+
+.scroll-margin-block {
+    scroll-margin-block: 2rem;
+}
+
+/* Practical scroll snap examples */
+
+/* Horizontal carousel */
+.carousel {
+    display: flex;
+    scroll-snap-type: x mandatory;
+    overflow-x: auto;
+    scroll-padding: 20px;
+}
+
+.carousel-item {
+    flex: 0 0 100%;
+    scroll-snap-align: start;
+}
+
+/* Image gallery */
+.gallery {
+    display: flex;
+    scroll-snap-type: x mandatory;
+    overflow-x: scroll;
+    gap: 16px;
+    padding: 16px;
+}
+
+.gallery-image {
+    flex: 0 0 80%;
+    scroll-snap-align: center;
+}
+
+/* Full-page sections */
+.fullpage-container {
+    height: 100vh;
+    overflow-y: auto;
+    scroll-snap-type: y mandatory;
+}
+
+.fullpage-section {
+    height: 100vh;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+}
+
+/* Card slider */
+.card-slider {
+    display: flex;
+    scroll-snap-type: x mandatory;
+    overflow-x: auto;
+    gap: 1rem;
+    padding: 1rem;
+    scroll-padding-left: 1rem;
+}
+
+.card-slider .card {
+    flex: 0 0 calc(33.333% - 0.67rem);
+    scroll-snap-align: start;
+}
+
+/* Tabs with scroll snap */
+.tabs-scroll {
+    display: flex;
+    scroll-snap-type: x proximity;
+    overflow-x: auto;
+}
+
+.tab {
+    scroll-snap-align: start;
+    flex-shrink: 0;
+}
+
+/* =============================================
+   Feature: css-scroll-behavior
+   Can I Use: https://caniuse.com/css-scroll-behavior
+   ============================================= */
+
+/* Scroll behavior on html/body */
+html {
+    scroll-behavior: smooth;
+}
+
+/* Scroll behavior on containers */
+.smooth-scroll {
+    scroll-behavior: smooth;
+}
+
+.instant-scroll {
+    scroll-behavior: auto;
+}
+
+/* Practical smooth scroll examples */
+
+/* Page with anchor navigation */
+.page-scroll {
+    scroll-behavior: smooth;
+    scroll-padding-top: 80px;
+}
+
+/* Scrollable content area */
+.content-scroll {
+    scroll-behavior: smooth;
+    overflow-y: auto;
+    max-height: 500px;
+}
+
+/* Chat container */
+.chat-messages {
+    scroll-behavior: smooth;
+    overflow-y: auto;
+    height: 400px;
+}
+
+/* Table of contents scroll */
+.toc-container {
+    scroll-behavior: smooth;
+    overflow-y: auto;
+    max-height: calc(100vh - 100px);
+}
+
+/* =============================================
+   Feature: css-scrollbar
+   Can I Use: https://caniuse.com/css-scrollbar
+   ============================================= */
+
+/* Scrollbar width */
+.scrollbar-thin {
+    scrollbar-width: thin;
+}
+
+.scrollbar-none {
+    scrollbar-width: none;
+}
+
+.scrollbar-auto {
+    scrollbar-width: auto;
+}
+
+/* Scrollbar color */
+.scrollbar-custom-color {
+    scrollbar-color: #007bff #f0f0f0;
+}
+
+.scrollbar-dark {
+    scrollbar-color: #666 #333;
+}
+
+.scrollbar-light {
+    scrollbar-color: #ccc #f8f9fa;
+}
+
+/* Combined scrollbar styling */
+.custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: #888 transparent;
+}
+
+/* WebKit scrollbar styling (for Chrome/Safari) */
+.webkit-scrollbar::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.webkit-scrollbar::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.webkit-scrollbar::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 4px;
+}
+
+.webkit-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: #555;
+}
+
+/* Hide scrollbar but keep functionality */
+.scrollbar-hidden {
+    scrollbar-width: none;
+}
+
+.scrollbar-hidden::-webkit-scrollbar {
+    display: none;
+}
+
+/* Practical scrollbar examples */
+
+/* Sidebar with custom scrollbar */
+.sidebar {
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(0, 0, 0, 0.2) transparent;
+}
+
+/* Code block with custom scrollbar */
+.code-block {
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #555 #2d2d2d;
+}
+
+/* Modal content scrollbar */
+.modal-content {
+    overflow-y: auto;
+    max-height: 80vh;
+    scrollbar-width: thin;
+    scrollbar-color: #ccc #fff;
+}
+
+/* Dropdown menu scrollbar */
+.dropdown-menu {
+    overflow-y: auto;
+    max-height: 300px;
+    scrollbar-width: thin;
+    scrollbar-color: #aaa #f5f5f5;
+}
+
+/* Additional scroll-related properties */
+
+/* Overscroll behavior */
+.overscroll-auto {
+    overscroll-behavior: auto;
+}
+
+.overscroll-contain {
+    overscroll-behavior: contain;
+}
+
+.overscroll-none {
+    overscroll-behavior: none;
+}
+
+.overscroll-x-contain {
+    overscroll-behavior-x: contain;
+}
+
+.overscroll-y-none {
+    overscroll-behavior-y: none;
+}
+
+/* Scroll timeline (for scroll-driven animations) */
+@supports (animation-timeline: scroll()) {
+    .scroll-animated {
+        animation: fadeIn 1s linear;
+        animation-timeline: scroll();
+    }
+}
+
+/* Touch action */
+.touch-auto {
+    touch-action: auto;
+}
+
+.touch-none {
+    touch-action: none;
+}
+
+.touch-pan-x {
+    touch-action: pan-x;
+}
+
+.touch-pan-y {
+    touch-action: pan-y;
+}
+
+.touch-manipulation {
+    touch-action: manipulation;
+}

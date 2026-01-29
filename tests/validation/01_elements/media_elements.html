@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Elements - Manual Validation Test</title>
+    <!--
+        Cross Guard Manual Validation Test
+        Category: 01_elements
+        File: media_elements.html
+
+        Expected Can I Use IDs:
+          - video: https://caniuse.com/video
+          - audio: https://caniuse.com/audio
+          - picture: https://caniuse.com/picture
+          - canvas: https://caniuse.com/canvas
+          - webvtt: https://caniuse.com/webvtt
+
+        VALIDATION STEPS:
+          1. Load this file in Cross Guard
+          2. Verify features detected: video, audio, picture, canvas, webvtt
+          3. Compare browser support with Can I Use links above
+          4. Record results in CHECKLIST.md
+    -->
+</head>
+<body>
+    <h1>Media Elements Test</h1>
+    <p>This page tests HTML5 media elements for Cross Guard validation.</p>
+
+    <!-- Feature: video -->
+    <!-- Can I Use: https://caniuse.com/video -->
+    <section>
+        <h2>Video Element</h2>
+        <video controls width="640" height="360" poster="poster.jpg">
+            <source src="video.mp4" type="video/mp4">
+            <source src="video.webm" type="video/webm">
+            <!-- Feature: webvtt -->
+            <!-- Can I Use: https://caniuse.com/webvtt -->
+            <track kind="subtitles" src="subtitles.vtt" srclang="en" label="English">
+            <track kind="captions" src="captions.vtt" srclang="en" label="English Captions">
+            Your browser does not support the video element.
+        </video>
+    </section>
+
+    <!-- Feature: audio -->
+    <!-- Can I Use: https://caniuse.com/audio -->
+    <section>
+        <h2>Audio Element</h2>
+        <audio controls>
+            <source src="audio.mp3" type="audio/mpeg">
+            <source src="audio.ogg" type="audio/ogg">
+            Your browser does not support the audio element.
+        </audio>
+    </section>
+
+    <!-- Feature: picture -->
+    <!-- Can I Use: https://caniuse.com/picture -->
+    <section>
+        <h2>Picture Element</h2>
+        <picture>
+            <source media="(min-width: 1200px)" srcset="large.jpg">
+            <source media="(min-width: 768px)" srcset="medium.jpg">
+            <source media="(min-width: 480px)" srcset="small.jpg">
+            <img src="fallback.jpg" alt="Responsive image example">
+        </picture>
+    </section>
+
+    <!-- Feature: canvas -->
+    <!-- Can I Use: https://caniuse.com/canvas -->
+    <section>
+        <h2>Canvas Element</h2>
+        <canvas id="myCanvas" width="400" height="200">
+            Your browser does not support the canvas element.
+        </canvas>
+        <script>
+            const canvas = document.getElementById('myCanvas');
+            const ctx = canvas.getContext('2d');
+            ctx.fillStyle = '#007bff';
+            ctx.fillRect(10, 10, 150, 100);
+            ctx.fillStyle = '#28a745';
+            ctx.beginPath();
+            ctx.arc(300, 100, 50, 0, Math.PI * 2);
+            ctx.fill();
+        </script>
+    </section>
+</body>
+</html>

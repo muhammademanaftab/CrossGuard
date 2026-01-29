@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DateTime Inputs - Manual Validation Test</title>
+    <!--
+        Cross Guard Manual Validation Test
+        Category: 02_input_types
+        File: datetime_inputs.html
+
+        Expected Can I Use IDs:
+          - input-datetime: https://caniuse.com/input-datetime
+
+        VALIDATION STEPS:
+          1. Load this file in Cross Guard
+          2. Verify feature detected: input-datetime
+          3. Compare browser support with Can I Use link above
+          4. Record results in CHECKLIST.md
+    -->
+</head>
+<body>
+    <h1>DateTime Input Types Test</h1>
+    <p>This page tests HTML5 date/time input types for Cross Guard validation.</p>
+
+    <form>
+        <!-- Feature: input-datetime (type="date") -->
+        <!-- Can I Use: https://caniuse.com/input-datetime -->
+        <section>
+            <h2>Date Input</h2>
+            <label for="birthday">Birthday:</label>
+            <input type="date" id="birthday" name="birthday" value="2000-01-15">
+
+            <label for="appointment">Appointment:</label>
+            <input type="date" id="appointment" name="appointment" min="2024-01-01" max="2024-12-31">
+        </section>
+
+        <!-- Feature: input-datetime (type="datetime-local") -->
+        <section>
+            <h2>DateTime-Local Input</h2>
+            <label for="meeting">Meeting time:</label>
+            <input type="datetime-local" id="meeting" name="meeting" value="2024-06-12T19:30">
+
+            <label for="event">Event:</label>
+            <input type="datetime-local" id="event" name="event" min="2024-01-01T00:00" max="2024-12-31T23:59">
+        </section>
+
+        <!-- Feature: input-datetime (type="time") -->
+        <section>
+            <h2>Time Input</h2>
+            <label for="alarm">Alarm time:</label>
+            <input type="time" id="alarm" name="alarm" value="07:30">
+
+            <label for="office-hours">Office hours:</label>
+            <input type="time" id="office-hours" name="office-hours" min="09:00" max="17:00" step="1800">
+        </section>
+
+        <!-- Feature: input-datetime (type="month") -->
+        <section>
+            <h2>Month Input</h2>
+            <label for="start-month">Start month:</label>
+            <input type="month" id="start-month" name="start-month" value="2024-06">
+
+            <label for="expiry">Card expiry:</label>
+            <input type="month" id="expiry" name="expiry" min="2024-01" max="2030-12">
+        </section>
+
+        <!-- Feature: input-datetime (type="week") -->
+        <section>
+            <h2>Week Input</h2>
+            <label for="vacation-week">Vacation week:</label>
+            <input type="week" id="vacation-week" name="vacation-week" value="2024-W26">
+
+            <label for="report-week">Report week:</label>
+            <input type="week" id="report-week" name="report-week" min="2024-W01" max="2024-W52">
+        </section>
+
+        <button type="submit">Submit</button>
+    </form>
+</body>
+</html>

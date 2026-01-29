@@ -1,0 +1,515 @@
+/*
+ * Cross Guard CSS Manual Validation Test
+ * Category: 10_media_queries
+ * File: media_features.css
+ *
+ * Expected Can I Use IDs:
+ *   - css-mediaqueries: https://caniuse.com/css-mediaqueries
+ *   - prefers-color-scheme: https://caniuse.com/prefers-color-scheme
+ *   - prefers-reduced-motion: https://caniuse.com/prefers-reduced-motion
+ *
+ * VALIDATION STEPS:
+ *   1. Load this file in Cross Guard
+ *   2. Verify features detected: css-mediaqueries, prefers-color-scheme, prefers-reduced-motion
+ *   3. Compare browser support with Can I Use links above
+ *   4. Record results in CSS_CHECKLIST.md
+ */
+
+/* =============================================
+   Feature: css-mediaqueries
+   Can I Use: https://caniuse.com/css-mediaqueries
+   ============================================= */
+
+/* Width-based media queries */
+@media (min-width: 320px) {
+    .mobile-small {
+        font-size: 14px;
+    }
+}
+
+@media (min-width: 480px) {
+    .mobile-large {
+        font-size: 15px;
+    }
+}
+
+@media (min-width: 768px) {
+    .tablet {
+        font-size: 16px;
+    }
+}
+
+@media (min-width: 1024px) {
+    .desktop {
+        font-size: 17px;
+    }
+}
+
+@media (min-width: 1280px) {
+    .desktop-large {
+        font-size: 18px;
+    }
+}
+
+/* Max-width queries */
+@media (max-width: 767px) {
+    .mobile-only {
+        display: block;
+    }
+}
+
+/* Range syntax (modern) */
+@media (width >= 768px) {
+    .modern-min {
+        display: flex;
+    }
+}
+
+@media (width < 768px) {
+    .modern-max {
+        display: block;
+    }
+}
+
+@media (768px <= width <= 1024px) {
+    .tablet-only {
+        padding: 1rem;
+    }
+}
+
+/* Height queries */
+@media (min-height: 600px) {
+    .tall-viewport {
+        padding-top: 100px;
+    }
+}
+
+@media (max-height: 500px) {
+    .short-viewport {
+        padding-top: 50px;
+    }
+}
+
+/* Aspect ratio queries */
+@media (aspect-ratio: 16/9) {
+    .widescreen {
+        max-width: 100%;
+    }
+}
+
+@media (min-aspect-ratio: 1/1) {
+    .landscape-aspect {
+        flex-direction: row;
+    }
+}
+
+@media (max-aspect-ratio: 1/1) {
+    .portrait-aspect {
+        flex-direction: column;
+    }
+}
+
+/* Orientation queries */
+@media (orientation: portrait) {
+    .portrait {
+        max-width: 100%;
+    }
+}
+
+@media (orientation: landscape) {
+    .landscape {
+        max-width: 80%;
+    }
+}
+
+/* Resolution queries */
+@media (min-resolution: 2dppx) {
+    .retina {
+        background-image: url('image@2x.png');
+    }
+}
+
+@media (min-resolution: 192dpi) {
+    .high-dpi {
+        background-image: url('image-hd.png');
+    }
+}
+
+@media (-webkit-min-device-pixel-ratio: 2) {
+    .webkit-retina {
+        background-image: url('image@2x.png');
+    }
+}
+
+/* Hover capability */
+@media (hover: hover) {
+    .hover-capable:hover {
+        background-color: #f0f0f0;
+    }
+}
+
+@media (hover: none) {
+    .no-hover {
+        /* Touch device styles */
+    }
+}
+
+/* Pointer queries */
+@media (pointer: fine) {
+    .fine-pointer {
+        padding: 8px;
+    }
+}
+
+@media (pointer: coarse) {
+    .coarse-pointer {
+        padding: 16px;
+        min-height: 44px;
+    }
+}
+
+@media (pointer: none) {
+    .no-pointer {
+        /* No pointing device */
+    }
+}
+
+/* Any-hover and any-pointer */
+@media (any-hover: hover) {
+    .any-hover {
+        cursor: pointer;
+    }
+}
+
+@media (any-pointer: fine) {
+    .any-fine-pointer {
+        font-size: 14px;
+    }
+}
+
+/* Display mode */
+@media (display-mode: fullscreen) {
+    .fullscreen-mode {
+        padding: 0;
+    }
+}
+
+@media (display-mode: standalone) {
+    .standalone-mode {
+        /* PWA standalone */
+    }
+}
+
+@media (display-mode: browser) {
+    .browser-mode {
+        /* Normal browser tab */
+    }
+}
+
+/* Color queries */
+@media (color) {
+    .color-display {
+        /* Color capable device */
+    }
+}
+
+@media (min-color: 8) {
+    .deep-color {
+        /* At least 8 bits per color */
+    }
+}
+
+@media (color-gamut: srgb) {
+    .srgb-gamut {
+        color: rgb(255, 0, 0);
+    }
+}
+
+@media (color-gamut: p3) {
+    .p3-gamut {
+        color: color(display-p3 1 0 0);
+    }
+}
+
+@media (dynamic-range: high) {
+    .hdr-content {
+        /* HDR capable display */
+    }
+}
+
+/* Scripting */
+@media (scripting: enabled) {
+    .js-enabled {
+        /* JavaScript is available */
+    }
+}
+
+@media (scripting: none) {
+    .no-js {
+        display: block;
+    }
+}
+
+/* Update frequency */
+@media (update: fast) {
+    .fast-update {
+        /* Normal screen */
+    }
+}
+
+@media (update: slow) {
+    .slow-update {
+        /* E-ink display */
+        animation: none;
+    }
+}
+
+/* Combined queries */
+@media (min-width: 768px) and (orientation: landscape) {
+    .tablet-landscape {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+@media (min-width: 1024px) and (hover: hover) and (pointer: fine) {
+    .desktop-with-mouse {
+        /* Desktop with precise pointing device */
+    }
+}
+
+/* Or combinator */
+@media (max-width: 767px), (orientation: portrait) {
+    .mobile-or-portrait {
+        flex-direction: column;
+    }
+}
+
+/* Not combinator */
+@media not (hover: hover) {
+    .touch-device {
+        /* Touch device without hover */
+    }
+}
+
+/* =============================================
+   Feature: prefers-color-scheme
+   Can I Use: https://caniuse.com/prefers-color-scheme
+   ============================================= */
+
+/* Light mode (default or explicit) */
+@media (prefers-color-scheme: light) {
+    :root {
+        --bg-color: #ffffff;
+        --text-color: #333333;
+        --border-color: #e0e0e0;
+        --accent-color: #007bff;
+    }
+
+    body {
+        background-color: var(--bg-color);
+        color: var(--text-color);
+    }
+
+    .card {
+        background: white;
+        border: 1px solid var(--border-color);
+    }
+}
+
+/* Dark mode */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --bg-color: #1a1a2e;
+        --text-color: #eaeaea;
+        --border-color: #3a3a5e;
+        --accent-color: #00d9ff;
+    }
+
+    body {
+        background-color: var(--bg-color);
+        color: var(--text-color);
+    }
+
+    .card {
+        background: #2a2a4e;
+        border: 1px solid var(--border-color);
+    }
+
+    img {
+        filter: brightness(0.9);
+    }
+
+    a {
+        color: var(--accent-color);
+    }
+
+    .button-primary {
+        background: var(--accent-color);
+        color: #1a1a2e;
+    }
+
+    input, textarea {
+        background: #2a2a4e;
+        border-color: var(--border-color);
+        color: var(--text-color);
+    }
+
+    ::selection {
+        background: var(--accent-color);
+        color: #1a1a2e;
+    }
+}
+
+/* =============================================
+   Feature: prefers-reduced-motion
+   Can I Use: https://caniuse.com/prefers-reduced-motion
+   ============================================= */
+
+/* Default motion styles */
+.animated-element {
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.slide-in {
+    animation: slideIn 0.5s ease-out;
+}
+
+.fade-in {
+    animation: fadeIn 0.4s ease-out;
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    .animated-element {
+        transition: none;
+    }
+
+    .slide-in,
+    .fade-in {
+        animation: none;
+    }
+
+    .parallax {
+        transform: none !important;
+    }
+
+    .carousel {
+        scroll-snap-type: none;
+    }
+}
+
+/* No preference (motion is ok) */
+@media (prefers-reduced-motion: no-preference) {
+    .smooth-scroll {
+        scroll-behavior: smooth;
+    }
+
+    .hover-lift:hover {
+        transform: translateY(-5px);
+        transition: transform 0.2s ease;
+    }
+
+    .loading-spinner {
+        animation: spin 1s linear infinite;
+    }
+}
+
+/* Additional user preference media queries */
+
+/* Prefers contrast */
+@media (prefers-contrast: more) {
+    :root {
+        --text-color: #000000;
+        --bg-color: #ffffff;
+        --border-color: #000000;
+    }
+
+    .button {
+        border: 2px solid currentColor;
+    }
+
+    a {
+        text-decoration: underline;
+    }
+}
+
+@media (prefers-contrast: less) {
+    :root {
+        --text-color: #555555;
+        --border-color: #cccccc;
+    }
+}
+
+/* Prefers reduced transparency */
+@media (prefers-reduced-transparency: reduce) {
+    .glass-effect {
+        background: solid white;
+        backdrop-filter: none;
+    }
+
+    .overlay {
+        background: #333333;
+        opacity: 1;
+    }
+}
+
+/* Forced colors */
+@media (forced-colors: active) {
+    .custom-button {
+        border: 2px solid ButtonText;
+        background: ButtonFace;
+        color: ButtonText;
+    }
+
+    .custom-focus:focus {
+        outline: 3px solid Highlight;
+    }
+}
+
+/* Inverted colors */
+@media (inverted-colors: inverted) {
+    img, video {
+        filter: invert(1);
+    }
+}
+
+/* Print media query */
+@media print {
+    .no-print {
+        display: none !important;
+    }
+
+    body {
+        font-size: 12pt;
+        color: black;
+        background: white;
+    }
+
+    a[href]::after {
+        content: ' (' attr(href) ')';
+    }
+}
+
+/* Screen media query */
+@media screen {
+    .screen-only {
+        display: block;
+    }
+}
+
+/* All media types */
+@media all {
+    .universal {
+        box-sizing: border-box;
+    }
+}

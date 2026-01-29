@@ -1,0 +1,341 @@
+/*
+ * Cross Guard CSS Manual Validation Test
+ * Category: 03_colors_backgrounds
+ * File: gradients.css
+ *
+ * Expected Can I Use IDs:
+ *   - css-gradients: https://caniuse.com/css-gradients
+ *   - css-conic-gradients: https://caniuse.com/css-conic-gradients
+ *
+ * VALIDATION STEPS:
+ *   1. Load this file in Cross Guard
+ *   2. Verify features detected: css-gradients, css-conic-gradients
+ *   3. Compare browser support with Can I Use links above
+ *   4. Record results in CSS_CHECKLIST.md
+ */
+
+/* =============================================
+   Feature: css-gradients
+   Can I Use: https://caniuse.com/css-gradients
+   ============================================= */
+
+/* Linear gradient - basic */
+.linear-basic {
+    background: linear-gradient(red, blue);
+}
+
+.linear-three-colors {
+    background: linear-gradient(red, yellow, green);
+}
+
+/* Linear gradient - directions */
+.linear-to-right {
+    background: linear-gradient(to right, #007bff, #00bcd4);
+}
+
+.linear-to-left {
+    background: linear-gradient(to left, #007bff, #00bcd4);
+}
+
+.linear-to-top {
+    background: linear-gradient(to top, #28a745, #20c997);
+}
+
+.linear-to-bottom {
+    background: linear-gradient(to bottom, #28a745, #20c997);
+}
+
+.linear-to-corner {
+    background: linear-gradient(to bottom right, #ffc107, #fd7e14);
+}
+
+.linear-to-top-left {
+    background: linear-gradient(to top left, #dc3545, #e83e8c);
+}
+
+/* Linear gradient - angles */
+.linear-45deg {
+    background: linear-gradient(45deg, #007bff, #6f42c1);
+}
+
+.linear-90deg {
+    background: linear-gradient(90deg, #28a745, #17a2b8);
+}
+
+.linear-135deg {
+    background: linear-gradient(135deg, #ffc107, #dc3545);
+}
+
+.linear-180deg {
+    background: linear-gradient(180deg, #6c757d, #343a40);
+}
+
+.linear-negative-angle {
+    background: linear-gradient(-45deg, #007bff, #e83e8c);
+}
+
+/* Linear gradient - color stops */
+.linear-stops {
+    background: linear-gradient(to right, red 0%, yellow 50%, green 100%);
+}
+
+.linear-stops-uneven {
+    background: linear-gradient(to right, red 10%, yellow 30%, green 90%);
+}
+
+.linear-hard-stop {
+    background: linear-gradient(to right, #007bff 50%, #28a745 50%);
+}
+
+.linear-multiple-hard-stops {
+    background: linear-gradient(
+        to right,
+        #007bff 0%, #007bff 25%,
+        #28a745 25%, #28a745 50%,
+        #ffc107 50%, #ffc107 75%,
+        #dc3545 75%, #dc3545 100%
+    );
+}
+
+/* Linear gradient - transparency */
+.linear-transparent {
+    background: linear-gradient(to right, rgba(0, 123, 255, 1), rgba(0, 123, 255, 0));
+}
+
+.linear-fade-out {
+    background: linear-gradient(to bottom, white, transparent);
+}
+
+/* Radial gradient - basic */
+.radial-basic {
+    background: radial-gradient(circle, #007bff, #6f42c1);
+}
+
+.radial-ellipse {
+    background: radial-gradient(ellipse, #ffc107, #fd7e14);
+}
+
+/* Radial gradient - size keywords */
+.radial-closest-side {
+    background: radial-gradient(circle closest-side, #007bff, #e83e8c);
+}
+
+.radial-closest-corner {
+    background: radial-gradient(circle closest-corner, #007bff, #e83e8c);
+}
+
+.radial-farthest-side {
+    background: radial-gradient(circle farthest-side, #28a745, #20c997);
+}
+
+.radial-farthest-corner {
+    background: radial-gradient(circle farthest-corner, #28a745, #20c997);
+}
+
+/* Radial gradient - position */
+.radial-at-center {
+    background: radial-gradient(circle at center, #ffc107, #dc3545);
+}
+
+.radial-at-top {
+    background: radial-gradient(circle at top, #007bff, transparent);
+}
+
+.radial-at-bottom-right {
+    background: radial-gradient(circle at bottom right, #6f42c1, transparent);
+}
+
+.radial-at-percentage {
+    background: radial-gradient(circle at 25% 75%, #e83e8c, #6f42c1);
+}
+
+/* Radial gradient - explicit size */
+.radial-explicit-size {
+    background: radial-gradient(50px 100px at center, #007bff, transparent);
+}
+
+/* Repeating gradients */
+.repeating-linear {
+    background: repeating-linear-gradient(
+        45deg,
+        #007bff,
+        #007bff 10px,
+        #6f42c1 10px,
+        #6f42c1 20px
+    );
+}
+
+.repeating-linear-stripes {
+    background: repeating-linear-gradient(
+        90deg,
+        transparent,
+        transparent 10px,
+        rgba(0, 0, 0, 0.1) 10px,
+        rgba(0, 0, 0, 0.1) 20px
+    );
+}
+
+.repeating-radial {
+    background: repeating-radial-gradient(
+        circle,
+        #007bff,
+        #007bff 10px,
+        #28a745 10px,
+        #28a745 20px
+    );
+}
+
+/* Multiple gradients */
+.multiple-gradients {
+    background:
+        linear-gradient(to right, rgba(255, 0, 0, 0.5), transparent),
+        linear-gradient(to bottom, rgba(0, 0, 255, 0.5), transparent),
+        linear-gradient(to bottom right, #ffc107, #28a745);
+}
+
+/* =============================================
+   Feature: css-conic-gradients
+   Can I Use: https://caniuse.com/css-conic-gradients
+   ============================================= */
+
+/* Conic gradient - basic */
+.conic-basic {
+    background: conic-gradient(red, yellow, green, blue, red);
+}
+
+.conic-two-colors {
+    background: conic-gradient(#007bff, #e83e8c);
+}
+
+/* Conic gradient - from angle */
+.conic-from-angle {
+    background: conic-gradient(from 45deg, red, yellow, green, blue, red);
+}
+
+.conic-from-90deg {
+    background: conic-gradient(from 90deg, #007bff, #28a745, #ffc107, #dc3545, #007bff);
+}
+
+/* Conic gradient - at position */
+.conic-at-center {
+    background: conic-gradient(at center, red, yellow, green, blue, red);
+}
+
+.conic-at-top-left {
+    background: conic-gradient(at top left, #007bff, #6f42c1, #e83e8c, #007bff);
+}
+
+.conic-at-percentage {
+    background: conic-gradient(at 25% 75%, #ffc107, #fd7e14, #dc3545, #ffc107);
+}
+
+/* Conic gradient - from angle at position */
+.conic-full {
+    background: conic-gradient(from 90deg at 50% 50%, #007bff, #28a745, #ffc107, #dc3545, #007bff);
+}
+
+/* Conic gradient - color stops */
+.conic-stops {
+    background: conic-gradient(
+        red 0deg,
+        yellow 90deg,
+        green 180deg,
+        blue 270deg,
+        red 360deg
+    );
+}
+
+.conic-hard-stops {
+    background: conic-gradient(
+        #007bff 0deg 90deg,
+        #28a745 90deg 180deg,
+        #ffc107 180deg 270deg,
+        #dc3545 270deg 360deg
+    );
+}
+
+/* Pie chart with conic gradient */
+.pie-chart {
+    background: conic-gradient(
+        #007bff 0deg 120deg,
+        #28a745 120deg 200deg,
+        #ffc107 200deg 280deg,
+        #dc3545 280deg 360deg
+    );
+    border-radius: 50%;
+}
+
+/* Donut chart */
+.donut-chart {
+    background: conic-gradient(
+        #007bff 0deg 90deg,
+        #28a745 90deg 180deg,
+        #ffc107 180deg 270deg,
+        #dc3545 270deg 360deg
+    );
+    border-radius: 50%;
+}
+
+.donut-chart::after {
+    content: '';
+    position: absolute;
+    background: white;
+    border-radius: 50%;
+}
+
+/* Repeating conic gradient */
+.repeating-conic {
+    background: repeating-conic-gradient(
+        #007bff 0deg 10deg,
+        #28a745 10deg 20deg
+    );
+}
+
+.repeating-conic-starburst {
+    background: repeating-conic-gradient(
+        from 0deg,
+        #007bff 0deg 15deg,
+        transparent 15deg 30deg
+    );
+}
+
+/* Practical gradient examples */
+
+/* Hero background */
+.hero-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+/* Button gradient */
+.button-gradient {
+    background: linear-gradient(to bottom, #007bff, #0056b3);
+}
+
+.button-gradient:hover {
+    background: linear-gradient(to bottom, #0069d9, #004085);
+}
+
+/* Card overlay */
+.card-overlay {
+    background: linear-gradient(to top, rgba(0, 0, 0, 0.8), transparent);
+}
+
+/* Progress indicator */
+.progress-conic {
+    background: conic-gradient(
+        #28a745 0deg var(--progress, 0deg),
+        #e9ecef var(--progress, 0deg) 360deg
+    );
+    border-radius: 50%;
+}
+
+/* Mesh gradient effect */
+.mesh-gradient {
+    background:
+        radial-gradient(at 40% 20%, #007bff 0px, transparent 50%),
+        radial-gradient(at 80% 0%, #6f42c1 0px, transparent 50%),
+        radial-gradient(at 0% 50%, #e83e8c 0px, transparent 50%),
+        radial-gradient(at 80% 50%, #fd7e14 0px, transparent 50%),
+        radial-gradient(at 0% 100%, #28a745 0px, transparent 50%),
+        radial-gradient(at 80% 100%, #17a2b8 0px, transparent 50%);
+}

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Attributes - Manual Validation Test</title>
+    <!--
+        Cross Guard Manual Validation Test
+        Category: 03_attributes
+        File: form_attributes.html
+
+        Expected Can I Use IDs:
+          - form-validation: https://caniuse.com/form-validation
+          - input-pattern: https://caniuse.com/input-pattern
+          - input-placeholder: https://caniuse.com/input-placeholder
+          - autofocus: https://caniuse.com/autofocus
+
+        VALIDATION STEPS:
+          1. Load this file in Cross Guard
+          2. Verify features detected: form-validation, input-pattern, input-placeholder, autofocus
+          3. Compare browser support with Can I Use links above
+          4. Record results in CHECKLIST.md
+    -->
+</head>
+<body>
+    <h1>Form Attributes Test</h1>
+    <p>This page tests HTML5 form validation attributes for Cross Guard validation.</p>
+
+    <form id="registration-form">
+        <!-- Feature: autofocus -->
+        <!-- Can I Use: https://caniuse.com/autofocus -->
+        <section>
+            <h2>Autofocus Attribute</h2>
+            <label for="username">Username (autofocus):</label>
+            <input type="text" id="username" name="username" autofocus>
+        </section>
+
+        <!-- Feature: input-placeholder -->
+        <!-- Can I Use: https://caniuse.com/input-placeholder -->
+        <section>
+            <h2>Placeholder Attribute</h2>
+            <label for="full-name">Full Name:</label>
+            <input type="text" id="full-name" name="full-name" placeholder="John Doe">
+
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" placeholder="john@example.com">
+
+            <label for="bio">Bio:</label>
+            <textarea id="bio" name="bio" placeholder="Tell us about yourself..."></textarea>
+        </section>
+
+        <!-- Feature: form-validation (required, min, max) -->
+        <!-- Can I Use: https://caniuse.com/form-validation -->
+        <section>
+            <h2>Required Attribute</h2>
+            <label for="password">Password (required):</label>
+            <input type="password" id="password" name="password" required minlength="8">
+
+            <label for="confirm-password">Confirm Password (required):</label>
+            <input type="password" id="confirm-password" name="confirm-password" required>
+
+            <label for="terms">
+                <input type="checkbox" id="terms" name="terms" required>
+                I accept the terms and conditions
+            </label>
+        </section>
+
+        <section>
+            <h2>Min/Max Attributes</h2>
+            <label for="age">Age (18-100):</label>
+            <input type="number" id="age" name="age" min="18" max="100" required>
+
+            <label for="rating">Rating (1-5):</label>
+            <input type="number" id="rating" name="rating" min="1" max="5" step="0.5">
+
+            <label for="start-date">Start date (min):</label>
+            <input type="date" id="start-date" name="start-date" min="2024-01-01">
+
+            <label for="quantity">Quantity (minlength/maxlength):</label>
+            <input type="text" id="quantity" name="quantity" minlength="1" maxlength="5">
+        </section>
+
+        <!-- Feature: input-pattern -->
+        <!-- Can I Use: https://caniuse.com/input-pattern -->
+        <section>
+            <h2>Pattern Attribute</h2>
+            <label for="phone">Phone (pattern: XXX-XXX-XXXX):</label>
+            <input type="tel" id="phone" name="phone" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}"
+                   placeholder="123-456-7890" title="Format: 123-456-7890">
+
+            <label for="zip">ZIP Code (pattern: 5 digits):</label>
+            <input type="text" id="zip" name="zip" pattern="[0-9]{5}"
+                   placeholder="12345" title="5-digit ZIP code">
+
+            <label for="username-pattern">Username (pattern: alphanumeric):</label>
+            <input type="text" id="username-pattern" name="username-pattern" pattern="[a-zA-Z0-9]+"
+                   placeholder="username123" title="Only letters and numbers allowed">
+
+            <label for="credit-card">Credit Card (pattern):</label>
+            <input type="text" id="credit-card" name="credit-card"
+                   pattern="[0-9]{4}[\s-]?[0-9]{4}[\s-]?[0-9]{4}[\s-]?[0-9]{4}"
+                   placeholder="1234 5678 9012 3456" title="16-digit card number">
+        </section>
+
+        <button type="submit">Submit</button>
+        <button type="reset">Reset</button>
+    </form>
+</body>
+</html>

@@ -1,0 +1,397 @@
+/*
+ * Cross Guard CSS Manual Validation Test
+ * Category: 06_units_values
+ * File: units.css
+ *
+ * Expected Can I Use IDs:
+ *   - rem: https://caniuse.com/rem
+ *   - viewport-units: https://caniuse.com/viewport-units
+ *   - calc: https://caniuse.com/calc
+ *   - css-math-functions: https://caniuse.com/css-math-functions
+ *
+ * VALIDATION STEPS:
+ *   1. Load this file in Cross Guard
+ *   2. Verify features detected: rem, viewport-units, calc, css-math-functions
+ *   3. Compare browser support with Can I Use links above
+ *   4. Record results in CSS_CHECKLIST.md
+ */
+
+/* =============================================
+   Feature: rem
+   Can I Use: https://caniuse.com/rem
+   ============================================= */
+
+/* Root font size */
+:root {
+    font-size: 16px;
+}
+
+/* rem units */
+.text-sm {
+    font-size: 0.875rem;
+}
+
+.text-base {
+    font-size: 1rem;
+}
+
+.text-lg {
+    font-size: 1.125rem;
+}
+
+.text-xl {
+    font-size: 1.25rem;
+}
+
+.text-2xl {
+    font-size: 1.5rem;
+}
+
+.text-3xl {
+    font-size: 2rem;
+}
+
+/* Spacing with rem */
+.spacing-xs {
+    padding: 0.25rem;
+    margin: 0.25rem;
+}
+
+.spacing-sm {
+    padding: 0.5rem;
+    margin: 0.5rem;
+}
+
+.spacing-md {
+    padding: 1rem;
+    margin: 1rem;
+}
+
+.spacing-lg {
+    padding: 1.5rem;
+    margin: 1.5rem;
+}
+
+.spacing-xl {
+    padding: 2rem;
+    margin: 2rem;
+}
+
+/* Border radius with rem */
+.rounded-sm {
+    border-radius: 0.25rem;
+}
+
+.rounded-md {
+    border-radius: 0.5rem;
+}
+
+.rounded-lg {
+    border-radius: 1rem;
+}
+
+/* Gap with rem */
+.gap-1 {
+    gap: 0.25rem;
+}
+
+.gap-2 {
+    gap: 0.5rem;
+}
+
+.gap-4 {
+    gap: 1rem;
+}
+
+/* =============================================
+   Feature: viewport-units
+   Can I Use: https://caniuse.com/viewport-units
+   ============================================= */
+
+/* vh - viewport height */
+.full-height {
+    height: 100vh;
+}
+
+.half-height {
+    height: 50vh;
+}
+
+.min-height-screen {
+    min-height: 100vh;
+}
+
+/* vw - viewport width */
+.full-width {
+    width: 100vw;
+}
+
+.half-width {
+    width: 50vw;
+}
+
+/* vmin - smaller of vw or vh */
+.square-vmin {
+    width: 50vmin;
+    height: 50vmin;
+}
+
+/* vmax - larger of vw or vh */
+.square-vmax {
+    width: 50vmax;
+    height: 50vmax;
+}
+
+/* New viewport units */
+/* svh, svw - small viewport */
+.small-viewport-height {
+    height: 100svh;
+}
+
+.small-viewport-width {
+    width: 100svw;
+}
+
+/* lvh, lvw - large viewport */
+.large-viewport-height {
+    height: 100lvh;
+}
+
+.large-viewport-width {
+    width: 100lvw;
+}
+
+/* dvh, dvw - dynamic viewport */
+.dynamic-viewport-height {
+    height: 100dvh;
+}
+
+.dynamic-viewport-width {
+    width: 100dvw;
+}
+
+/* Font size with viewport units */
+.responsive-text {
+    font-size: 5vw;
+}
+
+.responsive-text-min {
+    font-size: 3vmin;
+}
+
+/* Mixed viewport units */
+.hero-section {
+    min-height: 80vh;
+    padding: 5vw;
+}
+
+/* =============================================
+   Feature: calc
+   Can I Use: https://caniuse.com/calc
+   ============================================= */
+
+/* Basic calc */
+.calc-width {
+    width: calc(100% - 200px);
+}
+
+.calc-height {
+    height: calc(100vh - 60px);
+}
+
+/* calc with multiple operations */
+.calc-complex {
+    width: calc(100% - 2rem - 20px);
+    padding: calc(1rem + 10px);
+}
+
+/* calc with multiplication/division */
+.calc-multiply {
+    width: calc(100% / 3);
+    height: calc(50vh * 0.8);
+}
+
+/* calc with mixed units */
+.calc-mixed {
+    width: calc(50vw - 2rem);
+    margin: calc(1rem + 5px);
+    font-size: calc(1rem + 0.5vw);
+}
+
+/* Nested calc */
+.calc-nested {
+    width: calc(100% - calc(2rem + 20px));
+}
+
+/* calc for positioning */
+.calc-position {
+    top: calc(50% - 100px);
+    left: calc(50% - 150px);
+}
+
+/* calc for responsive sizing */
+.calc-responsive {
+    width: calc(100% - 40px);
+    max-width: calc(1200px - 4rem);
+}
+
+/* =============================================
+   Feature: css-math-functions
+   Can I Use: https://caniuse.com/css-math-functions
+   ============================================= */
+
+/* min() function */
+.min-width {
+    width: min(100%, 800px);
+}
+
+.min-font {
+    font-size: min(5vw, 2rem);
+}
+
+.min-padding {
+    padding: min(5vw, 3rem);
+}
+
+/* max() function */
+.max-width {
+    width: max(300px, 50%);
+}
+
+.max-font {
+    font-size: max(1rem, 2vw);
+}
+
+.max-height {
+    height: max(200px, 30vh);
+}
+
+/* clamp() function */
+.clamp-width {
+    width: clamp(300px, 50%, 800px);
+}
+
+.clamp-font {
+    font-size: clamp(1rem, 2.5vw, 2rem);
+}
+
+.clamp-padding {
+    padding: clamp(1rem, 5vw, 3rem);
+}
+
+/* Practical clamp examples */
+.responsive-heading {
+    font-size: clamp(1.5rem, 4vw, 3rem);
+    line-height: clamp(1.2, 1.1 + 0.5vw, 1.5);
+}
+
+.responsive-body {
+    font-size: clamp(1rem, 1rem + 0.5vw, 1.25rem);
+}
+
+.container-clamp {
+    width: clamp(320px, 90%, 1200px);
+    margin: 0 auto;
+}
+
+/* min/max/clamp combined */
+.complex-sizing {
+    width: min(max(300px, 50%), 800px);
+    padding: clamp(1rem, calc(1rem + 2vw), 3rem);
+}
+
+/* Additional math functions */
+
+/* round() */
+.rounded-value {
+    width: round(100px / 3);
+}
+
+.rounded-up {
+    width: round(up, 100px / 3);
+}
+
+.rounded-down {
+    width: round(down, 100px / 3);
+}
+
+.rounded-nearest {
+    width: round(nearest, 100px / 3);
+}
+
+/* mod() */
+.mod-value {
+    width: mod(100px, 30px);
+}
+
+/* rem() - remainder */
+.rem-value {
+    width: rem(100px, 30px);
+}
+
+/* abs() */
+.abs-value {
+    margin-left: abs(-20px);
+}
+
+/* sign() */
+.sign-based {
+    --offset: -10px;
+    margin-left: calc(sign(var(--offset)) * 20px);
+}
+
+/* Trigonometric functions */
+.sin-value {
+    transform: translateX(calc(sin(45deg) * 100px));
+}
+
+.cos-value {
+    transform: translateY(calc(cos(45deg) * 100px));
+}
+
+.tan-value {
+    transform: rotate(calc(atan(1) * 1rad));
+}
+
+/* Exponential functions */
+.pow-value {
+    width: calc(pow(2, 8) * 1px);
+}
+
+.sqrt-value {
+    width: calc(sqrt(100) * 10px);
+}
+
+.log-value {
+    opacity: calc(log(10) / 3);
+}
+
+.exp-value {
+    transform: scale(calc(exp(0.5)));
+}
+
+/* Practical applications */
+
+/* Fluid typography */
+.fluid-type {
+    font-size: clamp(1rem, 0.5rem + 1vw, 1.5rem);
+}
+
+/* Fluid spacing */
+.fluid-space {
+    padding: clamp(1rem, 2vw, 2rem);
+    gap: clamp(0.5rem, 1vw, 1rem);
+}
+
+/* Responsive container */
+.responsive-container {
+    width: min(100% - 2rem, 75rem);
+    margin-inline: auto;
+}
+
+/* Responsive grid */
+.responsive-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+    gap: clamp(1rem, 3vw, 2rem);
+}

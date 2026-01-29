@@ -1,0 +1,361 @@
+/*
+ * Cross Guard CSS Manual Validation Test
+ * Category: 05_selectors
+ * File: pseudo_classes.css
+ *
+ * Expected Can I Use IDs:
+ *   - css-has: https://caniuse.com/css-has
+ *   - css-matches-pseudo: https://caniuse.com/css-matches-pseudo
+ *   - css-focus-visible: https://caniuse.com/css-focus-visible
+ *
+ * VALIDATION STEPS:
+ *   1. Load this file in Cross Guard
+ *   2. Verify features detected: css-has, css-matches-pseudo, css-focus-visible
+ *   3. Compare browser support with Can I Use links above
+ *   4. Record results in CSS_CHECKLIST.md
+ */
+
+/* =============================================
+   Feature: css-has
+   Can I Use: https://caniuse.com/css-has
+   ============================================= */
+
+/* Parent selector - has child */
+.card:has(.image) {
+    padding-top: 0;
+}
+
+.card:has(.badge) {
+    position: relative;
+}
+
+/* Has with direct child */
+.nav:has(> .dropdown) {
+    padding-right: 20px;
+}
+
+/* Has with descendant */
+.form:has(input:invalid) {
+    border-color: red;
+}
+
+.form:has(input:valid) {
+    border-color: green;
+}
+
+/* Has with multiple selectors */
+.container:has(img, video) {
+    aspect-ratio: 16 / 9;
+}
+
+/* Has with sibling combinator */
+label:has(+ input:required)::after {
+    content: ' *';
+    color: red;
+}
+
+/* Has with attribute selector */
+.link:has([target="_blank"])::after {
+    content: ' ↗';
+}
+
+/* Has with pseudo-classes */
+.list:has(li:hover) {
+    background-color: #f5f5f5;
+}
+
+button:has(:focus) {
+    outline: 2px solid blue;
+}
+
+/* Practical :has() examples */
+
+/* Form validation feedback */
+.form-group:has(input:invalid) .error-message {
+    display: block;
+}
+
+.form-group:has(input:valid) .error-message {
+    display: none;
+}
+
+/* Card with image layout */
+.article:has(.featured-image) .content {
+    padding: 1rem;
+}
+
+.article:not(:has(.featured-image)) .content {
+    padding: 2rem;
+}
+
+/* Navigation with dropdown */
+.nav-item:has(.submenu) > a::after {
+    content: ' ▼';
+    font-size: 0.75em;
+}
+
+/* Table row highlighting */
+tr:has(td input:checked) {
+    background-color: #e6f3ff;
+}
+
+/* =============================================
+   Feature: css-matches-pseudo (:is() and :where())
+   Can I Use: https://caniuse.com/css-matches-pseudo
+   ============================================= */
+
+/* :is() pseudo-class */
+:is(h1, h2, h3, h4, h5, h6) {
+    font-weight: 700;
+    line-height: 1.2;
+}
+
+:is(article, section, aside) p {
+    line-height: 1.6;
+}
+
+:is(.card, .panel, .box) :is(h2, h3) {
+    margin-bottom: 0.5rem;
+}
+
+/* :is() with complex selectors */
+:is(header, footer) :is(nav, .navigation) a {
+    text-decoration: none;
+}
+
+.sidebar :is(ul, ol):is(:not(:first-child)) {
+    margin-top: 1rem;
+}
+
+/* :is() reducing specificity battles */
+:is(.btn-primary, .btn-secondary, .btn-tertiary):hover {
+    opacity: 0.9;
+}
+
+/* :where() pseudo-class (zero specificity) */
+:where(h1, h2, h3, h4, h5, h6) {
+    margin-top: 0;
+}
+
+:where(article, section, aside) :where(p, li) {
+    max-width: 65ch;
+}
+
+:where(.card, .panel) :where(.title, .heading) {
+    font-weight: 600;
+}
+
+/* :where() for reset styles (easy to override) */
+:where(ul, ol) {
+    padding-left: 1.5rem;
+}
+
+:where(button) {
+    cursor: pointer;
+}
+
+:where(img, video) {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Mixed :is() and :where() */
+:is(article, section) :where(h2, h3) {
+    color: #333;
+}
+
+/* Practical :is()/:where() examples */
+
+/* Form styling */
+:is(input, textarea, select):is(:focus, :focus-visible) {
+    outline: 2px solid #007bff;
+    outline-offset: 2px;
+}
+
+:where(input, textarea, select) {
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+}
+
+/* Link styling */
+:is(a, button):is(:hover, :focus) {
+    text-decoration: underline;
+}
+
+/* List styling */
+:is(ul, ol):is(.inline, .horizontal) > li {
+    display: inline-block;
+}
+
+/* =============================================
+   Feature: css-focus-visible
+   Can I Use: https://caniuse.com/css-focus-visible
+   ============================================= */
+
+/* Basic :focus-visible */
+button:focus-visible {
+    outline: 2px solid #007bff;
+    outline-offset: 2px;
+}
+
+a:focus-visible {
+    outline: 2px solid currentColor;
+    outline-offset: 4px;
+}
+
+input:focus-visible {
+    outline: 2px solid #007bff;
+    border-color: #007bff;
+}
+
+/* Remove default :focus when :focus-visible is supported */
+button:focus:not(:focus-visible) {
+    outline: none;
+}
+
+a:focus:not(:focus-visible) {
+    outline: none;
+}
+
+/* Custom focus-visible styling */
+.custom-button:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.5);
+}
+
+.custom-link:focus-visible {
+    outline: none;
+    background-color: rgba(0, 123, 255, 0.1);
+    border-radius: 4px;
+}
+
+/* Form elements with focus-visible */
+.form-input:focus-visible {
+    outline: none;
+    border-color: #007bff;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+}
+
+.form-checkbox:focus-visible {
+    outline: 2px solid #007bff;
+    outline-offset: 2px;
+}
+
+/* Interactive elements */
+.card:focus-visible {
+    outline: 2px solid #007bff;
+    outline-offset: -2px;
+}
+
+.tab:focus-visible {
+    outline: none;
+    background-color: #e6f3ff;
+}
+
+/* Skip link */
+.skip-link:focus-visible {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    padding: 10px 20px;
+    background: #007bff;
+    color: white;
+    z-index: 9999;
+}
+
+/* Additional pseudo-classes for context */
+
+/* :not() */
+.item:not(:last-child) {
+    margin-bottom: 1rem;
+}
+
+:not(pre) > code {
+    background-color: #f5f5f5;
+    padding: 0.125em 0.25em;
+}
+
+/* :first-child, :last-child */
+li:first-child {
+    margin-top: 0;
+}
+
+li:last-child {
+    margin-bottom: 0;
+}
+
+/* :nth-child() */
+tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.grid > *:nth-child(3n) {
+    margin-right: 0;
+}
+
+/* :nth-of-type() */
+p:nth-of-type(1) {
+    font-size: 1.125em;
+}
+
+/* :empty */
+.message:empty {
+    display: none;
+}
+
+/* :target */
+section:target {
+    scroll-margin-top: 80px;
+}
+
+/* :checked */
+input[type="checkbox"]:checked + label {
+    text-decoration: line-through;
+}
+
+/* :disabled, :enabled */
+input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+button:enabled:hover {
+    background-color: #0056b3;
+}
+
+/* :required, :optional */
+input:required {
+    border-left: 3px solid #dc3545;
+}
+
+input:optional {
+    border-left: 3px solid #6c757d;
+}
+
+/* :valid, :invalid */
+input:valid {
+    border-color: #28a745;
+}
+
+input:invalid {
+    border-color: #dc3545;
+}
+
+/* :placeholder-shown */
+input:placeholder-shown {
+    font-style: italic;
+}
+
+/* :autofill */
+input:autofill {
+    background-color: #faffbd;
+}
+
+input:-webkit-autofill {
+    background-color: #faffbd;
+}
+
+/* :indeterminate */
+input[type="checkbox"]:indeterminate {
+    background-color: #6c757d;
+}

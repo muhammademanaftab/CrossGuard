@@ -1,0 +1,315 @@
+/*
+ * Cross Guard CSS Manual Validation Test
+ * Category: 06_units_values
+ * File: variables.css
+ *
+ * Expected Can I Use IDs:
+ *   - css-variables: https://caniuse.com/css-variables
+ *
+ * VALIDATION STEPS:
+ *   1. Load this file in Cross Guard
+ *   2. Verify feature detected: css-variables
+ *   3. Compare browser support with Can I Use link above
+ *   4. Record results in CSS_CHECKLIST.md
+ */
+
+/* =============================================
+   Feature: css-variables
+   Can I Use: https://caniuse.com/css-variables
+   ============================================= */
+
+/* Define CSS custom properties (variables) */
+:root {
+    /* Colors */
+    --color-primary: #007bff;
+    --color-secondary: #6c757d;
+    --color-success: #28a745;
+    --color-danger: #dc3545;
+    --color-warning: #ffc107;
+    --color-info: #17a2b8;
+
+    /* Grayscale */
+    --color-white: #ffffff;
+    --color-gray-100: #f8f9fa;
+    --color-gray-200: #e9ecef;
+    --color-gray-300: #dee2e6;
+    --color-gray-400: #ced4da;
+    --color-gray-500: #adb5bd;
+    --color-gray-600: #6c757d;
+    --color-gray-700: #495057;
+    --color-gray-800: #343a40;
+    --color-gray-900: #212529;
+    --color-black: #000000;
+
+    /* Typography */
+    --font-family-base: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    --font-family-heading: Georgia, 'Times New Roman', serif;
+    --font-family-mono: 'Fira Code', 'Consolas', monospace;
+
+    --font-size-xs: 0.75rem;
+    --font-size-sm: 0.875rem;
+    --font-size-base: 1rem;
+    --font-size-lg: 1.125rem;
+    --font-size-xl: 1.25rem;
+    --font-size-2xl: 1.5rem;
+    --font-size-3xl: 2rem;
+    --font-size-4xl: 2.5rem;
+
+    --font-weight-light: 300;
+    --font-weight-normal: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+
+    --line-height-tight: 1.25;
+    --line-height-normal: 1.5;
+    --line-height-relaxed: 1.75;
+
+    /* Spacing */
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-5: 1.25rem;
+    --space-6: 1.5rem;
+    --space-8: 2rem;
+    --space-10: 2.5rem;
+    --space-12: 3rem;
+    --space-16: 4rem;
+
+    /* Border radius */
+    --radius-sm: 0.25rem;
+    --radius-md: 0.375rem;
+    --radius-lg: 0.5rem;
+    --radius-xl: 1rem;
+    --radius-full: 9999px;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+    --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+    --shadow-xl: 0 20px 25px rgba(0, 0, 0, 0.15);
+
+    /* Transitions */
+    --transition-fast: 150ms ease;
+    --transition-normal: 300ms ease;
+    --transition-slow: 500ms ease;
+
+    /* Z-index */
+    --z-dropdown: 1000;
+    --z-sticky: 1020;
+    --z-fixed: 1030;
+    --z-modal-backdrop: 1040;
+    --z-modal: 1050;
+    --z-popover: 1060;
+    --z-tooltip: 1070;
+}
+
+/* Using CSS variables */
+body {
+    font-family: var(--font-family-base);
+    font-size: var(--font-size-base);
+    line-height: var(--line-height-normal);
+    color: var(--color-gray-900);
+    background-color: var(--color-white);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-family-heading);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-tight);
+}
+
+/* Variables with fallback values */
+.custom-element {
+    color: var(--custom-color, var(--color-primary));
+    padding: var(--custom-padding, var(--space-4));
+    border-radius: var(--custom-radius, var(--radius-md));
+}
+
+/* Nested var() calls */
+.nested-vars {
+    --base-size: var(--font-size-base);
+    --computed-size: calc(var(--base-size) * 1.5);
+    font-size: var(--computed-size);
+}
+
+/* Variables in calc() */
+.calc-with-vars {
+    width: calc(100% - var(--space-8));
+    padding: calc(var(--space-4) + var(--space-2));
+    margin: calc(var(--space-4) * 2);
+}
+
+/* Component-scoped variables */
+.card {
+    --card-padding: var(--space-6);
+    --card-radius: var(--radius-lg);
+    --card-shadow: var(--shadow-md);
+
+    padding: var(--card-padding);
+    border-radius: var(--card-radius);
+    box-shadow: var(--card-shadow);
+}
+
+.card--compact {
+    --card-padding: var(--space-4);
+}
+
+.card--elevated {
+    --card-shadow: var(--shadow-xl);
+}
+
+/* Button with variables */
+.button {
+    --btn-padding-x: var(--space-4);
+    --btn-padding-y: var(--space-2);
+    --btn-font-size: var(--font-size-base);
+    --btn-border-radius: var(--radius-md);
+    --btn-bg-color: var(--color-primary);
+    --btn-text-color: var(--color-white);
+
+    padding: var(--btn-padding-y) var(--btn-padding-x);
+    font-size: var(--btn-font-size);
+    border-radius: var(--btn-border-radius);
+    background-color: var(--btn-bg-color);
+    color: var(--btn-text-color);
+    transition: background-color var(--transition-fast);
+}
+
+.button:hover {
+    --btn-bg-color: #0056b3;
+}
+
+.button--secondary {
+    --btn-bg-color: var(--color-secondary);
+}
+
+.button--success {
+    --btn-bg-color: var(--color-success);
+}
+
+.button--small {
+    --btn-padding-x: var(--space-3);
+    --btn-padding-y: var(--space-1);
+    --btn-font-size: var(--font-size-sm);
+}
+
+.button--large {
+    --btn-padding-x: var(--space-6);
+    --btn-padding-y: var(--space-3);
+    --btn-font-size: var(--font-size-lg);
+}
+
+/* Theme switching with variables */
+.theme-dark {
+    --color-bg: var(--color-gray-900);
+    --color-text: var(--color-gray-100);
+    --color-border: var(--color-gray-700);
+}
+
+.theme-light {
+    --color-bg: var(--color-white);
+    --color-text: var(--color-gray-900);
+    --color-border: var(--color-gray-300);
+}
+
+.themed-element {
+    background-color: var(--color-bg);
+    color: var(--color-text);
+    border-color: var(--color-border);
+}
+
+/* Variables for animation */
+.animated-element {
+    --animation-duration: 0.3s;
+    --animation-easing: ease-in-out;
+
+    transition: transform var(--animation-duration) var(--animation-easing),
+                opacity var(--animation-duration) var(--animation-easing);
+}
+
+/* Variables in media queries (via calc) */
+.responsive-spacing {
+    padding: var(--space-4);
+}
+
+@media (min-width: 768px) {
+    .responsive-spacing {
+        padding: var(--space-6);
+    }
+}
+
+@media (min-width: 1024px) {
+    .responsive-spacing {
+        padding: var(--space-8);
+    }
+}
+
+/* Variables for gradients */
+.gradient-element {
+    --gradient-start: var(--color-primary);
+    --gradient-end: var(--color-info);
+
+    background: linear-gradient(135deg, var(--gradient-start), var(--gradient-end));
+}
+
+/* Variables for complex shadows */
+.multi-shadow {
+    --shadow-color: rgba(0, 0, 0, 0.1);
+
+    box-shadow:
+        0 1px 3px var(--shadow-color),
+        0 4px 6px var(--shadow-color),
+        0 10px 20px var(--shadow-color);
+}
+
+/* Semantic color variables */
+:root {
+    --color-text-primary: var(--color-gray-900);
+    --color-text-secondary: var(--color-gray-600);
+    --color-text-muted: var(--color-gray-500);
+    --color-text-inverse: var(--color-white);
+
+    --color-bg-primary: var(--color-white);
+    --color-bg-secondary: var(--color-gray-100);
+    --color-bg-tertiary: var(--color-gray-200);
+
+    --color-border-default: var(--color-gray-300);
+    --color-border-strong: var(--color-gray-400);
+}
+
+/* Using semantic variables */
+.text-primary {
+    color: var(--color-text-primary);
+}
+
+.text-secondary {
+    color: var(--color-text-secondary);
+}
+
+.bg-primary {
+    background-color: var(--color-bg-primary);
+}
+
+.bg-secondary {
+    background-color: var(--color-bg-secondary);
+}
+
+.border-default {
+    border-color: var(--color-border-default);
+}
+
+/* Variables for aspect ratios */
+.aspect-box {
+    --aspect-ratio: 16 / 9;
+    aspect-ratio: var(--aspect-ratio);
+}
+
+.aspect-box--square {
+    --aspect-ratio: 1;
+}
+
+.aspect-box--portrait {
+    --aspect-ratio: 3 / 4;
+}

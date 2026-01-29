@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Elements - Manual Validation Test</title>
+    <!--
+        Cross Guard Manual Validation Test
+        Category: 01_elements
+        File: form_elements.html
+
+        Expected Can I Use IDs:
+          - datalist: https://caniuse.com/datalist
+          - meter: https://caniuse.com/meter
+          - progress: https://caniuse.com/progress
+
+        VALIDATION STEPS:
+          1. Load this file in Cross Guard
+          2. Verify features detected: datalist, meter, progress
+          3. Compare browser support with Can I Use links above
+          4. Record results in CHECKLIST.md
+    -->
+</head>
+<body>
+    <h1>Form Elements Test</h1>
+    <p>This page tests HTML5 form elements for Cross Guard validation.</p>
+
+    <!-- Feature: datalist -->
+    <!-- Can I Use: https://caniuse.com/datalist -->
+    <section>
+        <h2>Datalist Element</h2>
+
+        <label for="browser">Choose a browser:</label>
+        <input list="browsers" id="browser" name="browser" placeholder="Start typing...">
+        <datalist id="browsers">
+            <option value="Chrome">
+            <option value="Firefox">
+            <option value="Safari">
+            <option value="Edge">
+            <option value="Opera">
+        </datalist>
+
+        <br><br>
+
+        <label for="color">Choose a color:</label>
+        <input list="colors" id="color" name="color">
+        <datalist id="colors">
+            <option value="Red">
+            <option value="Green">
+            <option value="Blue">
+            <option value="Yellow">
+            <option value="Purple">
+        </datalist>
+    </section>
+
+    <!-- Feature: meter -->
+    <!-- Can I Use: https://caniuse.com/meter -->
+    <section>
+        <h2>Meter Element</h2>
+
+        <p>
+            <label for="fuel">Fuel level:</label>
+            <meter id="fuel" min="0" max="100" low="25" high="75" optimum="80" value="60">60%</meter>
+        </p>
+
+        <p>
+            <label for="disk">Disk usage:</label>
+            <meter id="disk" min="0" max="100" low="30" high="80" optimum="20" value="85">85%</meter>
+        </p>
+
+        <p>
+            <label for="battery">Battery:</label>
+            <meter id="battery" value="0.75">75%</meter>
+        </p>
+
+        <p>
+            <label for="score">Score:</label>
+            <meter id="score" min="0" max="10" value="7">7 out of 10</meter>
+        </p>
+    </section>
+
+    <!-- Feature: progress -->
+    <!-- Can I Use: https://caniuse.com/progress -->
+    <section>
+        <h2>Progress Element</h2>
+
+        <p>
+            <label for="download">Download progress:</label>
+            <progress id="download" value="32" max="100">32%</progress>
+        </p>
+
+        <p>
+            <label for="upload">Upload progress:</label>
+            <progress id="upload" value="75" max="100">75%</progress>
+        </p>
+
+        <p>
+            <label for="indeterminate">Loading (indeterminate):</label>
+            <progress id="indeterminate">Loading...</progress>
+        </p>
+
+        <p>
+            <label for="task">Task completion:</label>
+            <progress id="task" value="0.5">50%</progress>
+        </p>
+    </section>
+</body>
+</html>

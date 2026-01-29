@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Accessibility Features - Manual Validation Test</title>
+    <!--
+        Cross Guard Manual Validation Test
+        Category: 05_special_patterns
+        File: accessibility.html
+
+        Expected Can I Use IDs:
+          - wai-aria: https://caniuse.com/wai-aria
+
+        VALIDATION STEPS:
+          1. Load this file in Cross Guard
+          2. Verify feature detected: wai-aria
+          3. Compare browser support with Can I Use link above
+          4. Record results in CHECKLIST.md
+    -->
+</head>
+<body>
+    <h1>Accessibility Features Test</h1>
+    <p>This page tests ARIA attributes for Cross Guard validation.</p>
+
+    <!-- Feature: wai-aria -->
+    <!-- Can I Use: https://caniuse.com/wai-aria -->
+
+    <section aria-labelledby="landmarks-heading">
+        <h2 id="landmarks-heading">ARIA Landmark Roles</h2>
+
+        <header role="banner">
+            <h3>Site Header (role="banner")</h3>
+            <nav role="navigation" aria-label="Main navigation">
+                <ul>
+                    <li><a href="#home">Home</a></li>
+                    <li><a href="#about">About</a></li>
+                    <li><a href="#contact">Contact</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <main role="main">
+            <h3>Main Content (role="main")</h3>
+            <article role="article">
+                <p>Article content here.</p>
+            </article>
+        </main>
+
+        <aside role="complementary" aria-label="Related content">
+            <h3>Sidebar (role="complementary")</h3>
+            <p>Related information.</p>
+        </aside>
+
+        <footer role="contentinfo">
+            <h3>Footer (role="contentinfo")</h3>
+            <p>Copyright information.</p>
+        </footer>
+
+        <form role="search" aria-label="Site search">
+            <input type="search" aria-label="Search query">
+            <button type="submit">Search</button>
+        </form>
+    </section>
+
+    <section aria-labelledby="labels-heading">
+        <h2 id="labels-heading">ARIA Labels and Descriptions</h2>
+
+        <!-- aria-label -->
+        <button aria-label="Close dialog">×</button>
+        <button aria-label="Previous slide">←</button>
+        <button aria-label="Next slide">→</button>
+
+        <!-- aria-labelledby -->
+        <div aria-labelledby="section-title">
+            <h3 id="section-title">Section Title</h3>
+            <p>Content labeled by the heading above.</p>
+        </div>
+
+        <!-- aria-describedby -->
+        <label for="password">Password:</label>
+        <input type="password" id="password" aria-describedby="password-requirements">
+        <p id="password-requirements">Password must be at least 8 characters with one number.</p>
+
+        <!-- aria-description (newer) -->
+        <button aria-description="Opens settings panel in new window">Settings</button>
+    </section>
+
+    <section aria-labelledby="states-heading">
+        <h2 id="states-heading">ARIA States and Properties</h2>
+
+        <!-- aria-hidden -->
+        <div aria-hidden="true">
+            <p>This content is hidden from assistive technologies.</p>
+        </div>
+
+        <!-- aria-expanded -->
+        <button aria-expanded="false" aria-controls="menu-content">
+            Toggle Menu
+        </button>
+        <div id="menu-content" hidden>
+            <ul>
+                <li>Menu Item 1</li>
+                <li>Menu Item 2</li>
+            </ul>
+        </div>
+
+        <!-- aria-selected -->
+        <ul role="tablist">
+            <li role="tab" aria-selected="true">Tab 1</li>
+            <li role="tab" aria-selected="false">Tab 2</li>
+            <li role="tab" aria-selected="false">Tab 3</li>
+        </ul>
+
+        <!-- aria-checked -->
+        <div role="checkbox" aria-checked="false" tabindex="0">
+            Custom Checkbox
+        </div>
+        <div role="checkbox" aria-checked="true" tabindex="0">
+            Checked Checkbox
+        </div>
+        <div role="checkbox" aria-checked="mixed" tabindex="0">
+            Indeterminate Checkbox
+        </div>
+
+        <!-- aria-disabled -->
+        <button aria-disabled="true">Disabled Button</button>
+
+        <!-- aria-pressed (toggle button) -->
+        <button aria-pressed="false">Toggle Bold</button>
+        <button aria-pressed="true">Toggle Italic</button>
+
+        <!-- aria-current -->
+        <nav>
+            <a href="/" aria-current="page">Home</a>
+            <a href="/about">About</a>
+            <a href="/contact">Contact</a>
+        </nav>
+
+        <!-- aria-invalid -->
+        <input type="email" aria-invalid="true" aria-errormessage="email-error">
+        <span id="email-error" role="alert">Please enter a valid email address.</span>
+    </section>
+
+    <section aria-labelledby="live-heading">
+        <h2 id="live-heading">ARIA Live Regions</h2>
+
+        <!-- aria-live -->
+        <div aria-live="polite" aria-atomic="true">
+            Status updates will appear here.
+        </div>
+
+        <div aria-live="assertive">
+            Important alerts appear here.
+        </div>
+
+        <!-- Common live region roles -->
+        <div role="status">Status message</div>
+        <div role="alert">Alert message</div>
+        <div role="log">Log messages</div>
+        <div role="marquee">Scrolling content</div>
+        <div role="timer" aria-live="off">00:00</div>
+
+        <!-- aria-relevant -->
+        <div aria-live="polite" aria-relevant="additions text">
+            Updates for additions and text changes.
+        </div>
+
+        <!-- aria-busy -->
+        <div aria-busy="true" aria-live="polite">
+            Loading content...
+        </div>
+    </section>
+
+    <section aria-labelledby="widgets-heading">
+        <h2 id="widgets-heading">ARIA Widget Roles</h2>
+
+        <!-- Dialog -->
+        <div role="dialog" aria-modal="true" aria-labelledby="dialog-title">
+            <h3 id="dialog-title">Dialog Title</h3>
+            <p>Dialog content here.</p>
+            <button>Close</button>
+        </div>
+
+        <!-- Alertdialog -->
+        <div role="alertdialog" aria-labelledby="alert-title" aria-describedby="alert-desc">
+            <h3 id="alert-title">Confirm Action</h3>
+            <p id="alert-desc">Are you sure you want to delete this item?</p>
+            <button>Yes</button>
+            <button>No</button>
+        </div>
+
+        <!-- Menu -->
+        <div role="menu" aria-label="Actions menu">
+            <div role="menuitem">Edit</div>
+            <div role="menuitem">Copy</div>
+            <div role="menuitem">Delete</div>
+            <div role="separator"></div>
+            <div role="menuitemcheckbox" aria-checked="true">Show Hidden Files</div>
+            <div role="menuitemradio" aria-checked="false">Sort by Name</div>
+            <div role="menuitemradio" aria-checked="true">Sort by Date</div>
+        </div>
+
+        <!-- Slider -->
+        <div role="slider"
+             aria-valuemin="0"
+             aria-valuemax="100"
+             aria-valuenow="50"
+             aria-valuetext="50%"
+             aria-label="Volume"
+             tabindex="0">
+        </div>
+
+        <!-- Progressbar -->
+        <div role="progressbar"
+             aria-valuemin="0"
+             aria-valuemax="100"
+             aria-valuenow="75"
+             aria-label="Download progress">
+            75% complete
+        </div>
+
+        <!-- Tree -->
+        <ul role="tree" aria-label="File browser">
+            <li role="treeitem" aria-expanded="true">
+                Documents
+                <ul role="group">
+                    <li role="treeitem">File 1.txt</li>
+                    <li role="treeitem">File 2.txt</li>
+                </ul>
+            </li>
+            <li role="treeitem" aria-expanded="false">Images</li>
+        </ul>
+
+        <!-- Grid -->
+        <table role="grid" aria-label="Data grid">
+            <thead>
+                <tr role="row">
+                    <th role="columnheader">Name</th>
+                    <th role="columnheader">Value</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr role="row">
+                    <td role="gridcell">Item 1</td>
+                    <td role="gridcell">100</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Listbox -->
+        <div role="listbox" aria-label="Choose color" aria-multiselectable="true">
+            <div role="option" aria-selected="true">Red</div>
+            <div role="option" aria-selected="false">Green</div>
+            <div role="option" aria-selected="false">Blue</div>
+        </div>
+
+        <!-- Combobox -->
+        <div role="combobox"
+             aria-expanded="false"
+             aria-haspopup="listbox"
+             aria-controls="combo-listbox"
+             aria-label="Select country">
+            <input type="text" aria-autocomplete="list">
+        </div>
+        <ul id="combo-listbox" role="listbox" hidden>
+            <li role="option">United States</li>
+            <li role="option">Canada</li>
+            <li role="option">Mexico</li>
+        </ul>
+
+        <!-- Spinbutton -->
+        <div role="spinbutton"
+             aria-valuemin="0"
+             aria-valuemax="10"
+             aria-valuenow="5"
+             aria-label="Quantity"
+             tabindex="0">
+            5
+        </div>
+
+        <!-- Tooltip -->
+        <button aria-describedby="tooltip1">Hover me</button>
+        <div role="tooltip" id="tooltip1">This is a tooltip</div>
+
+        <!-- Switch -->
+        <div role="switch" aria-checked="false" aria-label="Dark mode" tabindex="0">
+            Off
+        </div>
+    </section>
+
+    <section aria-labelledby="relationships-heading">
+        <h2 id="relationships-heading">ARIA Relationships</h2>
+
+        <!-- aria-controls -->
+        <button aria-controls="panel1">Toggle Panel</button>
+        <div id="panel1">Controlled panel content</div>
+
+        <!-- aria-owns -->
+        <div aria-owns="external-content">
+            Parent element
+        </div>
+        <div id="external-content">Content owned by parent</div>
+
+        <!-- aria-flowto -->
+        <div aria-flowto="next-section">
+            Reading flows to next section
+        </div>
+        <div id="next-section">Next section content</div>
+
+        <!-- aria-posinset and aria-setsize -->
+        <ul role="listbox">
+            <li role="option" aria-posinset="1" aria-setsize="100">Item 1</li>
+            <li role="option" aria-posinset="2" aria-setsize="100">Item 2</li>
+            <li role="option" aria-posinset="3" aria-setsize="100">Item 3</li>
+        </ul>
+
+        <!-- aria-level -->
+        <div role="heading" aria-level="2">Custom Heading Level 2</div>
+        <div role="heading" aria-level="3">Custom Heading Level 3</div>
+
+        <!-- aria-colcount, aria-rowcount, aria-colindex, aria-rowindex -->
+        <table role="grid" aria-colcount="15" aria-rowcount="100">
+            <tr role="row" aria-rowindex="1">
+                <td role="gridcell" aria-colindex="1">Cell 1,1</td>
+                <td role="gridcell" aria-colindex="5">Cell 1,5</td>
+                <td role="gridcell" aria-colindex="10">Cell 1,10</td>
+            </tr>
+        </table>
+    </section>
+</body>
+</html>

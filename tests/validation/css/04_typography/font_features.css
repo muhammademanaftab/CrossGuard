@@ -1,0 +1,375 @@
+/*
+ * Cross Guard CSS Manual Validation Test
+ * Category: 04_typography
+ * File: font_features.css
+ *
+ * Expected Can I Use IDs:
+ *   - font-kerning: https://caniuse.com/font-kerning
+ *   - font-feature: https://caniuse.com/font-feature
+ *
+ * VALIDATION STEPS:
+ *   1. Load this file in Cross Guard
+ *   2. Verify features detected: font-kerning, font-feature
+ *   3. Compare browser support with Can I Use links above
+ *   4. Record results in CSS_CHECKLIST.md
+ */
+
+/* =============================================
+   Feature: font-kerning
+   Can I Use: https://caniuse.com/font-kerning
+   ============================================= */
+
+/* Font kerning values */
+.kerning-auto {
+    font-kerning: auto;
+}
+
+.kerning-normal {
+    font-kerning: normal;
+}
+
+.kerning-none {
+    font-kerning: none;
+}
+
+/* Practical kerning examples */
+.display-heading {
+    font-kerning: normal;
+    font-size: 4rem;
+    letter-spacing: -0.02em;
+}
+
+.logo-text {
+    font-kerning: normal;
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.small-caps-text {
+    font-kerning: normal;
+    font-variant: small-caps;
+}
+
+/* =============================================
+   Feature: font-feature
+   Can I Use: https://caniuse.com/font-feature
+   ============================================= */
+
+/* Font feature settings - ligatures */
+.ligatures-common {
+    font-feature-settings: "liga" 1;
+}
+
+.ligatures-discretionary {
+    font-feature-settings: "dlig" 1;
+}
+
+.ligatures-all {
+    font-feature-settings: "liga" 1, "dlig" 1, "clig" 1;
+}
+
+.ligatures-none {
+    font-feature-settings: "liga" 0, "dlig" 0;
+}
+
+/* Font feature settings - numerals */
+.numerals-oldstyle {
+    font-feature-settings: "onum" 1;
+}
+
+.numerals-lining {
+    font-feature-settings: "lnum" 1;
+}
+
+.numerals-tabular {
+    font-feature-settings: "tnum" 1;
+}
+
+.numerals-proportional {
+    font-feature-settings: "pnum" 1;
+}
+
+.numerals-tabular-lining {
+    font-feature-settings: "tnum" 1, "lnum" 1;
+}
+
+.numerals-proportional-oldstyle {
+    font-feature-settings: "pnum" 1, "onum" 1;
+}
+
+/* Font feature settings - fractions */
+.fractions-diagonal {
+    font-feature-settings: "frac" 1;
+}
+
+.fractions-stacked {
+    font-feature-settings: "afrc" 1;
+}
+
+/* Font feature settings - ordinals */
+.ordinals {
+    font-feature-settings: "ordn" 1;
+}
+
+/* Font feature settings - small caps */
+.smcp {
+    font-feature-settings: "smcp" 1;
+}
+
+.c2sc {
+    font-feature-settings: "c2sc" 1;
+}
+
+.all-small-caps {
+    font-feature-settings: "smcp" 1, "c2sc" 1;
+}
+
+/* Font feature settings - stylistic alternates */
+.stylistic-set-1 {
+    font-feature-settings: "ss01" 1;
+}
+
+.stylistic-set-2 {
+    font-feature-settings: "ss02" 1;
+}
+
+.stylistic-set-3 {
+    font-feature-settings: "ss03" 1;
+}
+
+.stylistic-alternates {
+    font-feature-settings: "salt" 1;
+}
+
+/* Font feature settings - swashes */
+.swash {
+    font-feature-settings: "swsh" 1;
+}
+
+.contextual-swash {
+    font-feature-settings: "cswh" 1;
+}
+
+/* Font feature settings - case */
+.case-sensitive {
+    font-feature-settings: "case" 1;
+}
+
+/* Font feature settings - subscript/superscript */
+.subscript {
+    font-feature-settings: "subs" 1;
+}
+
+.superscript {
+    font-feature-settings: "sups" 1;
+}
+
+/* Font feature settings - zero */
+.slashed-zero {
+    font-feature-settings: "zero" 1;
+}
+
+/* Font feature settings - contextual alternates */
+.contextual-alternates {
+    font-feature-settings: "calt" 1;
+}
+
+/* Font feature settings - historical */
+.historical-ligatures {
+    font-feature-settings: "hlig" 1;
+}
+
+.historical-forms {
+    font-feature-settings: "hist" 1;
+}
+
+/* Multiple font features */
+.typography-optimized {
+    font-feature-settings:
+        "kern" 1,
+        "liga" 1,
+        "clig" 1,
+        "calt" 1;
+}
+
+.numbers-in-text {
+    font-feature-settings:
+        "kern" 1,
+        "liga" 1,
+        "onum" 1,
+        "pnum" 1;
+}
+
+.numbers-in-tables {
+    font-feature-settings:
+        "tnum" 1,
+        "lnum" 1,
+        "zero" 1;
+}
+
+.legal-text {
+    font-feature-settings:
+        "liga" 1,
+        "smcp" 1,
+        "onum" 1;
+}
+
+.display-typography {
+    font-feature-settings:
+        "kern" 1,
+        "liga" 1,
+        "dlig" 1,
+        "ss01" 1,
+        "swsh" 1;
+}
+
+/* Font variant properties (CSS Level 3) */
+
+/* font-variant-ligatures */
+.variant-ligatures-common {
+    font-variant-ligatures: common-ligatures;
+}
+
+.variant-ligatures-discretionary {
+    font-variant-ligatures: discretionary-ligatures;
+}
+
+.variant-ligatures-none {
+    font-variant-ligatures: no-common-ligatures;
+}
+
+.variant-ligatures-all {
+    font-variant-ligatures: common-ligatures discretionary-ligatures contextual;
+}
+
+/* font-variant-numeric */
+.variant-numeric-oldstyle {
+    font-variant-numeric: oldstyle-nums;
+}
+
+.variant-numeric-lining {
+    font-variant-numeric: lining-nums;
+}
+
+.variant-numeric-tabular {
+    font-variant-numeric: tabular-nums;
+}
+
+.variant-numeric-proportional {
+    font-variant-numeric: proportional-nums;
+}
+
+.variant-numeric-fractions {
+    font-variant-numeric: diagonal-fractions;
+}
+
+.variant-numeric-stacked {
+    font-variant-numeric: stacked-fractions;
+}
+
+.variant-numeric-ordinal {
+    font-variant-numeric: ordinal;
+}
+
+.variant-numeric-slashed-zero {
+    font-variant-numeric: slashed-zero;
+}
+
+.variant-numeric-combined {
+    font-variant-numeric: tabular-nums lining-nums slashed-zero;
+}
+
+/* font-variant-caps */
+.variant-caps-small {
+    font-variant-caps: small-caps;
+}
+
+.variant-caps-all-small {
+    font-variant-caps: all-small-caps;
+}
+
+.variant-caps-petite {
+    font-variant-caps: petite-caps;
+}
+
+.variant-caps-all-petite {
+    font-variant-caps: all-petite-caps;
+}
+
+.variant-caps-unicase {
+    font-variant-caps: unicase;
+}
+
+.variant-caps-titling {
+    font-variant-caps: titling-caps;
+}
+
+/* font-variant-alternates */
+.variant-alternates-stylistic {
+    font-variant-alternates: stylistic(alt1);
+}
+
+.variant-alternates-swash {
+    font-variant-alternates: swash(ornate);
+}
+
+.variant-alternates-historical {
+    font-variant-alternates: historical-forms;
+}
+
+/* font-variant-position */
+.variant-position-sub {
+    font-variant-position: sub;
+}
+
+.variant-position-super {
+    font-variant-position: super;
+}
+
+/* font-variant-east-asian */
+.variant-east-asian-jis78 {
+    font-variant-east-asian: jis78;
+}
+
+.variant-east-asian-jis83 {
+    font-variant-east-asian: jis83;
+}
+
+.variant-east-asian-ruby {
+    font-variant-east-asian: ruby;
+}
+
+/* font-variant shorthand */
+.font-variant-combined {
+    font-variant: small-caps oldstyle-nums common-ligatures;
+}
+
+/* Practical examples */
+
+/* Price display */
+.price {
+    font-feature-settings: "tnum" 1, "lnum" 1;
+    font-variant-numeric: tabular-nums lining-nums;
+}
+
+/* Date display */
+.date {
+    font-feature-settings: "tnum" 1, "lnum" 1, "zero" 1;
+}
+
+/* Body text */
+.body-text {
+    font-feature-settings: "kern" 1, "liga" 1, "calt" 1;
+    font-variant-ligatures: common-ligatures contextual;
+}
+
+/* Heading */
+.heading {
+    font-kerning: normal;
+    font-feature-settings: "liga" 1, "dlig" 1;
+}
+
+/* Code */
+.code-text {
+    font-feature-settings: "liga" 0, "calt" 0, "zero" 1;
+}

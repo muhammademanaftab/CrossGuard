@@ -1,314 +1,301 @@
-# Manual Validation Checklist
+# HTML Manual Validation Checklist
 
-## Instructions
-
-Mark each item as you complete validation:
-
+## Legend
 - `[ ]` = Not tested
-- `[x]` = Passed (matches caniuse.com)
-- `[!]` = Failed (add notes below)
-- `[~]` = Partial (minor discrepancy)
-
-**Tested by:** **\*\***\_\_\_**\*\***
-**Date started:** **\*\***\_\_\_**\*\***
-**Date completed:** **\*\***\_\_\_**\*\***
-
----
-
-## Summary
-
-| Category            | Files  | Features | Passed | Failed | Partial |
-| ------------------- | ------ | -------- | ------ | ------ | ------- |
-| 01_elements         | 4      | 18       |        |        |         |
-| 02_input_types      | 3      | 12       |        |        |         |
-| 03_attributes       | 3      | 15       |        |        |         |
-| 04_attribute_values | 3      | 12       |        |        |         |
-| 05_special_patterns | 3      | 10       |        |        |         |
-| **TOTAL**           | **16** | **67**   |        |        |         |
+- `[x]` = Passed (feature detected, browser support matches)
+- `[!]` = Failed (see notes for discrepancy details)
 
 ---
 
 ## 01_elements/
 
 ### semantic_elements.html
+**Expected features:** `html5semantic`
 
-**Expected Can I Use IDs:** `html5semantic`
+| Status | Feature | Can I Use URL |
+|--------|---------|---------------|
+| [ ] | html5semantic | https://caniuse.com/html5semantic |
 
-| Feature        | Detected | ID Correct | Support Matches | Status |
-| -------------- | -------- | ---------- | --------------- | ------ |
-| `<main>`       | [ ]      | [ ]        | [ ]             |        |
-| `<section>`    | [ ]      | [ ]        | [ ]             |        |
-| `<article>`    | [ ]      | [ ]        | [ ]             |        |
-| `<aside>`      | [ ]      | [ ]        | [ ]             |        |
-| `<header>`     | [ ]      | [ ]        | [ ]             |        |
-| `<footer>`     | [ ]      | [ ]        | [ ]             |        |
-| `<nav>`        | [ ]      | [ ]        | [ ]             |        |
-| `<figure>`     | [ ]      | [ ]        | [ ]             |        |
-| `<figcaption>` | [ ]      | [ ]        | [ ]             |        |
-| `<time>`       | [ ]      | [ ]        | [ ]             |        |
-| `<mark>`       | [ ]      | [ ]        | [ ]             |        |
+**Elements tested:** main, section, article, aside, header, footer, nav, figure, figcaption, time, mark
 
-**Notes:** **\*\***\_\_\_**\*\***
-In html5 semantic its detecting 2 features
-Html5Semnatic and viewport units. Corrected
+- [ ] All semantic elements detected under `html5semantic`
+- [ ] Browser support matches Can I Use
+- **Notes:** ___
 
 ---
 
 ### media_elements.html
+**Expected features:** `video`, `audio`, `picture`, `canvas`, `webvtt`
 
-**Expected Can I Use IDs:** `video`, `audio`, `picture`, `canvas`, `webvtt`
+| Status | Feature | Can I Use URL |
+|--------|---------|---------------|
+| [ ] | video | https://caniuse.com/video |
+| [ ] | audio | https://caniuse.com/audio |
+| [ ] | picture | https://caniuse.com/picture |
+| [ ] | canvas | https://caniuse.com/canvas |
+| [ ] | webvtt | https://caniuse.com/webvtt |
 
-| Feature            | Detected | ID Correct | Support Matches | Status |
-| ------------------ | -------- | ---------- | --------------- | ------ |
-| `<video>`          | [ ]      | [ ]        | [ ]             |        |
-| `<audio>`          | [ ]      | [ ]        | [ ]             |        |
-| `<picture>`        | [ ]      | [ ]        | [ ]             |        |
-| `<canvas>`         | [ ]      | [ ]        | [ ]             |        |
-| `<track>` (WebVTT) | [ ]      | [ ]        | [ ]             |        |
-
-**Notes:** **\*\***\_\_\_**\*\***
+- [ ] All 5 features detected
+- [ ] Browser support matches for each
+- **Notes:** ___
 
 ---
 
 ### interactive_elements.html
+**Expected features:** `dialog`, `details`, `template`
 
-**Expected Can I Use IDs:** `dialog`, `details`, `template`
+| Status | Feature | Can I Use URL |
+|--------|---------|---------------|
+| [ ] | dialog | https://caniuse.com/dialog |
+| [ ] | details | https://caniuse.com/details |
+| [ ] | template | https://caniuse.com/template |
 
-| Feature      | Detected | ID Correct | Support Matches | Status |
-| ------------ | -------- | ---------- | --------------- | ------ |
-| `<dialog>`   | [ ]      | [ ]        | [ ]             |        |
-| `<details>`  | [ ]      | [ ]        | [ ]             |        |
-| `<summary>`  | [ ]      | [ ]        | [ ]             |        |
-| `<template>` | [ ]      | [ ]        | [ ]             |        |
-
-**Notes:** **\*\***\_\_\_**\*\***
+- [ ] All 3 features detected
+- [ ] Browser support matches for each
+- **Notes:** ___
 
 ---
 
 ### form_elements.html
+**Expected features:** `datalist`, `meter`, `progress`
 
-**Expected Can I Use IDs:** `datalist`, `meter`, `progress`, `output-element`
+| Status | Feature | Can I Use URL |
+|--------|---------|---------------|
+| [ ] | datalist | https://caniuse.com/datalist |
+| [ ] | meter | https://caniuse.com/meter |
+| [ ] | progress | https://caniuse.com/progress |
 
-| Feature      | Detected | ID Correct | Support Matches | Status |
-| ------------ | -------- | ---------- | --------------- | ------ |
-| `<datalist>` | [ ]      | [ ]        | [ ]             |        |
-| `<meter>`    | [ ]      | [ ]        | [ ]             |        |
-| `<progress>` | [ ]      | [ ]        | [ ]             |        |
-| `<output>`   | [ ]      | [ ]        | [ ]             |        |
-
-**Notes:** **\*\***\_\_\_**\*\***
+- [ ] All 3 features detected
+- [ ] Browser support matches for each
+- **Notes:** ___
 
 ---
 
 ## 02_input_types/
 
 ### datetime_inputs.html
+**Expected features:** `input-datetime`
 
-**Expected Can I Use IDs:** `input-datetime`
+| Status | Feature | Can I Use URL |
+|--------|---------|---------------|
+| [ ] | input-datetime | https://caniuse.com/input-datetime |
 
-**Note:** All 5 input types (date, time, datetime-local, month, week) map to the SAME Can I Use feature `input-datetime`. Verify the single feature detection and browser support.
+**Input types tested:** date, datetime-local, time, month, week
 
-| Feature                 | Maps To        | Detected | Support Matches | Status |
-| ----------------------- | -------------- | -------- | --------------- | ------ |
-| `type="date"`           | input-datetime | [ ]      | [ ]             |        |
-| `type="time"`           | input-datetime | [ ]      | [ ]             |        |
-| `type="datetime-local"` | input-datetime | [ ]      | [ ]             |        |
-| `type="month"`          | input-datetime | [ ]      | [ ]             |        |
-| `type="week"`           | input-datetime | [ ]      | [ ]             |        |
-
-**Validation:** If Cross Guard shows "Date/Time Input" (input-datetime), mark all 5 as detected.
-
-**Notes:** \_\_\_
+- [ ] Feature detected
+- [ ] Browser support matches Can I Use
+- **Notes:** ___
 
 ---
 
 ### text_inputs.html
+**Expected features:** `input-email-tel-url`, `input-search`
 
-**Expected Can I Use IDs:** `input-email-tel-url`, `input-search`
+| Status | Feature | Can I Use URL |
+|--------|---------|---------------|
+| [ ] | input-email-tel-url | https://caniuse.com/input-email-tel-url |
+| [ ] | input-search | https://caniuse.com/input-search |
 
-| Feature         | Detected | ID Correct | Support Matches | Status |
-| --------------- | -------- | ---------- | --------------- | ------ |
-| `type="email"`  | [ ]      | [ ]        | [ ]             |        |
-| `type="tel"`    | [ ]      | [ ]        | [ ]             |        |
-| `type="url"`    | [ ]      | [ ]        | [ ]             |        |
-| `type="search"` | [ ]      | [ ]        | [ ]             |        |
+**Input types tested:** email, tel, url, search
 
-**Notes:** **\*\***\_\_\_**\*\***
+- [ ] Both features detected
+- [ ] Browser support matches for each
+- **Notes:** ___
 
 ---
 
 ### other_inputs.html
+**Expected features:** `input-color`, `input-range`, `input-number`, `input-file-accept`
 
-**Expected Can I Use IDs:** `input-color`, `input-range`, `input-number`, `input-file-accept`
+| Status | Feature | Can I Use URL |
+|--------|---------|---------------|
+| [ ] | input-color | https://caniuse.com/input-color |
+| [ ] | input-range | https://caniuse.com/input-range |
+| [ ] | input-number | https://caniuse.com/input-number |
+| [ ] | input-file-accept | https://caniuse.com/input-file-accept |
 
-| Feature                   | Detected | ID Correct | Support Matches | Status |
-| ------------------------- | -------- | ---------- | --------------- | ------ |
-| `type="color"`            | [ ]      | [ ]        | [ ]             |        |
-| `type="range"`            | [ ]      | [ ]        | [ ]             |        |
-| `type="number"`           | [ ]      | [ ]        | [ ]             |        |
-| `type="file"` with accept | [ ]      | [ ]        | [ ]             |        |
-
-**Notes:** **\*\***\_\_\_**\*\***
+- [ ] All 4 features detected
+- [ ] Browser support matches for each
+- **Notes:** ___
 
 ---
 
 ## 03_attributes/
 
 ### form_attributes.html
+**Expected features:** `form-validation`, `input-pattern`, `input-placeholder`, `autofocus`
 
-**Expected Can I Use IDs:** `form-validation`, `input-pattern`, `input-placeholder`, `autofocus`
+| Status | Feature | Can I Use URL |
+|--------|---------|---------------|
+| [ ] | form-validation | https://caniuse.com/form-validation |
+| [ ] | input-pattern | https://caniuse.com/input-pattern |
+| [ ] | input-placeholder | https://caniuse.com/input-placeholder |
+| [ ] | autofocus | https://caniuse.com/autofocus |
 
-| Feature       | Detected | ID Correct | Support Matches | Status |
-| ------------- | -------- | ---------- | --------------- | ------ |
-| `required`    | [ ]      | [ ]        | [ ]             |        |
-| `pattern`     | [ ]      | [ ]        | [ ]             |        |
-| `min`         | [ ]      | [ ]        | [ ]             |        |
-| `max`         | [ ]      | [ ]        | [ ]             |        |
-| `placeholder` | [ ]      | [ ]        | [ ]             |        |
-| `autofocus`   | [ ]      | [ ]        | [ ]             |        |
+**Attributes tested:** required, pattern, min, max, placeholder, autofocus
 
-**Notes:** **\*\***\_\_\_**\*\***
+- [ ] All 4 features detected
+- [ ] Browser support matches for each
+- **Notes:** ___
 
 ---
 
 ### loading_attributes.html
+**Expected features:** `loading-lazy-attr`, `script-async`, `script-defer`, `subresource-integrity`
 
-**Expected Can I Use IDs:** `loading-lazy-attr`, `script-async`, `script-defer`, `subresource-integrity`
+| Status | Feature | Can I Use URL |
+|--------|---------|---------------|
+| [ ] | loading-lazy-attr | https://caniuse.com/loading-lazy-attr |
+| [ ] | script-async | https://caniuse.com/script-async |
+| [ ] | script-defer | https://caniuse.com/script-defer |
+| [ ] | subresource-integrity | https://caniuse.com/subresource-integrity |
 
-| Feature          | Detected | ID Correct | Support Matches | Status |
-| ---------------- | -------- | ---------- | --------------- | ------ |
-| `loading="lazy"` | [ ]      | [ ]        | [ ]             |        |
-| `async`          | [ ]      | [ ]        | [ ]             |        |
-| `defer`          | [ ]      | [ ]        | [ ]             |        |
-| `integrity`      | [ ]      | [ ]        | [ ]             |        |
-| `crossorigin`    | [ ]      | [ ]        | [ ]             |        |
-
-**Notes:** **\*\***\_\_\_**\*\***
+- [ ] All 4 features detected
+- [ ] Browser support matches for each
+- **Notes:** ___
 
 ---
 
 ### content_attributes.html
+**Expected features:** `contenteditable`, `dragndrop`, `hidden`, `download`
 
-**Expected Can I Use IDs:** `contenteditable`, `dragndrop`, `hidden`, `download`
+| Status | Feature | Can I Use URL |
+|--------|---------|---------------|
+| [ ] | contenteditable | https://caniuse.com/contenteditable |
+| [ ] | dragndrop | https://caniuse.com/dragndrop |
+| [ ] | hidden | https://caniuse.com/hidden |
+| [ ] | download | https://caniuse.com/download |
 
-| Feature           | Detected | ID Correct | Support Matches | Status |
-| ----------------- | -------- | ---------- | --------------- | ------ |
-| `contenteditable` | [ ]      | [ ]        | [ ]             |        |
-| `draggable`       | [ ]      | [ ]        | [ ]             |        |
-| `hidden`          | [ ]      | [ ]        | [ ]             |        |
-| `download`        | [ ]      | [ ]        | [ ]             |        |
-| `spellcheck`      | [ ]      | [ ]        | [ ]             |        |
-
-**Notes:** **\*\***\_\_\_**\*\***
+- [ ] All 4 features detected
+- [ ] Browser support matches for each
+- **Notes:** ___
 
 ---
 
 ## 04_attribute_values/
 
 ### rel_values.html
+**Expected features:** `link-rel-preload`, `link-rel-prefetch`, `link-rel-dns-prefetch`, `link-rel-preconnect`, `link-rel-modulepreload`
 
-**Expected Can I Use IDs:** `link-rel-preload`, `link-rel-prefetch`, `link-rel-dns-prefetch`, `link-rel-preconnect`, `link-rel-modulepreload`
+| Status | Feature | Can I Use URL |
+|--------|---------|---------------|
+| [ ] | link-rel-preload | https://caniuse.com/link-rel-preload |
+| [ ] | link-rel-prefetch | https://caniuse.com/link-rel-prefetch |
+| [ ] | link-rel-dns-prefetch | https://caniuse.com/link-rel-dns-prefetch |
+| [ ] | link-rel-preconnect | https://caniuse.com/link-rel-preconnect |
+| [ ] | link-rel-modulepreload | https://caniuse.com/link-rel-modulepreload |
 
-| Feature               | Detected | ID Correct | Support Matches | Status |
-| --------------------- | -------- | ---------- | --------------- | ------ |
-| `rel="preload"`       | [ ]      | [ ]        | [ ]             |        |
-| `rel="prefetch"`      | [ ]      | [ ]        | [ ]             |        |
-| `rel="dns-prefetch"`  | [ ]      | [ ]        | [ ]             |        |
-| `rel="preconnect"`    | [ ]      | [ ]        | [ ]             |        |
-| `rel="modulepreload"` | [ ]      | [ ]        | [ ]             |        |
-
-**Notes:** **\*\***\_\_\_**\*\***
+- [ ] All 5 features detected
+- [ ] Browser support matches for each
+- **Notes:** ___
 
 ---
 
 ### type_values.html
+**Expected features:** `es6-module`, `webm`, `mpeg4`, `mp3`
 
-**Expected Can I Use IDs:** `es6-module`, `webm`, `mpeg4`, `mp3`, `ogg-vorbis`
+| Status | Feature | Can I Use URL |
+|--------|---------|---------------|
+| [ ] | es6-module | https://caniuse.com/es6-module |
+| [ ] | webm | https://caniuse.com/webm |
+| [ ] | mpeg4 | https://caniuse.com/mpeg4 |
+| [ ] | mp3 | https://caniuse.com/mp3 |
 
-| Feature             | Detected | ID Correct | Support Matches | Status |
-| ------------------- | -------- | ---------- | --------------- | ------ |
-| `type="module"`     | [ ]      | [ ]        | [ ]             |        |
-| `type="video/webm"` | [ ]      | [ ]        | [ ]             |        |
-| `type="video/mp4"`  | [ ]      | [ ]        | [ ]             |        |
-| `type="audio/mpeg"` | [ ]      | [ ]        | [ ]             |        |
-| `type="audio/ogg"`  | [ ]      | [ ]        | [ ]             |        |
-
-**Notes:** **\*\***\_\_\_**\*\***
+- [ ] All 4 features detected
+- [ ] Browser support matches for each
+- **Notes:** ___
 
 ---
 
 ### referrerpolicy_values.html
+**Expected features:** `referrer-policy`
 
-**Expected Can I Use IDs:** `referrer-policy`
+| Status | Feature | Can I Use URL |
+|--------|---------|---------------|
+| [ ] | referrer-policy | https://caniuse.com/referrer-policy |
 
-| Feature                          | Detected | ID Correct | Support Matches | Status |
-| -------------------------------- | -------- | ---------- | --------------- | ------ |
-| `referrerpolicy="no-referrer"`   | [ ]      | [ ]        | [ ]             |        |
-| `referrerpolicy="origin"`        | [ ]      | [ ]        | [ ]             |        |
-| `referrerpolicy="strict-origin"` | [ ]      | [ ]        | [ ]             |        |
-| `referrerpolicy="same-origin"`   | [ ]      | [ ]        | [ ]             |        |
+**Values tested:** no-referrer, no-referrer-when-downgrade, origin, origin-when-cross-origin, same-origin, strict-origin, strict-origin-when-cross-origin, unsafe-url
 
-**Notes:** **\*\***\_\_\_**\*\***
+- [ ] Feature detected
+- [ ] Browser support matches Can I Use
+- **Notes:** ___
 
 ---
 
 ## 05_special_patterns/
 
 ### responsive_images.html
+**Expected features:** `srcset`, `picture`
 
-**Expected Can I Use IDs:** `srcset`, `picture`
+| Status | Feature | Can I Use URL |
+|--------|---------|---------------|
+| [ ] | srcset | https://caniuse.com/srcset |
+| [ ] | picture | https://caniuse.com/picture |
 
-| Feature               | Detected | ID Correct | Support Matches | Status |
-| --------------------- | -------- | ---------- | --------------- | ------ |
-| `srcset` attribute    | [ ]      | [ ]        | [ ]             |        |
-| `sizes` attribute     | [ ]      | [ ]        | [ ]             |        |
-| `<picture>` element   | [ ]      | [ ]        | [ ]             |        |
-| `<source>` in picture | [ ]      | [ ]        | [ ]             |        |
-
-**Notes:** **\*\***\_\_\_**\*\***
+- [ ] Both features detected
+- [ ] Browser support matches for each
+- **Notes:** ___
 
 ---
 
 ### accessibility.html
+**Expected features:** `wai-aria`
 
-**Expected Can I Use IDs:** `wai-aria`
+| Status | Feature | Can I Use URL |
+|--------|---------|---------------|
+| [ ] | wai-aria | https://caniuse.com/wai-aria |
 
-| Feature            | Detected | ID Correct | Support Matches | Status |
-| ------------------ | -------- | ---------- | --------------- | ------ |
-| `role` attribute   | [ ]      | [ ]        | [ ]             |        |
-| `aria-label`       | [ ]      | [ ]        | [ ]             |        |
-| `aria-hidden`      | [ ]      | [ ]        | [ ]             |        |
-| `aria-describedby` | [ ]      | [ ]        | [ ]             |        |
+**ARIA attributes tested:** role, aria-label, aria-labelledby, aria-describedby, aria-hidden, aria-expanded, aria-controls, aria-live
 
-**Notes:** **\*\***\_\_\_**\*\***
+- [ ] Feature detected
+- [ ] Browser support matches Can I Use
+- **Notes:** ___
 
 ---
 
 ### media_formats.html
+**Expected features:** `webm`, `webp`, `avif`, `heif`
 
-**Expected Can I Use IDs:** `webm`, `webp`, `avif`, `heif`
+| Status | Feature | Can I Use URL |
+|--------|---------|---------------|
+| [ ] | webm | https://caniuse.com/webm |
+| [ ] | webp | https://caniuse.com/webp |
+| [ ] | avif | https://caniuse.com/avif |
+| [ ] | heif | https://caniuse.com/heif |
 
-| Feature           | Detected | ID Correct | Support Matches | Status |
-| ----------------- | -------- | ---------- | --------------- | ------ |
-| WebM video format | [ ]      | [ ]        | [ ]             |        |
-| WebP image format | [ ]      | [ ]        | [ ]             |        |
-| AVIF image format | [ ]      | [ ]        | [ ]             |        |
-| HEIF image format | [ ]      | [ ]        | [ ]             |        |
-
-**Notes:** **\*\***\_\_\_**\*\***
+- [ ] All 4 features detected
+- [ ] Browser support matches for each
+- **Notes:** ___
 
 ---
 
-## Final Verification
+## Summary
 
-- [ ] All 16 HTML test files processed in Cross Guard
-- [ ] All features marked in checklist above
-- [ ] Discrepancies documented in notes
-- [ ] Results logged in `results/validation_log.md`
-- [ ] Summary table at top updated with counts
+### Total Features to Validate
 
-## Sign-off
+| Category | Files | Features |
+|----------|-------|----------|
+| 01_elements | 4 | 12 |
+| 02_input_types | 3 | 7 |
+| 03_attributes | 3 | 12 |
+| 04_attribute_values | 3 | 10 |
+| 05_special_patterns | 3 | 7 |
+| **Total** | **16** | **48** |
 
-**Validation completed:** [ ] Yes [ ] No
-**Overall accuracy:** **\_**%
-**Comments:** **\*\***\_\_\_**\*\***
+### Validation Progress
+
+- [ ] 01_elements complete
+- [ ] 02_input_types complete
+- [ ] 03_attributes complete
+- [ ] 04_attribute_values complete
+- [ ] 05_special_patterns complete
+
+### Final Results
+
+- **Total features tested:** ___
+- **Features passed:** ___
+- **Features failed:** ___
+- **Accuracy:** ___%
+
+**Validated by:** ___
+**Date:** ___

@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rel Values - Manual Validation Test</title>
+    <!--
+        Cross Guard Manual Validation Test
+        Category: 04_attribute_values
+        File: rel_values.html
+
+        Expected Can I Use IDs:
+          - link-rel-preload: https://caniuse.com/link-rel-preload
+          - link-rel-prefetch: https://caniuse.com/link-rel-prefetch
+          - link-rel-dns-prefetch: https://caniuse.com/link-rel-dns-prefetch
+          - link-rel-preconnect: https://caniuse.com/link-rel-preconnect
+          - link-rel-modulepreload: https://caniuse.com/link-rel-modulepreload
+
+        VALIDATION STEPS:
+          1. Load this file in Cross Guard
+          2. Verify features detected: link-rel-preload, link-rel-prefetch, link-rel-dns-prefetch, link-rel-preconnect, link-rel-modulepreload
+          3. Compare browser support with Can I Use links above
+          4. Record results in CHECKLIST.md
+    -->
+
+    <!-- Feature: link-rel-dns-prefetch -->
+    <!-- Can I Use: https://caniuse.com/link-rel-dns-prefetch -->
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link rel="dns-prefetch" href="//cdn.example.com">
+    <link rel="dns-prefetch" href="//api.example.com">
+
+    <!-- Feature: link-rel-preconnect -->
+    <!-- Can I Use: https://caniuse.com/link-rel-preconnect -->
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link rel="preconnect" href="https://cdn.example.com" crossorigin>
+    <link rel="preconnect" href="https://api.example.com" crossorigin="anonymous">
+
+    <!-- Feature: link-rel-preload -->
+    <!-- Can I Use: https://caniuse.com/link-rel-preload -->
+    <link rel="preload" href="critical.css" as="style">
+    <link rel="preload" href="hero-image.webp" as="image">
+    <link rel="preload" href="main-font.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="preload" href="app.js" as="script">
+    <link rel="preload" href="data.json" as="fetch" crossorigin>
+
+    <!-- Feature: link-rel-prefetch -->
+    <!-- Can I Use: https://caniuse.com/link-rel-prefetch -->
+    <link rel="prefetch" href="next-page.html">
+    <link rel="prefetch" href="gallery-images.js">
+    <link rel="prefetch" href="secondary-styles.css">
+
+    <!-- Feature: link-rel-modulepreload -->
+    <!-- Can I Use: https://caniuse.com/link-rel-modulepreload -->
+    <link rel="modulepreload" href="main-module.mjs">
+    <link rel="modulepreload" href="components/header.mjs">
+    <link rel="modulepreload" href="utils/helpers.mjs">
+
+    <!-- Regular stylesheet links for comparison -->
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h1>Rel Attribute Values Test</h1>
+    <p>This page tests various rel attribute values for Cross Guard validation.</p>
+
+    <section>
+        <h2>Resource Hints (in head)</h2>
+        <p>The following resource hints are used in this page (see page source):</p>
+
+        <h3>dns-prefetch</h3>
+        <ul>
+            <li><code>rel="dns-prefetch"</code> - fonts.googleapis.com</li>
+            <li><code>rel="dns-prefetch"</code> - cdn.example.com</li>
+            <li><code>rel="dns-prefetch"</code> - api.example.com</li>
+        </ul>
+
+        <h3>preconnect</h3>
+        <ul>
+            <li><code>rel="preconnect"</code> - fonts.gstatic.com</li>
+            <li><code>rel="preconnect"</code> - cdn.example.com (with crossorigin)</li>
+            <li><code>rel="preconnect"</code> - api.example.com (with crossorigin="anonymous")</li>
+        </ul>
+
+        <h3>preload</h3>
+        <ul>
+            <li><code>rel="preload" as="style"</code> - critical.css</li>
+            <li><code>rel="preload" as="image"</code> - hero-image.webp</li>
+            <li><code>rel="preload" as="font"</code> - main-font.woff2</li>
+            <li><code>rel="preload" as="script"</code> - app.js</li>
+            <li><code>rel="preload" as="fetch"</code> - data.json</li>
+        </ul>
+
+        <h3>prefetch</h3>
+        <ul>
+            <li><code>rel="prefetch"</code> - next-page.html</li>
+            <li><code>rel="prefetch"</code> - gallery-images.js</li>
+            <li><code>rel="prefetch"</code> - secondary-styles.css</li>
+        </ul>
+
+        <h3>modulepreload</h3>
+        <ul>
+            <li><code>rel="modulepreload"</code> - main-module.mjs</li>
+            <li><code>rel="modulepreload"</code> - components/header.mjs</li>
+            <li><code>rel="modulepreload"</code> - utils/helpers.mjs</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>Navigation Links</h2>
+        <p>These use standard navigation-related rel values:</p>
+
+        <a href="index.html" rel="home">Home</a>
+        <a href="prev.html" rel="prev">Previous Page</a>
+        <a href="next.html" rel="next">Next Page</a>
+        <a href="https://external.com" rel="noopener noreferrer">External Link</a>
+        <a href="author.html" rel="author">About the Author</a>
+    </section>
+</body>
+</html>
