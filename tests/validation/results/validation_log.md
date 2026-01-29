@@ -1,84 +1,50 @@
-# Manual Validation Log
+# Validation Log
 
-This file records the results of manual validation tests performed against the Can I Use website.
+This file records detailed results from manual validation testing.
 
-## Log Format
+## Format
 
-```
-## [Date] - [Tester Name]
-
-### File: [filename]
-- Features Detected: [count]
-- Expected Features: [list]
-- Discrepancies: [none/list]
-- Browser Support Accuracy: [percentage]
-- Notes: [any observations]
-```
+For each test session, record:
+- Date and time
+- Files tested
+- Features detected
+- Discrepancies found
+- Screenshots (if applicable)
 
 ---
 
-## Validation Sessions
+## Test Sessions
 
-<!-- Add your validation sessions below -->
-
-### Template Entry
+### Session Template
 
 ```markdown
-## YYYY-MM-DD - [Your Name]
+## Session: YYYY-MM-DD
 
-### File: 01_elements/semantic_elements.html
-- Features Detected: X
-- Expected Features: html5semantic
-- Features Found:
-  - [ ] html5semantic - Detected: Yes/No, Support Match: Yes/No
-- Discrepancies: None / [describe any issues]
-- Notes: [any observations]
+### Files Tested
+- [ ] file1.html
+- [ ] file2.css
 
-### File: 01_elements/media_elements.html
-- Features Detected: X
-- Expected Features: video, audio, picture, canvas, webvtt
-- Features Found:
-  - [ ] video - Detected: Yes/No, Support Match: Yes/No
-  - [ ] audio - Detected: Yes/No, Support Match: Yes/No
-  - [ ] picture - Detected: Yes/No, Support Match: Yes/No
-  - [ ] canvas - Detected: Yes/No, Support Match: Yes/No
-  - [ ] webvtt - Detected: Yes/No, Support Match: Yes/No
-- Discrepancies: None / [describe any issues]
-- Notes: [any observations]
+### Results
+
+#### file1.html
+- **Features detected:** feature1, feature2
+- **Expected features:** feature1, feature2, feature3
+- **Missing features:** feature3
+- **Discrepancies:**
+  - feature1: Expected Chrome 90+, got Chrome 88+
+
+#### file2.css
+- **Features detected:** ...
+- **Discrepancies:** None
+
+### Notes
+Additional observations...
 ```
 
 ---
 
-## Summary Statistics
+## Sessions
 
-| Metric | Value |
-|--------|-------|
-| Total Files Tested | 0/16 |
-| Total Features Validated | 0/67 |
-| Features Matching Can I Use | 0 |
-| Features with Discrepancies | 0 |
-| Overall Accuracy | 0% |
+(Add your test sessions below)
 
 ---
-
-## Known Issues
-
-<!-- Document any consistent issues found during validation -->
-
-1. _None recorded yet_
-
----
-
-## Recommendations
-
-<!-- Document any recommendations for improving Cross Guard based on validation -->
-
-1. _None recorded yet_
-
----
-
-## Changelog
-
-| Date | Tester | Action |
-|------|--------|--------|
-| | | Initial log file created |

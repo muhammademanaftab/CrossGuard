@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Content Attributes - Manual Validation Test</title>
+    <!--
+        Cross Guard Manual Validation Test
+        Category: 03_attributes
+        File: content_attributes.html
+
+        Expected Can I Use IDs:
+          - contenteditable: https://caniuse.com/contenteditable
+          - dragndrop: https://caniuse.com/dragndrop
+          - hidden: https://caniuse.com/hidden
+          - download: https://caniuse.com/download
+
+        VALIDATION STEPS:
+          1. Load this file in Cross Guard
+          2. Verify features detected: contenteditable, dragndrop, hidden, download
+          3. Compare browser support with Can I Use links above
+          4. Record results in CHECKLIST.md
+    -->
+    <style>
+        .editable {
+            border: 1px dashed #ccc;
+            padding: 10px;
+            min-height: 50px;
+        }
+        .draggable {
+            padding: 10px;
+            margin: 5px;
+            background: #007bff;
+            color: white;
+            cursor: move;
+            display: inline-block;
+        }
+        .dropzone {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            min-height: 100px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Content Attributes Test</h1>
+    <p>This page tests HTML5 content attributes for Cross Guard validation.</p>
+
+    <!-- Feature: contenteditable -->
+    <!-- Can I Use: https://caniuse.com/contenteditable -->
+    <section>
+        <h2>Contenteditable Attribute</h2>
+
+        <div contenteditable="true" class="editable">
+            <p>This div is editable. Click here and start typing!</p>
+        </div>
+
+        <p contenteditable="true" class="editable">This paragraph is editable.</p>
+
+        <div contenteditable="false">
+            <p>This content is NOT editable (contenteditable="false").</p>
+        </div>
+
+        <div>
+            <h3 contenteditable="true">Editable Heading</h3>
+            <ul contenteditable="true">
+                <li>Editable list item 1</li>
+                <li>Editable list item 2</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- Feature: dragndrop -->
+    <!-- Can I Use: https://caniuse.com/dragndrop -->
+    <section>
+        <h2>Drag and Drop Attributes</h2>
+
+        <p>Draggable elements:</p>
+        <div draggable="true" class="draggable" id="drag1">Drag me 1</div>
+        <div draggable="true" class="draggable" id="drag2">Drag me 2</div>
+        <div draggable="true" class="draggable" id="drag3">Drag me 3</div>
+
+        <p>Not draggable:</p>
+        <div draggable="false" class="draggable" style="background: #6c757d;">Can't drag me</div>
+
+        <p>Drop zone:</p>
+        <div class="dropzone" id="dropzone">Drop items here</div>
+
+        <img src="draggable-image.jpg" alt="Draggable image" draggable="true" width="100" height="100">
+    </section>
+
+    <!-- Feature: hidden -->
+    <!-- Can I Use: https://caniuse.com/hidden -->
+    <section>
+        <h2>Hidden Attribute</h2>
+
+        <p>The following elements are hidden:</p>
+
+        <div hidden>
+            <p>This div is hidden and should not be visible.</p>
+        </div>
+
+        <p hidden>This paragraph is hidden.</p>
+
+        <span hidden>Hidden span content</span>
+
+        <template>
+            <div hidden>Hidden content inside template</div>
+        </template>
+
+        <button id="toggleHidden">Toggle Hidden Element</button>
+        <div id="toggleTarget" hidden>
+            <p>I was hidden, but now I might be visible!</p>
+        </div>
+
+        <script>
+            document.getElementById('toggleHidden').addEventListener('click', function() {
+                const target = document.getElementById('toggleTarget');
+                target.hidden = !target.hidden;
+            });
+        </script>
+    </section>
+
+    <!-- Feature: download -->
+    <!-- Can I Use: https://caniuse.com/download -->
+    <section>
+        <h2>Download Attribute</h2>
+
+        <p>Links with download attribute:</p>
+
+        <a href="document.pdf" download>Download PDF (default name)</a>
+        <br><br>
+
+        <a href="report.pdf" download="annual-report-2024.pdf">Download PDF (custom name)</a>
+        <br><br>
+
+        <a href="image.png" download="photo.png">Download Image</a>
+        <br><br>
+
+        <a href="data.csv" download="export-data.csv">Download CSV Data</a>
+        <br><br>
+
+        <a href="archive.zip" download>Download ZIP Archive</a>
+        <br><br>
+
+        <!-- Download with blob URL -->
+        <a id="blobDownload" download="generated-file.txt">Download Generated File</a>
+    </section>
+</body>
+</html>

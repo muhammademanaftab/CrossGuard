@@ -1,0 +1,405 @@
+/*
+ * Cross Guard CSS Manual Validation Test
+ * Category: 03_colors_backgrounds
+ * File: filters_blend.css
+ *
+ * Expected Can I Use IDs:
+ *   - css-filters: https://caniuse.com/css-filters
+ *   - css-backdrop-filter: https://caniuse.com/css-backdrop-filter
+ *   - css-mixblendmode: https://caniuse.com/css-mixblendmode
+ *
+ * VALIDATION STEPS:
+ *   1. Load this file in Cross Guard
+ *   2. Verify features detected: css-filters, css-backdrop-filter, css-mixblendmode
+ *   3. Compare browser support with Can I Use links above
+ *   4. Record results in CSS_CHECKLIST.md
+ */
+
+/* =============================================
+   Feature: css-filters
+   Can I Use: https://caniuse.com/css-filters
+   ============================================= */
+
+/* Blur filter */
+.filter-blur {
+    filter: blur(5px);
+}
+
+.filter-blur-small {
+    filter: blur(2px);
+}
+
+.filter-blur-large {
+    filter: blur(10px);
+}
+
+/* Brightness filter */
+.filter-brightness-dim {
+    filter: brightness(0.5);
+}
+
+.filter-brightness-normal {
+    filter: brightness(1);
+}
+
+.filter-brightness-bright {
+    filter: brightness(1.5);
+}
+
+.filter-brightness-percent {
+    filter: brightness(150%);
+}
+
+/* Contrast filter */
+.filter-contrast-low {
+    filter: contrast(0.5);
+}
+
+.filter-contrast-high {
+    filter: contrast(1.5);
+}
+
+.filter-contrast-percent {
+    filter: contrast(200%);
+}
+
+/* Grayscale filter */
+.filter-grayscale-full {
+    filter: grayscale(100%);
+}
+
+.filter-grayscale-partial {
+    filter: grayscale(50%);
+}
+
+.filter-grayscale-number {
+    filter: grayscale(1);
+}
+
+/* Sepia filter */
+.filter-sepia-full {
+    filter: sepia(100%);
+}
+
+.filter-sepia-partial {
+    filter: sepia(50%);
+}
+
+.filter-sepia-number {
+    filter: sepia(0.8);
+}
+
+/* Saturate filter */
+.filter-saturate-desaturate {
+    filter: saturate(0.5);
+}
+
+.filter-saturate-oversaturate {
+    filter: saturate(2);
+}
+
+.filter-saturate-percent {
+    filter: saturate(200%);
+}
+
+/* Hue rotate filter */
+.filter-hue-rotate-90 {
+    filter: hue-rotate(90deg);
+}
+
+.filter-hue-rotate-180 {
+    filter: hue-rotate(180deg);
+}
+
+.filter-hue-rotate-negative {
+    filter: hue-rotate(-45deg);
+}
+
+/* Invert filter */
+.filter-invert-full {
+    filter: invert(100%);
+}
+
+.filter-invert-partial {
+    filter: invert(50%);
+}
+
+.filter-invert-number {
+    filter: invert(1);
+}
+
+/* Opacity filter */
+.filter-opacity-half {
+    filter: opacity(50%);
+}
+
+.filter-opacity-number {
+    filter: opacity(0.5);
+}
+
+/* Drop shadow filter */
+.filter-drop-shadow {
+    filter: drop-shadow(2px 4px 6px rgba(0, 0, 0, 0.5));
+}
+
+.filter-drop-shadow-color {
+    filter: drop-shadow(4px 4px 8px #007bff);
+}
+
+.filter-drop-shadow-no-blur {
+    filter: drop-shadow(5px 5px 0 black);
+}
+
+/* Multiple filters */
+.filter-multiple {
+    filter: brightness(1.2) contrast(1.1) saturate(1.3);
+}
+
+.filter-complex {
+    filter: blur(1px) brightness(1.1) contrast(1.2) grayscale(20%) hue-rotate(10deg);
+}
+
+/* Filter: none */
+.filter-none {
+    filter: none;
+}
+
+/* Practical filter examples */
+
+/* Image hover effect */
+.image-filter {
+    filter: grayscale(100%);
+    transition: filter 0.3s ease;
+}
+
+.image-filter:hover {
+    filter: grayscale(0%);
+}
+
+/* Disabled state */
+.disabled-element {
+    filter: grayscale(100%) opacity(50%);
+    pointer-events: none;
+}
+
+/* Vintage photo effect */
+.vintage-photo {
+    filter: sepia(60%) contrast(1.1) brightness(0.9) saturate(0.8);
+}
+
+/* Dark overlay effect */
+.dark-overlay {
+    filter: brightness(0.4);
+}
+
+/* =============================================
+   Feature: css-backdrop-filter
+   Can I Use: https://caniuse.com/css-backdrop-filter
+   ============================================= */
+
+/* Backdrop blur */
+.backdrop-blur {
+    backdrop-filter: blur(10px);
+}
+
+.backdrop-blur-small {
+    backdrop-filter: blur(4px);
+}
+
+.backdrop-blur-large {
+    backdrop-filter: blur(20px);
+}
+
+/* Backdrop brightness */
+.backdrop-brightness {
+    backdrop-filter: brightness(0.8);
+}
+
+/* Backdrop contrast */
+.backdrop-contrast {
+    backdrop-filter: contrast(1.2);
+}
+
+/* Backdrop grayscale */
+.backdrop-grayscale {
+    backdrop-filter: grayscale(100%);
+}
+
+/* Backdrop sepia */
+.backdrop-sepia {
+    backdrop-filter: sepia(50%);
+}
+
+/* Backdrop saturate */
+.backdrop-saturate {
+    backdrop-filter: saturate(1.5);
+}
+
+/* Backdrop hue-rotate */
+.backdrop-hue-rotate {
+    backdrop-filter: hue-rotate(90deg);
+}
+
+/* Backdrop invert */
+.backdrop-invert {
+    backdrop-filter: invert(100%);
+}
+
+/* Multiple backdrop filters */
+.backdrop-multiple {
+    backdrop-filter: blur(10px) brightness(0.9) saturate(1.2);
+}
+
+/* Practical backdrop-filter examples */
+
+/* Glassmorphism card */
+.glass-card {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 16px;
+}
+
+/* Frosted glass header */
+.frosted-header {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(20px);
+}
+
+/* Modal overlay */
+.modal-backdrop {
+    background: rgba(0, 0, 0, 0.3);
+    backdrop-filter: blur(5px);
+}
+
+/* Navigation blur */
+.nav-blur {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(8px) saturate(180%);
+}
+
+/* =============================================
+   Feature: css-mixblendmode
+   Can I Use: https://caniuse.com/css-mixblendmode
+   ============================================= */
+
+/* Mix blend modes */
+.blend-normal {
+    mix-blend-mode: normal;
+}
+
+.blend-multiply {
+    mix-blend-mode: multiply;
+}
+
+.blend-screen {
+    mix-blend-mode: screen;
+}
+
+.blend-overlay {
+    mix-blend-mode: overlay;
+}
+
+.blend-darken {
+    mix-blend-mode: darken;
+}
+
+.blend-lighten {
+    mix-blend-mode: lighten;
+}
+
+.blend-color-dodge {
+    mix-blend-mode: color-dodge;
+}
+
+.blend-color-burn {
+    mix-blend-mode: color-burn;
+}
+
+.blend-hard-light {
+    mix-blend-mode: hard-light;
+}
+
+.blend-soft-light {
+    mix-blend-mode: soft-light;
+}
+
+.blend-difference {
+    mix-blend-mode: difference;
+}
+
+.blend-exclusion {
+    mix-blend-mode: exclusion;
+}
+
+.blend-hue {
+    mix-blend-mode: hue;
+}
+
+.blend-saturation {
+    mix-blend-mode: saturation;
+}
+
+.blend-color {
+    mix-blend-mode: color;
+}
+
+.blend-luminosity {
+    mix-blend-mode: luminosity;
+}
+
+/* Background blend modes */
+.bg-blend-multiply {
+    background-blend-mode: multiply;
+}
+
+.bg-blend-screen {
+    background-blend-mode: screen;
+}
+
+.bg-blend-overlay {
+    background-blend-mode: overlay;
+}
+
+.bg-blend-color {
+    background-blend-mode: color;
+}
+
+/* Multiple background blend modes */
+.bg-blend-multiple {
+    background-blend-mode: multiply, screen, overlay;
+}
+
+/* Practical blend mode examples */
+
+/* Duotone image effect */
+.duotone-image {
+    background-color: #007bff;
+    background-blend-mode: multiply;
+}
+
+/* Color overlay on image */
+.color-overlay-image {
+    background-color: rgba(0, 123, 255, 0.5);
+    background-blend-mode: overlay;
+}
+
+/* Text knockout effect */
+.knockout-text {
+    mix-blend-mode: difference;
+    color: white;
+}
+
+/* Decorative blend */
+.decorative-blend {
+    mix-blend-mode: screen;
+}
+
+/* Isolation for blend modes */
+.isolated-blend {
+    isolation: isolate;
+}
+
+.isolated-blend .child {
+    mix-blend-mode: multiply;
+}

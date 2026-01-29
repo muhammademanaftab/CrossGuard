@@ -1,0 +1,286 @@
+/*
+ * Cross Guard CSS Manual Validation Test
+ * Category: 02_transforms_animation
+ * File: transforms.css
+ *
+ * Expected Can I Use IDs:
+ *   - transforms2d: https://caniuse.com/transforms2d
+ *   - transforms3d: https://caniuse.com/transforms3d
+ *
+ * VALIDATION STEPS:
+ *   1. Load this file in Cross Guard
+ *   2. Verify features detected: transforms2d, transforms3d
+ *   3. Compare browser support with Can I Use links above
+ *   4. Record results in CSS_CHECKLIST.md
+ */
+
+/* =============================================
+   Feature: transforms2d
+   Can I Use: https://caniuse.com/transforms2d
+   ============================================= */
+
+/* Translate */
+.translate-x {
+    transform: translateX(50px);
+}
+
+.translate-y {
+    transform: translateY(-20px);
+}
+
+.translate-both {
+    transform: translate(100px, 50px);
+}
+
+/* Scale */
+.scale-uniform {
+    transform: scale(1.5);
+}
+
+.scale-x {
+    transform: scaleX(2);
+}
+
+.scale-y {
+    transform: scaleY(0.5);
+}
+
+.scale-both {
+    transform: scale(1.2, 0.8);
+}
+
+/* Rotate */
+.rotate-45 {
+    transform: rotate(45deg);
+}
+
+.rotate-90 {
+    transform: rotate(90deg);
+}
+
+.rotate-negative {
+    transform: rotate(-30deg);
+}
+
+.rotate-turn {
+    transform: rotate(0.25turn);
+}
+
+/* Skew */
+.skew-x {
+    transform: skewX(15deg);
+}
+
+.skew-y {
+    transform: skewY(-10deg);
+}
+
+.skew-both {
+    transform: skew(10deg, 5deg);
+}
+
+/* Matrix */
+.matrix-transform {
+    transform: matrix(1, 0.5, -0.5, 1, 0, 0);
+}
+
+/* Multiple transforms */
+.multiple-transforms {
+    transform: translate(50px, 20px) rotate(45deg) scale(1.2);
+}
+
+.complex-transform {
+    transform: translateX(100px) skewX(10deg) rotate(-15deg) scale(0.9);
+}
+
+/* Transform origin */
+.transform-origin-center {
+    transform-origin: center center;
+    transform: rotate(45deg);
+}
+
+.transform-origin-top-left {
+    transform-origin: top left;
+    transform: rotate(45deg);
+}
+
+.transform-origin-bottom-right {
+    transform-origin: bottom right;
+    transform: scale(1.5);
+}
+
+.transform-origin-custom {
+    transform-origin: 20% 80%;
+    transform: rotate(30deg);
+}
+
+.transform-origin-pixels {
+    transform-origin: 50px 100px;
+    transform: skewX(15deg);
+}
+
+/* =============================================
+   Feature: transforms3d
+   Can I Use: https://caniuse.com/transforms3d
+   ============================================= */
+
+/* Translate3d */
+.translate3d {
+    transform: translate3d(50px, 100px, 200px);
+}
+
+.translate-z {
+    transform: translateZ(100px);
+}
+
+/* Scale3d */
+.scale3d {
+    transform: scale3d(1.5, 1.5, 1.5);
+}
+
+.scale-z {
+    transform: scaleZ(2);
+}
+
+/* Rotate3d */
+.rotate3d {
+    transform: rotate3d(1, 1, 0, 45deg);
+}
+
+.rotate-x {
+    transform: rotateX(45deg);
+}
+
+.rotate-y {
+    transform: rotateY(60deg);
+}
+
+.rotate-z {
+    transform: rotateZ(30deg);
+}
+
+/* Perspective */
+.with-perspective {
+    perspective: 1000px;
+}
+
+.perspective-small {
+    perspective: 500px;
+}
+
+.perspective-large {
+    perspective: 2000px;
+}
+
+/* Perspective function in transform */
+.perspective-transform {
+    transform: perspective(500px) rotateY(45deg);
+}
+
+/* Perspective origin */
+.perspective-origin-center {
+    perspective: 800px;
+    perspective-origin: center center;
+}
+
+.perspective-origin-top {
+    perspective: 800px;
+    perspective-origin: 50% 0%;
+}
+
+.perspective-origin-custom {
+    perspective: 1000px;
+    perspective-origin: 25% 75%;
+}
+
+/* Transform style */
+.preserve-3d {
+    transform-style: preserve-3d;
+}
+
+.flat-3d {
+    transform-style: flat;
+}
+
+/* Backface visibility */
+.backface-visible {
+    backface-visibility: visible;
+}
+
+.backface-hidden {
+    backface-visibility: hidden;
+}
+
+/* Matrix3d */
+.matrix3d-transform {
+    transform: matrix3d(
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1
+    );
+}
+
+/* Combined 3D transforms */
+.complex-3d {
+    transform: perspective(800px) rotateX(30deg) rotateY(45deg) translateZ(100px);
+}
+
+/* Practical 3D examples */
+
+/* Card flip effect */
+.flip-card {
+    perspective: 1000px;
+}
+
+.flip-card-inner {
+    transform-style: preserve-3d;
+    transition: transform 0.6s;
+}
+
+.flip-card:hover .flip-card-inner {
+    transform: rotateY(180deg);
+}
+
+.flip-card-front,
+.flip-card-back {
+    backface-visibility: hidden;
+}
+
+.flip-card-back {
+    transform: rotateY(180deg);
+}
+
+/* 3D cube */
+.cube-container {
+    perspective: 1200px;
+}
+
+.cube {
+    transform-style: preserve-3d;
+    transform: rotateX(-20deg) rotateY(30deg);
+}
+
+.cube-face {
+    backface-visibility: hidden;
+}
+
+.cube-face-front { transform: translateZ(100px); }
+.cube-face-back { transform: rotateY(180deg) translateZ(100px); }
+.cube-face-left { transform: rotateY(-90deg) translateZ(100px); }
+.cube-face-right { transform: rotateY(90deg) translateZ(100px); }
+.cube-face-top { transform: rotateX(90deg) translateZ(100px); }
+.cube-face-bottom { transform: rotateX(-90deg) translateZ(100px); }
+
+/* Hover effects */
+.hover-lift:hover {
+    transform: translateY(-10px) scale(1.02);
+}
+
+.hover-rotate:hover {
+    transform: rotate(5deg);
+}
+
+.hover-3d:hover {
+    transform: perspective(500px) rotateX(10deg) rotateY(-10deg);
+}

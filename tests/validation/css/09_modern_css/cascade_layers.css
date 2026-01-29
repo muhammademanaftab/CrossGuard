@@ -1,0 +1,362 @@
+/*
+ * Cross Guard CSS Manual Validation Test
+ * Category: 09_modern_css
+ * File: cascade_layers.css
+ *
+ * Expected Can I Use IDs:
+ *   - css-cascade-layers: https://caniuse.com/css-cascade-layers
+ *
+ * VALIDATION STEPS:
+ *   1. Load this file in Cross Guard
+ *   2. Verify feature detected: css-cascade-layers
+ *   3. Compare browser support with Can I Use link above
+ *   4. Record results in CSS_CHECKLIST.md
+ */
+
+/* =============================================
+   Feature: css-cascade-layers
+   Can I Use: https://caniuse.com/css-cascade-layers
+   ============================================= */
+
+/* Define layer order */
+@layer reset, base, components, utilities;
+
+/* Reset layer */
+@layer reset {
+    *,
+    *::before,
+    *::after {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    html {
+        line-height: 1.5;
+        -webkit-text-size-adjust: 100%;
+    }
+
+    body {
+        min-height: 100vh;
+    }
+
+    img,
+    picture,
+    video,
+    canvas,
+    svg {
+        display: block;
+        max-width: 100%;
+    }
+
+    input,
+    button,
+    textarea,
+    select {
+        font: inherit;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        overflow-wrap: break-word;
+    }
+}
+
+/* Base layer */
+@layer base {
+    :root {
+        --color-primary: #007bff;
+        --color-secondary: #6c757d;
+        --color-success: #28a745;
+        --color-danger: #dc3545;
+        --font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+
+    body {
+        font-family: var(--font-family);
+        color: #333;
+        background-color: #fff;
+    }
+
+    a {
+        color: var(--color-primary);
+        text-decoration: none;
+    }
+
+    a:hover {
+        text-decoration: underline;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+        font-weight: 700;
+        line-height: 1.2;
+    }
+
+    h1 { font-size: 2.5rem; }
+    h2 { font-size: 2rem; }
+    h3 { font-size: 1.75rem; }
+    h4 { font-size: 1.5rem; }
+    h5 { font-size: 1.25rem; }
+    h6 { font-size: 1rem; }
+
+    p {
+        margin-bottom: 1rem;
+    }
+
+    ul, ol {
+        padding-left: 1.5rem;
+    }
+}
+
+/* Components layer */
+@layer components {
+    .button {
+        display: inline-block;
+        padding: 0.5rem 1rem;
+        border: none;
+        border-radius: 4px;
+        font-weight: 500;
+        text-align: center;
+        cursor: pointer;
+        transition: background-color 0.2s, transform 0.1s;
+    }
+
+    .button-primary {
+        background-color: var(--color-primary);
+        color: white;
+    }
+
+    .button-primary:hover {
+        background-color: #0056b3;
+    }
+
+    .button-secondary {
+        background-color: var(--color-secondary);
+        color: white;
+    }
+
+    .card {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .card-header {
+        padding: 1rem;
+        background: #f8f9fa;
+        border-bottom: 1px solid #ddd;
+    }
+
+    .card-body {
+        padding: 1rem;
+    }
+
+    .card-footer {
+        padding: 1rem;
+        background: #f8f9fa;
+        border-top: 1px solid #ddd;
+    }
+
+    .alert {
+        padding: 1rem;
+        border-radius: 4px;
+        margin-bottom: 1rem;
+    }
+
+    .alert-success {
+        background-color: #d4edda;
+        color: #155724;
+        border: 1px solid #c3e6cb;
+    }
+
+    .alert-danger {
+        background-color: #f8d7da;
+        color: #721c24;
+        border: 1px solid #f5c6cb;
+    }
+
+    .form-group {
+        margin-bottom: 1rem;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 0.25rem;
+        font-weight: 500;
+    }
+
+    .form-input {
+        width: 100%;
+        padding: 0.5rem;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    .form-input:focus {
+        border-color: var(--color-primary);
+        outline: none;
+        box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.25);
+    }
+}
+
+/* Utilities layer */
+@layer utilities {
+    .text-center { text-align: center; }
+    .text-left { text-align: left; }
+    .text-right { text-align: right; }
+
+    .font-bold { font-weight: 700; }
+    .font-normal { font-weight: 400; }
+
+    .hidden { display: none; }
+    .block { display: block; }
+    .inline-block { display: inline-block; }
+    .flex { display: flex; }
+    .grid { display: grid; }
+
+    .m-0 { margin: 0; }
+    .m-1 { margin: 0.25rem; }
+    .m-2 { margin: 0.5rem; }
+    .m-4 { margin: 1rem; }
+
+    .p-0 { padding: 0; }
+    .p-1 { padding: 0.25rem; }
+    .p-2 { padding: 0.5rem; }
+    .p-4 { padding: 1rem; }
+
+    .w-full { width: 100%; }
+    .h-full { height: 100%; }
+
+    .rounded { border-radius: 4px; }
+    .rounded-full { border-radius: 9999px; }
+
+    .shadow { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); }
+    .shadow-lg { box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1); }
+}
+
+/* Unnamed layer (higher priority than named layers) */
+@layer {
+    .special-override {
+        color: red !important;
+    }
+}
+
+/* Nested layers */
+@layer framework {
+    @layer reset {
+        /* Framework reset styles */
+        button {
+            background: none;
+            border: none;
+        }
+    }
+
+    @layer base {
+        /* Framework base styles */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 1rem;
+        }
+    }
+
+    @layer components {
+        /* Framework component styles */
+        .navbar {
+            display: flex;
+            align-items: center;
+            padding: 1rem;
+            background: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+    }
+}
+
+/* Layer with @import */
+/* @layer external url('external-styles.css'); */
+
+/* Revert layer */
+@layer special {
+    .revert-example {
+        color: blue;
+    }
+}
+
+.revert-to-layer {
+    color: revert-layer;
+}
+
+/* Practical layer organization */
+@layer theme {
+    :root {
+        --theme-bg: #ffffff;
+        --theme-text: #333333;
+        --theme-accent: #007bff;
+    }
+
+    .theme-dark {
+        --theme-bg: #1a1a2e;
+        --theme-text: #eaeaea;
+        --theme-accent: #00d9ff;
+    }
+
+    body {
+        background-color: var(--theme-bg);
+        color: var(--theme-text);
+    }
+}
+
+@layer overrides {
+    /* High-priority overrides */
+    .force-visible {
+        display: block !important;
+        visibility: visible !important;
+    }
+
+    .force-hidden {
+        display: none !important;
+    }
+}
+
+/* Multiple layer blocks */
+@layer components {
+    /* Additional component styles added to existing layer */
+    .modal {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: white;
+        padding: 2rem;
+        border-radius: 8px;
+        box-shadow: 0 25px 50px rgba(0, 0, 0, 0.25);
+    }
+
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+    }
+}
+
+@layer utilities {
+    /* Additional utilities */
+    .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        border: 0;
+    }
+
+    .truncate {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+}

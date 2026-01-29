@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Elements - Manual Validation Test</title>
+    <!--
+        Cross Guard Manual Validation Test
+        Category: 01_elements
+        File: interactive_elements.html
+
+        Expected Can I Use IDs:
+          - dialog: https://caniuse.com/dialog
+          - details: https://caniuse.com/details
+          - template: https://caniuse.com/template
+
+        VALIDATION STEPS:
+          1. Load this file in Cross Guard
+          2. Verify features detected: dialog, details, template
+          3. Compare browser support with Can I Use links above
+          4. Record results in CHECKLIST.md
+    -->
+</head>
+<body>
+    <h1>Interactive Elements Test</h1>
+    <p>This page tests HTML5 interactive elements for Cross Guard validation.</p>
+
+    <!-- Feature: dialog -->
+    <!-- Can I Use: https://caniuse.com/dialog -->
+    <section>
+        <h2>Dialog Element</h2>
+        <button id="openDialog">Open Dialog</button>
+
+        <dialog id="myDialog">
+            <h3>Dialog Title</h3>
+            <p>This is a native HTML dialog element.</p>
+            <form method="dialog">
+                <button>Close</button>
+            </form>
+        </dialog>
+
+        <script>
+            const dialog = document.getElementById('myDialog');
+            const openBtn = document.getElementById('openDialog');
+            openBtn.addEventListener('click', () => dialog.showModal());
+        </script>
+    </section>
+
+    <!-- Feature: details -->
+    <!-- Can I Use: https://caniuse.com/details -->
+    <section>
+        <h2>Details/Summary Elements</h2>
+
+        <details>
+            <summary>Click to expand - Basic Details</summary>
+            <p>This content is hidden by default and revealed when the user clicks the summary.</p>
+        </details>
+
+        <details open>
+            <summary>Already Expanded Details</summary>
+            <p>This details element starts in the open state.</p>
+            <ul>
+                <li>Item 1</li>
+                <li>Item 2</li>
+                <li>Item 3</li>
+            </ul>
+        </details>
+
+        <details>
+            <summary>Nested Details Example</summary>
+            <p>Details can contain other details:</p>
+            <details>
+                <summary>Inner Details</summary>
+                <p>This is nested content.</p>
+            </details>
+        </details>
+    </section>
+
+    <!-- Feature: template -->
+    <!-- Can I Use: https://caniuse.com/template -->
+    <section>
+        <h2>Template Element</h2>
+
+        <template id="cardTemplate">
+            <div class="card">
+                <h3 class="card-title"></h3>
+                <p class="card-content"></p>
+                <button class="card-action">Action</button>
+            </div>
+        </template>
+
+        <template id="listItemTemplate">
+            <li class="list-item">
+                <span class="item-text"></span>
+                <button class="item-delete">Delete</button>
+            </li>
+        </template>
+
+        <div id="cardContainer"></div>
+
+        <script>
+            const template = document.getElementById('cardTemplate');
+            const container = document.getElementById('cardContainer');
+
+            const clone = template.content.cloneNode(true);
+            clone.querySelector('.card-title').textContent = 'Card Title';
+            clone.querySelector('.card-content').textContent = 'Card content from template.';
+            container.appendChild(clone);
+        </script>
+    </section>
+</body>
+</html>

@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Type Values - Manual Validation Test</title>
+    <!--
+        Cross Guard Manual Validation Test
+        Category: 04_attribute_values
+        File: type_values.html
+
+        Expected Can I Use IDs:
+          - es6-module: https://caniuse.com/es6-module
+          - webm: https://caniuse.com/webm
+          - mpeg4: https://caniuse.com/mpeg4
+          - mp3: https://caniuse.com/mp3
+
+        VALIDATION STEPS:
+          1. Load this file in Cross Guard
+          2. Verify features detected: es6-module, webm, mpeg4, mp3
+          3. Compare browser support with Can I Use links above
+          4. Record results in CHECKLIST.md
+    -->
+
+    <!-- Feature: es6-module -->
+    <!-- Can I Use: https://caniuse.com/es6-module -->
+    <script type="module" src="app.mjs"></script>
+    <script type="module">
+        import { greeting } from './utils.mjs';
+        console.log(greeting);
+    </script>
+
+    <!-- Nomodule fallback for older browsers -->
+    <script nomodule src="legacy-bundle.js"></script>
+</head>
+<body>
+    <h1>Type Attribute Values Test</h1>
+    <p>This page tests various type attribute values for Cross Guard validation.</p>
+
+    <!-- Feature: es6-module (inline module script) -->
+    <section>
+        <h2>ES6 Modules (type="module")</h2>
+
+        <script type="module">
+            // ES6 Module - Inline
+            const message = 'Hello from ES6 module!';
+            document.getElementById('module-output').textContent = message;
+
+            // Dynamic import
+            const loadComponent = async () => {
+                const module = await import('./component.mjs');
+                module.init();
+            };
+        </script>
+
+        <p id="module-output">Module not loaded</p>
+
+        <p>Module scripts in this page:</p>
+        <ul>
+            <li><code>type="module" src="app.mjs"</code></li>
+            <li>Inline <code>type="module"</code> script</li>
+            <li><code>nomodule</code> fallback for legacy browsers</li>
+        </ul>
+    </section>
+
+    <!-- Feature: webm, mpeg4 -->
+    <!-- Can I Use: https://caniuse.com/webm, https://caniuse.com/mpeg4 -->
+    <section>
+        <h2>Video MIME Types</h2>
+
+        <video controls width="640" height="360">
+            <!-- Feature: webm -->
+            <source src="video.webm" type="video/webm">
+            <source src="video.webm" type="video/webm; codecs=vp9">
+            <source src="video.webm" type="video/webm; codecs=vp8, vorbis">
+
+            <!-- Feature: mpeg4 -->
+            <source src="video.mp4" type="video/mp4">
+            <source src="video.mp4" type="video/mp4; codecs=avc1.42E01E, mp4a.40.2">
+
+            <!-- OGG video -->
+            <source src="video.ogv" type="video/ogg">
+            <source src="video.ogv" type="video/ogg; codecs=theora, vorbis">
+
+            Your browser does not support the video element.
+        </video>
+
+        <p>Video formats tested:</p>
+        <ul>
+            <li><code>type="video/webm"</code> - WebM format</li>
+            <li><code>type="video/webm; codecs=vp9"</code> - WebM with VP9</li>
+            <li><code>type="video/mp4"</code> - MP4/MPEG-4 format</li>
+            <li><code>type="video/ogg"</code> - OGG video format</li>
+        </ul>
+    </section>
+
+    <!-- Feature: mp3, audio formats -->
+    <!-- Can I Use: https://caniuse.com/mp3 -->
+    <section>
+        <h2>Audio MIME Types</h2>
+
+        <audio controls>
+            <!-- Feature: mp3 -->
+            <source src="audio.mp3" type="audio/mpeg">
+            <source src="audio.mp3" type="audio/mp3">
+
+            <!-- OGG audio -->
+            <source src="audio.ogg" type="audio/ogg">
+            <source src="audio.ogg" type="audio/ogg; codecs=vorbis">
+
+            <!-- WAV audio -->
+            <source src="audio.wav" type="audio/wav">
+
+            <!-- WebM audio -->
+            <source src="audio.webm" type="audio/webm">
+
+            <!-- AAC audio -->
+            <source src="audio.m4a" type="audio/aac">
+            <source src="audio.m4a" type="audio/mp4">
+
+            Your browser does not support the audio element.
+        </audio>
+
+        <p>Audio formats tested:</p>
+        <ul>
+            <li><code>type="audio/mpeg"</code> - MP3 format</li>
+            <li><code>type="audio/ogg"</code> - OGG Vorbis format</li>
+            <li><code>type="audio/wav"</code> - WAV format</li>
+            <li><code>type="audio/webm"</code> - WebM audio</li>
+            <li><code>type="audio/aac"</code> - AAC format</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>Other Type Values</h2>
+
+        <!-- JSON script type -->
+        <script type="application/json" id="config">
+        {
+            "apiUrl": "https://api.example.com",
+            "debug": false
+        }
+        </script>
+
+        <!-- Import map -->
+        <script type="importmap">
+        {
+            "imports": {
+                "lodash": "https://cdn.example.com/lodash.mjs",
+                "react": "https://cdn.example.com/react.mjs"
+            }
+        }
+        </script>
+
+        <p>Other script types:</p>
+        <ul>
+            <li><code>type="application/json"</code> - JSON data</li>
+            <li><code>type="importmap"</code> - Import maps</li>
+        </ul>
+    </section>
+</body>
+</html>

@@ -1,0 +1,227 @@
+/*
+ * Cross Guard CSS Manual Validation Test
+ * Category: 03_colors_backgrounds
+ * File: colors.css
+ *
+ * Expected Can I Use IDs:
+ *   - css3-colors: https://caniuse.com/css3-colors
+ *   - css-lch-lab: https://caniuse.com/css-lch-lab
+ *   - css-color-function: https://caniuse.com/css-color-function
+ *
+ * VALIDATION STEPS:
+ *   1. Load this file in Cross Guard
+ *   2. Verify features detected: css3-colors, css-lch-lab, css-color-function
+ *   3. Compare browser support with Can I Use links above
+ *   4. Record results in CSS_CHECKLIST.md
+ */
+
+/* =============================================
+   Feature: css3-colors
+   Can I Use: https://caniuse.com/css3-colors
+   ============================================= */
+
+/* RGB with alpha */
+.rgba-color {
+    background-color: rgba(255, 0, 0, 0.5);
+    color: rgba(0, 0, 0, 0.87);
+    border-color: rgba(0, 123, 255, 0.75);
+}
+
+/* Modern RGB syntax */
+.rgb-modern {
+    background-color: rgb(255 0 0);
+    color: rgb(0 0 0 / 0.87);
+    border-color: rgb(0 123 255 / 75%);
+}
+
+/* HSL */
+.hsl-color {
+    background-color: hsl(210, 100%, 50%);
+    color: hsl(0, 0%, 20%);
+    border-color: hsl(120, 60%, 40%);
+}
+
+/* HSL with alpha */
+.hsla-color {
+    background-color: hsla(210, 100%, 50%, 0.5);
+    color: hsla(0, 0%, 0%, 0.87);
+}
+
+/* Modern HSL syntax */
+.hsl-modern {
+    background-color: hsl(210 100% 50%);
+    color: hsl(0 0% 0% / 0.87);
+    border-color: hsl(120 60% 40% / 50%);
+}
+
+/* currentColor */
+.current-color {
+    color: #007bff;
+    border: 2px solid currentColor;
+    box-shadow: 0 0 10px currentColor;
+}
+
+/* Transparent */
+.transparent-bg {
+    background-color: transparent;
+}
+
+/* =============================================
+   Feature: css-lch-lab
+   Can I Use: https://caniuse.com/css-lch-lab
+   ============================================= */
+
+/* LCH colors */
+.lch-color {
+    background-color: lch(50% 100 200);
+    color: lch(20% 0 0);
+    border-color: lch(60% 80 120);
+}
+
+/* LCH with alpha */
+.lch-alpha {
+    background-color: lch(50% 100 200 / 0.5);
+    color: lch(20% 0 0 / 0.87);
+}
+
+/* Lab colors */
+.lab-color {
+    background-color: lab(50% 40 60);
+    color: lab(20% 0 0);
+    border-color: lab(60% -30 50);
+}
+
+/* Lab with alpha */
+.lab-alpha {
+    background-color: lab(50% 40 60 / 0.5);
+    color: lab(20% 0 0 / 0.87);
+}
+
+/* Oklch colors */
+.oklch-color {
+    background-color: oklch(60% 0.15 200);
+    color: oklch(20% 0 0);
+    border-color: oklch(70% 0.2 120);
+}
+
+/* Oklch with alpha */
+.oklch-alpha {
+    background-color: oklch(60% 0.15 200 / 0.5);
+    color: oklch(20% 0 0 / 0.87);
+}
+
+/* Oklab colors */
+.oklab-color {
+    background-color: oklab(60% 0.1 0.1);
+    color: oklab(20% 0 0);
+    border-color: oklab(70% -0.1 0.15);
+}
+
+/* Oklab with alpha */
+.oklab-alpha {
+    background-color: oklab(60% 0.1 0.1 / 0.5);
+    color: oklab(20% 0 0 / 0.87);
+}
+
+/* =============================================
+   Feature: css-color-function
+   Can I Use: https://caniuse.com/css-color-function
+   ============================================= */
+
+/* color() function with different color spaces */
+.color-srgb {
+    background-color: color(srgb 1 0 0);
+    color: color(srgb 0 0 0 / 0.87);
+}
+
+.color-srgb-linear {
+    background-color: color(srgb-linear 1 0 0);
+    color: color(srgb-linear 0 0 0 / 0.87);
+}
+
+.color-display-p3 {
+    background-color: color(display-p3 1 0 0);
+    color: color(display-p3 0 0.5 0);
+    border-color: color(display-p3 0 0 1);
+}
+
+.color-a98-rgb {
+    background-color: color(a98-rgb 1 0 0);
+    color: color(a98-rgb 0 0.5 0);
+}
+
+.color-prophoto-rgb {
+    background-color: color(prophoto-rgb 0.5 0.5 0);
+    color: color(prophoto-rgb 0 0 0.5);
+}
+
+.color-rec2020 {
+    background-color: color(rec2020 1 0 0);
+    color: color(rec2020 0 0.5 0);
+}
+
+.color-xyz {
+    background-color: color(xyz 0.4 0.2 0.1);
+    color: color(xyz-d50 0.2 0.2 0.2);
+    border-color: color(xyz-d65 0.3 0.3 0.3);
+}
+
+/* color-mix() function */
+.color-mix-basic {
+    background-color: color-mix(in srgb, red, blue);
+}
+
+.color-mix-percentage {
+    background-color: color-mix(in srgb, red 25%, blue);
+    color: color-mix(in srgb, black 87%, white);
+}
+
+.color-mix-lch {
+    background-color: color-mix(in lch, red, blue);
+    color: color-mix(in lch longer hue, red, blue);
+}
+
+.color-mix-oklch {
+    background-color: color-mix(in oklch, #007bff, #28a745);
+    color: color-mix(in oklch shorter hue, red 30%, blue);
+}
+
+.color-mix-hsl {
+    background-color: color-mix(in hsl, red, blue);
+    color: color-mix(in hsl longer hue, orange, purple);
+}
+
+/* Practical color examples */
+
+/* Wide gamut colors for modern displays */
+.vibrant-colors {
+    --accent-red: color(display-p3 1 0.2 0.2);
+    --accent-green: color(display-p3 0.2 0.9 0.4);
+    --accent-blue: color(display-p3 0.2 0.4 1);
+}
+
+.vibrant-button {
+    background-color: var(--accent-blue);
+}
+
+/* Perceptually uniform gradients */
+.smooth-gradient {
+    background: linear-gradient(
+        to right,
+        oklch(60% 0.15 200),
+        oklch(70% 0.2 300)
+    );
+}
+
+/* Theme with color-mix */
+.theme-colors {
+    --primary: #007bff;
+    --primary-light: color-mix(in oklch, var(--primary), white 30%);
+    --primary-dark: color-mix(in oklch, var(--primary), black 30%);
+}
+
+/* Accessible text colors */
+.accessible-text {
+    color: lch(20% 0 0);
+    background-color: lch(95% 0 0);
+}

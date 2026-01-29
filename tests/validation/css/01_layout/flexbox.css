@@ -1,0 +1,217 @@
+/*
+ * Cross Guard CSS Manual Validation Test
+ * Category: 01_layout
+ * File: flexbox.css
+ *
+ * Expected Can I Use IDs:
+ *   - flexbox: https://caniuse.com/flexbox
+ *   - flexbox-gap: https://caniuse.com/flexbox-gap
+ *
+ * VALIDATION STEPS:
+ *   1. Load this file in Cross Guard
+ *   2. Verify features detected: flexbox, flexbox-gap
+ *   3. Compare browser support with Can I Use links above
+ *   4. Record results in CSS_CHECKLIST.md
+ */
+
+/* =============================================
+   Feature: flexbox
+   Can I Use: https://caniuse.com/flexbox
+   ============================================= */
+
+/* Basic flex container */
+.container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    align-content: flex-start;
+}
+
+/* Inline flex */
+.inline-container {
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: stretch;
+}
+
+/* Reverse directions */
+.reverse-row {
+    display: flex;
+    flex-direction: row-reverse;
+}
+
+.reverse-column {
+    display: flex;
+    flex-direction: column-reverse;
+}
+
+/* Flex shorthand */
+.flex-shorthand {
+    display: flex;
+    flex-flow: row wrap;
+}
+
+/* Flex items */
+.flex-item {
+    flex: 1 1 300px;
+    flex-grow: 1;
+    flex-shrink: 0;
+    flex-basis: auto;
+    align-self: stretch;
+    order: 1;
+}
+
+.flex-item-fixed {
+    flex: 0 0 200px;
+}
+
+.flex-item-auto {
+    flex: 1 1 auto;
+}
+
+/* Justify content variations */
+.justify-start {
+    display: flex;
+    justify-content: flex-start;
+}
+
+.justify-end {
+    display: flex;
+    justify-content: flex-end;
+}
+
+.justify-center {
+    display: flex;
+    justify-content: center;
+}
+
+.justify-between {
+    display: flex;
+    justify-content: space-between;
+}
+
+.justify-around {
+    display: flex;
+    justify-content: space-around;
+}
+
+.justify-evenly {
+    display: flex;
+    justify-content: space-evenly;
+}
+
+/* Align items variations */
+.align-start {
+    display: flex;
+    align-items: flex-start;
+}
+
+.align-end {
+    display: flex;
+    align-items: flex-end;
+}
+
+.align-center {
+    display: flex;
+    align-items: center;
+}
+
+.align-baseline {
+    display: flex;
+    align-items: baseline;
+}
+
+.align-stretch {
+    display: flex;
+    align-items: stretch;
+}
+
+/* Practical flex layouts */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.card-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+}
+
+.card {
+    flex: 1 1 calc(33.333% - 20px);
+    min-width: 280px;
+}
+
+.sidebar-layout {
+    display: flex;
+}
+
+.sidebar {
+    flex: 0 0 250px;
+}
+
+.main-content {
+    flex: 1 1 0%;
+}
+
+/* =============================================
+   Feature: flexbox-gap
+   Can I Use: https://caniuse.com/flexbox-gap
+   ============================================= */
+
+/* Gap property in flex containers */
+.flex-with-gap {
+    display: flex;
+    gap: 20px;
+}
+
+.flex-row-gap {
+    display: flex;
+    flex-wrap: wrap;
+    row-gap: 1rem;
+}
+
+.flex-column-gap {
+    display: flex;
+    column-gap: 2rem;
+}
+
+.flex-both-gaps {
+    display: flex;
+    flex-wrap: wrap;
+    row-gap: 16px;
+    column-gap: 24px;
+}
+
+/* Practical gap usage */
+.button-group {
+    display: flex;
+    gap: 8px;
+}
+
+.tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.form-row {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.grid-like-flex {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+}
+
+.grid-like-flex > * {
+    flex: 1 1 200px;
+}

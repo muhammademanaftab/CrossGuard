@@ -1,0 +1,407 @@
+/*
+ * Cross Guard CSS Manual Validation Test
+ * Category: 07_box_model
+ * File: box_properties.css
+ *
+ * Expected Can I Use IDs:
+ *   - border-radius: https://caniuse.com/border-radius
+ *   - css-boxshadow: https://caniuse.com/css-boxshadow
+ *   - css3-boxsizing: https://caniuse.com/css3-boxsizing
+ *
+ * VALIDATION STEPS:
+ *   1. Load this file in Cross Guard
+ *   2. Verify features detected: border-radius, css-boxshadow, css3-boxsizing
+ *   3. Compare browser support with Can I Use links above
+ *   4. Record results in CSS_CHECKLIST.md
+ */
+
+/* =============================================
+   Feature: border-radius
+   Can I Use: https://caniuse.com/border-radius
+   ============================================= */
+
+/* Single value (all corners) */
+.radius-sm {
+    border-radius: 4px;
+}
+
+.radius-md {
+    border-radius: 8px;
+}
+
+.radius-lg {
+    border-radius: 16px;
+}
+
+.radius-full {
+    border-radius: 50%;
+}
+
+.radius-pill {
+    border-radius: 9999px;
+}
+
+/* Two values (vertical / horizontal) */
+.radius-elliptical {
+    border-radius: 20px / 10px;
+}
+
+/* Four values (top-left, top-right, bottom-right, bottom-left) */
+.radius-custom {
+    border-radius: 10px 20px 30px 40px;
+}
+
+/* Individual corners */
+.radius-top-left {
+    border-top-left-radius: 20px;
+}
+
+.radius-top-right {
+    border-top-right-radius: 20px;
+}
+
+.radius-bottom-right {
+    border-bottom-right-radius: 20px;
+}
+
+.radius-bottom-left {
+    border-bottom-left-radius: 20px;
+}
+
+/* Mixed individual corners */
+.radius-top-only {
+    border-top-left-radius: 16px;
+    border-top-right-radius: 16px;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+.radius-left-only {
+    border-top-left-radius: 16px;
+    border-bottom-left-radius: 16px;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+
+/* Percentage values */
+.radius-percent {
+    border-radius: 50%;
+}
+
+.radius-percent-mixed {
+    border-radius: 10% 30%;
+}
+
+/* Complex elliptical corners */
+.radius-elliptical-complex {
+    border-radius: 10px 20px 30px 40px / 5px 10px 15px 20px;
+}
+
+/* Practical border-radius examples */
+.avatar {
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+}
+
+.badge {
+    border-radius: 9999px;
+    padding: 2px 8px;
+}
+
+.card {
+    border-radius: 8px;
+}
+
+.button {
+    border-radius: 4px;
+}
+
+.button-rounded {
+    border-radius: 9999px;
+}
+
+.input {
+    border-radius: 4px;
+}
+
+.modal {
+    border-radius: 12px;
+}
+
+.tooltip {
+    border-radius: 4px;
+}
+
+/* Squircle-like shape */
+.squircle {
+    border-radius: 30%;
+}
+
+/* =============================================
+   Feature: css-boxshadow
+   Can I Use: https://caniuse.com/css-boxshadow
+   ============================================= */
+
+/* Basic box shadow */
+.shadow-basic {
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+/* Shadow with no blur */
+.shadow-hard {
+    box-shadow: 4px 4px 0 #333;
+}
+
+/* Shadow with spread */
+.shadow-spread {
+    box-shadow: 0 0 10px 5px rgba(0, 0, 0, 0.2);
+}
+
+/* Inset shadow */
+.shadow-inset {
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.shadow-inset-deep {
+    box-shadow: inset 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Multiple shadows */
+.shadow-multiple {
+    box-shadow:
+        0 1px 3px rgba(0, 0, 0, 0.12),
+        0 1px 2px rgba(0, 0, 0, 0.24);
+}
+
+.shadow-layered {
+    box-shadow:
+        0 2px 4px rgba(0, 0, 0, 0.1),
+        0 4px 8px rgba(0, 0, 0, 0.1),
+        0 8px 16px rgba(0, 0, 0, 0.1);
+}
+
+/* Material Design shadows */
+.shadow-sm {
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.shadow-md {
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.shadow-lg {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.shadow-xl {
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+.shadow-2xl {
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+/* Colored shadows */
+.shadow-primary {
+    box-shadow: 0 4px 14px 0 rgba(0, 123, 255, 0.39);
+}
+
+.shadow-success {
+    box-shadow: 0 4px 14px 0 rgba(40, 167, 69, 0.39);
+}
+
+.shadow-danger {
+    box-shadow: 0 4px 14px 0 rgba(220, 53, 69, 0.39);
+}
+
+/* Glow effect */
+.glow {
+    box-shadow: 0 0 20px rgba(0, 123, 255, 0.5);
+}
+
+.glow-strong {
+    box-shadow: 0 0 40px rgba(0, 123, 255, 0.8);
+}
+
+/* Focus ring with box-shadow */
+.focus-ring:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.5);
+}
+
+/* Combined inset and outset */
+.shadow-combined {
+    box-shadow:
+        0 4px 6px rgba(0, 0, 0, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+/* Neumorphism */
+.neumorphic {
+    box-shadow:
+        8px 8px 16px #d1d1d1,
+        -8px -8px 16px #ffffff;
+}
+
+.neumorphic-inset {
+    box-shadow:
+        inset 8px 8px 16px #d1d1d1,
+        inset -8px -8px 16px #ffffff;
+}
+
+/* No shadow */
+.shadow-none {
+    box-shadow: none;
+}
+
+/* =============================================
+   Feature: css3-boxsizing
+   Can I Use: https://caniuse.com/css3-boxsizing
+   ============================================= */
+
+/* Box-sizing values */
+.box-content {
+    box-sizing: content-box;
+    width: 200px;
+    padding: 20px;
+    border: 5px solid #333;
+    /* Total width: 200 + 40 + 10 = 250px */
+}
+
+.box-border {
+    box-sizing: border-box;
+    width: 200px;
+    padding: 20px;
+    border: 5px solid #333;
+    /* Total width: 200px */
+}
+
+/* Universal box-sizing reset */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+/* Practical box-sizing examples */
+
+/* Form input with border-box */
+.input-field {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 10px 15px;
+    border: 2px solid #ccc;
+}
+
+/* Grid item with border-box */
+.grid-item {
+    box-sizing: border-box;
+    width: 33.333%;
+    padding: 20px;
+    border: 1px solid #ddd;
+}
+
+/* Flex item with border-box */
+.flex-item {
+    box-sizing: border-box;
+    flex: 0 0 25%;
+    padding: 15px;
+}
+
+/* Card component */
+.card-box {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 400px;
+    padding: 24px;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+}
+
+/* Full-width button */
+.button-full {
+    box-sizing: border-box;
+    width: 100%;
+    padding: 12px 24px;
+    border: 2px solid transparent;
+}
+
+/* Additional box model properties */
+
+/* Outline */
+.outline-basic {
+    outline: 2px solid #007bff;
+}
+
+.outline-offset {
+    outline: 2px solid #007bff;
+    outline-offset: 4px;
+}
+
+.outline-dashed {
+    outline: 2px dashed #28a745;
+    outline-offset: 2px;
+}
+
+/* Overflow */
+.overflow-hidden {
+    overflow: hidden;
+}
+
+.overflow-auto {
+    overflow: auto;
+}
+
+.overflow-scroll {
+    overflow: scroll;
+}
+
+.overflow-x-auto {
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+
+.overflow-y-auto {
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+
+/* Visibility */
+.visibility-hidden {
+    visibility: hidden;
+}
+
+.visibility-visible {
+    visibility: visible;
+}
+
+/* Display */
+.display-none {
+    display: none;
+}
+
+.display-block {
+    display: block;
+}
+
+.display-inline-block {
+    display: inline-block;
+}
+
+.display-contents {
+    display: contents;
+}
+
+/* Aspect ratio */
+.aspect-square {
+    aspect-ratio: 1;
+}
+
+.aspect-video {
+    aspect-ratio: 16 / 9;
+}
+
+.aspect-portrait {
+    aspect-ratio: 3 / 4;
+}

@@ -1,0 +1,353 @@
+/*
+ * Cross Guard CSS Manual Validation Test
+ * Category: 04_typography
+ * File: text_properties.css
+ *
+ * Expected Can I Use IDs:
+ *   - text-overflow: https://caniuse.com/text-overflow
+ *   - css-line-clamp: https://caniuse.com/css-line-clamp
+ *   - css-text-wrap-balance: https://caniuse.com/css-text-wrap-balance
+ *
+ * VALIDATION STEPS:
+ *   1. Load this file in Cross Guard
+ *   2. Verify features detected: text-overflow, css-line-clamp, css-text-wrap-balance
+ *   3. Compare browser support with Can I Use links above
+ *   4. Record results in CSS_CHECKLIST.md
+ */
+
+/* =============================================
+   Feature: text-overflow
+   Can I Use: https://caniuse.com/text-overflow
+   ============================================= */
+
+/* Text overflow ellipsis */
+.text-ellipsis {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Text overflow clip */
+.text-clip {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: clip;
+}
+
+/* Text overflow with string (limited support) */
+.text-overflow-string {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: "...more";
+}
+
+/* Practical text-overflow examples */
+.card-title {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+}
+
+.table-cell {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 150px;
+}
+
+.nav-link {
+    display: block;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.breadcrumb-item {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 120px;
+}
+
+/* Two-value text-overflow (fade on both ends) */
+.text-overflow-fade {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis ellipsis;
+}
+
+/* =============================================
+   Feature: css-line-clamp
+   Can I Use: https://caniuse.com/css-line-clamp
+   ============================================= */
+
+/* Line clamp with -webkit prefix (widely supported) */
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.line-clamp-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.line-clamp-4 {
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.line-clamp-5 {
+    display: -webkit-box;
+    -webkit-line-clamp: 5;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Standard line-clamp (emerging support) */
+.line-clamp-standard-2 {
+    line-clamp: 2;
+    overflow: hidden;
+}
+
+.line-clamp-standard-3 {
+    line-clamp: 3;
+    overflow: hidden;
+}
+
+/* Practical line-clamp examples */
+.card-description {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    line-height: 1.5;
+}
+
+.article-excerpt {
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.comment-preview {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.product-description {
+    display: -webkit-box;
+    -webkit-line-clamp: 5;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    max-height: 7.5em;
+}
+
+/* =============================================
+   Feature: css-text-wrap-balance
+   Can I Use: https://caniuse.com/css-text-wrap-balance
+   ============================================= */
+
+/* Text wrap balance */
+.text-balanced {
+    text-wrap: balance;
+}
+
+/* Text wrap pretty */
+.text-pretty {
+    text-wrap: pretty;
+}
+
+/* Text wrap stable */
+.text-stable {
+    text-wrap: stable;
+}
+
+/* Text wrap nowrap */
+.text-nowrap {
+    text-wrap: nowrap;
+}
+
+/* Text wrap auto (default) */
+.text-wrap-auto {
+    text-wrap: auto;
+}
+
+/* Practical text-wrap examples */
+
+/* Headings with balanced text */
+h1.balanced {
+    text-wrap: balance;
+    max-width: 20ch;
+}
+
+h2.balanced {
+    text-wrap: balance;
+}
+
+.hero-title {
+    text-wrap: balance;
+    font-size: 3rem;
+    max-width: 15ch;
+}
+
+.section-heading {
+    text-wrap: balance;
+    text-align: center;
+}
+
+/* Cards with balanced titles */
+.card-title-balanced {
+    text-wrap: balance;
+    font-weight: 600;
+}
+
+/* Pull quotes */
+.pull-quote {
+    text-wrap: balance;
+    font-size: 1.5rem;
+    font-style: italic;
+    max-width: 30ch;
+}
+
+/* Navigation with stable text */
+.nav-item {
+    text-wrap: stable;
+}
+
+/* Body text with pretty wrapping */
+.article-body {
+    text-wrap: pretty;
+}
+
+/* Additional text properties commonly used */
+
+/* Word break */
+.word-break-all {
+    word-break: break-all;
+}
+
+.word-break-keep {
+    word-break: keep-all;
+}
+
+.word-break-normal {
+    word-break: normal;
+}
+
+/* Overflow wrap */
+.overflow-wrap-anywhere {
+    overflow-wrap: anywhere;
+}
+
+.overflow-wrap-break-word {
+    overflow-wrap: break-word;
+}
+
+/* Hyphens */
+.hyphens-auto {
+    hyphens: auto;
+}
+
+.hyphens-manual {
+    hyphens: manual;
+}
+
+.hyphens-none {
+    hyphens: none;
+}
+
+/* White space */
+.whitespace-pre {
+    white-space: pre;
+}
+
+.whitespace-pre-wrap {
+    white-space: pre-wrap;
+}
+
+.whitespace-pre-line {
+    white-space: pre-line;
+}
+
+.whitespace-break-spaces {
+    white-space: break-spaces;
+}
+
+/* Word spacing */
+.word-spacing-normal {
+    word-spacing: normal;
+}
+
+.word-spacing-wide {
+    word-spacing: 0.25em;
+}
+
+/* Letter spacing */
+.letter-spacing-tight {
+    letter-spacing: -0.05em;
+}
+
+.letter-spacing-wide {
+    letter-spacing: 0.1em;
+}
+
+.letter-spacing-extra-wide {
+    letter-spacing: 0.25em;
+}
+
+/* Text transform */
+.text-uppercase {
+    text-transform: uppercase;
+}
+
+.text-lowercase {
+    text-transform: lowercase;
+}
+
+.text-capitalize {
+    text-transform: capitalize;
+}
+
+/* Text decoration */
+.text-underline {
+    text-decoration: underline;
+}
+
+.text-line-through {
+    text-decoration: line-through;
+}
+
+.text-decoration-styled {
+    text-decoration: underline wavy red;
+}
+
+.text-decoration-thickness {
+    text-decoration: underline;
+    text-decoration-thickness: 3px;
+}
+
+.text-underline-offset {
+    text-decoration: underline;
+    text-underline-offset: 4px;
+}
+
+/* Text indent */
+.text-indent {
+    text-indent: 2em;
+}
+
+.text-indent-negative {
+    text-indent: -1em;
+    padding-left: 1em;
+}

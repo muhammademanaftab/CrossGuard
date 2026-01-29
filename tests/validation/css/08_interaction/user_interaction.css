@@ -1,0 +1,527 @@
+/*
+ * Cross Guard CSS Manual Validation Test
+ * Category: 08_interaction
+ * File: user_interaction.css
+ *
+ * Expected Can I Use IDs:
+ *   - css3-cursors: https://caniuse.com/css3-cursors
+ *   - pointer-events: https://caniuse.com/pointer-events
+ *   - css-resize: https://caniuse.com/css-resize
+ *
+ * VALIDATION STEPS:
+ *   1. Load this file in Cross Guard
+ *   2. Verify features detected: css3-cursors, pointer-events, css-resize
+ *   3. Compare browser support with Can I Use links above
+ *   4. Record results in CSS_CHECKLIST.md
+ */
+
+/* =============================================
+   Feature: css3-cursors
+   Can I Use: https://caniuse.com/css3-cursors
+   ============================================= */
+
+/* General cursors */
+.cursor-auto {
+    cursor: auto;
+}
+
+.cursor-default {
+    cursor: default;
+}
+
+.cursor-none {
+    cursor: none;
+}
+
+/* Links & status */
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.cursor-context-menu {
+    cursor: context-menu;
+}
+
+.cursor-help {
+    cursor: help;
+}
+
+.cursor-progress {
+    cursor: progress;
+}
+
+.cursor-wait {
+    cursor: wait;
+}
+
+/* Selection */
+.cursor-cell {
+    cursor: cell;
+}
+
+.cursor-crosshair {
+    cursor: crosshair;
+}
+
+.cursor-text {
+    cursor: text;
+}
+
+.cursor-vertical-text {
+    cursor: vertical-text;
+}
+
+/* Drag & drop */
+.cursor-alias {
+    cursor: alias;
+}
+
+.cursor-copy {
+    cursor: copy;
+}
+
+.cursor-move {
+    cursor: move;
+}
+
+.cursor-no-drop {
+    cursor: no-drop;
+}
+
+.cursor-not-allowed {
+    cursor: not-allowed;
+}
+
+.cursor-grab {
+    cursor: grab;
+}
+
+.cursor-grabbing {
+    cursor: grabbing;
+}
+
+/* Resizing & scrolling */
+.cursor-all-scroll {
+    cursor: all-scroll;
+}
+
+.cursor-col-resize {
+    cursor: col-resize;
+}
+
+.cursor-row-resize {
+    cursor: row-resize;
+}
+
+/* Directional resize */
+.cursor-n-resize {
+    cursor: n-resize;
+}
+
+.cursor-e-resize {
+    cursor: e-resize;
+}
+
+.cursor-s-resize {
+    cursor: s-resize;
+}
+
+.cursor-w-resize {
+    cursor: w-resize;
+}
+
+.cursor-ne-resize {
+    cursor: ne-resize;
+}
+
+.cursor-nw-resize {
+    cursor: nw-resize;
+}
+
+.cursor-se-resize {
+    cursor: se-resize;
+}
+
+.cursor-sw-resize {
+    cursor: sw-resize;
+}
+
+.cursor-ew-resize {
+    cursor: ew-resize;
+}
+
+.cursor-ns-resize {
+    cursor: ns-resize;
+}
+
+.cursor-nesw-resize {
+    cursor: nesw-resize;
+}
+
+.cursor-nwse-resize {
+    cursor: nwse-resize;
+}
+
+/* Zoom */
+.cursor-zoom-in {
+    cursor: zoom-in;
+}
+
+.cursor-zoom-out {
+    cursor: zoom-out;
+}
+
+/* Custom cursor with URL */
+.cursor-custom {
+    cursor: url('cursor.png'), auto;
+}
+
+.cursor-custom-hotspot {
+    cursor: url('cursor.png') 10 10, pointer;
+}
+
+.cursor-custom-fallback {
+    cursor: url('cursor.cur'), url('cursor.png'), pointer;
+}
+
+/* Practical cursor examples */
+
+/* Draggable element */
+.draggable {
+    cursor: grab;
+}
+
+.draggable:active {
+    cursor: grabbing;
+}
+
+/* Disabled button */
+.button-disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+/* Image zoom */
+.zoomable-image {
+    cursor: zoom-in;
+}
+
+.zoomable-image.zoomed {
+    cursor: zoom-out;
+}
+
+/* Resizable panel */
+.resize-handle {
+    cursor: col-resize;
+}
+
+.resize-handle-vertical {
+    cursor: row-resize;
+}
+
+/* Help icon */
+.help-tooltip {
+    cursor: help;
+}
+
+/* Loading state */
+.loading {
+    cursor: wait;
+}
+
+.loading-progress {
+    cursor: progress;
+}
+
+/* =============================================
+   Feature: pointer-events
+   Can I Use: https://caniuse.com/pointer-events
+   ============================================= */
+
+/* Pointer events values */
+.pointer-auto {
+    pointer-events: auto;
+}
+
+.pointer-none {
+    pointer-events: none;
+}
+
+/* SVG-specific pointer events */
+.pointer-visible-painted {
+    pointer-events: visiblePainted;
+}
+
+.pointer-visible-fill {
+    pointer-events: visibleFill;
+}
+
+.pointer-visible-stroke {
+    pointer-events: visibleStroke;
+}
+
+.pointer-visible {
+    pointer-events: visible;
+}
+
+.pointer-painted {
+    pointer-events: painted;
+}
+
+.pointer-fill {
+    pointer-events: fill;
+}
+
+.pointer-stroke {
+    pointer-events: stroke;
+}
+
+.pointer-all {
+    pointer-events: all;
+}
+
+/* Practical pointer-events examples */
+
+/* Overlay that passes through clicks */
+.overlay-passthrough {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    pointer-events: none;
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.overlay-passthrough .interactive-element {
+    pointer-events: auto;
+}
+
+/* Disabled state */
+.disabled-element {
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+/* Loading overlay */
+.loading-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(255, 255, 255, 0.8);
+    pointer-events: all;
+}
+
+/* Decorative element */
+.decorative {
+    pointer-events: none;
+}
+
+/* Behind content */
+.background-pattern {
+    position: absolute;
+    pointer-events: none;
+}
+
+/* SVG icon button */
+.icon-button {
+    pointer-events: auto;
+}
+
+.icon-button svg {
+    pointer-events: none;
+}
+
+/* Tooltip */
+.tooltip-text {
+    pointer-events: none;
+}
+
+/* =============================================
+   Feature: css-resize
+   Can I Use: https://caniuse.com/css-resize
+   ============================================= */
+
+/* Resize values */
+.resize-none {
+    resize: none;
+}
+
+.resize-both {
+    resize: both;
+    overflow: auto;
+}
+
+.resize-horizontal {
+    resize: horizontal;
+    overflow: auto;
+}
+
+.resize-vertical {
+    resize: vertical;
+    overflow: auto;
+}
+
+.resize-block {
+    resize: block;
+    overflow: auto;
+}
+
+.resize-inline {
+    resize: inline;
+    overflow: auto;
+}
+
+/* Practical resize examples */
+
+/* Textarea with resize */
+.textarea-resizable {
+    resize: vertical;
+    min-height: 100px;
+    max-height: 500px;
+}
+
+.textarea-no-resize {
+    resize: none;
+}
+
+.textarea-horizontal {
+    resize: horizontal;
+    min-width: 200px;
+    max-width: 100%;
+}
+
+/* Resizable panel */
+.resizable-panel {
+    resize: horizontal;
+    overflow: auto;
+    min-width: 200px;
+    max-width: 600px;
+    border: 1px solid #ccc;
+    padding: 16px;
+}
+
+/* Resizable sidebar */
+.sidebar-resizable {
+    resize: horizontal;
+    overflow: auto;
+    min-width: 150px;
+    max-width: 400px;
+}
+
+/* Resizable code editor */
+.code-editor {
+    resize: both;
+    overflow: auto;
+    min-width: 300px;
+    min-height: 200px;
+    max-width: 100%;
+    max-height: 80vh;
+}
+
+/* Resizable image container */
+.image-container-resizable {
+    resize: both;
+    overflow: hidden;
+    min-width: 100px;
+    min-height: 100px;
+}
+
+/* Additional interaction properties */
+
+/* User select */
+.user-select-none {
+    user-select: none;
+}
+
+.user-select-text {
+    user-select: text;
+}
+
+.user-select-all {
+    user-select: all;
+}
+
+.user-select-auto {
+    user-select: auto;
+}
+
+.user-select-contain {
+    user-select: contain;
+}
+
+/* Caret color */
+.caret-primary {
+    caret-color: #007bff;
+}
+
+.caret-transparent {
+    caret-color: transparent;
+}
+
+.caret-auto {
+    caret-color: auto;
+}
+
+/* Accent color */
+.accent-primary {
+    accent-color: #007bff;
+}
+
+.accent-auto {
+    accent-color: auto;
+}
+
+/* Appearance */
+.appearance-none {
+    appearance: none;
+}
+
+.appearance-auto {
+    appearance: auto;
+}
+
+.appearance-menulist-button {
+    appearance: menulist-button;
+}
+
+.appearance-textfield {
+    appearance: textfield;
+}
+
+/* Practical utility class combinations */
+
+/* Non-selectable UI element */
+.ui-element {
+    user-select: none;
+    cursor: default;
+}
+
+/* Draggable item */
+.draggable-item {
+    cursor: grab;
+    user-select: none;
+}
+
+.draggable-item:active {
+    cursor: grabbing;
+}
+
+/* Input with custom caret */
+.custom-input {
+    caret-color: #007bff;
+    accent-color: #007bff;
+}
+
+/* Custom checkbox/radio */
+.custom-control {
+    appearance: none;
+    cursor: pointer;
+}
+
+.custom-control:disabled {
+    cursor: not-allowed;
+    pointer-events: none;
+}

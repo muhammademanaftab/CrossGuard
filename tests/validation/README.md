@@ -1,157 +1,116 @@
-# Cross Guard Manual Validation Test Suite
+# Cross Guard Manual Validation Testing
 
 ## Overview
 
-This test suite provides comprehensive manual validation tests to verify that Cross Guard correctly detects HTML, CSS, and JavaScript features and reports accurate browser compatibility data matching [caniuse.com](https://caniuse.com).
+This directory contains test files for manually validating Cross Guard's feature detection against the Can I Use website.
+
+## Purpose
+
+- Verify that Cross Guard correctly detects HTML, CSS, and JavaScript features
+- Confirm browser compatibility data matches caniuse.com
+- Document any discrepancies for future fixes
 
 ## Directory Structure
 
 ```
 tests/validation/
-├── README.md                           # This file
-├── CHECKLIST.md                        # Master checklist to track progress
+├── README.md                    # This file
+├── CHECKLIST.md                 # Master checklist to track progress
 │
-├── html/                               # HTML Feature Tests ✅ COMPLETE
-│   ├── comprehensive_test.html         # All 54 HTML features in one file
-│   ├── manual_test.html                # Quick manual testing
-│   │
-│   ├── 01_elements/                    # HTML Element tests
-│   │   ├── semantic_elements.html      # main, section, article, nav, header, footer
-│   │   ├── media_elements.html         # video, audio, picture, canvas
-│   │   ├── interactive_elements.html   # dialog, details, template
-│   │   └── form_elements.html          # datalist, meter, progress, output
-│   │
-│   ├── 02_input_types/                 # Input Type tests
-│   │   ├── datetime_inputs.html        # date, time, datetime-local, month, week
-│   │   ├── text_inputs.html            # email, tel, url, search
-│   │   └── other_inputs.html           # color, range, number, file
-│   │
-│   ├── 03_attributes/                  # Attribute tests
-│   │   ├── form_attributes.html        # required, pattern, min, max
-│   │   ├── loading_attributes.html     # loading, async, defer, integrity
-│   │   └── content_attributes.html     # contenteditable, draggable, hidden
-│   │
-│   ├── 04_attribute_values/            # Attribute:Value tests
-│   │   ├── rel_values.html             # preload, prefetch, preconnect, modulepreload
-│   │   ├── type_values.html            # type=module, media types
-│   │   └── referrerpolicy_values.html  # referrer policies
-│   │
-│   └── 05_special_patterns/            # Special Pattern tests
-│       ├── responsive_images.html      # srcset, sizes, picture
-│       ├── accessibility.html          # ARIA attributes
-│       └── media_formats.html          # webm, webp, avif formats
+├── 01_elements/                 # HTML Element tests
+├── 02_input_types/              # Input Type tests
+├── 03_attributes/               # Attribute tests
+├── 04_attribute_values/         # Attribute:Value tests
+├── 05_special_patterns/         # Special Pattern tests
 │
-├── css/                                # CSS Feature Tests (TODO)
-│   └── (to be created)
+├── css/                         # CSS validation tests
+│   ├── README.md
+│   ├── CSS_CHECKLIST.md
+│   └── [category folders]
 │
-├── js/                                 # JavaScript Feature Tests (TODO)
-│   └── (to be created)
-│
-└── results/                            # Store validation results
-    └── validation_log.md               # Log of manual tests performed
+└── results/                     # Validation results
+    └── validation_log.md
 ```
 
----
+## How to Use
 
-## Test Status
+### Step 1: Open Cross Guard
+```bash
+python run_gui.py
+```
 
-| Language | Test Files | Features Covered | Status |
-|----------|------------|------------------|--------|
-| **HTML** | 18 files | 54+ features | ✅ COMPLETE |
-| **CSS** | - | - | 🔲 TODO |
-| **JavaScript** | - | - | 🔲 TODO |
+### Step 2: Load a Test File
+- Drag and drop a test HTML/CSS file into Cross Guard
+- Or use the file picker to select a file
 
----
-
-## HTML Testing Summary ✅
-
-### Coverage
-- **Total HTML features in Can I Use:** 89
-- **Features covered in maps:** 75 (84%)
-- **Features tested:** 54 unique features
-- **Uncovered:** 14 (mostly JS APIs, not HTML markup)
-
-### Test Results
-- All 16 category test files validated
-- Comprehensive test file detects 54 features
-- Random real-world HTML files tested successfully
-- 100% accuracy on feature detection
-
-### Key Features Tested
-- HTML5 Semantic Elements (header, nav, main, section, article, aside, footer, figure)
-- Media Elements (video, audio, picture, canvas, track)
-- Interactive Elements (dialog, details, summary, template)
-- Form Elements (datalist, meter, progress, output)
-- Input Types (date, time, color, range, email, tel, url, search, number, file)
-- Attributes (loading, async, defer, integrity, contenteditable, hidden, download)
-- Attribute Values (rel preload/prefetch, type module, referrerpolicy)
-- Media Formats (webm, mp4, mp3, ogg, webp, avif)
-- Accessibility (WAI-ARIA roles and attributes)
-- Responsive Images (srcset, sizes, picture)
-
----
-
-## How to Run Manual Validation Tests
-
-### Prerequisites
-
-1. Cross Guard application running (`python run_gui.py`)
-2. Web browser for accessing caniuse.com
-3. This checklist open for recording results
-
-### Step-by-Step Process
-
-#### Step 1: Load Test File in Cross Guard
-
-1. Open Cross Guard application
-2. Drag and drop a test HTML/CSS/JS file (or use file picker)
-3. Wait for analysis to complete
-
-#### Step 2: Note Detected Features
-
-1. Check the "Detected Features" count displayed
-2. Expand browser cards to see the full feature list
+### Step 3: Note Detected Features
+1. Look at the "Detected Features" count
+2. Expand browser cards to see the feature list
 3. Note each feature's name and Can I Use ID
 
-#### Step 3: Verify Against Can I Use Website
-
+### Step 4: Verify on Can I Use
 For each detected feature:
-
 1. Go to `https://caniuse.com/{feature-id}`
-2. Compare browser support percentages
-3. Verify version support ranges match
-4. Check for any discrepancies in support status (full, partial, none)
+2. Compare browser support shown on Can I Use with Cross Guard
+3. Verify version ranges match
 
-#### Step 4: Record Results
+### Step 5: Record Results
+1. Open `CHECKLIST.md` (for HTML) or `css/CSS_CHECKLIST.md` (for CSS)
+2. Mark features as:
+   - `[x]` = Passed (feature detected, support matches)
+   - `[!]` = Failed (add notes about discrepancy)
+   - `[ ]` = Not yet tested
+3. Add detailed notes in `results/validation_log.md`
 
-1. Open `CHECKLIST.md`
-2. Mark each feature as PASS `[x]` or FAIL `[!]`
-3. Add notes for any discrepancies
-4. Log detailed results in `results/validation_log.md`
+## Test File Categories
 
----
+### HTML Tests
 
-## Validation Criteria
+| Category | Files | Features Tested |
+|----------|-------|-----------------|
+| 01_elements | 4 | Semantic, media, interactive, form elements |
+| 02_input_types | 3 | Date/time, text, other input types |
+| 03_attributes | 3 | Form, loading, content attributes |
+| 04_attribute_values | 3 | rel, type, referrerpolicy values |
+| 05_special_patterns | 3 | Responsive images, ARIA, media formats |
 
-### What to Check
+### CSS Tests
 
-1. **Feature Detection**: Is the feature correctly identified?
-2. **Can I Use ID**: Does Cross Guard use the correct Can I Use feature ID?
-3. **Browser Support**: Do support percentages match caniuse.com?
-4. **Version Ranges**: Are minimum supported versions accurate?
-5. **Support Status**: Are full/partial/no support states correct?
+| Category | Files | Features Tested |
+|----------|-------|-----------------|
+| 01_layout | 3 | Flexbox, Grid, Multicolumn |
+| 02_transforms_animation | 3 | Transforms, Animations, Transitions |
+| 03_colors_backgrounds | 3 | Colors, Gradients, Filters |
+| 04_typography | 3 | Fonts, Text properties |
+| 05_selectors | 2 | Pseudo-classes, Pseudo-elements |
+| 06_units_values | 2 | Units, CSS Variables |
+| 07_box_model | 1 | Border, Shadow, Sizing |
+| 08_interaction | 2 | Scroll, User interaction |
+| 09_modern_css | 4 | Container queries, Nesting, Layers |
+| 10_media_queries | 1 | Media features |
 
-### Pass/Fail Criteria
+## Expected Results
 
-- **PASS**: Feature detected AND browser support matches caniuse.com within 2%
-- **FAIL**: Feature not detected OR browser support differs by more than 5%
-- **PARTIAL**: Minor version discrepancies (within 1-2 versions)
+- **HTML**: 60+ unique features across 16 test files
+- **CSS**: 100+ unique features across 21 test files
+- **Accuracy Target**: 95%+ match with Can I Use data
 
----
+## Reporting Issues
 
-## Next Steps
+If you find a discrepancy:
+1. Document it in `results/validation_log.md`
+2. Note the feature ID, expected value, and actual value
+3. Include the Can I Use URL for reference
 
-1. ~~Complete HTML testing~~ ✅
-2. Create CSS validation tests
-3. Create JavaScript validation tests
-4. Final comprehensive validation report
+## Quick Verification
+
+```bash
+# Count HTML test files
+find tests/validation -maxdepth 2 -name "*.html" | wc -l
+
+# Count CSS test files
+find tests/validation/css -name "*.css" | wc -l
+
+# Run Cross Guard
+python run_gui.py
+```

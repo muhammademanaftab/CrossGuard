@@ -1,0 +1,304 @@
+/*
+ * Cross Guard CSS Manual Validation Test
+ * Category: 09_modern_css
+ * File: container_queries.css
+ *
+ * Expected Can I Use IDs:
+ *   - css-container-queries: https://caniuse.com/css-container-queries
+ *
+ * VALIDATION STEPS:
+ *   1. Load this file in Cross Guard
+ *   2. Verify feature detected: css-container-queries
+ *   3. Compare browser support with Can I Use link above
+ *   4. Record results in CSS_CHECKLIST.md
+ */
+
+/* =============================================
+   Feature: css-container-queries
+   Can I Use: https://caniuse.com/css-container-queries
+   ============================================= */
+
+/* Container type */
+.container-inline {
+    container-type: inline-size;
+}
+
+.container-size {
+    container-type: size;
+}
+
+.container-normal {
+    container-type: normal;
+}
+
+/* Container name */
+.named-container {
+    container-name: card;
+}
+
+.named-container-sidebar {
+    container-name: sidebar;
+}
+
+/* Container shorthand */
+.container-shorthand {
+    container: card / inline-size;
+}
+
+.container-shorthand-size {
+    container: main / size;
+}
+
+/* Basic container query */
+@container (min-width: 400px) {
+    .card-content {
+        display: flex;
+        gap: 1rem;
+    }
+}
+
+@container (max-width: 399px) {
+    .card-content {
+        display: block;
+    }
+}
+
+/* Container query with name */
+@container card (min-width: 500px) {
+    .card-title {
+        font-size: 1.5rem;
+    }
+}
+
+@container sidebar (min-width: 300px) {
+    .sidebar-content {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* Container query width ranges */
+@container (width > 600px) {
+    .wide-content {
+        padding: 2rem;
+    }
+}
+
+@container (width < 400px) {
+    .narrow-content {
+        padding: 0.5rem;
+    }
+}
+
+@container (400px <= width <= 800px) {
+    .medium-content {
+        padding: 1rem;
+    }
+}
+
+/* Container query with height */
+@container (min-height: 300px) {
+    .tall-content {
+        display: flex;
+        flex-direction: column;
+    }
+}
+
+/* Container query with aspect-ratio */
+@container (aspect-ratio > 1) {
+    .landscape-layout {
+        flex-direction: row;
+    }
+}
+
+@container (aspect-ratio < 1) {
+    .portrait-layout {
+        flex-direction: column;
+    }
+}
+
+/* Container query with orientation */
+@container (orientation: landscape) {
+    .orientation-content {
+        display: flex;
+    }
+}
+
+@container (orientation: portrait) {
+    .orientation-content {
+        display: block;
+    }
+}
+
+/* Practical container query examples */
+
+/* Responsive card component */
+.card-container {
+    container: card / inline-size;
+}
+
+.card {
+    padding: 1rem;
+}
+
+@container card (min-width: 300px) {
+    .card {
+        padding: 1.5rem;
+    }
+
+    .card-image {
+        float: left;
+        width: 40%;
+        margin-right: 1rem;
+    }
+}
+
+@container card (min-width: 500px) {
+    .card {
+        display: grid;
+        grid-template-columns: 200px 1fr;
+        gap: 1.5rem;
+        padding: 2rem;
+    }
+
+    .card-image {
+        float: none;
+        width: 100%;
+        margin-right: 0;
+    }
+}
+
+/* Responsive navigation */
+.nav-container {
+    container-type: inline-size;
+}
+
+.nav-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+@container (min-width: 600px) {
+    .nav-list {
+        flex-direction: row;
+        gap: 1rem;
+    }
+}
+
+/* Responsive sidebar */
+.sidebar-container {
+    container: sidebar / inline-size;
+}
+
+.sidebar-widget {
+    padding: 1rem;
+}
+
+@container sidebar (min-width: 250px) {
+    .sidebar-widget {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1rem;
+    }
+}
+
+/* Responsive grid item */
+.grid-item-container {
+    container-type: inline-size;
+}
+
+.grid-item-content {
+    text-align: center;
+}
+
+@container (min-width: 200px) {
+    .grid-item-content {
+        text-align: left;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+    }
+}
+
+/* Container units */
+.container-units {
+    container-type: inline-size;
+}
+
+.cq-width {
+    width: 50cqw;
+}
+
+.cq-height {
+    height: 50cqh;
+}
+
+.cq-inline {
+    width: 50cqi;
+}
+
+.cq-block {
+    height: 50cqb;
+}
+
+.cq-min {
+    font-size: 5cqmin;
+}
+
+.cq-max {
+    font-size: 3cqmax;
+}
+
+/* Using container units for fluid typography */
+@container (min-width: 200px) {
+    .fluid-text {
+        font-size: clamp(1rem, 4cqi, 2rem);
+    }
+}
+
+/* Multiple container conditions */
+@container (min-width: 400px) and (min-height: 300px) {
+    .multi-condition {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* Container style queries (experimental) */
+@container style(--theme: dark) {
+    .themed-element {
+        background: #333;
+        color: #fff;
+    }
+}
+
+@container style(--layout: compact) {
+    .layout-aware {
+        padding: 0.5rem;
+        gap: 0.25rem;
+    }
+}
+
+/* Nested containers */
+.outer-container {
+    container: outer / inline-size;
+}
+
+.inner-container {
+    container: inner / inline-size;
+}
+
+@container outer (min-width: 800px) {
+    .outer-responsive {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+    }
+}
+
+@container inner (min-width: 300px) {
+    .inner-responsive {
+        display: flex;
+        gap: 1rem;
+    }
+}

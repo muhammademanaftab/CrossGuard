@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Text Inputs - Manual Validation Test</title>
+    <!--
+        Cross Guard Manual Validation Test
+        Category: 02_input_types
+        File: text_inputs.html
+
+        Expected Can I Use IDs:
+          - input-email-tel-url: https://caniuse.com/input-email-tel-url
+          - input-search: https://caniuse.com/input-search
+
+        VALIDATION STEPS:
+          1. Load this file in Cross Guard
+          2. Verify features detected: input-email-tel-url, input-search
+          3. Compare browser support with Can I Use links above
+          4. Record results in CHECKLIST.md
+    -->
+</head>
+<body>
+    <h1>Text Input Types Test</h1>
+    <p>This page tests HTML5 text-based input types for Cross Guard validation.</p>
+
+    <form>
+        <!-- Feature: input-email-tel-url (type="email") -->
+        <!-- Can I Use: https://caniuse.com/input-email-tel-url -->
+        <section>
+            <h2>Email Input</h2>
+            <label for="email">Email address:</label>
+            <input type="email" id="email" name="email" placeholder="user@example.com">
+
+            <label for="work-email">Work email:</label>
+            <input type="email" id="work-email" name="work-email" multiple placeholder="Enter multiple emails">
+
+            <label for="required-email">Required email:</label>
+            <input type="email" id="required-email" name="required-email" required>
+        </section>
+
+        <!-- Feature: input-email-tel-url (type="tel") -->
+        <section>
+            <h2>Telephone Input</h2>
+            <label for="phone">Phone number:</label>
+            <input type="tel" id="phone" name="phone" placeholder="123-456-7890">
+
+            <label for="mobile">Mobile:</label>
+            <input type="tel" id="mobile" name="mobile" pattern="[0-9]{3}-[0-9]{3}-[0-9]{4}">
+
+            <label for="intl-phone">International:</label>
+            <input type="tel" id="intl-phone" name="intl-phone" placeholder="+1 (555) 123-4567">
+        </section>
+
+        <!-- Feature: input-email-tel-url (type="url") -->
+        <section>
+            <h2>URL Input</h2>
+            <label for="website">Website:</label>
+            <input type="url" id="website" name="website" placeholder="https://example.com">
+
+            <label for="portfolio">Portfolio URL:</label>
+            <input type="url" id="portfolio" name="portfolio" pattern="https://.*">
+
+            <label for="linkedin">LinkedIn:</label>
+            <input type="url" id="linkedin" name="linkedin" placeholder="https://linkedin.com/in/username">
+        </section>
+
+        <!-- Feature: input-search -->
+        <!-- Can I Use: https://caniuse.com/input-search -->
+        <section>
+            <h2>Search Input</h2>
+            <label for="search">Search:</label>
+            <input type="search" id="search" name="search" placeholder="Search...">
+
+            <label for="site-search">Site search:</label>
+            <input type="search" id="site-search" name="site-search" autosave="search-history" results="5">
+
+            <label for="advanced-search">Advanced search:</label>
+            <input type="search" id="advanced-search" name="advanced-search" incremental>
+        </section>
+
+        <button type="submit">Submit</button>
+    </form>
+</body>
+</html>

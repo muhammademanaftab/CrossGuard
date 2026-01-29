@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Responsive Images - Manual Validation Test</title>
+    <!--
+        Cross Guard Manual Validation Test
+        Category: 05_special_patterns
+        File: responsive_images.html
+
+        Expected Can I Use IDs:
+          - srcset: https://caniuse.com/srcset
+          - picture: https://caniuse.com/picture
+
+        VALIDATION STEPS:
+          1. Load this file in Cross Guard
+          2. Verify features detected: srcset, picture
+          3. Compare browser support with Can I Use links above
+          4. Record results in CHECKLIST.md
+    -->
+</head>
+<body>
+    <h1>Responsive Images Test</h1>
+    <p>This page tests HTML5 responsive image features for Cross Guard validation.</p>
+
+    <!-- Feature: srcset (resolution switching) -->
+    <!-- Can I Use: https://caniuse.com/srcset -->
+    <section>
+        <h2>Srcset - Resolution Switching (x descriptors)</h2>
+        <p>Different images for different pixel densities:</p>
+
+        <img src="hero-1x.jpg"
+             srcset="hero-1x.jpg 1x,
+                     hero-2x.jpg 2x,
+                     hero-3x.jpg 3x"
+             alt="Hero image with resolution switching"
+             width="800" height="400">
+
+        <img src="logo-small.png"
+             srcset="logo-small.png 1x,
+                     logo-medium.png 2x,
+                     logo-large.png 3x"
+             alt="Logo with multiple resolutions"
+             width="200" height="100">
+    </section>
+
+    <!-- Feature: srcset (width descriptors with sizes) -->
+    <section>
+        <h2>Srcset - Width Descriptors with Sizes</h2>
+        <p>Different images for different viewport widths:</p>
+
+        <img src="product-400.jpg"
+             srcset="product-400.jpg 400w,
+                     product-800.jpg 800w,
+                     product-1200.jpg 1200w,
+                     product-1600.jpg 1600w"
+             sizes="(max-width: 600px) 100vw,
+                    (max-width: 1200px) 50vw,
+                    33vw"
+             alt="Product with width-based srcset"
+             width="600" height="400">
+
+        <img src="banner-small.jpg"
+             srcset="banner-small.jpg 320w,
+                     banner-medium.jpg 640w,
+                     banner-large.jpg 1280w,
+                     banner-xlarge.jpg 1920w"
+             sizes="100vw"
+             alt="Full-width banner"
+             width="1200" height="300">
+    </section>
+
+    <!-- Feature: picture -->
+    <!-- Can I Use: https://caniuse.com/picture -->
+    <section>
+        <h2>Picture Element - Art Direction</h2>
+        <p>Different images for different screen sizes (art direction):</p>
+
+        <picture>
+            <source media="(min-width: 1200px)" srcset="hero-desktop.jpg">
+            <source media="(min-width: 768px)" srcset="hero-tablet.jpg">
+            <source media="(min-width: 480px)" srcset="hero-mobile-large.jpg">
+            <img src="hero-mobile.jpg" alt="Responsive hero image" width="800" height="400">
+        </picture>
+    </section>
+
+    <section>
+        <h2>Picture Element - Format Switching</h2>
+        <p>Different formats with fallback (AVIF → WebP → JPEG):</p>
+
+        <picture>
+            <source type="image/avif" srcset="photo.avif">
+            <source type="image/webp" srcset="photo.webp">
+            <source type="image/jpeg" srcset="photo.jpg">
+            <img src="photo.jpg" alt="Photo with format fallback" width="600" height="400">
+        </picture>
+
+        <picture>
+            <source type="image/webp"
+                    srcset="gallery-400.webp 400w,
+                            gallery-800.webp 800w,
+                            gallery-1200.webp 1200w"
+                    sizes="(max-width: 600px) 100vw, 50vw">
+            <source type="image/jpeg"
+                    srcset="gallery-400.jpg 400w,
+                            gallery-800.jpg 800w,
+                            gallery-1200.jpg 1200w"
+                    sizes="(max-width: 600px) 100vw, 50vw">
+            <img src="gallery-800.jpg" alt="Gallery image" width="800" height="600">
+        </picture>
+    </section>
+
+    <section>
+        <h2>Picture Element - Combined Art Direction + Format</h2>
+        <p>Art direction with format switching:</p>
+
+        <picture>
+            <!-- Desktop: wide image, modern formats first -->
+            <source media="(min-width: 1024px)"
+                    type="image/avif"
+                    srcset="banner-wide.avif">
+            <source media="(min-width: 1024px)"
+                    type="image/webp"
+                    srcset="banner-wide.webp">
+            <source media="(min-width: 1024px)"
+                    srcset="banner-wide.jpg">
+
+            <!-- Tablet: medium crop -->
+            <source media="(min-width: 640px)"
+                    type="image/webp"
+                    srcset="banner-medium.webp">
+            <source media="(min-width: 640px)"
+                    srcset="banner-medium.jpg">
+
+            <!-- Mobile: square crop -->
+            <source type="image/webp" srcset="banner-square.webp">
+            <img src="banner-square.jpg" alt="Responsive banner" width="400" height="400">
+        </picture>
+    </section>
+
+    <section>
+        <h2>Srcset with Picture for Different Densities</h2>
+        <p>Picture element with srcset for both art direction and resolution:</p>
+
+        <picture>
+            <source media="(min-width: 800px)"
+                    srcset="card-landscape-1x.jpg 1x,
+                            card-landscape-2x.jpg 2x,
+                            card-landscape-3x.jpg 3x">
+            <source media="(min-width: 400px)"
+                    srcset="card-square-1x.jpg 1x,
+                            card-square-2x.jpg 2x">
+            <img src="card-portrait.jpg"
+                 srcset="card-portrait-1x.jpg 1x,
+                         card-portrait-2x.jpg 2x"
+                 alt="Responsive card image"
+                 width="300" height="400">
+        </picture>
+    </section>
+</body>
+</html>

@@ -1,0 +1,402 @@
+/*
+ * Cross Guard CSS Manual Validation Test
+ * Category: 09_modern_css
+ * File: view_transitions.css
+ *
+ * Expected Can I Use IDs:
+ *   - view-transitions: https://caniuse.com/view-transitions
+ *
+ * VALIDATION STEPS:
+ *   1. Load this file in Cross Guard
+ *   2. Verify feature detected: view-transitions
+ *   3. Compare browser support with Can I Use link above
+ *   4. Record results in CSS_CHECKLIST.md
+ */
+
+/* =============================================
+   Feature: view-transitions
+   Can I Use: https://caniuse.com/view-transitions
+   ============================================= */
+
+/* View transition name */
+.header {
+    view-transition-name: header;
+}
+
+.main-content {
+    view-transition-name: main;
+}
+
+.sidebar {
+    view-transition-name: sidebar;
+}
+
+.footer {
+    view-transition-name: footer;
+}
+
+/* Named view transitions for specific elements */
+.card {
+    view-transition-name: card;
+}
+
+.card-image {
+    view-transition-name: card-image;
+}
+
+.card-title {
+    view-transition-name: card-title;
+}
+
+/* Product page transition */
+.product-image {
+    view-transition-name: product-image;
+}
+
+.product-title {
+    view-transition-name: product-title;
+}
+
+.product-price {
+    view-transition-name: product-price;
+}
+
+/* Unique view transition names */
+.item-1 { view-transition-name: item-1; }
+.item-2 { view-transition-name: item-2; }
+.item-3 { view-transition-name: item-3; }
+
+/* View transition pseudo-elements */
+::view-transition {
+    /* Root view transition */
+}
+
+::view-transition-group(root) {
+    animation-duration: 0.5s;
+}
+
+::view-transition-image-pair(root) {
+    /* Image pair styling */
+}
+
+::view-transition-old(root) {
+    animation: fade-out 0.3s ease-out;
+}
+
+::view-transition-new(root) {
+    animation: fade-in 0.3s ease-in;
+}
+
+/* Custom transitions for named elements */
+::view-transition-group(header) {
+    animation-duration: 0.4s;
+    animation-timing-function: ease-in-out;
+}
+
+::view-transition-old(header) {
+    animation: slide-out-up 0.3s ease-in;
+}
+
+::view-transition-new(header) {
+    animation: slide-in-down 0.3s ease-out;
+}
+
+::view-transition-group(main) {
+    animation-duration: 0.5s;
+}
+
+::view-transition-old(main) {
+    animation: fade-scale-out 0.25s ease-in;
+}
+
+::view-transition-new(main) {
+    animation: fade-scale-in 0.25s ease-out 0.25s;
+}
+
+::view-transition-group(sidebar) {
+    animation-duration: 0.4s;
+}
+
+::view-transition-old(sidebar) {
+    animation: slide-out-left 0.2s ease-in;
+}
+
+::view-transition-new(sidebar) {
+    animation: slide-in-left 0.2s ease-out 0.2s;
+}
+
+/* Card transitions */
+::view-transition-group(card) {
+    animation-duration: 0.3s;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+::view-transition-old(card-image) {
+    animation: none;
+}
+
+::view-transition-new(card-image) {
+    animation: none;
+}
+
+::view-transition-group(card-image) {
+    animation-duration: 0.5s;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Product page transitions */
+::view-transition-group(product-image) {
+    animation-duration: 0.6s;
+    animation-timing-function: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+::view-transition-group(product-title) {
+    animation-duration: 0.4s;
+    animation-delay: 0.1s;
+}
+
+::view-transition-group(product-price) {
+    animation-duration: 0.4s;
+    animation-delay: 0.15s;
+}
+
+/* Animation keyframes for view transitions */
+@keyframes fade-out {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fade-scale-out {
+    from {
+        opacity: 1;
+        transform: scale(1);
+    }
+    to {
+        opacity: 0;
+        transform: scale(0.95);
+    }
+}
+
+@keyframes fade-scale-in {
+    from {
+        opacity: 0;
+        transform: scale(1.05);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes slide-out-up {
+    from {
+        transform: translateY(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+}
+
+@keyframes slide-in-down {
+    from {
+        transform: translateY(-20px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slide-out-left {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(-30px);
+        opacity: 0;
+    }
+}
+
+@keyframes slide-in-left {
+    from {
+        transform: translateX(-30px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slide-out-right {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(30px);
+        opacity: 0;
+    }
+}
+
+@keyframes slide-in-right {
+    from {
+        transform: translateX(30px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* View transition with media queries */
+@media (prefers-reduced-motion: reduce) {
+    ::view-transition-group(*),
+    ::view-transition-old(*),
+    ::view-transition-new(*) {
+        animation: none !important;
+    }
+}
+
+/* Navigation view transitions */
+.nav-item {
+    view-transition-name: none;
+}
+
+.nav-item.active {
+    view-transition-name: active-nav;
+}
+
+::view-transition-group(active-nav) {
+    animation-duration: 0.3s;
+}
+
+/* Modal view transitions */
+.modal {
+    view-transition-name: modal;
+}
+
+.modal-backdrop {
+    view-transition-name: modal-backdrop;
+}
+
+::view-transition-old(modal) {
+    animation: modal-out 0.2s ease-in;
+}
+
+::view-transition-new(modal) {
+    animation: modal-in 0.3s ease-out;
+}
+
+@keyframes modal-in {
+    from {
+        opacity: 0;
+        transform: scale(0.9) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+@keyframes modal-out {
+    from {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+    to {
+        opacity: 0;
+        transform: scale(0.9) translateY(20px);
+    }
+}
+
+::view-transition-old(modal-backdrop) {
+    animation: fade-out 0.2s ease-in;
+}
+
+::view-transition-new(modal-backdrop) {
+    animation: fade-in 0.3s ease-out;
+}
+
+/* Cross-document view transitions (experimental) */
+@view-transition {
+    navigation: auto;
+}
+
+/* Practical page transition examples */
+
+/* List to detail transition */
+.list-view {
+    view-transition-name: list-view;
+}
+
+.detail-view {
+    view-transition-name: detail-view;
+}
+
+.hero-image {
+    view-transition-name: hero-image;
+}
+
+.hero-title {
+    view-transition-name: hero-title;
+}
+
+::view-transition-group(hero-image) {
+    animation-duration: 0.5s;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    overflow: hidden;
+}
+
+/* Theme transition */
+.theme-toggle {
+    view-transition-name: theme;
+}
+
+::view-transition-old(theme) {
+    animation: theme-out 0.3s ease-in;
+}
+
+::view-transition-new(theme) {
+    animation: theme-in 0.3s ease-out;
+}
+
+@keyframes theme-out {
+    from {
+        opacity: 1;
+        filter: brightness(1);
+    }
+    to {
+        opacity: 0;
+        filter: brightness(1.5);
+    }
+}
+
+@keyframes theme-in {
+    from {
+        opacity: 0;
+        filter: brightness(0.5);
+    }
+    to {
+        opacity: 1;
+        filter: brightness(1);
+    }
+}

@@ -1,0 +1,447 @@
+/*
+ * Cross Guard CSS Manual Validation Test
+ * Category: Comprehensive
+ * File: comprehensive_test.css
+ *
+ * This file contains examples of ALL CSS features tested across the validation suite.
+ * Use this for a quick overall validation of Cross Guard's CSS feature detection.
+ *
+ * Expected: 50+ unique Can I Use feature IDs
+ *
+ * VALIDATION STEPS:
+ *   1. Load this file in Cross Guard
+ *   2. Verify total detected features: 50+
+ *   3. Check browser compatibility scores are reasonable (80%+)
+ *   4. Record results in CSS_CHECKLIST.md
+ */
+
+/* =============================================
+   LAYOUT FEATURES
+   ============================================= */
+
+/* flexbox: https://caniuse.com/flexbox */
+.flex-container {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* flexbox-gap: https://caniuse.com/flexbox-gap */
+.flex-gap {
+    display: flex;
+    gap: 20px;
+}
+
+/* css-grid: https://caniuse.com/css-grid */
+.grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    grid-gap: 1rem;
+}
+
+/* css-subgrid: https://caniuse.com/css-subgrid */
+.subgrid-item {
+    display: grid;
+    grid-template-columns: subgrid;
+}
+
+/* multicolumn: https://caniuse.com/multicolumn */
+.multi-column {
+    column-count: 3;
+    column-gap: 2rem;
+    column-rule: 1px solid #ddd;
+}
+
+/* =============================================
+   TRANSFORMS & ANIMATION
+   ============================================= */
+
+/* transforms2d: https://caniuse.com/transforms2d */
+.transform-2d {
+    transform: translate(50px, 20px) rotate(45deg) scale(1.2);
+    transform-origin: center center;
+}
+
+/* transforms3d: https://caniuse.com/transforms3d */
+.transform-3d {
+    transform: perspective(500px) rotateY(45deg) translateZ(100px);
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
+}
+
+/* css-animation: https://caniuse.com/css-animation */
+@keyframes fadeSlide {
+    0% { opacity: 0; transform: translateY(-20px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+.animated {
+    animation: fadeSlide 0.5s ease-out forwards;
+}
+
+/* will-change: https://caniuse.com/will-change */
+.optimized {
+    will-change: transform, opacity;
+}
+
+/* css-transitions: https://caniuse.com/css-transitions */
+.transition {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* =============================================
+   COLORS & BACKGROUNDS
+   ============================================= */
+
+/* css3-colors: https://caniuse.com/css3-colors */
+.colors {
+    color: rgba(0, 0, 0, 0.87);
+    background-color: hsla(210, 100%, 50%, 0.5);
+}
+
+/* css-lch-lab: https://caniuse.com/css-lch-lab */
+.lch-colors {
+    color: oklch(60% 0.15 200);
+    background-color: lab(50% 40 60);
+}
+
+/* css-color-function: https://caniuse.com/css-color-function */
+.color-function {
+    background: color(display-p3 1 0 0);
+    color: color-mix(in oklch, #007bff, white 30%);
+}
+
+/* css-gradients: https://caniuse.com/css-gradients */
+.gradient {
+    background: linear-gradient(135deg, #007bff, #6f42c1);
+    background: radial-gradient(circle at center, #ffc107, transparent);
+}
+
+/* css-conic-gradients: https://caniuse.com/css-conic-gradients */
+.conic {
+    background: conic-gradient(from 90deg, red, yellow, green, blue, red);
+}
+
+/* css-filters: https://caniuse.com/css-filters */
+.filtered {
+    filter: blur(5px) brightness(1.2) contrast(1.1) saturate(1.3);
+}
+
+/* css-backdrop-filter: https://caniuse.com/css-backdrop-filter */
+.glass {
+    backdrop-filter: blur(10px) saturate(180%);
+}
+
+/* css-mixblendmode: https://caniuse.com/css-mixblendmode */
+.blend {
+    mix-blend-mode: multiply;
+    background-blend-mode: overlay;
+}
+
+/* =============================================
+   TYPOGRAPHY
+   ============================================= */
+
+/* fontface: https://caniuse.com/fontface */
+@font-face {
+    font-family: 'CustomFont';
+    src: url('font.woff2') format('woff2');
+    font-display: swap;
+}
+
+/* variable-fonts: https://caniuse.com/variable-fonts */
+.variable-font {
+    font-variation-settings: 'wght' 500, 'wdth' 100;
+}
+
+/* woff2: https://caniuse.com/woff2 (tested via @font-face above) */
+
+/* text-overflow: https://caniuse.com/text-overflow */
+.truncate {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* css-line-clamp: https://caniuse.com/css-line-clamp */
+.line-clamp {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* css-text-wrap-balance: https://caniuse.com/css-text-wrap-balance */
+.balanced {
+    text-wrap: balance;
+}
+
+/* font-kerning: https://caniuse.com/font-kerning */
+.kerned {
+    font-kerning: normal;
+}
+
+/* font-feature: https://caniuse.com/font-feature */
+.font-features {
+    font-feature-settings: "liga" 1, "kern" 1, "tnum" 1;
+    font-variant-numeric: tabular-nums;
+}
+
+/* =============================================
+   SELECTORS & PSEUDO
+   ============================================= */
+
+/* css-has: https://caniuse.com/css-has */
+.container:has(.child) {
+    padding: 1rem;
+}
+
+/* css-matches-pseudo: https://caniuse.com/css-matches-pseudo */
+:is(h1, h2, h3) {
+    line-height: 1.2;
+}
+
+:where(ul, ol) {
+    padding-left: 1.5rem;
+}
+
+/* css-focus-visible: https://caniuse.com/css-focus-visible */
+button:focus-visible {
+    outline: 2px solid #007bff;
+}
+
+/* css-gencontent: https://caniuse.com/css-gencontent */
+.icon::before {
+    content: '→';
+}
+
+/* css-marker-pseudo: https://caniuse.com/css-marker-pseudo */
+li::marker {
+    color: #007bff;
+}
+
+/* =============================================
+   UNITS & VALUES
+   ============================================= */
+
+/* rem: https://caniuse.com/rem */
+.spacing {
+    padding: 1.5rem;
+    margin: 0.5rem;
+}
+
+/* viewport-units: https://caniuse.com/viewport-units */
+.viewport {
+    height: 100vh;
+    width: 100vw;
+    min-height: 100dvh;
+}
+
+/* calc: https://caniuse.com/calc */
+.calc {
+    width: calc(100% - 2rem);
+    padding: calc(1rem + 10px);
+}
+
+/* css-math-functions: https://caniuse.com/css-math-functions */
+.math {
+    width: min(100%, 800px);
+    font-size: clamp(1rem, 2.5vw, 2rem);
+    padding: max(1rem, 3vw);
+}
+
+/* css-variables: https://caniuse.com/css-variables */
+:root {
+    --primary: #007bff;
+    --spacing: 1rem;
+}
+
+.vars {
+    color: var(--primary);
+    padding: var(--spacing);
+}
+
+/* =============================================
+   BOX MODEL
+   ============================================= */
+
+/* border-radius: https://caniuse.com/border-radius */
+.rounded {
+    border-radius: 8px;
+    border-top-left-radius: 16px;
+}
+
+/* css-boxshadow: https://caniuse.com/css-boxshadow */
+.shadow {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 2px 4px rgba(0, 0, 0, 0.06);
+}
+
+/* css3-boxsizing: https://caniuse.com/css3-boxsizing */
+.box {
+    box-sizing: border-box;
+}
+
+/* =============================================
+   INTERACTION
+   ============================================= */
+
+/* css-snappoints: https://caniuse.com/css-snappoints */
+.snap-container {
+    scroll-snap-type: x mandatory;
+}
+
+.snap-item {
+    scroll-snap-align: start;
+}
+
+/* css-scroll-behavior: https://caniuse.com/css-scroll-behavior */
+html {
+    scroll-behavior: smooth;
+}
+
+/* css-scrollbar: https://caniuse.com/css-scrollbar */
+.custom-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: #888 transparent;
+}
+
+/* css3-cursors: https://caniuse.com/css3-cursors */
+.cursor {
+    cursor: grab;
+}
+
+.cursor:active {
+    cursor: grabbing;
+}
+
+/* pointer-events: https://caniuse.com/pointer-events */
+.no-events {
+    pointer-events: none;
+}
+
+/* css-resize: https://caniuse.com/css-resize */
+.resizable {
+    resize: both;
+    overflow: auto;
+}
+
+/* =============================================
+   MODERN CSS
+   ============================================= */
+
+/* css-container-queries: https://caniuse.com/css-container-queries */
+.card-container {
+    container: card / inline-size;
+}
+
+@container card (min-width: 400px) {
+    .card-content {
+        display: flex;
+    }
+}
+
+/* css-nesting: https://caniuse.com/css-nesting */
+.nested {
+    color: blue;
+
+    & .child {
+        color: red;
+    }
+
+    &:hover {
+        color: green;
+    }
+}
+
+/* css-cascade-layers: https://caniuse.com/css-cascade-layers */
+@layer base, components, utilities;
+
+@layer components {
+    .component {
+        padding: 1rem;
+    }
+}
+
+/* view-transitions: https://caniuse.com/view-transitions */
+.page-header {
+    view-transition-name: header;
+}
+
+::view-transition-old(header) {
+    animation: fade-out 0.3s;
+}
+
+/* =============================================
+   MEDIA QUERIES
+   ============================================= */
+
+/* css-mediaqueries: https://caniuse.com/css-mediaqueries */
+@media (min-width: 768px) {
+    .responsive {
+        display: grid;
+    }
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .desktop-hover:hover {
+        background: #f0f0f0;
+    }
+}
+
+/* prefers-color-scheme: https://caniuse.com/prefers-color-scheme */
+@media (prefers-color-scheme: dark) {
+    .dark-mode {
+        background: #1a1a2e;
+        color: #eaeaea;
+    }
+}
+
+/* prefers-reduced-motion: https://caniuse.com/prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+    .motion-safe {
+        animation: none;
+        transition: none;
+    }
+}
+
+/* =============================================
+   SUMMARY OF FEATURES
+   ============================================= */
+/*
+ * Total unique Can I Use IDs in this file: 50+
+ *
+ * Layout (5):
+ *   - flexbox, flexbox-gap, css-grid, css-subgrid, multicolumn
+ *
+ * Transforms/Animation (5):
+ *   - transforms2d, transforms3d, css-animation, will-change, css-transitions
+ *
+ * Colors/Backgrounds (8):
+ *   - css3-colors, css-lch-lab, css-color-function, css-gradients,
+ *   - css-conic-gradients, css-filters, css-backdrop-filter, css-mixblendmode
+ *
+ * Typography (8):
+ *   - fontface, variable-fonts, woff2, text-overflow,
+ *   - css-line-clamp, css-text-wrap-balance, font-kerning, font-feature
+ *
+ * Selectors (5):
+ *   - css-has, css-matches-pseudo, css-focus-visible, css-gencontent, css-marker-pseudo
+ *
+ * Units/Values (5):
+ *   - rem, viewport-units, calc, css-math-functions, css-variables
+ *
+ * Box Model (3):
+ *   - border-radius, css-boxshadow, css3-boxsizing
+ *
+ * Interaction (6):
+ *   - css-snappoints, css-scroll-behavior, css-scrollbar,
+ *   - css3-cursors, pointer-events, css-resize
+ *
+ * Modern CSS (4):
+ *   - css-container-queries, css-nesting, css-cascade-layers, view-transitions
+ *
+ * Media Queries (3):
+ *   - css-mediaqueries, prefers-color-scheme, prefers-reduced-motion
+ */

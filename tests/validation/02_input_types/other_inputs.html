@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Other Inputs - Manual Validation Test</title>
+    <!--
+        Cross Guard Manual Validation Test
+        Category: 02_input_types
+        File: other_inputs.html
+
+        Expected Can I Use IDs:
+          - input-color: https://caniuse.com/input-color
+          - input-range: https://caniuse.com/input-range
+          - input-number: https://caniuse.com/input-number
+          - input-file-accept: https://caniuse.com/input-file-accept
+
+        VALIDATION STEPS:
+          1. Load this file in Cross Guard
+          2. Verify features detected: input-color, input-range, input-number, input-file-accept
+          3. Compare browser support with Can I Use links above
+          4. Record results in CHECKLIST.md
+    -->
+</head>
+<body>
+    <h1>Other Input Types Test</h1>
+    <p>This page tests HTML5 specialized input types for Cross Guard validation.</p>
+
+    <form>
+        <!-- Feature: input-color -->
+        <!-- Can I Use: https://caniuse.com/input-color -->
+        <section>
+            <h2>Color Input</h2>
+            <label for="color">Favorite color:</label>
+            <input type="color" id="color" name="color" value="#ff0000">
+
+            <label for="bg-color">Background color:</label>
+            <input type="color" id="bg-color" name="bg-color" value="#007bff">
+
+            <label for="text-color">Text color:</label>
+            <input type="color" id="text-color" name="text-color" value="#333333">
+        </section>
+
+        <!-- Feature: input-range -->
+        <!-- Can I Use: https://caniuse.com/input-range -->
+        <section>
+            <h2>Range Input</h2>
+            <label for="volume">Volume:</label>
+            <input type="range" id="volume" name="volume" min="0" max="100" value="50">
+
+            <label for="brightness">Brightness:</label>
+            <input type="range" id="brightness" name="brightness" min="0" max="100" value="75" step="5">
+
+            <label for="price-range">Price range:</label>
+            <input type="range" id="price-range" name="price-range" min="0" max="1000" value="500" step="10" list="price-markers">
+            <datalist id="price-markers">
+                <option value="0" label="$0">
+                <option value="250" label="$250">
+                <option value="500" label="$500">
+                <option value="750" label="$750">
+                <option value="1000" label="$1000">
+            </datalist>
+        </section>
+
+        <!-- Feature: input-number -->
+        <!-- Can I Use: https://caniuse.com/input-number -->
+        <section>
+            <h2>Number Input</h2>
+            <label for="quantity">Quantity:</label>
+            <input type="number" id="quantity" name="quantity" min="1" max="100" value="1">
+
+            <label for="age">Age:</label>
+            <input type="number" id="age" name="age" min="0" max="150" step="1">
+
+            <label for="price">Price:</label>
+            <input type="number" id="price" name="price" min="0" max="99999.99" step="0.01" placeholder="0.00">
+
+            <label for="temperature">Temperature (°F):</label>
+            <input type="number" id="temperature" name="temperature" min="-50" max="150" step="0.1">
+        </section>
+
+        <!-- Feature: input-file-accept -->
+        <!-- Can I Use: https://caniuse.com/input-file-accept -->
+        <section>
+            <h2>File Input with Accept</h2>
+            <label for="image">Upload image:</label>
+            <input type="file" id="image" name="image" accept="image/*">
+
+            <label for="photos">Upload photos (multiple):</label>
+            <input type="file" id="photos" name="photos" accept="image/png, image/jpeg" multiple>
+
+            <label for="document">Upload document:</label>
+            <input type="file" id="document" name="document" accept=".pdf,.doc,.docx">
+
+            <label for="video">Upload video:</label>
+            <input type="file" id="video" name="video" accept="video/*">
+
+            <label for="audio">Upload audio:</label>
+            <input type="file" id="audio" name="audio" accept="audio/*,.mp3,.wav">
+        </section>
+
+        <button type="submit">Submit</button>
+    </form>
+</body>
+</html>

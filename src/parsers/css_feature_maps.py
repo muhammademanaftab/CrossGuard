@@ -7,7 +7,7 @@ Organized by category for maintainability.
 # CSS Layout Features
 CSS_LAYOUT_FEATURES = {
     'flexbox': {
-        'patterns': [r'display\s*:\s*flex', r'flex-direction', r'flex-wrap', r'justify-content', r'align-items'],
+        'patterns': [r'display\s*:\s*(?:inline-)?flex', r'flex-direction', r'flex-wrap', r'justify-content', r'align-items'],
         'keywords': ['flex', 'flexbox'],
         'description': 'CSS Flexible Box Layout Module'
     },
@@ -17,12 +17,12 @@ CSS_LAYOUT_FEATURES = {
         'description': 'gap property for Flexbox'
     },
     'css-grid': {
-        'patterns': [r'display\s*:\s*grid', r'grid-template', r'grid-column', r'grid-row'],
+        'patterns': [r'display\s*:\s*(?:inline-)?grid', r'grid-template', r'grid-column', r'grid-row', r'grid-area', r'grid-auto-columns', r'grid-auto-rows', r'grid-auto-flow'],
         'keywords': ['grid', 'css grid'],
         'description': 'CSS Grid Layout'
     },
     'multicolumn': {
-        'patterns': [r'column-count', r'column-width', r'column-gap', r'column-rule'],
+        'patterns': [r'column-count', r'column-width', r'column-gap', r'column-rule', r'columns\s*:', r'column-span', r'column-fill'],
         'keywords': ['columns', 'multicolumn'],
         'description': 'CSS3 Multiple column layout'
     },
@@ -51,17 +51,17 @@ CSS_TRANSFORM_ANIMATION = {
         'description': 'CSS3 2D Transforms'
     },
     'transforms3d': {
-        'patterns': [r'translate3d', r'rotateX', r'rotateY', r'rotateZ', r'perspective'],
+        'patterns': [r'translate3d', r'translateZ', r'rotateX', r'rotateY', r'rotateZ', r'rotate3d', r'scale3d', r'scaleZ', r'perspective', r'transform-style', r'backface-visibility', r'matrix3d'],
         'keywords': ['3d transforms', 'perspective'],
         'description': 'CSS3 3D Transforms'
     },
     'css-animation': {
-        'patterns': [r'@keyframes', r'animation\s*:', r'animation-name', r'animation-duration'],
+        'patterns': [r'@keyframes', r'animation\s*:', r'animation-name', r'animation-duration', r'animation-timing-function', r'animation-delay', r'animation-iteration-count', r'animation-direction', r'animation-fill-mode', r'animation-play-state'],
         'keywords': ['animation', 'keyframes'],
         'description': 'CSS3 Animation'
     },
     'css-transitions': {
-        'patterns': [r'transition\s*:', r'transition-property', r'transition-duration'],
+        'patterns': [r'transition\s*:', r'transition-property', r'transition-duration', r'transition-timing-function', r'transition-delay'],
         'keywords': ['transition'],
         'description': 'CSS3 Transitions'
     },
@@ -209,12 +209,12 @@ CSS_TYPOGRAPHY = {
         'description': 'ui-serif, ui-sans-serif, ui-monospace and ui-rounded values for font-family'
     },
     'text-overflow': {
-        'patterns': [r'text-overflow\s*:\s*ellipsis'],
+        'patterns': [r'text-overflow\s*:'],
         'keywords': ['text-overflow', 'ellipsis'],
         'description': 'CSS3 Text-overflow'
     },
     'text-decoration': {
-        'patterns': [r'text-decoration-line', r'text-decoration-style', r'text-decoration-color'],
+        'patterns': [r'text-decoration-line', r'text-decoration-style', r'text-decoration-color', r'text-decoration-thickness', r'text-underline-offset'],
         'keywords': ['text-decoration'],
         'description': 'text-decoration styling'
     },
@@ -287,7 +287,7 @@ CSS_BORDER_OUTLINE = {
         'description': 'CSS3 Border-radius (rounded corners)'
     },
     'outline': {
-        'patterns': [r'outline\s*:', r'outline-width', r'outline-style', r'outline-color'],
+        'patterns': [r'outline\s*:', r'outline-width', r'outline-style', r'outline-color', r'outline-offset'],
         'keywords': ['outline'],
         'description': 'CSS outline properties'
     },
@@ -325,7 +325,7 @@ CSS_SELECTORS = {
         'description': 'CSS 2.1 selectors'
     },
     'css-sel3': {
-        'patterns': [r':nth-child', r':nth-of-type', r':first-of-type', r':last-of-type', r':not\('],
+        'patterns': [r':nth-child', r':nth-of-type', r':nth-last-child', r':nth-last-of-type', r':first-of-type', r':last-of-type', r':only-child', r':only-of-type', r':empty', r':not\('],
         'keywords': ['nth-child', 'nth-of-type'],
         'description': 'CSS3 selectors'
     },
@@ -501,7 +501,7 @@ CSS_AT_RULES = {
         'description': 'CSS Feature Queries'
     },
     'css-counters': {
-        'patterns': [r'counter-reset', r'counter-increment', r'counter\('],
+        'patterns': [r'counter-reset', r'counter-increment', r'counter\(', r'counters\('],
         'keywords': ['counter'],
         'description': 'CSS Counters'
     },
@@ -980,7 +980,7 @@ CSS_ADDITIONAL_2 = {
 # CSS Additional Features (Part 3)
 CSS_ADDITIONAL_3 = {
     'css-overscroll-behavior': {
-        'patterns': [r'overscroll-behavior\s*:'],
+        'patterns': [r'overscroll-behavior(?:-[xy])?\s*:'],
         'keywords': ['overscroll-behavior'],
         'description': 'CSS overscroll-behavior'
     },
@@ -1030,7 +1030,7 @@ CSS_ADDITIONAL_3 = {
         'description': 'CSS Shapes Level 1'
     },
     'css-snappoints': {
-        'patterns': [r'scroll-snap-type\s*:', r'scroll-snap-align\s*:'],
+        'patterns': [r'scroll-snap-type\s*:', r'scroll-snap-align\s*:', r'scroll-snap-stop\s*:'],
         'keywords': ['scroll-snap'],
         'description': 'CSS Scroll Snap'
     },
@@ -1105,7 +1105,7 @@ CSS_ADDITIONAL_3 = {
         'description': 'SVG in CSS backgrounds'
     },
     'view-transitions': {
-        'patterns': [r'startViewTransition', r'ViewTransition'],
+        'patterns': [r'startViewTransition', r'ViewTransition', r'::view-transition-old', r'::view-transition-new', r'::view-transition-group', r'::view-transition-image-pair'],
         'keywords': ['ViewTransition'],
         'description': 'View Transitions API (single-document)'
     },

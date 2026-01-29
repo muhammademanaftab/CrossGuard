@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loading Attributes - Manual Validation Test</title>
+    <!--
+        Cross Guard Manual Validation Test
+        Category: 03_attributes
+        File: loading_attributes.html
+
+        Expected Can I Use IDs:
+          - loading-lazy-attr: https://caniuse.com/loading-lazy-attr
+          - script-async: https://caniuse.com/script-async
+          - script-defer: https://caniuse.com/script-defer
+          - subresource-integrity: https://caniuse.com/subresource-integrity
+
+        VALIDATION STEPS:
+          1. Load this file in Cross Guard
+          2. Verify features detected: loading-lazy-attr, script-async, script-defer, subresource-integrity
+          3. Compare browser support with Can I Use links above
+          4. Record results in CHECKLIST.md
+    -->
+
+    <!-- Feature: script-async -->
+    <!-- Can I Use: https://caniuse.com/script-async -->
+    <script async src="analytics.js"></script>
+    <script async src="tracking.js"></script>
+
+    <!-- Feature: script-defer -->
+    <!-- Can I Use: https://caniuse.com/script-defer -->
+    <script defer src="app.js"></script>
+    <script defer src="components.js"></script>
+
+    <!-- Feature: subresource-integrity -->
+    <!-- Can I Use: https://caniuse.com/subresource-integrity -->
+    <script src="https://cdn.example.com/library.js"
+            integrity="sha384-oqVuAfXRKap7fdgcCY5uykM6+R9GqQ8K/uxy9rx7HNQlGYl1kPzQho1wx4JwY8wC"
+            crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdn.example.com/styles.css"
+          integrity="sha256-BpfGYWDmKCJgp1+KmHY7cXaABPNfHhbLJGEZaJpECkE="
+          crossorigin="anonymous">
+</head>
+<body>
+    <h1>Loading Attributes Test</h1>
+    <p>This page tests HTML5 loading and script attributes for Cross Guard validation.</p>
+
+    <!-- Feature: loading-lazy-attr -->
+    <!-- Can I Use: https://caniuse.com/loading-lazy-attr -->
+    <section>
+        <h2>Loading Lazy Attribute</h2>
+        <p>Images with lazy loading:</p>
+
+        <img src="image1.jpg" alt="Lazy loaded image 1" loading="lazy" width="400" height="300">
+        <img src="image2.jpg" alt="Lazy loaded image 2" loading="lazy" width="400" height="300">
+        <img src="image3.jpg" alt="Lazy loaded image 3" loading="lazy" width="400" height="300">
+
+        <p>Eager loading (default behavior):</p>
+        <img src="hero.jpg" alt="Eager loaded hero image" loading="eager" width="800" height="400">
+
+        <p>Iframes with lazy loading:</p>
+        <iframe src="https://example.com/embed" loading="lazy" width="560" height="315"></iframe>
+        <iframe src="https://example.com/video" loading="lazy" width="560" height="315"></iframe>
+    </section>
+
+    <section>
+        <h2>Script Loading Attributes (in head)</h2>
+        <p>The following scripts use async and defer attributes (see page source):</p>
+        <ul>
+            <li><code>async</code> - analytics.js, tracking.js</li>
+            <li><code>defer</code> - app.js, components.js</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>Subresource Integrity (in head)</h2>
+        <p>Scripts and stylesheets with integrity attribute (see page source):</p>
+        <ul>
+            <li>library.js with SHA-384 integrity hash</li>
+            <li>styles.css with SHA-256 integrity hash</li>
+        </ul>
+    </section>
+
+    <!-- More script examples in body -->
+    <script async src="https://example.com/widgets.js"></script>
+    <script defer src="https://example.com/lazy-components.js"></script>
+    <script src="https://example.com/secure-lib.js"
+            integrity="sha512-abc123def456..."
+            crossorigin="anonymous"></script>
+</body>
+</html>

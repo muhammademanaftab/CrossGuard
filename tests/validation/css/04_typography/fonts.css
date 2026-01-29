@@ -1,0 +1,315 @@
+/*
+ * Cross Guard CSS Manual Validation Test
+ * Category: 04_typography
+ * File: fonts.css
+ *
+ * Expected Can I Use IDs:
+ *   - fontface: https://caniuse.com/fontface
+ *   - variable-fonts: https://caniuse.com/variable-fonts
+ *   - woff2: https://caniuse.com/woff2
+ *
+ * VALIDATION STEPS:
+ *   1. Load this file in Cross Guard
+ *   2. Verify features detected: fontface, variable-fonts, woff2
+ *   3. Compare browser support with Can I Use links above
+ *   4. Record results in CSS_CHECKLIST.md
+ */
+
+/* =============================================
+   Feature: fontface
+   Can I Use: https://caniuse.com/fontface
+   ============================================= */
+
+/* Basic @font-face */
+@font-face {
+    font-family: 'CustomFont';
+    src: url('fonts/custom-font.woff2') format('woff2'),
+         url('fonts/custom-font.woff') format('woff'),
+         url('fonts/custom-font.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* @font-face with multiple weights */
+@font-face {
+    font-family: 'CustomFont';
+    src: url('fonts/custom-font-light.woff2') format('woff2');
+    font-weight: 300;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'CustomFont';
+    src: url('fonts/custom-font-regular.woff2') format('woff2');
+    font-weight: 400;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'CustomFont';
+    src: url('fonts/custom-font-medium.woff2') format('woff2');
+    font-weight: 500;
+    font-style: normal;
+}
+
+@font-face {
+    font-family: 'CustomFont';
+    src: url('fonts/custom-font-bold.woff2') format('woff2');
+    font-weight: 700;
+    font-style: normal;
+}
+
+/* @font-face with italic */
+@font-face {
+    font-family: 'CustomFont';
+    src: url('fonts/custom-font-italic.woff2') format('woff2');
+    font-weight: normal;
+    font-style: italic;
+}
+
+@font-face {
+    font-family: 'CustomFont';
+    src: url('fonts/custom-font-bold-italic.woff2') format('woff2');
+    font-weight: 700;
+    font-style: italic;
+}
+
+/* @font-face with font-display */
+@font-face {
+    font-family: 'DisplayFont';
+    src: url('fonts/display-font.woff2') format('woff2');
+    font-display: swap;
+}
+
+@font-face {
+    font-family: 'FallbackFont';
+    src: url('fonts/fallback-font.woff2') format('woff2');
+    font-display: fallback;
+}
+
+@font-face {
+    font-family: 'OptionalFont';
+    src: url('fonts/optional-font.woff2') format('woff2');
+    font-display: optional;
+}
+
+@font-face {
+    font-family: 'BlockFont';
+    src: url('fonts/block-font.woff2') format('woff2');
+    font-display: block;
+}
+
+/* @font-face with unicode-range */
+@font-face {
+    font-family: 'LatinFont';
+    src: url('fonts/latin.woff2') format('woff2');
+    unicode-range: U+0000-00FF, U+0131, U+0152-0153;
+}
+
+@font-face {
+    font-family: 'CyrillicFont';
+    src: url('fonts/cyrillic.woff2') format('woff2');
+    unicode-range: U+0400-045F, U+0490-0491, U+04B0-04B1;
+}
+
+@font-face {
+    font-family: 'SymbolFont';
+    src: url('fonts/symbols.woff2') format('woff2');
+    unicode-range: U+2000-206F, U+2070-209F;
+}
+
+/* Using the custom fonts */
+.custom-font-light {
+    font-family: 'CustomFont', sans-serif;
+    font-weight: 300;
+}
+
+.custom-font-regular {
+    font-family: 'CustomFont', sans-serif;
+    font-weight: 400;
+}
+
+.custom-font-bold {
+    font-family: 'CustomFont', sans-serif;
+    font-weight: 700;
+}
+
+/* =============================================
+   Feature: variable-fonts
+   Can I Use: https://caniuse.com/variable-fonts
+   ============================================= */
+
+/* Variable font with weight range */
+@font-face {
+    font-family: 'VariableFont';
+    src: url('fonts/variable-font.woff2') format('woff2-variations'),
+         url('fonts/variable-font.woff2') format('woff2') tech('variations');
+    font-weight: 100 900;
+    font-style: normal;
+}
+
+/* Variable font with weight and width */
+@font-face {
+    font-family: 'VariableWidthFont';
+    src: url('fonts/variable-width.woff2') format('woff2-variations');
+    font-weight: 100 900;
+    font-stretch: 50% 200%;
+}
+
+/* Variable font with slant/italic */
+@font-face {
+    font-family: 'VariableSlantFont';
+    src: url('fonts/variable-slant.woff2') format('woff2-variations');
+    font-weight: 100 900;
+    font-style: oblique 0deg 12deg;
+}
+
+/* Using font-variation-settings */
+.variable-weight-thin {
+    font-family: 'VariableFont', sans-serif;
+    font-variation-settings: 'wght' 100;
+}
+
+.variable-weight-light {
+    font-family: 'VariableFont', sans-serif;
+    font-variation-settings: 'wght' 300;
+}
+
+.variable-weight-regular {
+    font-family: 'VariableFont', sans-serif;
+    font-variation-settings: 'wght' 400;
+}
+
+.variable-weight-medium {
+    font-family: 'VariableFont', sans-serif;
+    font-variation-settings: 'wght' 500;
+}
+
+.variable-weight-semibold {
+    font-family: 'VariableFont', sans-serif;
+    font-variation-settings: 'wght' 600;
+}
+
+.variable-weight-bold {
+    font-family: 'VariableFont', sans-serif;
+    font-variation-settings: 'wght' 700;
+}
+
+.variable-weight-black {
+    font-family: 'VariableFont', sans-serif;
+    font-variation-settings: 'wght' 900;
+}
+
+/* Multiple variation axes */
+.variable-multi-axis {
+    font-family: 'VariableWidthFont', sans-serif;
+    font-variation-settings: 'wght' 500, 'wdth' 125;
+}
+
+.variable-condensed-bold {
+    font-family: 'VariableWidthFont', sans-serif;
+    font-variation-settings: 'wght' 700, 'wdth' 75;
+}
+
+.variable-expanded-light {
+    font-family: 'VariableWidthFont', sans-serif;
+    font-variation-settings: 'wght' 300, 'wdth' 150;
+}
+
+/* Custom axes (4-letter lowercase tags) */
+.variable-custom-axis {
+    font-family: 'CustomVariableFont', sans-serif;
+    font-variation-settings: 'wght' 400, 'GRAD' 50, 'XOPQ' 96;
+}
+
+/* Using font-weight with variable fonts */
+.variable-font-weight-css {
+    font-family: 'VariableFont', sans-serif;
+    font-weight: 450;
+}
+
+.variable-font-weight-decimal {
+    font-family: 'VariableFont', sans-serif;
+    font-weight: 550;
+}
+
+/* Using font-stretch with variable fonts */
+.variable-font-stretch {
+    font-family: 'VariableWidthFont', sans-serif;
+    font-stretch: 75%;
+}
+
+.variable-font-stretch-expanded {
+    font-family: 'VariableWidthFont', sans-serif;
+    font-stretch: 125%;
+}
+
+/* Animated variable fonts */
+.variable-animated {
+    font-family: 'VariableFont', sans-serif;
+    font-variation-settings: 'wght' 400;
+    transition: font-variation-settings 0.3s ease;
+}
+
+.variable-animated:hover {
+    font-variation-settings: 'wght' 700;
+}
+
+/* =============================================
+   Feature: woff2
+   Can I Use: https://caniuse.com/woff2
+   ============================================= */
+
+/* WOFF2 font format */
+@font-face {
+    font-family: 'Woff2Font';
+    src: url('fonts/font.woff2') format('woff2');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* WOFF2 with fallbacks */
+@font-face {
+    font-family: 'Woff2FallbackFont';
+    src: url('fonts/font.woff2') format('woff2'),
+         url('fonts/font.woff') format('woff'),
+         url('fonts/font.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+/* WOFF2 variable font */
+@font-face {
+    font-family: 'Woff2VariableFont';
+    src: url('fonts/variable.woff2') format('woff2-variations');
+    font-weight: 100 900;
+}
+
+/* Using WOFF2 fonts */
+.woff2-body {
+    font-family: 'Woff2Font', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+.woff2-heading {
+    font-family: 'Woff2VariableFont', Georgia, serif;
+    font-weight: 700;
+}
+
+/* Practical font usage */
+body {
+    font-family: 'CustomFont', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'VariableFont', Georgia, serif;
+    font-weight: 600;
+}
+
+.display-text {
+    font-family: 'VariableFont', serif;
+    font-variation-settings: 'wght' 800, 'wdth' 110;
+}
+
+code, pre {
+    font-family: 'MonoFont', 'Fira Code', 'Consolas', monospace;
+}
