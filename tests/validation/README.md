@@ -6,7 +6,7 @@ This directory contains test files for manually validating Cross Guard's feature
 
 ## Purpose
 
-- Verify that Cross Guard correctly detects HTML, CSS, and JavaScript features
+- Verify that Cross Guard correctly detects HTML and CSS features
 - Confirm browser compatibility data matches caniuse.com
 - Document any discrepancies for future fixes
 
@@ -14,103 +14,83 @@ This directory contains test files for manually validating Cross Guard's feature
 
 ```
 tests/validation/
-├── README.md                    # This file
-├── CHECKLIST.md                 # Master checklist to track progress
+├── README.md                     # This file
 │
-├── 01_elements/                 # HTML Element tests
-├── 02_input_types/              # Input Type tests
-├── 03_attributes/               # Attribute tests
-├── 04_attribute_values/         # Attribute:Value tests
-├── 05_special_patterns/         # Special Pattern tests
+├── html/                         # HTML validation tests
+│   ├── README.md                 # HTML testing instructions
+│   ├── CHECKLIST.md              # HTML validation checklist
+│   ├── 01_elements/              # Semantic, media, interactive, form elements
+│   ├── 02_input_types/           # Date/time, text, other input types
+│   ├── 03_attributes/            # Form, loading, content attributes
+│   ├── 04_attribute_values/      # rel, type, referrerpolicy values
+│   └── 05_special_patterns/      # Responsive images, ARIA, media formats
 │
-├── css/                         # CSS validation tests
-│   ├── README.md
-│   ├── CSS_CHECKLIST.md
-│   └── [category folders]
+├── css/                          # CSS validation tests
+│   ├── README.md                 # CSS testing instructions
+│   ├── CHECKLIST.md              # CSS validation checklist
+│   ├── 01_layout/                # Flexbox, Grid, Multicolumn
+│   ├── 02_transforms_animation/  # Transforms, Animations, Transitions
+│   ├── 03_colors_backgrounds/    # Colors, Gradients, Filters
+│   ├── 04_typography/            # Fonts, Text properties
+│   ├── 05_selectors/             # Pseudo-classes, Pseudo-elements
+│   ├── 06_units_values/          # Units, CSS Variables
+│   ├── 07_box_model/             # Border, Shadow, Sizing
+│   ├── 08_interaction/           # Scroll, User interaction
+│   ├── 09_modern_css/            # Container queries, Nesting, Layers
+│   ├── 10_media_queries/         # Media features
+│   └── comprehensive_test.css    # Master file with ALL features
 │
-└── results/                     # Validation results
-    └── validation_log.md
+└── results/                      # Validation results
+    └── validation_log.md         # Log of manual tests performed
 ```
 
-## How to Use
+## Quick Start
 
-### Step 1: Open Cross Guard
+### 1. Open Cross Guard
 ```bash
 python run_gui.py
 ```
 
-### Step 2: Load a Test File
-- Drag and drop a test HTML/CSS file into Cross Guard
-- Or use the file picker to select a file
+### 2. Run Validation Tests
 
-### Step 3: Note Detected Features
-1. Look at the "Detected Features" count
-2. Expand browser cards to see the feature list
-3. Note each feature's name and Can I Use ID
+**For HTML validation:**
+- Navigate to `html/` folder
+- Load test files one by one in Cross Guard
+- Follow instructions in `html/README.md`
+- Track progress in `html/CHECKLIST.md`
 
-### Step 4: Verify on Can I Use
-For each detected feature:
-1. Go to `https://caniuse.com/{feature-id}`
-2. Compare browser support shown on Can I Use with Cross Guard
-3. Verify version ranges match
+**For CSS validation:**
+- Navigate to `css/` folder
+- Load test files one by one in Cross Guard
+- Follow instructions in `css/README.md`
+- Track progress in `css/CHECKLIST.md`
 
-### Step 5: Record Results
-1. Open `CHECKLIST.md` (for HTML) or `css/CSS_CHECKLIST.md` (for CSS)
-2. Mark features as:
-   - `[x]` = Passed (feature detected, support matches)
-   - `[!]` = Failed (add notes about discrepancy)
-   - `[ ]` = Not yet tested
-3. Add detailed notes in `results/validation_log.md`
+### 3. Record Results
+- Mark features as passed/failed in the respective CHECKLIST.md
+- Log detailed findings in `results/validation_log.md`
 
-## Test File Categories
+## Test Coverage
 
-### HTML Tests
+| Category | Files | Features |
+|----------|-------|----------|
+| HTML | 16 | 48+ Can I Use IDs |
+| CSS | 25 | 50+ Can I Use IDs |
+| **Total** | **41** | **98+ Features** |
 
-| Category | Files | Features Tested |
-|----------|-------|-----------------|
-| 01_elements | 4 | Semantic, media, interactive, form elements |
-| 02_input_types | 3 | Date/time, text, other input types |
-| 03_attributes | 3 | Form, loading, content attributes |
-| 04_attribute_values | 3 | rel, type, referrerpolicy values |
-| 05_special_patterns | 3 | Responsive images, ARIA, media formats |
+## Validation Process
 
-### CSS Tests
+For each test file:
 
-| Category | Files | Features Tested |
-|----------|-------|-----------------|
-| 01_layout | 3 | Flexbox, Grid, Multicolumn |
-| 02_transforms_animation | 3 | Transforms, Animations, Transitions |
-| 03_colors_backgrounds | 3 | Colors, Gradients, Filters |
-| 04_typography | 3 | Fonts, Text properties |
-| 05_selectors | 2 | Pseudo-classes, Pseudo-elements |
-| 06_units_values | 2 | Units, CSS Variables |
-| 07_box_model | 1 | Border, Shadow, Sizing |
-| 08_interaction | 2 | Scroll, User interaction |
-| 09_modern_css | 4 | Container queries, Nesting, Layers |
-| 10_media_queries | 1 | Media features |
+1. **Load** the file in Cross Guard
+2. **Note** detected features and browser support
+3. **Verify** against caniuse.com
+4. **Record** results in checklist:
+   - `[x]` = Passed
+   - `[!]` = Failed (add notes)
+   - `[ ]` = Not tested
 
-## Expected Results
+## Success Criteria
 
-- **HTML**: 60+ unique features across 16 test files
-- **CSS**: 100+ unique features across 21 test files
-- **Accuracy Target**: 95%+ match with Can I Use data
-
-## Reporting Issues
-
-If you find a discrepancy:
-1. Document it in `results/validation_log.md`
-2. Note the feature ID, expected value, and actual value
-3. Include the Can I Use URL for reference
-
-## Quick Verification
-
-```bash
-# Count HTML test files
-find tests/validation -maxdepth 2 -name "*.html" | wc -l
-
-# Count CSS test files
-find tests/validation/css -name "*.css" | wc -l
-
-# Run Cross Guard
-python run_gui.py
-```
+- 95%+ accuracy matching Can I Use data
+- All discrepancies documented
+- Both HTML and CSS validation complete

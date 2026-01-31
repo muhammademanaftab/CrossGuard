@@ -92,8 +92,8 @@ def _get_status_text(status: str) -> str:
     status_map = {
         'y': 'Supported',
         'n': 'Not Supported',
-        'a': 'Partial Support',
-        'p': 'Polyfill',
+        'a': 'Supported',  # Almost supported = treated as full per Can I Use
+        'p': 'Partial Support',
         'x': 'Requires Prefix',
         'u': 'Unknown',
         'd': 'Disabled by Default'

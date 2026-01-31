@@ -124,10 +124,10 @@ class CompatibilityAnalyzer:
         
         for feature_id in features:
             status = self.database.check_support(feature_id, browser, version)
-            
-            if status == 'y':
+
+            if status in ['y', 'a']:  # 'a' (almost) = full support per Can I Use
                 supported += 1
-            elif status in ['a', 'x', 'p']:
+            elif status in ['x', 'p']:
                 partial += 1
             elif status in ['n', 'u']:
                 unsupported += 1

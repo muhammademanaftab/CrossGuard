@@ -2,8 +2,9 @@
 
 Tests features: multicolumn
 
-Note: Multicolumn patterns only include: column-count, column-width, column-gap, column-rule
-Other properties (columns shorthand, column-span, column-fill) are not in the parser patterns.
+Note: Multicolumn patterns include: column-count, column-width, column-rule, columns, column-span, column-fill
+      column-gap is NOT included because it's now primarily used with flexbox/grid (flexbox-gap feature).
+      When column-gap is used with column-count/column-width, multicolumn is detected via those properties.
 """
 
 import pytest
@@ -22,9 +23,9 @@ class TestMulticolumn:
         css = ".content { column-width: 200px; }"
         assert parse_and_check(css, 'multicolumn')
 
-    def test_column_gap(self, parse_and_check):
-        """Test column-gap detection."""
-        css = ".content { column-gap: 40px; }"
+    def test_column_gap_with_column_count(self, parse_and_check):
+        """Test column-gap with column-count detects multicolumn (via column-count)."""
+        css = ".content { column-count: 3; column-gap: 40px; }"
         assert parse_and_check(css, 'multicolumn')
 
     def test_column_rule(self, parse_and_check):

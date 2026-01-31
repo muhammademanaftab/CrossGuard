@@ -33,23 +33,23 @@ class TestFlexbox:
         assert parse_and_check(css, 'flexbox')
 
     def test_justify_content(self, parse_and_check):
-        """Test justify-content detection."""
-        css = ".container { justify-content: center; }"
+        """Test justify-content with display: flex detection."""
+        css = ".container { display: flex; justify-content: center; }"
         assert parse_and_check(css, 'flexbox')
 
     def test_justify_content_space_between(self, parse_and_check):
-        """Test justify-content: space-between detection."""
-        css = ".container { justify-content: space-between; }"
+        """Test justify-content: space-between with display: flex detection."""
+        css = ".container { display: flex; justify-content: space-between; }"
         assert parse_and_check(css, 'flexbox')
 
     def test_align_items(self, parse_and_check):
-        """Test align-items detection."""
-        css = ".container { align-items: center; }"
+        """Test align-items with display: flex detection."""
+        css = ".container { display: flex; align-items: center; }"
         assert parse_and_check(css, 'flexbox')
 
     def test_align_items_stretch(self, parse_and_check):
-        """Test align-items: stretch detection."""
-        css = ".container { align-items: stretch; }"
+        """Test align-items: stretch with display: flex detection."""
+        css = ".container { display: flex; align-items: stretch; }"
         assert parse_and_check(css, 'flexbox')
 
     def test_complete_flexbox(self, parse_and_check):
@@ -67,26 +67,30 @@ class TestFlexbox:
 
 
 class TestFlexboxGap:
-    """Tests for Flexbox gap property detection."""
+    """Tests for Flexbox gap property detection.
+
+    Note: flexbox-gap is context-aware and only detects gap when used with display: flex.
+    Using gap without display: flex would be detected as grid gap, not flexbox-gap.
+    """
 
     def test_gap_property(self, parse_and_check):
-        """Test gap property detection."""
-        css = ".container { gap: 20px; }"
+        """Test gap property with display: flex detection."""
+        css = ".container { display: flex; gap: 20px; }"
         assert parse_and_check(css, 'flexbox-gap')
 
     def test_gap_two_values(self, parse_and_check):
-        """Test gap with row and column values."""
-        css = ".container { gap: 20px 10px; }"
+        """Test gap with row and column values in flex context."""
+        css = ".container { display: flex; gap: 20px 10px; }"
         assert parse_and_check(css, 'flexbox-gap')
 
     def test_row_gap(self, parse_and_check):
-        """Test row-gap property detection."""
-        css = ".container { row-gap: 20px; }"
+        """Test row-gap property with display: flex detection."""
+        css = ".container { display: flex; row-gap: 20px; }"
         assert parse_and_check(css, 'flexbox-gap')
 
     def test_column_gap(self, parse_and_check):
-        """Test column-gap property detection."""
-        css = ".container { column-gap: 10px; }"
+        """Test column-gap property with display: flex detection."""
+        css = ".container { display: flex; column-gap: 10px; }"
         assert parse_and_check(css, 'flexbox-gap')
 
     def test_flexbox_with_gap(self, parse_and_check_multiple):

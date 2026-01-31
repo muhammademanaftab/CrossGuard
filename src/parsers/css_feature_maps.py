@@ -7,29 +7,36 @@ Organized by category for maintainability.
 # CSS Layout Features
 CSS_LAYOUT_FEATURES = {
     'flexbox': {
-        'patterns': [r'display\s*:\s*(?:inline-)?flex', r'flex-direction', r'flex-wrap', r'justify-content', r'align-items'],
-        'keywords': ['flex', 'flexbox'],
-        'description': 'CSS Flexible Box Layout Module'
+        'patterns': [r'display\s*:\s*(?:inline-)?flex', r'flex-direction', r'flex-wrap', r'flex-grow', r'flex-shrink', r'flex-basis', r'flex\s*:\s*\d', r'flex-flow', r'(?<![a-z-])order\s*:'],
+        'keywords': ['flexbox'],
+        'description': 'CSS Flexbox'
     },
     'flexbox-gap': {
-        'patterns': [r'gap\s*:', r'row-gap\s*:', r'column-gap\s*:'],
-        'keywords': ['gap', 'flexbox gap'],
+        'patterns': [
+            r'display\s*:\s*(?:inline-)?flex[^}]*\bgap\s*:',
+            r'display\s*:\s*(?:inline-)?flex[^}]*\brow-gap\s*:',
+            r'display\s*:\s*(?:inline-)?flex[^}]*\bcolumn-gap\s*:',
+            r'\bgap\s*:[^}]*display\s*:\s*(?:inline-)?flex',
+            r'\brow-gap\s*:[^}]*display\s*:\s*(?:inline-)?flex',
+            r'\bcolumn-gap\s*:[^}]*display\s*:\s*(?:inline-)?flex',
+        ],
+        'keywords': ['flexbox gap'],
         'description': 'gap property for Flexbox'
     },
     'css-grid': {
-        'patterns': [r'display\s*:\s*(?:inline-)?grid', r'grid-template', r'grid-column', r'grid-row', r'grid-area', r'grid-auto-columns', r'grid-auto-rows', r'grid-auto-flow'],
-        'keywords': ['grid', 'css grid'],
+        'patterns': [r'display\s*:\s*(?:inline-)?grid', r'grid-template', r'grid-column', r'grid-row', r'grid-area', r'grid-auto-columns', r'grid-auto-rows', r'grid-auto-flow', r'grid-gap', r'justify-items', r'justify-self', r'place-items', r'place-content', r'place-self'],
+        'keywords': ['css grid'],
         'description': 'CSS Grid Layout'
     },
     'multicolumn': {
-        'patterns': [r'column-count', r'column-width', r'column-gap', r'column-rule', r'columns\s*:', r'column-span', r'column-fill'],
-        'keywords': ['columns', 'multicolumn'],
+        'patterns': [r'column-count', r'column-width', r'column-rule', r'(?<![a-z-])columns\s*:', r'column-span', r'column-fill'],
+        'keywords': ['multicolumn'],
         'description': 'CSS3 Multiple column layout'
     },
     'inline-block': {
         'patterns': [r'display\s*:\s*inline-block'],
         'keywords': ['inline-block'],
-        'description': 'CSS inline-block'
+        'description': 'CSS display: inline-block'
     },
     'flow-root': {
         'patterns': [r'display\s*:\s*flow-root'],
@@ -77,12 +84,12 @@ CSS_COLOR_BACKGROUND = {
     'css3-colors': {
         'patterns': [r'rgba?\(', r'hsla?\(', r'#[0-9a-fA-F]{6}'],
         'keywords': ['rgb', 'rgba', 'hsl', 'hsla'],
-        'description': 'CSS3 Colors'
+        'description': 'CSS3 Colors (RGB/HSL)'
     },
     'currentcolor': {
         'patterns': [r'currentColor'],
         'keywords': ['currentColor'],
-        'description': 'CSS currentColor value'
+        'description': 'CSS currentColor'
     },
     'css-gradients': {
         'patterns': [r'linear-gradient', r'radial-gradient', r'repeating-linear-gradient'],
@@ -164,7 +171,7 @@ CSS_TYPOGRAPHY = {
         'description': 'Variable fonts'
     },
     'font-feature': {
-        'patterns': [r'font-feature-settings', r'font-variant-ligatures'],
+        'patterns': [r'font-feature-settings', r'font-variant-ligatures', r'font-variant-caps\s*:', r'font-variant-east-asian\s*:', r'font-variant-position\s*:'],
         'keywords': ['font-feature-settings'],
         'description': 'CSS font-feature-settings'
     },
@@ -258,9 +265,9 @@ CSS_BOX_MODEL = {
         'description': 'CSS3 Box-sizing'
     },
     'minmaxwh': {
-        'patterns': [r'min-width\s*:', r'min-height\s*:', r'max-width\s*:', r'max-height\s*:'],
-        'keywords': ['min-width', 'max-width'],
-        'description': 'CSS min/max-width/height'
+        'patterns': [r'min-width\s*:', r'min-height\s*:', r'max-width\s*:', r'max-height\s*:', r'aspect-ratio\s*:'],
+        'keywords': ['min-width', 'max-width', 'aspect-ratio'],
+        'description': 'CSS min/max Width & Height'
     },
     'intrinsic-width': {
         'patterns': [r'width\s*:\s*min-content', r'width\s*:\s*max-content', r'width\s*:\s*fit-content'],
@@ -284,12 +291,12 @@ CSS_BORDER_OUTLINE = {
     'border-radius': {
         'patterns': [r'border-radius\s*:'],
         'keywords': ['border-radius', 'rounded corners'],
-        'description': 'CSS3 Border-radius (rounded corners)'
+        'description': 'CSS Border Radius'
     },
     'outline': {
         'patterns': [r'outline\s*:', r'outline-width', r'outline-style', r'outline-color', r'outline-offset'],
         'keywords': ['outline'],
-        'description': 'CSS outline properties'
+        'description': 'CSS Outline Properties'
     },
     'css-boxdecorationbreak': {
         'patterns': [r'box-decoration-break\s*:'],
@@ -303,17 +310,17 @@ CSS_SHADOW_EFFECTS = {
     'css-boxshadow': {
         'patterns': [r'box-shadow\s*:'],
         'keywords': ['box-shadow'],
-        'description': 'CSS3 Box-shadow'
+        'description': 'CSS Box Shadow'
     },
     'css-textshadow': {
         'patterns': [r'text-shadow\s*:'],
         'keywords': ['text-shadow'],
-        'description': 'CSS3 Text-shadow'
+        'description': 'CSS Text Shadow'
     },
     'css-mixblendmode': {
-        'patterns': [r'mix-blend-mode\s*:'],
+        'patterns': [r'mix-blend-mode\s*:', r'\bisolation\s*:'],
         'keywords': ['mix-blend-mode'],
-        'description': 'Blending of HTML/SVG elements'
+        'description': 'CSS mix-blend-mode'
     },
 }
 
@@ -322,17 +329,17 @@ CSS_SELECTORS = {
     'css-sel2': {
         'patterns': [r'\[.*\]', r':hover', r':active', r':focus'],
         'keywords': ['CSS 2.1 selectors'],
-        'description': 'CSS 2.1 selectors'
+        'description': 'CSS2.1 Selectors'
     },
     'css-sel3': {
         'patterns': [r':nth-child', r':nth-of-type', r':nth-last-child', r':nth-last-of-type', r':first-of-type', r':last-of-type', r':only-child', r':only-of-type', r':empty', r':not\('],
         'keywords': ['nth-child', 'nth-of-type'],
-        'description': 'CSS3 selectors'
+        'description': 'CSS3 Selectors'
     },
     'css-gencontent': {
-        'patterns': [r'::before', r'::after', r':before', r':after', r'content\s*:'],
-        'keywords': ['::before', '::after', 'content'],
-        'description': 'CSS Generated content for pseudo-elements'
+        'patterns': [r'::before', r'::after', r':before', r':after', r'content\s*:\s*[\'"]'],
+        'keywords': ['::before', '::after'],
+        'description': 'CSS Generated Content (::before/::after)'
     },
     'css-first-letter': {
         'patterns': [r'::first-letter', r':first-letter'],
@@ -367,12 +374,12 @@ CSS_SELECTORS = {
     'css-optional-pseudo': {
         'patterns': [r':optional', r':required'],
         'keywords': ['optional', 'required'],
-        'description': 'CSS :optional and :required pseudo-classes'
+        'description': 'CSS :optional/:required'
     },
     'css-placeholder-shown': {
         'patterns': [r':placeholder-shown'],
         'keywords': ['placeholder-shown'],
-        'description': 'CSS :placeholder-shown'
+        'description': 'CSS :placeholder-shown Selector'
     },
     'css-default-pseudo': {
         'patterns': [r':default'],
@@ -382,7 +389,7 @@ CSS_SELECTORS = {
     'css-indeterminate-pseudo': {
         'patterns': [r':indeterminate'],
         'keywords': ['indeterminate'],
-        'description': 'CSS :indeterminate pseudo-class'
+        'description': 'CSS :indeterminate'
     },
     'css-dir-pseudo': {
         'patterns': [r':dir\('],
@@ -407,12 +414,12 @@ CSS_SELECTORS = {
     'css-matches-pseudo': {
         'patterns': [r':is\(', r':matches\(', r':where\('],
         'keywords': ['is', 'matches', 'where'],
-        'description': 'CSS :is(), :matches(), :where() pseudo-classes'
+        'description': 'CSS :is()/:where() Selectors'
     },
     'css-has': {
         'patterns': [r':has\('],
         'keywords': ['has'],
-        'description': 'CSS :has() relational pseudo-class'
+        'description': 'CSS :has() Selector'
     },
     'css-focus-within': {
         'patterns': [r':focus-within'],
@@ -422,14 +429,14 @@ CSS_SELECTORS = {
     'css-focus-visible': {
         'patterns': [r':focus-visible'],
         'keywords': ['focus-visible'],
-        'description': 'CSS :focus-visible pseudo-class'
+        'description': 'CSS :focus-visible'
     },
 }
 
 # CSS Media Queries Features
 CSS_MEDIA_QUERIES = {
     'css-mediaqueries': {
-        'patterns': [r'@media', r'min-width', r'max-width'],
+        'patterns': [r'@media\s*\(', r'@media\s+screen', r'@media\s+print', r'@media\s+all'],
         'keywords': ['media queries'],
         'description': 'CSS3 Media Queries'
     },
@@ -460,7 +467,7 @@ CSS_UNITS = {
     'rem': {
         'patterns': [r'\d+\.?\d*rem'],
         'keywords': ['rem'],
-        'description': 'rem (root em) units'
+        'description': 'rem (Root em) Units'
     },
     'viewport-units': {
         'patterns': [r'\d+\.?\d*vw', r'\d+\.?\d*vh', r'\d+\.?\d*vmin', r'\d+\.?\d*vmax'],
@@ -480,7 +487,7 @@ CSS_UNITS = {
     'ch-unit': {
         'patterns': [r'\d+\.?\d*ch'],
         'keywords': ['ch unit'],
-        'description': 'CSS ch unit'
+        'description': 'ch (Character Width) Unit'
     },
 }
 
@@ -506,7 +513,7 @@ CSS_AT_RULES = {
         'description': 'CSS Counters'
     },
     'css-page-break': {
-        'patterns': [r'page-break-before', r'page-break-after', r'page-break-inside'],
+        'patterns': [r'page-break-before', r'page-break-after', r'page-break-inside', r'break-before\s*:', r'break-after\s*:', r'break-inside\s*:'],
         'keywords': ['page-break'],
         'description': 'CSS page-break properties'
     },
@@ -532,7 +539,7 @@ CSS_POSITIONING = {
     'css-fixed': {
         'patterns': [r'position\s*:\s*fixed'],
         'keywords': ['fixed'],
-        'description': 'CSS position: fixed'
+        'description': 'CSS position:fixed'
     },
     'css-table': {
         'patterns': [r'display\s*:\s*table', r'display\s*:\s*table-cell'],
@@ -600,7 +607,7 @@ CSS_INTERACTION = {
     'css3-cursors': {
         'patterns': [r'cursor\s*:'],
         'keywords': ['cursor'],
-        'description': 'CSS3 Cursors (original values)'
+        'description': 'CSS3 Cursors'
     },
     'css3-cursors-grab': {
         'patterns': [r'cursor\s*:\s*grab', r'cursor\s*:\s*grabbing'],
@@ -619,7 +626,7 @@ CSS_MISC = {
     'css-opacity': {
         'patterns': [r'opacity\s*:'],
         'keywords': ['opacity'],
-        'description': 'CSS3 Opacity'
+        'description': 'CSS Opacity'
     },
     'css-zoom': {
         'patterns': [r'zoom\s*:'],
@@ -1030,9 +1037,9 @@ CSS_ADDITIONAL_3 = {
         'description': 'CSS Shapes Level 1'
     },
     'css-snappoints': {
-        'patterns': [r'scroll-snap-type\s*:', r'scroll-snap-align\s*:', r'scroll-snap-stop\s*:'],
+        'patterns': [r'scroll-snap-type\s*:', r'scroll-snap-align\s*:', r'scroll-snap-stop\s*:', r'scroll-margin', r'scroll-padding'],
         'keywords': ['scroll-snap'],
-        'description': 'CSS Scroll Snap'
+        'description': 'CSS Scroll Snap Points'
     },
     'css-text-align-last': {
         'patterns': [r'text-align-last\s*:'],
@@ -1065,8 +1072,8 @@ CSS_ADDITIONAL_3 = {
         'description': 'CSS Text 4 text-spacing'
     },
     'css-text-wrap-balance': {
-        'patterns': [r'text-wrap\s*:\s*balance'],
-        'keywords': ['text-wrap: balance'],
+        'patterns': [r'text-wrap\s*:'],
+        'keywords': ['text-wrap'],
         'description': 'CSS text-wrap: balance'
     },
     'devicepixelratio': {
