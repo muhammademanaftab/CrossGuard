@@ -166,15 +166,15 @@ class CanIUseDatabase:
     
     def _parse_support_status(self, status: str) -> str:
         """Parse support status string and return primary status.
-        
+
         Can I Use uses compound statuses like 'a x #2' meaning:
-        - a: partial support
+        - a: almost supported (treated as full support per Can I Use website)
         - x: requires prefix
         - #2: see note 2
-        
+
         Args:
             status: Raw status string from database
-            
+
         Returns:
             Primary support status character
         """

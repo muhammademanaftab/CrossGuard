@@ -64,7 +64,11 @@ class TestRealWorldCSS:
         assert 'transforms2d' in features
 
     def test_css_grid_layout(self, parse_css):
-        """Test CSS Grid layout pattern."""
+        """Test CSS Grid layout pattern.
+
+        Note: gap in grid context is NOT detected as flexbox-gap (context-aware detection).
+        flexbox-gap only detects gap when used with display: flex.
+        """
         css = """
         .grid-container {
             display: grid;
@@ -82,7 +86,7 @@ class TestRealWorldCSS:
         """
         features = parse_css(css)
         assert 'css-grid' in features
-        assert 'flexbox-gap' in features
+        assert 'flexbox-gap' not in features  # gap in grid context is not flexbox-gap
         assert 'rem' in features
         assert 'css-mediaqueries' in features
 

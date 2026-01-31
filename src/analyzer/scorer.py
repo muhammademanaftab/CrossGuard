@@ -33,9 +33,9 @@ class CompatibilityScorer:
     # Support status score values
     STATUS_SCORES = {
         'y': 100,  # Fully supported
-        'a': 50,   # Partially supported
-        'x': 70,   # Requires prefix (better than partial)
-        'p': 60,   # Polyfill available
+        'a': 100,  # Almost supported (treated as full per Can I Use website)
+        'x': 70,   # Requires prefix
+        'p': 50,   # Partial support
         'd': 30,   # Disabled by default
         'n': 0,    # Not supported
         'u': 0     # Unknown

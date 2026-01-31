@@ -82,27 +82,24 @@ class CSSParser:
         return self.features_found
     
     def _remove_comments_and_strings(self, css_content: str) -> str:
-        """Remove CSS comments and string literals from code.
+        """Remove CSS comments from code.
 
         This prevents false positives from features mentioned in:
         - CSS comments /* ... */
-        - content: "..." strings
-        - url("...") strings
+
+        Note: We intentionally do NOT remove string literals because:
+        1. CSS like content: '"'; has quote characters that confuse regex
+        2. Removing strings can accidentally remove valid CSS selectors
+        3. String content rarely causes false positive feature detection
 
         Args:
             css_content: CSS code
 
         Returns:
-            Code without comments and string literals
+            Code without comments
         """
         # Remove CSS comments /* ... */
         css_content = re.sub(r'/\*.*?\*/', '', css_content, flags=re.DOTALL)
-
-        # Remove string literals (both single and double quoted)
-        # This handles content: "...", url("..."), etc.
-        # Be careful to handle escaped quotes
-        css_content = re.sub(r'"(?:[^"\\]|\\.)*"', '""', css_content)
-        css_content = re.sub(r"'(?:[^'\\]|\\.)*'", "''", css_content)
 
         return css_content
 
@@ -208,9 +205,9 @@ class CSSParser:
         # Extract CSS properties ONLY from inside declaration blocks
         # This avoids matching class names in selectors like .back-btn:hover
         # We look for property: value patterns that are preceded by { or ;
-        # Pattern: after { or ; or newline, capture property name before :
-        # But NOT after a . (class selector) or # (id selector)
-        property_pattern = r'(?:^|[{;])\s*([a-z][-a-z0-9]*)\s*:'
+        # Pattern: ONLY after { or ; (not ^ start of line, which would match element selectors like a:hover)
+        # CSS properties are always inside {} blocks, so they're always after { or ;
+        property_pattern = r'[{;]\s*([a-z][-a-z0-9]*)\s*:'
         found_properties = set(re.findall(property_pattern, css_content, re.IGNORECASE | re.MULTILINE))
 
         # Extract @-rules (like @keyframes, @media, etc.)
