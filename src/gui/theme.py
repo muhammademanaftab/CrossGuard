@@ -219,6 +219,13 @@ ICONS = {
     'menu': '\u2630',            # Trigram for heaven
     'dot': '\u2022',             # Bullet
     'diamond': '\u25C6',         # Black diamond
+
+    # History and Statistics
+    'history': '\u25D4',         # Circle with upper right quadrant black (simple)
+    'statistics': '\u2261',      # Three horizontal lines (stats)
+    'clock': '\u25F4',           # Clock
+    'trash': '\u2716',           # X mark for delete
+    'clear': '\u2718',           # Heavy X mark
 }
 
 # =============================================================================

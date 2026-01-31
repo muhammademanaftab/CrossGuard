@@ -40,6 +40,10 @@ from .browser_selector import BrowserSelector, get_available_browsers
 # Version Range Display (like Can I Use)
 from .version_range_card import VersionRangeCard, VersionRangeBar, VersionRangePopup
 
+# History and Statistics widgets
+from .history_card import HistoryCard, EmptyHistoryCard
+from .statistics_panel import StatisticsPanel, CompactStatsBar
+
 __all__ = [
     # Drop zone
     'DropZone',
@@ -98,4 +102,10 @@ __all__ = [
     'VersionRangeCard',
     'VersionRangeBar',
     'VersionRangePopup',
+
+    # History and Statistics
+    'HistoryCard',
+    'EmptyHistoryCard',
+    'StatisticsPanel',
+    'CompactStatsBar',
 ]

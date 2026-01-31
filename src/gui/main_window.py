@@ -40,6 +40,11 @@ from .widgets import (
     # Browser Selection
     BrowserSelector,
     get_available_browsers,
+    # History and Statistics widgets
+    HistoryCard,
+    EmptyHistoryCard,
+    StatisticsPanel,
+    CompactStatsBar,
 )
 from .widgets.rules_manager import show_rules_manager
 from .export_manager import ExportManager
@@ -140,6 +145,8 @@ class MainWindow(ctk.CTkFrame):
             self._build_files_view()
         elif view_id == "results":
             self._build_results_view()
+        elif view_id == "history":
+            self._build_history_view()
         elif view_id == "settings":
             self._build_settings_view()
 
@@ -147,6 +154,7 @@ class MainWindow(ctk.CTkFrame):
         titles = {
             "files": "File Selection",
             "results": "Analysis Results",
+            "history": "Analysis History",
             "settings": "Settings",
         }
         self.header.set_title(titles.get(view_id, "Cross Guard"))
@@ -739,6 +747,164 @@ class MainWindow(ctk.CTkFrame):
             command=lambda: self.export_manager.export_json(self.current_report),
         )
         export_json_btn.pack(side="left")
+
+    def _build_history_view(self):
+        """Build the history view showing past analyses and statistics."""
+        # Scrollable container
+        scroll_frame = ctk.CTkScrollableFrame(
+            self.content_frame,
+            fg_color="transparent",
+            scrollbar_button_color=COLORS['bg_light'],
+            scrollbar_button_hover_color=COLORS['accent'],
+        )
+        scroll_frame.pack(fill="both", expand=True, padx=SPACING['xl'], pady=SPACING['xl'])
+        enable_smooth_scrolling(scroll_frame)
+
+        # Title section with Clear All button
+        title_frame = ctk.CTkFrame(scroll_frame, fg_color="transparent")
+        title_frame.pack(fill="x", pady=(0, SPACING['lg']))
+
+        history_icon = ICONS.get('history', '\u23F3')
+        title_label = ctk.CTkLabel(
+            title_frame,
+            text=f"{history_icon} Analysis History",
+            font=ctk.CTkFont(size=20, weight="bold"),
+            text_color=COLORS['text_primary'],
+        )
+        title_label.pack(side="left")
+
+        # Clear All button
+        clear_icon = ICONS.get('clear', '\u2718')
+        clear_btn = ctk.CTkButton(
+            title_frame,
+            text=f"{clear_icon} Clear All",
+            font=ctk.CTkFont(size=12),
+            width=100,
+            height=32,
+            fg_color="transparent",
+            hover_color=COLORS['danger_muted'],
+            text_color=COLORS['text_muted'],
+            command=self._clear_all_history,
+        )
+        clear_btn.pack(side="right")
+
+        # Statistics panel
+        stats = self._analyzer_service.get_statistics()
+        if stats.get('total_analyses', 0) > 0:
+            stats_panel = StatisticsPanel(scroll_frame)
+            stats_panel.pack(fill="x", pady=(0, SPACING['lg']))
+            stats_panel.set_statistics(stats)
+
+        # History list header
+        list_header = ctk.CTkFrame(scroll_frame, fg_color="transparent")
+        list_header.pack(fill="x", pady=(0, SPACING['sm']))
+
+        list_title = ctk.CTkLabel(
+            list_header,
+            text="Recent Analyses",
+            font=ctk.CTkFont(size=14, weight="bold"),
+            text_color=COLORS['text_secondary'],
+        )
+        list_title.pack(side="left")
+
+        # History count
+        history_count = self._analyzer_service.get_history_count()
+        count_label = ctk.CTkLabel(
+            list_header,
+            text=f"{history_count} total",
+            font=ctk.CTkFont(size=12),
+            text_color=COLORS['text_muted'],
+        )
+        count_label.pack(side="right")
+
+        # History list container
+        self._history_list_frame = ctk.CTkFrame(scroll_frame, fg_color="transparent")
+        self._history_list_frame.pack(fill="both", expand=True)
+
+        # Load history items
+        self._load_history_items()
+
+    def _load_history_items(self):
+        """Load and display history items."""
+        # Clear existing items
+        for widget in self._history_list_frame.winfo_children():
+            widget.destroy()
+
+        # Get history from service
+        history = self._analyzer_service.get_analysis_history(limit=50)
+
+        if not history:
+            # Show empty state
+            empty_card = EmptyHistoryCard(self._history_list_frame)
+            empty_card.pack(fill="x", pady=SPACING['md'])
+            return
+
+        # Create history cards
+        for analysis in history:
+            card = HistoryCard(
+                self._history_list_frame,
+                analysis_data=analysis,
+                on_click=self._on_history_item_click,
+                on_delete=self._on_history_item_delete,
+            )
+            card.pack(fill="x", pady=(0, SPACING['sm']))
+
+    def _on_history_item_click(self, analysis_id: int):
+        """Handle click on a history item.
+
+        Args:
+            analysis_id: ID of the clicked analysis
+        """
+        # Get the full analysis details
+        analysis = self._analyzer_service.get_analysis_by_id(analysis_id)
+        if not analysis:
+            show_warning(self.master, "Not Found", "Analysis record not found.")
+            return
+
+        # Show info about the analysis for now
+        # In the future, this could restore the full results view
+        file_name = analysis.get('file_name', 'Unknown')
+        score = analysis.get('overall_score', 0)
+        grade = analysis.get('grade', 'N/A')
+        date = analysis.get('analyzed_at', 'Unknown')[:16]
+
+        message = f"File: {file_name}\n"
+        message += f"Score: {score:.0f}% ({grade})\n"
+        message += f"Analyzed: {date}\n"
+        message += f"Features: {analysis.get('total_features', 0)}"
+
+        show_info(self.master, "Analysis Details", message)
+
+    def _on_history_item_delete(self, analysis_id: int):
+        """Handle delete button click on a history item.
+
+        Args:
+            analysis_id: ID of the analysis to delete
+        """
+        if ask_question(self.master, "Confirm Delete", "Delete this analysis from history?"):
+            success = self._analyzer_service.delete_from_history(analysis_id)
+            if success:
+                self.status_bar.set_status("Analysis deleted from history", "info")
+                # Refresh the history view
+                self._build_history_view()
+            else:
+                show_error(self.master, "Error", "Failed to delete analysis.")
+
+    def _clear_all_history(self):
+        """Clear all analysis history."""
+        count = self._analyzer_service.get_history_count()
+        if count == 0:
+            show_info(self.master, "History Empty", "There is no history to clear.")
+            return
+
+        if ask_question(self.master, "Clear All History", f"Delete all {count} analyses from history?\n\nThis action cannot be undone."):
+            success = self._analyzer_service.clear_history()
+            if success:
+                self.status_bar.set_status("All history cleared", "info")
+                # Refresh the history view
+                self._build_history_view()
+            else:
+                show_error(self.master, "Error", "Failed to clear history.")
 
     def _count_issues(self, browsers: Dict) -> int:
         """Count total issues (unsupported + partial) across all browsers."""
@@ -1493,6 +1659,9 @@ class MainWindow(ctk.CTkFrame):
                 self.status_bar.set_last_analysis()
                 self.status_bar.set_status("Analysis complete", "success")
 
+                # Auto-save to history
+                self._save_to_history(result, files)
+
                 # Navigate to results
                 self.sidebar.set_active_view("results")
                 self._show_view("results")
@@ -1501,6 +1670,40 @@ class MainWindow(ctk.CTkFrame):
 
         except Exception as e:
             show_error(self.master, "Error", str(e))
+            import traceback
+            traceback.print_exc()
+
+    def _save_to_history(self, result, files: List[str]):
+        """Save analysis result to history database.
+
+        Args:
+            result: AnalysisResult from analysis
+            files: List of analyzed file paths
+        """
+        try:
+            # Determine primary file info
+            if len(files) == 1:
+                file_path = files[0]
+                file_name = Path(file_path).name
+                file_type = Path(file_path).suffix.lower().lstrip('.')
+                if file_type == 'htm':
+                    file_type = 'html'
+            else:
+                # Multiple files - use "mixed" type
+                file_names = [Path(f).name for f in files]
+                file_name = f"{file_names[0]} (+{len(files)-1} more)" if len(files) > 1 else file_names[0]
+                file_path = str(Path(files[0]).parent)
+                file_type = 'mixed'
+
+            # Save to database
+            self._analyzer_service.save_analysis_to_history(
+                result=result,
+                file_name=file_name,
+                file_path=file_path,
+                file_type=file_type,
+            )
+        except Exception as e:
+            # Don't fail the analysis if history save fails
             import traceback
             traceback.print_exc()
 

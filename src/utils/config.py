@@ -11,6 +11,10 @@ CANIUSE_DIR = PROJECT_ROOT / "caniuse"
 CANIUSE_DB_PATH = CANIUSE_DIR / "data.json"
 CANIUSE_FEATURES_PATH = CANIUSE_DIR / "features-json"
 
+# Database configuration
+DATABASE_PATH = PROJECT_ROOT / 'crossguard.db'
+DATABASE_HISTORY_LIMIT = 100  # Max history items to display
+
 # Target browsers (can be customized by user)
 DEFAULT_BROWSERS = {
     'chrome': 'Chrome',
