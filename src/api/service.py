@@ -7,7 +7,7 @@ analyzer backend without knowing implementation details.
 Frontend should ONLY import from this module and schemas.py.
 """
 
-from typing import Callable, Optional, Dict, List
+from typing import Callable, Optional, Dict, List, Any
 from pathlib import Path
 from datetime import datetime
 
@@ -18,7 +18,9 @@ from .schemas import (
     DatabaseUpdateResult,
     ProgressCallback,
 )
-from src.utils.config import LATEST_VERSIONS
+from src.utils.config import LATEST_VERSIONS, get_logger
+
+logger = get_logger('api.service')
 
 
 class AnalyzerService:
@@ -221,6 +223,222 @@ class AnalyzerService:
     def get_available_browsers(self) -> List[str]:
         """Get list of available browsers for analysis."""
         return list(self.DEFAULT_BROWSERS.keys())
+
+    # =========================================================================
+    # History Methods
+    # =========================================================================
+
+    def save_analysis_to_history(
+        self,
+        result: AnalysisResult,
+        file_name: str = 'analysis',
+        file_path: str = '',
+        file_type: str = 'mixed'
+    ) -> Optional[int]:
+        """Save an analysis result to history database.
+
+        Args:
+            result: The AnalysisResult from analysis
+            file_name: Name of the primary analyzed file
+            file_path: Path to the file
+            file_type: Type of file ('html', 'css', 'js', or 'mixed')
+
+        Returns:
+            The ID of the saved analysis, or None on error
+        """
+        if not result.success:
+            logger.warning("Cannot save failed analysis to history")
+            return None
+
+        try:
+            from src.database.repositories import save_analysis_from_result
+
+            result_dict = result.to_dict()
+            file_info = {
+                'file_name': file_name,
+                'file_path': file_path,
+                'file_type': file_type,
+            }
+
+            analysis_id = save_analysis_from_result(result_dict, file_info)
+            logger.info(f"Saved analysis to history: #{analysis_id}")
+            return analysis_id
+
+        except Exception as e:
+            logger.error(f"Failed to save analysis to history: {e}")
+            return None
+
+    def get_analysis_history(self, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
+        """Get analysis history from database.
+
+        Args:
+            limit: Maximum number of records to return
+            offset: Number of records to skip (for pagination)
+
+        Returns:
+            List of analysis records as dictionaries
+        """
+        try:
+            from src.database.repositories import AnalysisRepository
+
+            repo = AnalysisRepository()
+            analyses = repo.get_all_analyses(limit=limit, offset=offset)
+
+            return [analysis.to_dict() for analysis in analyses]
+
+        except Exception as e:
+            logger.error(f"Failed to get analysis history: {e}")
+            return []
+
+    def get_analysis_by_id(self, analysis_id: int) -> Optional[Dict[str, Any]]:
+        """Get a specific analysis by ID.
+
+        Args:
+            analysis_id: The analysis ID to retrieve
+
+        Returns:
+            Analysis record as dictionary, or None if not found
+        """
+        try:
+            from src.database.repositories import AnalysisRepository
+
+            repo = AnalysisRepository()
+            analysis = repo.get_analysis_by_id(analysis_id, include_features=True)
+
+            if analysis:
+                return analysis.to_dict()
+            return None
+
+        except Exception as e:
+            logger.error(f"Failed to get analysis #{analysis_id}: {e}")
+            return None
+
+    def delete_from_history(self, analysis_id: int) -> bool:
+        """Delete an analysis from history.
+
+        Args:
+            analysis_id: The analysis ID to delete
+
+        Returns:
+            True if deleted successfully, False otherwise
+        """
+        try:
+            from src.database.repositories import AnalysisRepository
+
+            repo = AnalysisRepository()
+            return repo.delete_analysis(analysis_id)
+
+        except Exception as e:
+            logger.error(f"Failed to delete analysis #{analysis_id}: {e}")
+            return False
+
+    def clear_history(self) -> bool:
+        """Clear all analysis history.
+
+        Returns:
+            True if cleared successfully, False otherwise
+        """
+        try:
+            from src.database.repositories import AnalysisRepository
+
+            repo = AnalysisRepository()
+            count = repo.clear_all()
+            logger.info(f"Cleared {count} analyses from history")
+            return True
+
+        except Exception as e:
+            logger.error(f"Failed to clear history: {e}")
+            return False
+
+    def get_history_count(self) -> int:
+        """Get total number of analyses in history.
+
+        Returns:
+            Number of analyses in history
+        """
+        try:
+            from src.database.repositories import AnalysisRepository
+
+            repo = AnalysisRepository()
+            return repo.get_count()
+
+        except Exception as e:
+            logger.error(f"Failed to get history count: {e}")
+            return 0
+
+    # =========================================================================
+    # Statistics Methods
+    # =========================================================================
+
+    def get_statistics(self) -> Dict[str, Any]:
+        """Get aggregated statistics from analysis history.
+
+        Returns:
+            Dictionary with statistics including:
+            - total_analyses: Total count
+            - average_score: Average compatibility score
+            - best_score: Highest score
+            - worst_score: Lowest score
+            - top_problematic_features: Most failing features
+            - most_analyzed_files: Frequently analyzed files
+            - grade_distribution: Count per grade
+            - file_type_distribution: Count per file type
+        """
+        try:
+            from src.database.statistics import get_statistics_service
+
+            service = get_statistics_service()
+            return service.get_summary_statistics()
+
+        except Exception as e:
+            logger.error(f"Failed to get statistics: {e}")
+            return {
+                'total_analyses': 0,
+                'average_score': 0,
+                'best_score': 0,
+                'worst_score': 0,
+                'top_problematic_features': [],
+                'most_analyzed_files': [],
+                'error': str(e),
+            }
+
+    def get_score_trend(self, days: int = 7) -> List[Dict[str, Any]]:
+        """Get score trend over time.
+
+        Args:
+            days: Number of days to look back
+
+        Returns:
+            List of {date, avg_score, count} dictionaries
+        """
+        try:
+            from src.database.statistics import get_statistics_service
+
+            service = get_statistics_service()
+            return service.get_score_trend(days)
+
+        except Exception as e:
+            logger.error(f"Failed to get score trend: {e}")
+            return []
+
+    def get_top_problematic_features(self, limit: int = 5) -> List[Dict[str, Any]]:
+        """Get the most frequently failing features.
+
+        Args:
+            limit: Maximum number of features to return
+
+        Returns:
+            List of feature info with fail counts
+        """
+        try:
+            from src.database.statistics import get_statistics_service
+
+            service = get_statistics_service()
+            return service.get_top_problematic_features(limit)
+
+        except Exception as e:
+            logger.error(f"Failed to get problematic features: {e}")
+            return []
 
 
 # Singleton instance for convenience

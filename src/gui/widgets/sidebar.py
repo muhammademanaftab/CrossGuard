@@ -218,6 +218,7 @@ class Sidebar(ctk.CTkFrame):
         nav_items = [
             ("files", ICONS['files'], "Files"),
             ("results", ICONS['results'], "Results"),
+            ("history", ICONS.get('history', '\u23F3'), "History"),
             ("settings", ICONS['settings'], "Settings"),
         ]
 
