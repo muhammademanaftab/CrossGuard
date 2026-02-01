@@ -44,6 +44,10 @@ from .version_range_card import VersionRangeCard, VersionRangeBar, VersionRangeP
 from .history_card import HistoryCard, EmptyHistoryCard
 from .statistics_panel import StatisticsPanel, CompactStatsBar
 
+# Bookmark and Tag widgets
+from .bookmark_button import BookmarkButton, BookmarkIndicator
+from .tag_widget import TagChip, TagList, TagSelector, TagManagerDialog
+
 __all__ = [
     # Drop zone
     'DropZone',
@@ -108,4 +112,12 @@ __all__ = [
     'EmptyHistoryCard',
     'StatisticsPanel',
     'CompactStatsBar',
+
+    # Bookmarks and Tags
+    'BookmarkButton',
+    'BookmarkIndicator',
+    'TagChip',
+    'TagList',
+    'TagSelector',
+    'TagManagerDialog',
 ]

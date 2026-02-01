@@ -5,11 +5,27 @@ This module provides persistent storage for:
 - Analysis history (past analyses with scores and features)
 - Statistics (aggregated insights from all analyses)
 - Browser support results per analysis
+- User settings and preferences
+- Bookmarks for important analyses
+- Tags for categorizing analyses
 """
 
 from .connection import get_connection, close_connection, get_db_path
-from .models import Analysis, AnalysisFeature, BrowserResult
-from .repositories import AnalysisRepository
+from .models import (
+    Analysis,
+    AnalysisFeature,
+    BrowserResult,
+    Setting,
+    Bookmark,
+    Tag,
+    AnalysisTag,
+)
+from .repositories import (
+    AnalysisRepository,
+    SettingsRepository,
+    BookmarksRepository,
+    TagsRepository,
+)
 from .statistics import StatisticsService
 from .migrations import create_tables, drop_tables, reset_database
 
@@ -23,9 +39,16 @@ __all__ = [
     'Analysis',
     'AnalysisFeature',
     'BrowserResult',
+    'Setting',
+    'Bookmark',
+    'Tag',
+    'AnalysisTag',
 
-    # Repository
+    # Repositories
     'AnalysisRepository',
+    'SettingsRepository',
+    'BookmarksRepository',
+    'TagsRepository',
 
     # Statistics
     'StatisticsService',

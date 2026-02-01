@@ -1,11 +1,11 @@
 """
 History card widget for displaying past analysis records.
 
-Shows file name, type icon, score, grade, date, and provides
-delete functionality.
+Shows file name, type icon, score, grade, date, bookmark status,
+tags, and provides delete functionality.
 """
 
-from typing import Callable, Optional, Dict, Any
+from typing import Callable, Optional, Dict, Any, List
 import customtkinter as ctk
 
 from ..theme import COLORS, SPACING, ICONS, get_score_color, get_file_type_color
@@ -18,6 +18,8 @@ class HistoryCard(ctk.CTkFrame):
     - File type icon
     - File name
     - Score and grade
+    - Bookmark indicator
+    - Tags
     - Date/time analyzed
     - Delete button
     """
@@ -28,6 +30,9 @@ class HistoryCard(ctk.CTkFrame):
         analysis_data: Dict[str, Any],
         on_click: Optional[Callable[[int], None]] = None,
         on_delete: Optional[Callable[[int], None]] = None,
+        on_bookmark_toggle: Optional[Callable[[int, bool], None]] = None,
+        is_bookmarked: bool = False,
+        tags: List[Dict[str, Any]] = None,
         **kwargs
     ):
         """Initialize the history card.
@@ -37,6 +42,9 @@ class HistoryCard(ctk.CTkFrame):
             analysis_data: Dictionary with analysis info (from to_dict())
             on_click: Callback when card is clicked (receives analysis_id)
             on_delete: Callback when delete is clicked (receives analysis_id)
+            on_bookmark_toggle: Callback when bookmark is toggled (receives analysis_id, new_state)
+            is_bookmarked: Whether this analysis is bookmarked
+            tags: List of tag dictionaries for this analysis
         """
         super().__init__(
             master,
@@ -50,6 +58,9 @@ class HistoryCard(ctk.CTkFrame):
         self._data = analysis_data
         self._on_click = on_click
         self._on_delete = on_delete
+        self._on_bookmark_toggle = on_bookmark_toggle
+        self._is_bookmarked = is_bookmarked
+        self._tags = tags or []
         self._analysis_id = analysis_data.get('id')
 
         self._init_ui()
@@ -130,9 +141,60 @@ class HistoryCard(ctk.CTkFrame):
         )
         details_label.pack(anchor="w")
 
-        # Right side: Score badge + Delete button
+        # Tags row (if any tags)
+        if self._tags:
+            tags_frame = ctk.CTkFrame(info_frame, fg_color="transparent")
+            tags_frame.pack(anchor="w", pady=(SPACING['xs'], 0))
+
+            for tag in self._tags[:3]:  # Show max 3 tags
+                tag_color = tag.get('color', '#58a6ff')
+                # Create muted background color
+                try:
+                    hex_c = tag_color.lstrip('#')
+                    r, g, b = int(hex_c[0:2], 16), int(hex_c[2:4], 16), int(hex_c[4:6], 16)
+                    muted = f'#{int(r*0.3):02x}{int(g*0.3):02x}{int(b*0.3):02x}'
+                except:
+                    muted = COLORS['bg_light']
+
+                tag_chip = ctk.CTkLabel(
+                    tags_frame,
+                    text=f" {tag.get('name', 'Tag')} ",
+                    font=ctk.CTkFont(size=9),
+                    text_color=tag_color,
+                    fg_color=muted,
+                    corner_radius=3,
+                )
+                tag_chip.pack(side="left", padx=(0, SPACING['xs']))
+
+            if len(self._tags) > 3:
+                more_label = ctk.CTkLabel(
+                    tags_frame,
+                    text=f"+{len(self._tags) - 3}",
+                    font=ctk.CTkFont(size=9),
+                    text_color=COLORS['text_muted'],
+                )
+                more_label.pack(side="left")
+
+        # Right side: Bookmark + Score badge + Delete button
         right_frame = ctk.CTkFrame(container, fg_color="transparent")
         right_frame.pack(side="right")
+
+        # Bookmark button
+        bookmark_icon = ICONS.get('bookmark_filled', '\u2605') if self._is_bookmarked else ICONS.get('bookmark', '\u2606')
+        bookmark_color = COLORS['warning'] if self._is_bookmarked else COLORS['text_muted']
+
+        self._bookmark_btn = ctk.CTkButton(
+            right_frame,
+            text=bookmark_icon,
+            font=ctk.CTkFont(size=14),
+            width=28,
+            height=28,
+            fg_color="transparent",
+            hover_color=COLORS['bg_light'],
+            text_color=bookmark_color,
+            command=self._handle_bookmark_toggle,
+        )
+        self._bookmark_btn.pack(side="left", padx=(0, SPACING['xs']))
 
         # Score badge
         score_badge = ctk.CTkLabel(
@@ -235,6 +297,40 @@ class HistoryCard(ctk.CTkFrame):
         """Handle delete button click."""
         if self._on_delete and self._analysis_id:
             self._on_delete(self._analysis_id)
+
+    def _handle_bookmark_toggle(self):
+        """Handle bookmark button click."""
+        self._is_bookmarked = not self._is_bookmarked
+        self._update_bookmark_appearance()
+
+        if self._on_bookmark_toggle and self._analysis_id:
+            self._on_bookmark_toggle(self._analysis_id, self._is_bookmarked)
+
+    def _update_bookmark_appearance(self):
+        """Update bookmark button appearance."""
+        if self._is_bookmarked:
+            self._bookmark_btn.configure(
+                text=ICONS.get('bookmark_filled', '\u2605'),
+                text_color=COLORS['warning'],
+            )
+        else:
+            self._bookmark_btn.configure(
+                text=ICONS.get('bookmark', '\u2606'),
+                text_color=COLORS['text_muted'],
+            )
+
+    def set_bookmarked(self, is_bookmarked: bool):
+        """Set bookmark state without triggering callback."""
+        self._is_bookmarked = is_bookmarked
+        self._update_bookmark_appearance()
+
+    def set_tags(self, tags: List[Dict[str, Any]]):
+        """Update the tags displayed on this card.
+
+        Note: This requires rebuilding the UI, so use sparingly.
+        """
+        self._tags = tags or []
+        # Would need to rebuild UI to show updated tags
 
 
 class EmptyHistoryCard(ctk.CTkFrame):

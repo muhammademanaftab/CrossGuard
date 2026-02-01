@@ -226,6 +226,14 @@ ICONS = {
     'clock': '\u25F4',           # Clock
     'trash': '\u2716',           # X mark for delete
     'clear': '\u2718',           # Heavy X mark
+
+    # Bookmarks and Tags
+    'bookmark': '\u2606',        # Star outline (unbookmarked)
+    'bookmark_filled': '\u2605', # Star filled (bookmarked)
+    'tag': '\u2302',             # House/tag symbol
+    'tag_add': '\u271A',         # Heavy plus sign
+    'edit': '\u270E',            # Pencil
+    'note': '\u2261',            # Lines (note indicator)
 }
 
 # =============================================================================
