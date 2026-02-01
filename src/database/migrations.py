@@ -12,9 +12,12 @@ from src.utils.config import get_logger
 logger = get_logger('database.migrations')
 
 # Current schema version
-SCHEMA_VERSION = 1
+SCHEMA_VERSION = 2
 
-# SQL statements for table creation
+# =============================================================================
+# Table Creation SQL - Version 1 (Original)
+# =============================================================================
+
 CREATE_ANALYSES_TABLE = """
 CREATE TABLE IF NOT EXISTS analyses (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -51,8 +54,57 @@ CREATE TABLE IF NOT EXISTS browser_results (
 );
 """
 
-# Indexes for performance
-CREATE_INDEXES = [
+# =============================================================================
+# Table Creation SQL - Version 2 (New Features)
+# =============================================================================
+
+# Settings table - Key-value store for user preferences
+CREATE_SETTINGS_TABLE = """
+CREATE TABLE IF NOT EXISTS settings (
+    key TEXT PRIMARY KEY,
+    value TEXT NOT NULL,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+"""
+
+# Bookmarks table - Mark important analyses with notes
+CREATE_BOOKMARKS_TABLE = """
+CREATE TABLE IF NOT EXISTS bookmarks (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    analysis_id INTEGER NOT NULL UNIQUE,
+    note TEXT,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (analysis_id) REFERENCES analyses(id) ON DELETE CASCADE
+);
+"""
+
+# Tags table - For categorizing analyses
+CREATE_TAGS_TABLE = """
+CREATE TABLE IF NOT EXISTS tags (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL UNIQUE,
+    color TEXT DEFAULT '#58a6ff',
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+);
+"""
+
+# Junction table for many-to-many relationship between analyses and tags
+CREATE_ANALYSIS_TAGS_TABLE = """
+CREATE TABLE IF NOT EXISTS analysis_tags (
+    analysis_id INTEGER NOT NULL,
+    tag_id INTEGER NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (analysis_id, tag_id),
+    FOREIGN KEY (analysis_id) REFERENCES analyses(id) ON DELETE CASCADE,
+    FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
+);
+"""
+
+# =============================================================================
+# Indexes
+# =============================================================================
+
+CREATE_INDEXES_V1 = [
     "CREATE INDEX IF NOT EXISTS idx_analyses_date ON analyses(analyzed_at DESC);",
     "CREATE INDEX IF NOT EXISTS idx_analyses_file ON analyses(file_name);",
     "CREATE INDEX IF NOT EXISTS idx_analyses_type ON analyses(file_type);",
@@ -60,6 +112,13 @@ CREATE_INDEXES = [
     "CREATE INDEX IF NOT EXISTS idx_features_feature_id ON analysis_features(feature_id);",
     "CREATE INDEX IF NOT EXISTS idx_browser_feature ON browser_results(analysis_feature_id);",
     "CREATE INDEX IF NOT EXISTS idx_browser_status ON browser_results(support_status);",
+]
+
+CREATE_INDEXES_V2 = [
+    "CREATE INDEX IF NOT EXISTS idx_bookmarks_analysis ON bookmarks(analysis_id);",
+    "CREATE INDEX IF NOT EXISTS idx_tags_name ON tags(name);",
+    "CREATE INDEX IF NOT EXISTS idx_analysis_tags_analysis ON analysis_tags(analysis_id);",
+    "CREATE INDEX IF NOT EXISTS idx_analysis_tags_tag ON analysis_tags(tag_id);",
 ]
 
 # Schema version table
@@ -95,6 +154,26 @@ def create_tables(conn: Optional[sqlite3.Connection] = None):
         logger.debug(f"Database schema is up to date (version {current_version})")
         return
 
+    # Apply migrations based on current version
+    if current_version < 1:
+        _migrate_to_v1(conn)
+
+    if current_version < 2:
+        _migrate_to_v2(conn)
+
+    # Update schema version
+    conn.execute(
+        "INSERT OR REPLACE INTO schema_version (version) VALUES (?)",
+        (SCHEMA_VERSION,)
+    )
+
+    logger.info(f"Database schema initialized (version {SCHEMA_VERSION})")
+
+
+def _migrate_to_v1(conn: sqlite3.Connection):
+    """Apply version 1 migrations (original tables)."""
+    logger.info("Applying migration: version 1")
+
     # Create main tables
     conn.execute(CREATE_ANALYSES_TABLE)
     logger.debug("Created analyses table")
@@ -106,17 +185,45 @@ def create_tables(conn: Optional[sqlite3.Connection] = None):
     logger.debug("Created browser_results table")
 
     # Create indexes
-    for index_sql in CREATE_INDEXES:
+    for index_sql in CREATE_INDEXES_V1:
         conn.execute(index_sql)
-    logger.debug("Created indexes")
+    logger.debug("Created v1 indexes")
 
-    # Update schema version
-    conn.execute(
-        "INSERT OR REPLACE INTO schema_version (version) VALUES (?)",
-        (SCHEMA_VERSION,)
-    )
 
-    logger.info(f"Database schema initialized (version {SCHEMA_VERSION})")
+def _migrate_to_v2(conn: sqlite3.Connection):
+    """Apply version 2 migrations (settings, bookmarks, tags)."""
+    logger.info("Applying migration: version 2")
+
+    # Create new tables
+    conn.execute(CREATE_SETTINGS_TABLE)
+    logger.debug("Created settings table")
+
+    conn.execute(CREATE_BOOKMARKS_TABLE)
+    logger.debug("Created bookmarks table")
+
+    conn.execute(CREATE_TAGS_TABLE)
+    logger.debug("Created tags table")
+
+    conn.execute(CREATE_ANALYSIS_TAGS_TABLE)
+    logger.debug("Created analysis_tags junction table")
+
+    # Create indexes
+    for index_sql in CREATE_INDEXES_V2:
+        conn.execute(index_sql)
+    logger.debug("Created v2 indexes")
+
+    # Insert default settings
+    default_settings = [
+        ('default_browsers', 'chrome,firefox,safari,edge'),
+        ('history_limit', '100'),
+        ('auto_save_history', 'true'),
+    ]
+    for key, value in default_settings:
+        conn.execute(
+            "INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)",
+            (key, value)
+        )
+    logger.debug("Inserted default settings")
 
 
 def drop_tables(conn: Optional[sqlite3.Connection] = None):
@@ -137,6 +244,10 @@ def drop_tables(conn: Optional[sqlite3.Connection] = None):
     conn.execute("PRAGMA foreign_keys = OFF")
 
     # Drop tables in reverse order of dependencies
+    conn.execute("DROP TABLE IF EXISTS analysis_tags")
+    conn.execute("DROP TABLE IF EXISTS tags")
+    conn.execute("DROP TABLE IF EXISTS bookmarks")
+    conn.execute("DROP TABLE IF EXISTS settings")
     conn.execute("DROP TABLE IF EXISTS browser_results")
     conn.execute("DROP TABLE IF EXISTS analysis_features")
     conn.execute("DROP TABLE IF EXISTS analyses")
@@ -200,7 +311,10 @@ def get_table_info(conn: Optional[sqlite3.Connection] = None) -> dict:
         from .connection import get_connection
         conn = get_connection()
 
-    tables = ['analyses', 'analysis_features', 'browser_results']
+    tables = [
+        'analyses', 'analysis_features', 'browser_results',
+        'settings', 'bookmarks', 'tags', 'analysis_tags'
+    ]
     info = {}
 
     for table in tables:

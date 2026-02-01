@@ -245,3 +245,205 @@ class Analysis:
             'js': '\u2605',    # Star
         }
         return icons.get(self.file_type.lower(), '\u25A0')  # Square default
+
+
+# =============================================================================
+# Version 2 Models - Settings, Bookmarks, Tags
+# =============================================================================
+
+@dataclass
+class Setting:
+    """User setting/preference.
+
+    Maps to the settings table (key-value store).
+
+    Attributes:
+        key: Setting name (primary key)
+        value: Setting value (stored as string)
+        updated_at: Last update timestamp
+    """
+    key: str
+    value: str
+    updated_at: Optional[datetime] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary."""
+        return {
+            'key': self.key,
+            'value': self.value,
+            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
+        }
+
+    @classmethod
+    def from_row(cls, row) -> 'Setting':
+        """Create from database row."""
+        updated_at = None
+        if row['updated_at']:
+            try:
+                updated_at = datetime.fromisoformat(row['updated_at'])
+            except (ValueError, TypeError):
+                pass
+
+        return cls(
+            key=row['key'],
+            value=row['value'],
+            updated_at=updated_at,
+        )
+
+    def get_as_bool(self) -> bool:
+        """Get value as boolean."""
+        return self.value.lower() in ('true', '1', 'yes', 'on')
+
+    def get_as_int(self) -> int:
+        """Get value as integer."""
+        try:
+            return int(self.value)
+        except (ValueError, TypeError):
+            return 0
+
+    def get_as_list(self) -> List[str]:
+        """Get value as list (comma-separated)."""
+        return [v.strip() for v in self.value.split(',') if v.strip()]
+
+
+@dataclass
+class Bookmark:
+    """Bookmarked analysis with optional note.
+
+    Maps to the bookmarks table.
+
+    Attributes:
+        id: Primary key (auto-generated)
+        analysis_id: Foreign key to analyses
+        note: Optional user note
+        created_at: When bookmark was created
+        analysis: Optional linked Analysis object
+    """
+    analysis_id: int
+    note: str = ''
+    id: Optional[int] = None
+    created_at: Optional[datetime] = None
+    analysis: Optional[Analysis] = None
+
+    def __post_init__(self):
+        """Initialize defaults."""
+        if self.created_at is None:
+            self.created_at = datetime.now()
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary."""
+        result = {
+            'id': self.id,
+            'analysis_id': self.analysis_id,
+            'note': self.note,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+        }
+        if self.analysis:
+            result['analysis'] = self.analysis.to_dict()
+        return result
+
+    @classmethod
+    def from_row(cls, row) -> 'Bookmark':
+        """Create from database row."""
+        created_at = None
+        if row['created_at']:
+            try:
+                created_at = datetime.fromisoformat(row['created_at'])
+            except (ValueError, TypeError):
+                pass
+
+        return cls(
+            id=row['id'],
+            analysis_id=row['analysis_id'],
+            note=row['note'] or '',
+            created_at=created_at,
+        )
+
+
+@dataclass
+class Tag:
+    """Tag for categorizing analyses.
+
+    Maps to the tags table.
+
+    Attributes:
+        id: Primary key (auto-generated)
+        name: Tag name (unique)
+        color: Hex color code for display
+        created_at: When tag was created
+    """
+    name: str
+    color: str = '#58a6ff'
+    id: Optional[int] = None
+    created_at: Optional[datetime] = None
+
+    def __post_init__(self):
+        """Initialize defaults."""
+        if self.created_at is None:
+            self.created_at = datetime.now()
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary."""
+        return {
+            'id': self.id,
+            'name': self.name,
+            'color': self.color,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+        }
+
+    @classmethod
+    def from_row(cls, row) -> 'Tag':
+        """Create from database row."""
+        created_at = None
+        if row['created_at']:
+            try:
+                created_at = datetime.fromisoformat(row['created_at'])
+            except (ValueError, TypeError):
+                pass
+
+        return cls(
+            id=row['id'],
+            name=row['name'],
+            color=row['color'] or '#58a6ff',
+            created_at=created_at,
+        )
+
+
+@dataclass
+class AnalysisTag:
+    """Junction record linking analysis to tag (many-to-many).
+
+    Maps to the analysis_tags table.
+
+    Attributes:
+        analysis_id: Foreign key to analyses
+        tag_id: Foreign key to tags
+        created_at: When link was created
+    """
+    analysis_id: int
+    tag_id: int
+    created_at: Optional[datetime] = None
+
+    def to_dict(self) -> Dict[str, Any]:
+        """Convert to dictionary."""
+        return {
+            'analysis_id': self.analysis_id,
+            'tag_id': self.tag_id,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+        }
+
+    @classmethod
+    def from_row(cls, row) -> 'AnalysisTag':
+        """Create from database row."""
+        created_at = None
+        if row['created_at']:
+            try:
+                created_at = datetime.fromisoformat(row['created_at'])
+            except (ValueError, TypeError):
+                pass
+
+        return cls(
+            analysis_id=row['analysis_id'],
+            tag_id=row['tag_id'],
+            created_at=created_at,
+        )

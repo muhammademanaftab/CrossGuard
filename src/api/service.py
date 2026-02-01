@@ -440,6 +440,353 @@ class AnalyzerService:
             logger.error(f"Failed to get problematic features: {e}")
             return []
 
+    # =========================================================================
+    # Settings Methods
+    # =========================================================================
+
+    def get_setting(self, key: str, default: str = '') -> str:
+        """Get a user setting value.
+
+        Args:
+            key: Setting key
+            default: Default value if not found
+
+        Returns:
+            Setting value
+        """
+        try:
+            from src.database.repositories import SettingsRepository
+            repo = SettingsRepository()
+            return repo.get(key, default)
+        except Exception as e:
+            logger.error(f"Failed to get setting '{key}': {e}")
+            return default
+
+    def set_setting(self, key: str, value: str) -> bool:
+        """Set a user setting value.
+
+        Args:
+            key: Setting key
+            value: Setting value
+
+        Returns:
+            True if successful
+        """
+        try:
+            from src.database.repositories import SettingsRepository
+            repo = SettingsRepository()
+            repo.set(key, value)
+            return True
+        except Exception as e:
+            logger.error(f"Failed to set setting '{key}': {e}")
+            return False
+
+    def get_all_settings(self) -> Dict[str, str]:
+        """Get all user settings.
+
+        Returns:
+            Dictionary of all settings
+        """
+        try:
+            from src.database.repositories import SettingsRepository
+            repo = SettingsRepository()
+            return repo.get_all()
+        except Exception as e:
+            logger.error(f"Failed to get all settings: {e}")
+            return {}
+
+    def get_setting_as_bool(self, key: str, default: bool = False) -> bool:
+        """Get a setting as boolean."""
+        try:
+            from src.database.repositories import SettingsRepository
+            repo = SettingsRepository()
+            return repo.get_as_bool(key, default)
+        except Exception:
+            return default
+
+    def get_setting_as_list(self, key: str, default: List[str] = None) -> List[str]:
+        """Get a setting as list (comma-separated)."""
+        try:
+            from src.database.repositories import SettingsRepository
+            repo = SettingsRepository()
+            return repo.get_as_list(key, default)
+        except Exception:
+            return default or []
+
+    # =========================================================================
+    # Bookmarks Methods
+    # =========================================================================
+
+    def add_bookmark(self, analysis_id: int, note: str = '') -> bool:
+        """Add a bookmark for an analysis.
+
+        Args:
+            analysis_id: Analysis ID to bookmark
+            note: Optional note
+
+        Returns:
+            True if successful
+        """
+        try:
+            from src.database.repositories import BookmarksRepository
+            repo = BookmarksRepository()
+            repo.add_bookmark(analysis_id, note)
+            return True
+        except Exception as e:
+            logger.error(f"Failed to add bookmark for analysis #{analysis_id}: {e}")
+            return False
+
+    def remove_bookmark(self, analysis_id: int) -> bool:
+        """Remove a bookmark from an analysis.
+
+        Args:
+            analysis_id: Analysis ID to unbookmark
+
+        Returns:
+            True if removed
+        """
+        try:
+            from src.database.repositories import BookmarksRepository
+            repo = BookmarksRepository()
+            return repo.remove_bookmark(analysis_id)
+        except Exception as e:
+            logger.error(f"Failed to remove bookmark from analysis #{analysis_id}: {e}")
+            return False
+
+    def is_bookmarked(self, analysis_id: int) -> bool:
+        """Check if an analysis is bookmarked.
+
+        Args:
+            analysis_id: Analysis ID to check
+
+        Returns:
+            True if bookmarked
+        """
+        try:
+            from src.database.repositories import BookmarksRepository
+            repo = BookmarksRepository()
+            return repo.is_bookmarked(analysis_id)
+        except Exception:
+            return False
+
+    def toggle_bookmark(self, analysis_id: int, note: str = '') -> bool:
+        """Toggle bookmark status for an analysis.
+
+        Args:
+            analysis_id: Analysis ID
+            note: Note to add if bookmarking
+
+        Returns:
+            True if now bookmarked, False if unbookmarked
+        """
+        if self.is_bookmarked(analysis_id):
+            self.remove_bookmark(analysis_id)
+            return False
+        else:
+            self.add_bookmark(analysis_id, note)
+            return True
+
+    def get_all_bookmarks(self, limit: int = 50) -> List[Dict[str, Any]]:
+        """Get all bookmarks with their analysis info.
+
+        Args:
+            limit: Maximum number to return
+
+        Returns:
+            List of bookmark dictionaries
+        """
+        try:
+            from src.database.repositories import BookmarksRepository
+            repo = BookmarksRepository()
+            return repo.get_all_bookmarks(limit)
+        except Exception as e:
+            logger.error(f"Failed to get bookmarks: {e}")
+            return []
+
+    def update_bookmark_note(self, analysis_id: int, note: str) -> bool:
+        """Update the note for a bookmark.
+
+        Args:
+            analysis_id: Analysis ID
+            note: New note text
+
+        Returns:
+            True if updated
+        """
+        try:
+            from src.database.repositories import BookmarksRepository
+            repo = BookmarksRepository()
+            return repo.update_note(analysis_id, note)
+        except Exception as e:
+            logger.error(f"Failed to update bookmark note: {e}")
+            return False
+
+    def get_bookmarks_count(self) -> int:
+        """Get total number of bookmarks."""
+        try:
+            from src.database.repositories import BookmarksRepository
+            repo = BookmarksRepository()
+            return repo.get_count()
+        except Exception:
+            return 0
+
+    # =========================================================================
+    # Tags Methods
+    # =========================================================================
+
+    def create_tag(self, name: str, color: str = '#58a6ff') -> Optional[int]:
+        """Create a new tag.
+
+        Args:
+            name: Tag name
+            color: Hex color code
+
+        Returns:
+            Tag ID or None on error
+        """
+        try:
+            from src.database.repositories import TagsRepository
+            repo = TagsRepository()
+            return repo.create_tag(name, color)
+        except Exception as e:
+            logger.error(f"Failed to create tag '{name}': {e}")
+            return None
+
+    def get_all_tags(self) -> List[Dict[str, Any]]:
+        """Get all tags.
+
+        Returns:
+            List of tag dictionaries
+        """
+        try:
+            from src.database.repositories import TagsRepository
+            repo = TagsRepository()
+            return repo.get_all_tags()
+        except Exception as e:
+            logger.error(f"Failed to get tags: {e}")
+            return []
+
+    def delete_tag(self, tag_id: int) -> bool:
+        """Delete a tag.
+
+        Args:
+            tag_id: Tag ID to delete
+
+        Returns:
+            True if deleted
+        """
+        try:
+            from src.database.repositories import TagsRepository
+            repo = TagsRepository()
+            return repo.delete_tag(tag_id)
+        except Exception as e:
+            logger.error(f"Failed to delete tag #{tag_id}: {e}")
+            return False
+
+    def update_tag(self, tag_id: int, name: str = None, color: str = None) -> bool:
+        """Update a tag's properties.
+
+        Args:
+            tag_id: Tag ID
+            name: New name (optional)
+            color: New color (optional)
+
+        Returns:
+            True if updated
+        """
+        try:
+            from src.database.repositories import TagsRepository
+            repo = TagsRepository()
+            return repo.update_tag(tag_id, name, color)
+        except Exception as e:
+            logger.error(f"Failed to update tag #{tag_id}: {e}")
+            return False
+
+    def add_tag_to_analysis(self, analysis_id: int, tag_id: int) -> bool:
+        """Add a tag to an analysis.
+
+        Args:
+            analysis_id: Analysis ID
+            tag_id: Tag ID
+
+        Returns:
+            True if added
+        """
+        try:
+            from src.database.repositories import TagsRepository
+            repo = TagsRepository()
+            return repo.add_tag_to_analysis(analysis_id, tag_id)
+        except Exception as e:
+            logger.error(f"Failed to add tag to analysis: {e}")
+            return False
+
+    def remove_tag_from_analysis(self, analysis_id: int, tag_id: int) -> bool:
+        """Remove a tag from an analysis.
+
+        Args:
+            analysis_id: Analysis ID
+            tag_id: Tag ID
+
+        Returns:
+            True if removed
+        """
+        try:
+            from src.database.repositories import TagsRepository
+            repo = TagsRepository()
+            return repo.remove_tag_from_analysis(analysis_id, tag_id)
+        except Exception as e:
+            logger.error(f"Failed to remove tag from analysis: {e}")
+            return False
+
+    def get_tags_for_analysis(self, analysis_id: int) -> List[Dict[str, Any]]:
+        """Get all tags for a specific analysis.
+
+        Args:
+            analysis_id: Analysis ID
+
+        Returns:
+            List of tag dictionaries
+        """
+        try:
+            from src.database.repositories import TagsRepository
+            repo = TagsRepository()
+            return repo.get_tags_for_analysis(analysis_id)
+        except Exception as e:
+            logger.error(f"Failed to get tags for analysis #{analysis_id}: {e}")
+            return []
+
+    def get_analyses_by_tag(self, tag_id: int, limit: int = 50) -> List[Dict[str, Any]]:
+        """Get all analyses with a specific tag.
+
+        Args:
+            tag_id: Tag ID
+            limit: Maximum results
+
+        Returns:
+            List of analysis dictionaries
+        """
+        try:
+            from src.database.repositories import TagsRepository
+            repo = TagsRepository()
+            return repo.get_analyses_by_tag(tag_id, limit)
+        except Exception as e:
+            logger.error(f"Failed to get analyses by tag #{tag_id}: {e}")
+            return []
+
+    def get_tag_counts(self) -> Dict[str, int]:
+        """Get usage count for each tag.
+
+        Returns:
+            Dict mapping tag name to usage count
+        """
+        try:
+            from src.database.repositories import TagsRepository
+            repo = TagsRepository()
+            return repo.get_tag_counts()
+        except Exception as e:
+            logger.error(f"Failed to get tag counts: {e}")
+            return {}
+
 
 # Singleton instance for convenience
 _service_instance: Optional[AnalyzerService] = None

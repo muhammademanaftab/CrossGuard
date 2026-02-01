@@ -45,6 +45,9 @@ from .widgets import (
     EmptyHistoryCard,
     StatisticsPanel,
     CompactStatsBar,
+    # Bookmark and Tag widgets
+    BookmarkButton,
+    TagManagerDialog,
 )
 from .widgets.rules_manager import show_rules_manager
 from .export_manager import ExportManager
@@ -773,10 +776,44 @@ class MainWindow(ctk.CTkFrame):
         )
         title_label.pack(side="left")
 
+        # Button row (right side)
+        btn_frame = ctk.CTkFrame(title_frame, fg_color="transparent")
+        btn_frame.pack(side="right")
+
+        # Manage Tags button
+        tag_icon = ICONS.get('tag', '\u2302')
+        tags_btn = ctk.CTkButton(
+            btn_frame,
+            text=f"{tag_icon} Tags",
+            font=ctk.CTkFont(size=12),
+            width=80,
+            height=32,
+            fg_color="transparent",
+            hover_color=COLORS['accent_muted'],
+            text_color=COLORS['text_muted'],
+            command=self._show_tag_manager,
+        )
+        tags_btn.pack(side="left", padx=(0, SPACING['sm']))
+
+        # Bookmarks filter button
+        bookmark_icon = ICONS.get('bookmark', '\u2606')
+        bookmarks_btn = ctk.CTkButton(
+            btn_frame,
+            text=f"{bookmark_icon} Bookmarks",
+            font=ctk.CTkFont(size=12),
+            width=100,
+            height=32,
+            fg_color="transparent",
+            hover_color=COLORS['accent_muted'],
+            text_color=COLORS['text_muted'],
+            command=self._show_bookmarks_only,
+        )
+        bookmarks_btn.pack(side="left", padx=(0, SPACING['sm']))
+
         # Clear All button
         clear_icon = ICONS.get('clear', '\u2718')
         clear_btn = ctk.CTkButton(
-            title_frame,
+            btn_frame,
             text=f"{clear_icon} Clear All",
             font=ctk.CTkFont(size=12),
             width=100,
@@ -786,7 +823,7 @@ class MainWindow(ctk.CTkFrame):
             text_color=COLORS['text_muted'],
             command=self._clear_all_history,
         )
-        clear_btn.pack(side="right")
+        clear_btn.pack(side="left")
 
         # Statistics panel
         stats = self._analyzer_service.get_statistics()
@@ -839,13 +876,134 @@ class MainWindow(ctk.CTkFrame):
             empty_card.pack(fill="x", pady=SPACING['md'])
             return
 
-        # Create history cards
+        # Create history cards with bookmark and tag info
         for analysis in history:
+            analysis_id = analysis.get('id')
+
+            # Check bookmark status
+            is_bookmarked = self._analyzer_service.is_bookmarked(analysis_id) if analysis_id else False
+
+            # Get tags for this analysis
+            tags = self._analyzer_service.get_tags_for_analysis(analysis_id) if analysis_id else []
+
             card = HistoryCard(
                 self._history_list_frame,
                 analysis_data=analysis,
                 on_click=self._on_history_item_click,
                 on_delete=self._on_history_item_delete,
+                on_bookmark_toggle=self._on_bookmark_toggle,
+                is_bookmarked=is_bookmarked,
+                tags=tags,
+            )
+            card.pack(fill="x", pady=(0, SPACING['sm']))
+
+    def _on_bookmark_toggle(self, analysis_id: int, is_bookmarked: bool):
+        """Handle bookmark toggle on a history item.
+
+        Args:
+            analysis_id: ID of the analysis
+            is_bookmarked: New bookmark state
+        """
+        if is_bookmarked:
+            success = self._analyzer_service.add_bookmark(analysis_id)
+            if success:
+                self.status_bar.set_status("Analysis bookmarked", "success")
+        else:
+            success = self._analyzer_service.remove_bookmark(analysis_id)
+            if success:
+                self.status_bar.set_status("Bookmark removed", "info")
+
+    def _show_tag_manager(self):
+        """Show the tag manager dialog."""
+        from .widgets import TagManagerDialog
+
+        # Get all tags
+        tags = self._analyzer_service.get_all_tags()
+
+        def on_create(name: str, color: str):
+            tag_id = self._analyzer_service.create_tag(name, color)
+            if tag_id:
+                self.status_bar.set_status(f"Tag '{name}' created", "success")
+                # Refresh dialog tags
+                dialog.set_tags(self._analyzer_service.get_all_tags())
+
+        def on_delete(tag_id: int):
+            if self._analyzer_service.delete_tag(tag_id):
+                self.status_bar.set_status("Tag deleted", "info")
+                # Refresh dialog tags
+                dialog.set_tags(self._analyzer_service.get_all_tags())
+
+        dialog = TagManagerDialog(
+            self.master,
+            tags=tags,
+            on_create=on_create,
+            on_delete=on_delete,
+        )
+
+    def _show_bookmarks_only(self):
+        """Show only bookmarked analyses."""
+        # Clear existing items
+        for widget in self._history_list_frame.winfo_children():
+            widget.destroy()
+
+        # Get bookmarked analyses
+        bookmarks = self._analyzer_service.get_all_bookmarks(limit=50)
+
+        if not bookmarks:
+            # Show empty state
+            empty_frame = ctk.CTkFrame(self._history_list_frame, fg_color=COLORS['bg_medium'], corner_radius=8)
+            empty_frame.pack(fill="x", pady=SPACING['md'])
+
+            empty_label = ctk.CTkLabel(
+                empty_frame,
+                text="No bookmarked analyses yet",
+                font=ctk.CTkFont(size=14),
+                text_color=COLORS['text_muted'],
+            )
+            empty_label.pack(pady=SPACING['xl'])
+
+            # Add "Show All" button
+            show_all_btn = ctk.CTkButton(
+                empty_frame,
+                text="Show All History",
+                font=ctk.CTkFont(size=12),
+                fg_color=COLORS['accent'],
+                hover_color=COLORS['accent_bright'],
+                command=self._load_history_items,
+            )
+            show_all_btn.pack(pady=(0, SPACING['xl']))
+            return
+
+        # Show "Show All" link at top
+        all_btn = ctk.CTkButton(
+            self._history_list_frame,
+            text="< Show All History",
+            font=ctk.CTkFont(size=11),
+            fg_color="transparent",
+            hover_color=COLORS['bg_light'],
+            text_color=COLORS['accent'],
+            anchor="w",
+            command=self._load_history_items,
+        )
+        all_btn.pack(anchor="w", pady=(0, SPACING['sm']))
+
+        # Create cards for bookmarked items
+        for bookmark in bookmarks:
+            analysis_data = bookmark.get('analysis', {})
+            analysis_data['id'] = bookmark.get('analysis_id')
+
+            # Get tags for this analysis
+            analysis_id = bookmark.get('analysis_id')
+            tags = self._analyzer_service.get_tags_for_analysis(analysis_id) if analysis_id else []
+
+            card = HistoryCard(
+                self._history_list_frame,
+                analysis_data=analysis_data,
+                on_click=self._on_history_item_click,
+                on_delete=self._on_history_item_delete,
+                on_bookmark_toggle=self._on_bookmark_toggle,
+                is_bookmarked=True,
+                tags=tags,
             )
             card.pack(fill="x", pady=(0, SPACING['sm']))
 
@@ -1533,6 +1691,148 @@ class MainWindow(ctk.CTkFrame):
             text_color=COLORS['text_muted'],
         ).pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['lg']))
 
+        # User Preferences section
+        prefs_section = ctk.CTkFrame(
+            container,
+            fg_color=COLORS['bg_medium'],
+            corner_radius=8,
+            border_width=1,
+            border_color=COLORS['border'],
+        )
+        prefs_section.pack(fill="x", pady=(0, SPACING['lg']))
+
+        prefs_header = ctk.CTkFrame(prefs_section, fg_color="transparent")
+        prefs_header.pack(fill="x", padx=SPACING['lg'], pady=SPACING['lg'])
+
+        ctk.CTkLabel(
+            prefs_header,
+            text="User Preferences",
+            font=ctk.CTkFont(size=14, weight="bold"),
+            text_color=COLORS['text_primary'],
+        ).pack(side="left")
+
+        # Preferences content
+        prefs_content = ctk.CTkFrame(prefs_section, fg_color="transparent")
+        prefs_content.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['lg']))
+
+        # 1. Auto-save history toggle
+        auto_save_row = ctk.CTkFrame(prefs_content, fg_color="transparent")
+        auto_save_row.pack(fill="x", pady=(0, SPACING['md']))
+
+        ctk.CTkLabel(
+            auto_save_row,
+            text="Auto-save to History",
+            font=ctk.CTkFont(size=12),
+            text_color=COLORS['text_secondary'],
+        ).pack(side="left")
+
+        ctk.CTkLabel(
+            auto_save_row,
+            text="Automatically save analyses to history",
+            font=ctk.CTkFont(size=10),
+            text_color=COLORS['text_muted'],
+        ).pack(side="left", padx=(SPACING['sm'], 0))
+
+        # Get current value
+        auto_save_current = self._analyzer_service.get_setting_as_bool('auto_save_history', True)
+        self._auto_save_var = ctk.BooleanVar(value=auto_save_current)
+
+        auto_save_switch = ctk.CTkSwitch(
+            auto_save_row,
+            text="",
+            variable=self._auto_save_var,
+            onvalue=True,
+            offvalue=False,
+            command=self._on_auto_save_changed,
+            fg_color=COLORS['bg_light'],
+            progress_color=COLORS['accent'],
+        )
+        auto_save_switch.pack(side="right")
+
+        # 2. History limit
+        history_limit_row = ctk.CTkFrame(prefs_content, fg_color="transparent")
+        history_limit_row.pack(fill="x", pady=(0, SPACING['md']))
+
+        ctk.CTkLabel(
+            history_limit_row,
+            text="History Limit",
+            font=ctk.CTkFont(size=12),
+            text_color=COLORS['text_secondary'],
+        ).pack(side="left")
+
+        ctk.CTkLabel(
+            history_limit_row,
+            text="Maximum analyses to keep in history",
+            font=ctk.CTkFont(size=10),
+            text_color=COLORS['text_muted'],
+        ).pack(side="left", padx=(SPACING['sm'], 0))
+
+        # Get current value
+        history_limit_current = self._analyzer_service.get_setting('history_limit', '100')
+
+        self._history_limit_var = ctk.StringVar(value=history_limit_current)
+        history_limit_menu = ctk.CTkOptionMenu(
+            history_limit_row,
+            variable=self._history_limit_var,
+            values=['25', '50', '100', '200', '500'],
+            width=80,
+            height=28,
+            fg_color=COLORS['bg_light'],
+            button_color=COLORS['bg_light'],
+            button_hover_color=COLORS['hover_bg'],
+            dropdown_fg_color=COLORS['bg_medium'],
+            dropdown_hover_color=COLORS['hover_bg'],
+            command=self._on_history_limit_changed,
+        )
+        history_limit_menu.pack(side="right")
+
+        # 3. Default browsers
+        browsers_row = ctk.CTkFrame(prefs_content, fg_color="transparent")
+        browsers_row.pack(fill="x", pady=(0, SPACING['sm']))
+
+        ctk.CTkLabel(
+            browsers_row,
+            text="Default Browsers",
+            font=ctk.CTkFont(size=12),
+            text_color=COLORS['text_secondary'],
+        ).pack(side="left")
+
+        ctk.CTkLabel(
+            browsers_row,
+            text="Browsers to check by default",
+            font=ctk.CTkFont(size=10),
+            text_color=COLORS['text_muted'],
+        ).pack(side="left", padx=(SPACING['sm'], 0))
+
+        # Browser checkboxes
+        browsers_frame = ctk.CTkFrame(prefs_content, fg_color="transparent")
+        browsers_frame.pack(fill="x", pady=(SPACING['xs'], 0))
+
+        # Get current default browsers
+        default_browsers = self._analyzer_service.get_setting_as_list(
+            'default_browsers',
+            ['chrome', 'firefox', 'safari', 'edge']
+        )
+
+        self._browser_vars = {}
+        all_browsers = ['chrome', 'firefox', 'safari', 'edge', 'opera', 'ie']
+
+        for browser in all_browsers:
+            var = ctk.BooleanVar(value=browser in default_browsers)
+            self._browser_vars[browser] = var
+
+            cb = ctk.CTkCheckBox(
+                browsers_frame,
+                text=browser.title(),
+                variable=var,
+                font=ctk.CTkFont(size=11),
+                text_color=COLORS['text_secondary'],
+                fg_color=COLORS['accent'],
+                hover_color=COLORS['accent_bright'],
+                command=self._on_default_browsers_changed,
+            )
+            cb.pack(side="left", padx=(0, SPACING['lg']))
+
         # About section
         about_section = ctk.CTkFrame(
             container,
@@ -1758,6 +2058,38 @@ class MainWindow(ctk.CTkFrame):
 
         except Exception as e:
             show_error(self.master, "Error", str(e))
+
+    # =========================================================================
+    # Settings Callbacks
+    # =========================================================================
+
+    def _on_auto_save_changed(self):
+        """Handle auto-save toggle change."""
+        value = self._auto_save_var.get()
+        self._analyzer_service.set_setting('auto_save_history', 'true' if value else 'false')
+        status = "enabled" if value else "disabled"
+        self.status_bar.set_status(f"Auto-save to history {status}", "info")
+
+    def _on_history_limit_changed(self, value: str):
+        """Handle history limit change."""
+        self._analyzer_service.set_setting('history_limit', value)
+        self.status_bar.set_status(f"History limit set to {value}", "info")
+
+    def _on_default_browsers_changed(self):
+        """Handle default browsers change."""
+        # Get selected browsers
+        selected = [browser for browser, var in self._browser_vars.items() if var.get()]
+
+        if not selected:
+            # Don't allow empty selection, reset to at least Chrome
+            self._browser_vars['chrome'].set(True)
+            selected = ['chrome']
+            show_warning(self.master, "Warning", "At least one browser must be selected.")
+
+        # Save to settings
+        browsers_str = ','.join(selected)
+        self._analyzer_service.set_setting('default_browsers', browsers_str)
+        self.status_bar.set_status(f"Default browsers: {', '.join(b.title() for b in selected)}", "info")
 
     def _open_rules_manager(self):
         """Open the custom rules manager dialog."""
