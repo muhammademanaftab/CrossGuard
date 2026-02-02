@@ -32,9 +32,17 @@ JS_SYNTAX_FEATURES = {
         'description': 'Template literals'
     },
     'es6': {
-        'patterns': [r'\bconst\s*\{', r'\blet\s*\{', r'\bconst\s*\[', r'\blet\s*\[', r'\.\.\.'],
-        'keywords': [],
-        'description': 'ES6 features (destructuring, spread, rest)'
+        'patterns': [
+            # Destructuring
+            r'\bconst\s*\{', r'\blet\s*\{', r'\bconst\s*\[', r'\blet\s*\[',
+            # Spread/rest
+            r'\.\.\.',
+            # ES6 built-ins (Map, Set, WeakMap, WeakSet, Symbol, Reflect)
+            r'\bnew\s+Map', r'\bnew\s+Set', r'\bnew\s+WeakMap', r'\bnew\s+WeakSet',
+            r'\bSymbol\s*\(', r'\bReflect\.'
+        ],
+        'keywords': ['Map', 'Set', 'WeakMap', 'WeakSet', 'Symbol', 'Reflect'],
+        'description': 'ES6 features (destructuring, spread, Map, Set, Symbol, Reflect)'
     },
     'rest-parameters': {
         'patterns': [r'function\s*\w*\s*\([^)]*\.\.\.[^)]*\)', r'=>\s*\([^)]*\.\.\.[^)]*\)'],
@@ -89,12 +97,6 @@ JS_API_FEATURES = {
         'patterns': [r'\bnew\s+Proxy', r'\bProxy\s*\('],
         'keywords': ['Proxy'],
         'description': 'Proxy'
-    },
-    'es6': {
-        'patterns': [r'\bnew\s+Map', r'\bnew\s+Set', r'\bnew\s+WeakMap', r'\bnew\s+WeakSet', 
-                     r'\bSymbol\s*\(', r'\bReflect\.'],
-        'keywords': ['Map', 'Set', 'WeakMap', 'WeakSet', 'Symbol', 'Reflect'],
-        'description': 'ES6 built-ins (Map, Set, Symbol, Reflect, etc.)'
     },
     'json': {
         'patterns': [r'\bJSON\.parse\s*\(', r'\bJSON\.stringify\s*\(', r'\bJSON\.'],

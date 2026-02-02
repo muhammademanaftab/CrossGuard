@@ -70,16 +70,48 @@ class JavaScriptParser:
         self.feature_details = []
         self.unrecognized_patterns = set()
 
+        # Detect directive strings BEFORE removing comments/strings
+        # (because "use strict" and "use asm" are string directives)
+        self._detect_directives(js_content)
+
         # Remove comments to avoid false positives
-        js_content = self._remove_comments(js_content)
+        cleaned_content = self._remove_comments(js_content)
 
         # Detect features using regex patterns
-        self._detect_features(js_content)
+        self._detect_features(cleaned_content)
 
         # Find unrecognized patterns
-        self._find_unrecognized_patterns(js_content)
+        self._find_unrecognized_patterns(cleaned_content)
 
         return self.features_found
+
+    def _detect_directives(self, js_content: str):
+        """Detect JavaScript directive strings like 'use strict' and 'use asm'.
+
+        These need to be detected before string removal since they ARE strings.
+
+        Args:
+            js_content: Original JavaScript content
+        """
+        # Directives to detect (feature_id, patterns, description)
+        directives = [
+            ('use-strict', [r'["\']use strict["\']'], 'ECMAScript 5 Strict Mode'),
+            ('asmjs', [r'["\']use asm["\']'], 'asm.js'),
+        ]
+
+        for feature_id, patterns, description in directives:
+            for pattern in patterns:
+                try:
+                    if re.search(pattern, js_content):
+                        self.features_found.add(feature_id)
+                        self.feature_details.append({
+                            'feature': feature_id,
+                            'description': description,
+                            'matched_apis': ['"use strict"' if 'strict' in pattern else '"use asm"'],
+                        })
+                        break
+                except re.error:
+                    continue
     
     def _remove_comments_and_strings(self, js_content: str) -> str:
         """Remove JavaScript comments and string literals from code.
