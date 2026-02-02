@@ -2,6 +2,37 @@
 
 This directory contains comprehensive JavaScript test files to validate the JS parser's feature detection capabilities against the Can I Use database.
 
+## Directory Structure
+
+```
+js/
+├── 01_es6_syntax.js         # ES6 syntax features
+├── 02_promises_async.js     # Promises and async APIs
+├── 03_dom_apis.js           # DOM manipulation APIs
+├── 04_web_storage.js        # Storage APIs
+├── 05_observers_workers.js  # Observers and Workers
+├── 06_device_apis.js        # Device/hardware APIs
+├── 07_media_apis.js         # Audio/Video APIs
+├── 08_modern_apis.js        # Modern Web APIs
+├── 09_security_auth.js      # Security and auth
+├── 10_array_string_object.js # Array/String/Object methods
+├── 11_performance_timing.js # Performance APIs
+├── 12_wasm_misc.js          # WebAssembly and misc
+├── comprehensive_test.js    # All features combined
+├── real_world/              # Real-world code patterns
+│   ├── 01_react_app.js      # React application
+│   ├── 02_vanilla_dashboard.js # Vanilla JS dashboard
+│   ├── 03_service_worker.js # PWA service worker
+│   └── 04_form_validation.js # Form validation
+└── edge_cases/              # Edge case tests
+    ├── 01_comments_strings.js   # Comment/string handling
+    ├── 02_minified_code.js      # Minified JS
+    ├── 03_false_positives.js    # False positive tests
+    ├── 04_mixed_patterns.js     # Complex patterns
+    ├── 05_directive_strings.js  # "use strict"/"use asm"
+    └── 06_webgl_canvas.js       # WebGL/Canvas APIs
+```
+
 ## Test File Structure
 
 | File | Description | Key Features |
@@ -85,6 +116,52 @@ for detail in parser.feature_details:
 2. Add test case to the relevant category test file
 3. Update `comprehensive_test.js` with example usage
 4. Run tests to verify detection
+
+## Edge Case Tests
+
+Tests in `edge_cases/` verify parser robustness:
+
+| File | What to Verify |
+|------|---------------|
+| `01_comments_strings.js` | Features in comments/strings are NOT detected |
+| `02_minified_code.js` | Minified code patterns ARE detected |
+| `03_false_positives.js` | Only real API calls detected, not variable names |
+| `04_mixed_patterns.js` | Complex/unusual patterns detected correctly |
+| `05_directive_strings.js` | "use strict" and "use asm" detected |
+| `06_webgl_canvas.js` | WebGL via constructor reference detected |
+
+## Real-World Tests
+
+Tests in `real_world/` simulate actual user code:
+
+| File | Patterns Tested |
+|------|-----------------|
+| `01_react_app.js` | React hooks, state, fetch patterns |
+| `02_vanilla_dashboard.js` | Classes, observers, history API |
+| `03_service_worker.js` | Service worker, caching, push API |
+| `04_form_validation.js` | Form handling, constraint validation |
+
+## Critical Manual Tests
+
+### 1. Comment/String Stripping
+Test `edge_cases/01_comments_strings.js`:
+- ❌ Should NOT detect: fetch, localStorage, WebSocket (in comments)
+- ✅ Should detect: const, arrow-functions, querySelector, JSON
+
+### 2. Directive Strings
+Test `edge_cases/05_directive_strings.js`:
+- ✅ Should detect: use-strict, asmjs
+- These are detected BEFORE comment/string stripping
+
+### 3. WebGL Detection
+Test `edge_cases/06_webgl_canvas.js`:
+- ✅ Should detect: webgl, webgl2
+- Uses `WebGLRenderingContext` which survives string stripping
+
+### 4. False Positive Prevention
+Test `edge_cases/03_false_positives.js`:
+- ❌ Variable names like `fetchData` should NOT trigger fetch detection
+- ✅ Actual API calls like `fetch('/api')` SHOULD be detected
 
 ## Notes
 
