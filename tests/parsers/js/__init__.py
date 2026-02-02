@@ -1,1 +1,1 @@
-"""JavaScript parser tests (future)."""
+"""JavaScript parser tests."""
