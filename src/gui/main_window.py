@@ -501,6 +501,35 @@ class MainWindow(ctk.CTkFrame):
 
             features_content = features_section.get_content_frame()
 
+            # Search box for filtering features
+            search_frame = ctk.CTkFrame(features_content, fg_color="transparent")
+            search_frame.pack(fill="x", pady=(0, SPACING['md']))
+
+            search_icon = ctk.CTkLabel(
+                search_frame,
+                text="🔍",
+                font=ctk.CTkFont(size=12),
+                text_color=COLORS['text_muted'],
+            )
+            search_icon.pack(side="left", padx=(0, SPACING['xs']))
+
+            search_var = ctk.StringVar()
+            search_entry = ctk.CTkEntry(
+                search_frame,
+                placeholder_text="Search features...",
+                textvariable=search_var,
+                width=250,
+                height=28,
+                font=ctk.CTkFont(size=11),
+                fg_color=COLORS['bg_medium'],
+                border_color=COLORS['border'],
+                text_color=COLORS['text_primary'],
+            )
+            search_entry.pack(side="left", fill="x", expand=True)
+
+            # Store all feature frames for filtering
+            all_feature_frames = []
+
             # Build mapping from feature_id to details
             html_details_map = {}
             for detail in feature_details.get('html', []):
@@ -546,7 +575,7 @@ class MainWindow(ctk.CTkFrame):
                     badge.pack(side="left")
 
                     # Helper to create feature label
-                    def create_feature_label(parent, feature_id, details_map):
+                    def create_feature_label(parent, feature_id, details_map, frame_list):
                         detail = details_map.get(feature_id, {})
                         matched_items = (
                             detail.get('matched_properties', []) or
@@ -573,49 +602,24 @@ class MainWindow(ctk.CTkFrame):
                             justify="left",
                         ).pack(anchor="w")
 
-                    # Show first 15 features
-                    for feature_id in feature_list[:15]:
-                        create_feature_label(type_container, feature_id, details_map)
+                        # Store for filtering (frame, searchable text)
+                        frame_list.append((item_frame, display_text.lower()))
 
-                    # If more than 15, add expandable section
-                    if len(feature_list) > 15:
-                        # Frame for extra features (initially hidden)
-                        extra_frame = ctk.CTkFrame(type_container, fg_color="transparent")
-                        is_expanded = [False]
+                    # Create all feature labels
+                    for feature_id in feature_list:
+                        create_feature_label(type_container, feature_id, details_map, all_feature_frames)
 
-                        # Create labels for remaining features
-                        for feature_id in feature_list[15:]:
-                            create_feature_label(extra_frame, feature_id, details_map)
+            # Search filter function
+            def filter_features(*args):
+                query = search_var.get().lower().strip()
+                for frame, text in all_feature_frames:
+                    if query == "" or query in text:
+                        frame.pack(fill="x", pady=(2, 0), padx=(SPACING['md'], 0))
+                    else:
+                        frame.pack_forget()
 
-                        # Toggle button row
-                        toggle_row = ctk.CTkFrame(type_container, fg_color="transparent")
-                        toggle_row.pack(fill="x", padx=(SPACING['md'], 0), pady=(4, 0))
-
-                        def make_toggle(extra_fr, expanded, btn, remaining):
-                            def toggle():
-                                expanded[0] = not expanded[0]
-                                if expanded[0]:
-                                    extra_fr.pack(fill="x", before=toggle_row)
-                                    btn.configure(text=f"▲ Show Less")
-                                else:
-                                    extra_fr.pack_forget()
-                                    btn.configure(text=f"▼ Show All ({remaining} more)")
-                            return toggle
-
-                        remaining_count = len(feature_list) - 15
-                        toggle_btn = ctk.CTkButton(
-                            toggle_row,
-                            text=f"▼ Show All ({remaining_count} more)",
-                            font=ctk.CTkFont(size=10),
-                            width=140,
-                            height=24,
-                            fg_color=COLORS['bg_light'],
-                            hover_color=COLORS['bg_medium'],
-                            text_color=COLORS['accent'],
-                            corner_radius=4,
-                        )
-                        toggle_btn.pack(anchor="w")
-                        toggle_btn.configure(command=make_toggle(extra_frame, is_expanded, toggle_btn, remaining_count))
+            # Bind search to filter
+            search_var.trace_add("write", filter_features)
 
         # 5b. Visualizations
         if browsers:
