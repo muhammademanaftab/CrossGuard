@@ -116,29 +116,41 @@ class CSSParser:
     
     def _detect_features(self, css_content: str):
         """Detect CSS features using regex patterns.
-        
+
         Args:
             css_content: CSS code (without comments)
         """
         # Check each feature (includes both built-in and custom rules)
         for feature_id, feature_info in self._all_features.items():
             patterns = feature_info.get('patterns', [])
-            
-            # Check if any pattern matches
+            matched_properties = []
+            feature_found = False
+
+            # Check all patterns and collect matched properties
             for pattern in patterns:
                 try:
-                    if re.search(pattern, css_content, re.IGNORECASE):
-                        self.features_found.add(feature_id)
-                        self.feature_details.append({
-                            'feature': feature_id,
-                            'description': feature_info.get('description', ''),
-                            'pattern': pattern
-                        })
-                        break  # Found this feature, move to next
+                    matches = re.findall(pattern, css_content, re.IGNORECASE)
+                    if matches:
+                        feature_found = True
+                        # Try to extract property name from the pattern
+                        # Pattern like 'scrollbar-color\s*:' -> property 'scrollbar-color'
+                        # Pattern like '\d+rem' -> no property (it's a value pattern)
+                        prop_match = re.match(r'^([a-z][-a-z0-9]*)', pattern, re.IGNORECASE)
+                        if prop_match:
+                            prop_name = prop_match.group(1)
+                            if prop_name not in matched_properties:
+                                matched_properties.append(prop_name)
                 except re.error as e:
-                    # Skip invalid regex patterns
                     logger.warning(f"Invalid regex pattern for {feature_id}: {e}")
                     continue
+
+            if feature_found:
+                self.features_found.add(feature_id)
+                self.feature_details.append({
+                    'feature': feature_id,
+                    'description': feature_info.get('description', ''),
+                    'matched_properties': matched_properties,  # May be empty for value patterns
+                })
     
     def _find_unrecognized_patterns(self, css_content: str):
         """Find CSS properties/features that don't match any known rule.
@@ -275,7 +287,7 @@ class CSSParser:
             'total_features': len(self.features_found),
             'features': sorted(list(self.features_found)),
             'feature_details': self.feature_details,
-            'unrecognized': sorted(list(self.unrecognized_patterns))
+            'unrecognized': sorted(list(self.unrecognized_patterns)),
         }
     
     def parse_multiple_files(self, filepaths: List[str]) -> Set[str]:

@@ -196,29 +196,70 @@ class JavaScriptParser:
     
     def _detect_features(self, js_content: str):
         """Detect JavaScript features using regex patterns.
-        
+
         Args:
             js_content: JavaScript code (without comments)
         """
         # Check each feature (includes both built-in and custom rules)
         for feature_id, feature_info in self._all_features.items():
             patterns = feature_info.get('patterns', [])
-            
-            # Check if any pattern matches
+            matched_apis = []
+            feature_found = False
+
+            # Check all patterns and collect matched APIs
             for pattern in patterns:
                 try:
                     if re.search(pattern, js_content):
-                        self.features_found.add(feature_id)
-                        self.feature_details.append({
-                            'feature': feature_id,
-                            'description': feature_info.get('description', ''),
-                            'pattern': pattern
-                        })
-                        break  # Found this feature, move to next
+                        feature_found = True
+                        # Extract API name from pattern
+                        # Patterns like 'navigator\.geolocation' -> 'navigator.geolocation'
+                        # Patterns like '\bfetch\s*\(' -> 'fetch()'
+                        # Patterns like '\bnew\s+Promise' -> 'new Promise'
+                        api_name = self._extract_api_name(pattern)
+                        if api_name and api_name not in matched_apis:
+                            matched_apis.append(api_name)
                 except re.error as e:
-                    # Skip invalid regex patterns
                     logger.warning(f"Invalid regex pattern for {feature_id}: {e}")
                     continue
+
+            if feature_found:
+                self.features_found.add(feature_id)
+                self.feature_details.append({
+                    'feature': feature_id,
+                    'description': feature_info.get('description', ''),
+                    'matched_apis': matched_apis,
+                })
+
+    def _extract_api_name(self, pattern: str) -> str:
+        """Extract a readable API name from a regex pattern.
+
+        Args:
+            pattern: Regex pattern string
+
+        Returns:
+            Human-readable API name or empty string
+        """
+        # Remove common regex escapes and word boundaries
+        cleaned = pattern.replace('\\b', '').replace('\\s*', '').replace('\\s+', ' ')
+        cleaned = cleaned.replace('\\(', '(').replace('\\)', ')')
+        cleaned = cleaned.replace('\\.', '.').replace('\\[', '[').replace('\\]', ']')
+
+        # Handle 'new X' patterns
+        new_match = re.match(r'^new\s+([A-Z]\w*)', cleaned)
+        if new_match:
+            return f'new {new_match.group(1)}'
+
+        # Extract the main API identifier
+        # Match patterns like: navigator.geolocation, fetch(), localStorage, etc.
+        match = re.match(r'^([a-zA-Z_$][\w.]*)', cleaned)
+        if match:
+            api = match.group(1)
+            # Add () if pattern had parenthesis
+            if '(' in cleaned:
+                api += '()'
+            return api
+
+        return ''
     
     def _find_unrecognized_patterns(self, js_content: str):
         """Find JS APIs/methods that don't match any known rule.

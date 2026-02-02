@@ -44,6 +44,10 @@ class CrossGuardAnalyzer:
         self.unrecognized_html = set()
         self.unrecognized_css = set()
         self.unrecognized_js = set()
+        # Feature details (which properties matched which feature)
+        self.css_feature_details = []
+        self.js_feature_details = []
+        self.html_feature_details = []
         
     def analyze_project(
         self,
@@ -159,7 +163,10 @@ class CrossGuardAnalyzer:
         self.unrecognized_html = set()
         self.unrecognized_css = set()
         self.unrecognized_js = set()
-    
+        self.css_feature_details = []
+        self.js_feature_details = []
+        self.html_feature_details = []
+
     def _validate_inputs(
         self,
         html_files: Optional[List[str]],
@@ -197,6 +204,8 @@ class CrossGuardAnalyzer:
                 self.html_features.update(features)
                 # Collect unrecognized patterns
                 self.unrecognized_html.update(self.html_parser.unrecognized_patterns)
+                # Collect feature details (element/attribute → feature mapping)
+                self.html_feature_details.extend(self.html_parser.feature_details)
                 logger.info(f"Parsed HTML: {Path(filepath).name} ({len(features)} features)")
             except Exception as e:
                 error_msg = f"Error parsing HTML file {filepath}: {str(e)}"
@@ -211,6 +220,8 @@ class CrossGuardAnalyzer:
                 self.css_features.update(features)
                 # Collect unrecognized patterns
                 self.unrecognized_css.update(self.css_parser.unrecognized_patterns)
+                # Collect feature details (property → feature mapping)
+                self.css_feature_details.extend(self.css_parser.feature_details)
                 logger.info(f"Parsed CSS: {Path(filepath).name} ({len(features)} features)")
             except Exception as e:
                 error_msg = f"Error parsing CSS file {filepath}: {str(e)}"
@@ -225,6 +236,8 @@ class CrossGuardAnalyzer:
                 self.js_features.update(features)
                 # Collect unrecognized patterns
                 self.unrecognized_js.update(self.js_parser.unrecognized_patterns)
+                # Collect feature details (API → feature mapping)
+                self.js_feature_details.extend(self.js_parser.feature_details)
                 logger.info(f"Parsed JS: {Path(filepath).name} ({len(features)} features)")
             except Exception as e:
                 error_msg = f"Error parsing JS file {filepath}: {str(e)}"
@@ -419,6 +432,11 @@ class CrossGuardAnalyzer:
                 'css': sorted(list(self.css_features)),
                 'js': sorted(list(self.js_features)),
                 'all': sorted(list(self.all_features))
+            },
+            'feature_details': {
+                'css': self.css_feature_details,
+                'js': self.js_feature_details,
+                'html': self.html_feature_details,
             },
             'unrecognized': {
                 'html': sorted(list(self.unrecognized_html)),

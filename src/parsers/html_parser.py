@@ -36,6 +36,8 @@ class HTMLParser:
         self.elements_found = []
         self.attributes_found = []
         self.unrecognized_patterns = set()  # Patterns not matched by any rule
+        self.feature_details = []  # Details about what matched each feature
+        self._feature_matches = {}  # Temp: collect matches per feature
 
         # Merge built-in rules with custom rules
         custom_html = get_custom_html_rules()
@@ -93,6 +95,8 @@ class HTMLParser:
         self.elements_found = []
         self.attributes_found = []
         self.unrecognized_patterns = set()
+        self.feature_details = []
+        self._feature_matches = {}  # Temp: {feature_id: {'elements': [], 'attributes': [], 'values': []}}
 
         # Parse HTML with BeautifulSoup
         soup = BeautifulSoup(html_content, 'html.parser')
@@ -107,17 +111,20 @@ class HTMLParser:
         # Find unrecognized patterns
         self._find_unrecognized_patterns(soup)
 
+        # Build feature_details from collected matches
+        self._build_feature_details()
+
         return self.features_found
     
     def _detect_elements(self, soup: BeautifulSoup):
         """Detect modern HTML5 elements.
-        
+
         Args:
             soup: BeautifulSoup parsed HTML
         """
         for element_name, feature_id in self._elements.items():
             elements = soup.find_all(element_name)
-            
+
             if elements:
                 self.features_found.add(feature_id)
                 self.elements_found.append({
@@ -125,19 +132,21 @@ class HTMLParser:
                     'feature': feature_id,
                     'count': len(elements)
                 })
+                # Track for feature_details
+                self._add_match(feature_id, 'elements', f'<{element_name}>')
     
     def _detect_input_types(self, soup: BeautifulSoup):
         """Detect modern input types.
-        
+
         Args:
             soup: BeautifulSoup parsed HTML
         """
         # Find all input elements
         inputs = soup.find_all('input')
-        
+
         for input_elem in inputs:
             input_type = input_elem.get('type', '').lower()
-            
+
             if input_type in self._input_types:
                 feature_id = self._input_types[input_type]
                 self.features_found.add(feature_id)
@@ -146,16 +155,18 @@ class HTMLParser:
                     'feature': feature_id,
                     'count': 1
                 })
+                # Track for feature_details
+                self._add_match(feature_id, 'elements', f'<input type="{input_type}">')
     
     def _detect_attributes(self, soup: BeautifulSoup):
         """Detect modern HTML attributes.
-        
+
         Args:
             soup: BeautifulSoup parsed HTML
         """
         # Find all elements
         all_elements = soup.find_all()
-        
+
         for element in all_elements:
             for attr_name in element.attrs:
                 if attr_name in self._attributes:
@@ -166,6 +177,8 @@ class HTMLParser:
                         'element': element.name,
                         'feature': feature_id
                     })
+                    # Track for feature_details
+                    self._add_match(feature_id, 'attributes', attr_name)
     
     def _detect_attribute_values(self, soup: BeautifulSoup):
         """Detect specific attribute value combinations.
@@ -192,6 +205,8 @@ class HTMLParser:
                             'element': element.name,
                             'feature': feature_id
                         })
+                        # Track for feature_details
+                        self._add_match(feature_id, 'values', f'{attr_name}="{value}"')
                     # Handle media types with codec parameters (e.g., "video/webm; codecs=vp9")
                     elif attr_name == 'type' and isinstance(value_lower, str) and ';' in value_lower:
                         # Extract base media type before semicolon
@@ -206,6 +221,8 @@ class HTMLParser:
                                 'element': element.name,
                                 'feature': feature_id
                             })
+                            # Track for feature_details
+                            self._add_match(feature_id, 'values', f'{attr_name}="{value}"')
     
     def _detect_special_patterns(self, soup: BeautifulSoup):
         """Detect special HTML patterns and features.
@@ -577,6 +594,38 @@ class HTMLParser:
 
             # This attribute is unrecognized
             self.unrecognized_patterns.add(f"attribute: {attr_name}")
+
+    def _add_match(self, feature_id: str, match_type: str, match_value: str):
+        """Add a match to the feature matches collection.
+
+        Args:
+            feature_id: The Can I Use feature ID
+            match_type: Type of match ('elements', 'attributes', 'values')
+            match_value: The matched element/attribute/value
+        """
+        if feature_id not in self._feature_matches:
+            self._feature_matches[feature_id] = {
+                'elements': [],
+                'attributes': [],
+                'values': []
+            }
+        if match_value not in self._feature_matches[feature_id][match_type]:
+            self._feature_matches[feature_id][match_type].append(match_value)
+
+    def _build_feature_details(self):
+        """Build feature_details list from collected matches."""
+        for feature_id, matches in self._feature_matches.items():
+            # Combine all matched items
+            matched_items = []
+            matched_items.extend(matches.get('elements', []))
+            matched_items.extend(matches.get('attributes', []))
+            matched_items.extend(matches.get('values', []))
+
+            if matched_items:
+                self.feature_details.append({
+                    'feature': feature_id,
+                    'matched_items': matched_items,
+                })
 
     def get_detailed_report(self) -> Dict:
         """Get detailed report of found features.

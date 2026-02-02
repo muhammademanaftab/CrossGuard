@@ -70,6 +70,14 @@ class DetectedFeatures:
 
 
 @dataclass
+class FeatureDetails:
+    """Details about which properties matched which features."""
+    css: List[Dict] = field(default_factory=list)  # [{feature, description, matched_properties}]
+    js: List[Dict] = field(default_factory=list)
+    html: List[Dict] = field(default_factory=list)
+
+
+@dataclass
 class UnrecognizedPatterns:
     """List of unrecognized patterns by type (not matched by any rule)."""
     html: List[str] = field(default_factory=list)
@@ -108,6 +116,7 @@ class AnalysisResult:
     scores: Optional[CompatibilityScore] = None
     browsers: Dict[str, BrowserCompatibility] = field(default_factory=dict)
     detected_features: Optional[DetectedFeatures] = None
+    feature_details: Optional[FeatureDetails] = None
     unrecognized_patterns: Optional[UnrecognizedPatterns] = None
     recommendations: List[str] = field(default_factory=list)
     error: Optional[str] = None
@@ -160,6 +169,14 @@ class AnalysisResult:
             all=features_data.get('all', []),
         )
 
+        # Parse feature details (property → feature mapping)
+        details_data = data.get('feature_details', {})
+        feature_details = FeatureDetails(
+            css=details_data.get('css', []),
+            js=details_data.get('js', []),
+            html=details_data.get('html', []),
+        )
+
         # Parse unrecognized patterns
         unrecognized_data = data.get('unrecognized', {})
         unrecognized_patterns = UnrecognizedPatterns(
@@ -175,6 +192,7 @@ class AnalysisResult:
             scores=scores,
             browsers=browsers,
             detected_features=detected_features,
+            feature_details=feature_details,
             unrecognized_patterns=unrecognized_patterns,
             recommendations=data.get('recommendations', []),
         )
@@ -216,6 +234,11 @@ class AnalysisResult:
                 'css': self.detected_features.css if self.detected_features else [],
                 'js': self.detected_features.js if self.detected_features else [],
                 'all': self.detected_features.all if self.detected_features else [],
+            },
+            'feature_details': {
+                'css': self.feature_details.css if self.feature_details else [],
+                'js': self.feature_details.js if self.feature_details else [],
+                'html': self.feature_details.html if self.feature_details else [],
             },
             'unrecognized': {
                 'html': self.unrecognized_patterns.html if self.unrecognized_patterns else [],
