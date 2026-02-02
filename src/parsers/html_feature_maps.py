@@ -123,6 +123,20 @@ HTML_ATTRIBUTES = {
     'shadowrootmode': 'declarative-shadow-dom',
     # Input event attribute
     'oninput': 'input-event',
+    # Popover API attributes
+    'popover': 'popover',
+    'popovertarget': 'popover',
+    'popovertargetaction': 'popover',
+    # Inert attribute
+    'inert': 'inert',
+    # Decoding attribute for images
+    'decoding': 'img-decoding-attribute',
+    # Fetchpriority attribute
+    'fetchpriority': 'fetch-priority',
+    # Enterkeyhint attribute
+    'enterkeyhint': 'input-enterkeyhint',
+    # Blocking attribute for scripts/links
+    'blocking': 'blocking-render',
     # Touch event attributes
     'ontouchstart': 'touch',
     'ontouchmove': 'touch',
@@ -262,6 +276,18 @@ HTML_ADDITIONAL_FEATURES = {
     'style-scoped': 'style-scoped',
     # Combined input type feature (alias for email, tel, url)
     'input-email-tel-url': 'input-email-tel-url',
+    # Popover API
+    'popover': 'popover',
+    # Inert attribute
+    'inert': 'inert',
+    # Image decoding attribute
+    'img-decoding-attribute': 'img-decoding-attribute',
+    # Fetch priority
+    'fetch-priority': 'fetch-priority',
+    # Input enterkeyhint
+    'input-enterkeyhint': 'input-enterkeyhint',
+    # Blocking render
+    'blocking-render': 'blocking-render',
     # WAI-ARIA accessibility features
     'wai-aria': 'wai-aria',
     # MathML

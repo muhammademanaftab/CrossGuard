@@ -55,6 +55,9 @@ from .export_manager import ExportManager
 # Import feature name utilities
 from src.utils.feature_names import get_feature_name, get_fix_suggestion
 
+# Import feature flags
+from src.utils.config import ML_ENABLED
+
 
 class MainWindow(ctk.CTkFrame):
     """Main application window with VS Code-style layout.
@@ -384,58 +387,60 @@ class MainWindow(ctk.CTkFrame):
         )
 
         # ===== SECTION 2.5: ML Risk Assessment (On-Demand) =====
-        # Store features for later ML analysis
-        self._ml_features = features
-        self._ml_total_features = total_features
+        # Only show ML section if ML is enabled
+        if ML_ENABLED:
+            # Store features for later ML analysis
+            self._ml_features = features
+            self._ml_total_features = total_features
 
-        ml_section = CollapsibleSection(
-            scroll_frame,
-            title="ML Risk Assessment",
-            badge_text="AI",
-            badge_color=COLORS['accent'],
-            expanded=True,
-        )
-        ml_section.pack(fill="x", pady=(0, SPACING['lg']))
+            ml_section = CollapsibleSection(
+                scroll_frame,
+                title="ML Risk Assessment",
+                badge_text="AI",
+                badge_color=COLORS['accent'],
+                expanded=True,
+            )
+            ml_section.pack(fill="x", pady=(0, SPACING['lg']))
 
-        ml_content = ml_section.get_content_frame()
+            ml_content = ml_section.get_content_frame()
 
-        # Container for ML content (will be updated when button clicked)
-        self._ml_content_frame = ctk.CTkFrame(ml_content, fg_color="transparent")
-        self._ml_content_frame.pack(fill="x")
+            # Container for ML content (will be updated when button clicked)
+            self._ml_content_frame = ctk.CTkFrame(ml_content, fg_color="transparent")
+            self._ml_content_frame.pack(fill="x")
 
-        # Initial state: Show button to run ML analysis
-        self._ml_button_frame = ctk.CTkFrame(self._ml_content_frame, fg_color=COLORS['bg_medium'], corner_radius=8)
-        self._ml_button_frame.pack(fill="x", pady=SPACING['sm'])
+            # Initial state: Show button to run ML analysis
+            self._ml_button_frame = ctk.CTkFrame(self._ml_content_frame, fg_color=COLORS['bg_medium'], corner_radius=8)
+            self._ml_button_frame.pack(fill="x", pady=SPACING['sm'])
 
-        ml_info_frame = ctk.CTkFrame(self._ml_button_frame, fg_color="transparent")
-        ml_info_frame.pack(fill="x", padx=SPACING['lg'], pady=SPACING['lg'])
+            ml_info_frame = ctk.CTkFrame(self._ml_button_frame, fg_color="transparent")
+            ml_info_frame.pack(fill="x", padx=SPACING['lg'], pady=SPACING['lg'])
 
-        ctk.CTkLabel(
-            ml_info_frame,
-            text="🤖 ML-Powered Risk Analysis",
-            font=ctk.CTkFont(size=14, weight="bold"),
-            text_color=COLORS['text_primary'],
-        ).pack(anchor="w")
+            ctk.CTkLabel(
+                ml_info_frame,
+                text="🤖 ML-Powered Risk Analysis",
+                font=ctk.CTkFont(size=14, weight="bold"),
+                text_color=COLORS['text_primary'],
+            ).pack(anchor="w")
 
-        ctk.CTkLabel(
-            ml_info_frame,
-            text="Use machine learning to predict compatibility risks based on feature characteristics,\nspec status, browser bugs, and historical patterns.",
-            font=ctk.CTkFont(size=12),
-            text_color=COLORS['text_muted'],
-            justify="left",
-        ).pack(anchor="w", pady=(SPACING['xs'], SPACING['md']))
+            ctk.CTkLabel(
+                ml_info_frame,
+                text="Use machine learning to predict compatibility risks based on feature characteristics,\nspec status, browser bugs, and historical patterns.",
+                font=ctk.CTkFont(size=12),
+                text_color=COLORS['text_muted'],
+                justify="left",
+            ).pack(anchor="w", pady=(SPACING['xs'], SPACING['md']))
 
-        self._run_ml_button = ctk.CTkButton(
-            ml_info_frame,
-            text="▶  Run ML Analysis",
-            font=ctk.CTkFont(size=13, weight="bold"),
-            fg_color=COLORS['accent'],
-            hover_color=COLORS['accent_bright'],
-            height=40,
-            width=180,
-            command=self._run_ml_analysis,
-        )
-        self._run_ml_button.pack(anchor="w")
+            self._run_ml_button = ctk.CTkButton(
+                ml_info_frame,
+                text="▶  Run ML Analysis",
+                font=ctk.CTkFont(size=13, weight="bold"),
+                fg_color=COLORS['accent'],
+                hover_color=COLORS['accent_bright'],
+                height=40,
+                width=180,
+                command=self._run_ml_analysis,
+            )
+            self._run_ml_button.pack(anchor="w")
 
         # ===== SECTION 3: Issues Summary (If Problems Exist) =====
         issues = self._extract_issues(browsers)
@@ -482,7 +487,8 @@ class MainWindow(ctk.CTkFrame):
 
         # ===== SECTION 5: Technical Details (Collapsed by Default) =====
 
-        # 5a. Detected Features
+        # 5a. Detected Features (with property → feature mapping)
+        feature_details = report.get('feature_details', {})
         if features and any([features.get('html'), features.get('css'), features.get('js')]):
             features_section = CollapsibleSection(
                 scroll_frame,
@@ -494,22 +500,43 @@ class MainWindow(ctk.CTkFrame):
             features_section.pack(fill="x", pady=(0, SPACING['lg']))
 
             features_content = features_section.get_content_frame()
+
+            # Build mapping from feature_id to details
+            html_details_map = {}
+            for detail in feature_details.get('html', []):
+                fid = detail.get('feature')
+                if fid:
+                    html_details_map[fid] = detail
+
+            css_details_map = {}
+            for detail in feature_details.get('css', []):
+                fid = detail.get('feature')
+                if fid:
+                    css_details_map[fid] = detail
+
+            js_details_map = {}
+            for detail in feature_details.get('js', []):
+                fid = detail.get('feature')
+                if fid:
+                    js_details_map[fid] = detail
+
             feature_types = [
-                ("HTML", features.get('html', []), COLORS['html_color']),
-                ("CSS", features.get('css', []), COLORS['css_color']),
-                ("JavaScript", features.get('js', []), COLORS['js_color']),
+                ("HTML", features.get('html', []), COLORS['html_color'], html_details_map),
+                ("CSS", features.get('css', []), COLORS['css_color'], css_details_map),
+                ("JavaScript", features.get('js', []), COLORS['js_color'], js_details_map),
             ]
 
-            for type_name, feature_list, color in feature_types:
+            for type_name, feature_list, color, details_map in feature_types:
                 if feature_list:
                     type_container = ctk.CTkFrame(features_content, fg_color="transparent")
-                    type_container.pack(fill="x", pady=(0, SPACING['sm']))
+                    type_container.pack(fill="x", pady=(0, SPACING['md']))
 
-                    type_frame = ctk.CTkFrame(type_container, fg_color="transparent")
-                    type_frame.pack(fill="x")
+                    # Header row with badge and toggle button
+                    header_row = ctk.CTkFrame(type_container, fg_color="transparent")
+                    header_row.pack(fill="x")
 
                     badge = ctk.CTkLabel(
-                        type_frame,
+                        header_row,
                         text=f" {type_name} ({len(feature_list)}) ",
                         font=ctk.CTkFont(size=11, weight="bold"),
                         text_color=COLORS['text_primary'],
@@ -518,53 +545,77 @@ class MainWindow(ctk.CTkFrame):
                     )
                     badge.pack(side="left")
 
-                    # Get all readable feature names
-                    all_readable = [get_feature_name(f) for f in feature_list]
+                    # Helper to create feature label
+                    def create_feature_label(parent, feature_id, details_map):
+                        detail = details_map.get(feature_id, {})
+                        matched_items = (
+                            detail.get('matched_properties', []) or
+                            detail.get('matched_apis', []) or
+                            detail.get('matched_items', [])
+                        )
+                        description = detail.get('description', get_feature_name(feature_id))
+
+                        item_frame = ctk.CTkFrame(parent, fg_color="transparent")
+                        item_frame.pack(fill="x", pady=(2, 0), padx=(SPACING['md'], 0))
+
+                        if matched_items:
+                            items_text = ", ".join(matched_items)
+                            display_text = f"{items_text}  →  {description} ({feature_id})"
+                        else:
+                            display_text = f"{description} ({feature_id})"
+
+                        ctk.CTkLabel(
+                            item_frame,
+                            text=display_text,
+                            font=ctk.CTkFont(size=11),
+                            text_color=COLORS['text_secondary'],
+                            wraplength=650,
+                            justify="left",
+                        ).pack(anchor="w")
 
                     # Show first 15 features
-                    short_text = ", ".join(all_readable[:15])
+                    for feature_id in feature_list[:15]:
+                        create_feature_label(type_container, feature_id, details_map)
+
+                    # If more than 15, add expandable section
                     if len(feature_list) > 15:
-                        short_text += f", ... (+{len(feature_list) - 15} more)"
+                        # Frame for extra features (initially hidden)
+                        extra_frame = ctk.CTkFrame(type_container, fg_color="transparent")
+                        is_expanded = [False]
 
-                    # Create label for short text
-                    features_label = ctk.CTkLabel(
-                        type_frame,
-                        text=short_text,
-                        font=ctk.CTkFont(size=11),
-                        text_color=COLORS['text_secondary'],
-                        wraplength=600,
-                        justify="left",
-                    )
-                    features_label.pack(side="left", padx=(SPACING['sm'], 0))
+                        # Create labels for remaining features
+                        for feature_id in feature_list[15:]:
+                            create_feature_label(extra_frame, feature_id, details_map)
 
-                    # Add toggle button if more than 15 features
-                    if len(feature_list) > 15:
-                        full_text = ", ".join(all_readable)
-                        is_expanded = [False]  # Use list for mutable closure
+                        # Toggle button row
+                        toggle_row = ctk.CTkFrame(type_container, fg_color="transparent")
+                        toggle_row.pack(fill="x", padx=(SPACING['md'], 0), pady=(4, 0))
 
-                        def make_toggle(label, short, full, expanded, btn):
+                        def make_toggle(extra_fr, expanded, btn, remaining):
                             def toggle():
                                 expanded[0] = not expanded[0]
                                 if expanded[0]:
-                                    label.configure(text=full)
-                                    btn.configure(text="▲ Less")
+                                    extra_fr.pack(fill="x", before=toggle_row)
+                                    btn.configure(text=f"▲ Show Less")
                                 else:
-                                    label.configure(text=short)
-                                    btn.configure(text="▼ All")
+                                    extra_fr.pack_forget()
+                                    btn.configure(text=f"▼ Show All ({remaining} more)")
                             return toggle
 
+                        remaining_count = len(feature_list) - 15
                         toggle_btn = ctk.CTkButton(
-                            type_frame,
-                            text="▼ All",
+                            toggle_row,
+                            text=f"▼ Show All ({remaining_count} more)",
                             font=ctk.CTkFont(size=10),
-                            width=50,
-                            height=20,
-                            fg_color="transparent",
-                            hover_color=COLORS['bg_light'],
+                            width=140,
+                            height=24,
+                            fg_color=COLORS['bg_light'],
+                            hover_color=COLORS['bg_medium'],
                             text_color=COLORS['accent'],
+                            corner_radius=4,
                         )
-                        toggle_btn.pack(side="right", padx=(SPACING['sm'], 0))
-                        toggle_btn.configure(command=make_toggle(features_label, short_text, full_text, is_expanded, toggle_btn))
+                        toggle_btn.pack(anchor="w")
+                        toggle_btn.configure(command=make_toggle(extra_frame, is_expanded, toggle_btn, remaining_count))
 
         # 5b. Visualizations
         if browsers:

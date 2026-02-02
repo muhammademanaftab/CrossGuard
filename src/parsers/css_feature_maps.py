@@ -738,7 +738,7 @@ CSS_MISC = {
 # CSS Container Queries
 CSS_CONTAINER = {
     'css-container-queries': {
-        'patterns': [r'@container', r'container-type\s*:', r'container-name\s*:'],
+        'patterns': [r'@container', r'container-type\s*:', r'container-name\s*:', r'container\s*:'],
         'keywords': ['container queries'],
         'description': 'CSS Container Queries'
     },
