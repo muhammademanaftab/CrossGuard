@@ -20,14 +20,14 @@ class FileSelectorGroup(ctk.CTkFrame):
     FILE_EXTENSIONS = {
         'html': ['html', 'htm'],
         'css': ['css'],
-        'javascript': ['js']
+        'javascript': ['js', 'jsx', 'ts', 'tsx', 'mjs']
     }
 
     # File dialog filters
     FILE_FILTERS = {
         'html': [("HTML Files", "*.html *.htm")],
         'css': [("CSS Files", "*.css")],
-        'javascript': [("JavaScript Files", "*.js")],
+        'javascript': [("JavaScript/TypeScript Files", "*.js *.jsx *.ts *.tsx *.mjs")],
     }
 
     def __init__(

@@ -56,7 +56,7 @@ class DropZone(ctk.CTkFrame):
         if allowed_extensions:
             self.allowed_extensions = [ext.lower().lstrip('.') for ext in allowed_extensions]
         else:
-            self.allowed_extensions = ['html', 'htm', 'css', 'js']  # Default extensions
+            self.allowed_extensions = ['html', 'htm', 'css', 'js', 'jsx', 'ts', 'tsx', 'mjs']  # Default extensions
 
         self.on_files_dropped = on_files_dropped
         self._is_drag_over = False

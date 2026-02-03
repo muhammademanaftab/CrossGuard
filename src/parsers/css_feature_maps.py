@@ -664,7 +664,14 @@ CSS_MISC = {
         'description': 'CSS writing-mode property'
     },
     'css-logical-props': {
-        'patterns': [r'margin-inline', r'padding-block', r'inset-inline'],
+        'patterns': [
+            r'margin-inline', r'margin-block', r'padding-inline', r'padding-block',
+            r'inset-inline', r'inset-block', r'\binset\s*:',
+            r'border-inline', r'border-block',
+            r'border-start-start-radius', r'border-start-end-radius',
+            r'border-end-start-radius', r'border-end-end-radius',
+            r'inline-size', r'block-size',
+        ],
         'keywords': ['logical properties'],
         'description': 'CSS Logical Properties'
     },

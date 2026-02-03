@@ -320,6 +320,10 @@ def get_file_type_color(file_type: str) -> str:
         'htm': COLORS['html_color'],
         'css': COLORS['css_color'],
         'js': COLORS['js_color'],
+        'jsx': COLORS['js_color'],
+        'ts': COLORS['js_color'],
+        'tsx': COLORS['js_color'],
+        'mjs': COLORS['js_color'],
         'javascript': COLORS['js_color'],
     }
     return type_colors.get(file_type.lower(), COLORS['text_muted'])

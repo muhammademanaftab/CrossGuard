@@ -200,7 +200,7 @@ class MainWindow(ctk.CTkFrame):
         # Drop zone
         self.drop_zone = DropZone(
             scroll_frame,
-            allowed_extensions=['html', 'htm', 'css', 'js'],
+            allowed_extensions=['html', 'htm', 'css', 'js', 'jsx', 'ts', 'tsx', 'mjs'],
             on_files_dropped=self._on_files_dropped,
             height=160,
         )
@@ -714,18 +714,47 @@ class MainWindow(ctk.CTkFrame):
                     )
                     badge.pack(side="left")
 
-                    patterns_text = ", ".join(pattern_list[:10])
-                    if len(pattern_list) > 10:
-                        patterns_text += f", ... (+{len(pattern_list) - 10} more)"
+                    # Create expandable patterns display
+                    patterns_container = ctk.CTkFrame(type_frame, fg_color="transparent")
+                    patterns_container.pack(side="left", fill="x", expand=True, padx=(SPACING['sm'], 0))
 
-                    ctk.CTkLabel(
-                        type_frame,
-                        text=patterns_text,
+                    short_text = ", ".join(pattern_list[:10])
+                    full_text = ", ".join(pattern_list)
+                    is_truncated = len(pattern_list) > 10
+
+                    if is_truncated:
+                        short_text += f", ... (+{len(pattern_list) - 10} more)"
+
+                    patterns_label = ctk.CTkLabel(
+                        patterns_container,
+                        text=short_text,
                         font=ctk.CTkFont(size=11),
                         text_color=COLORS['text_muted'],
                         wraplength=600,
                         justify="left",
-                    ).pack(side="left", padx=(SPACING['sm'], 0))
+                    )
+                    patterns_label.pack(side="left")
+
+                    # Add "See All" button if truncated
+                    if is_truncated:
+                        is_expanded = [False]  # Use list for mutable closure
+
+                        def toggle_expand(lbl=patterns_label, short=short_text, full=full_text, expanded=is_expanded):
+                            expanded[0] = not expanded[0]
+                            lbl.configure(text=full if expanded[0] else short)
+
+                        see_all_btn = ctk.CTkButton(
+                            patterns_container,
+                            text="See All",
+                            font=ctk.CTkFont(size=10),
+                            width=50,
+                            height=20,
+                            fg_color=COLORS['bg_light'],
+                            hover_color=COLORS['bg_medium'],
+                            text_color=COLORS['accent'],
+                            command=toggle_expand,
+                        )
+                        see_all_btn.pack(side="left", padx=(SPACING['sm'], 0))
 
         # 5d. Recommendations
         recommendations = report.get('recommendations', [])
@@ -1987,7 +2016,7 @@ class MainWindow(ctk.CTkFrame):
         # Separate files by type
         html_files = [f for f in files if Path(f).suffix.lower() in ['.html', '.htm']]
         css_files = [f for f in files if Path(f).suffix.lower() == '.css']
-        js_files = [f for f in files if Path(f).suffix.lower() == '.js']
+        js_files = [f for f in files if Path(f).suffix.lower() in ['.js', '.jsx', '.ts', '.tsx', '.mjs']]
 
         try:
             progress = ProgressDialog(self.master, "Analyzing", "Starting analysis...")

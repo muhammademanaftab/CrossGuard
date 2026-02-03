@@ -563,8 +563,8 @@ class FileTable(ctk.CTkFrame):
         extensions = {
             'html': ['html', 'htm'],
             'css': ['css'],
-            'javascript': ['js'],
-            'js': ['js'],
+            'javascript': ['js', 'jsx', 'ts', 'tsx', 'mjs'],
+            'js': ['js', 'jsx', 'ts', 'tsx', 'mjs'],
         }
         allowed = extensions.get(file_type.lower(), [file_type.lower()])
         return [f for f in self._files if Path(f).suffix.lower().lstrip('.') in allowed]
