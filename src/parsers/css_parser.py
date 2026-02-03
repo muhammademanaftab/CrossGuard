@@ -170,9 +170,14 @@ class CSSParser:
             'padding', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left',
             'border', 'border-width', 'border-style', 'border-color',
             'border-top', 'border-right', 'border-bottom', 'border-left',
+            'border-top-width', 'border-right-width', 'border-bottom-width', 'border-left-width',
+            'border-top-style', 'border-right-style', 'border-bottom-style', 'border-left-style',
+            'border-top-color', 'border-right-color', 'border-bottom-color', 'border-left-color',
             'border-radius', 'border-top-left-radius', 'border-top-right-radius',
             'border-bottom-left-radius', 'border-bottom-right-radius',
             'box-shadow', 'box-sizing',
+            # SVG properties
+            'fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin',
             # Sizing
             'width', 'height', 'min-width', 'max-width', 'min-height', 'max-height',
             # Typography
