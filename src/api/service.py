@@ -18,6 +18,13 @@ from .schemas import (
     DatabaseUpdateResult,
     ProgressCallback,
 )
+from .project_schemas import (
+    ScanConfig,
+    ScanResult,
+    ProjectInfo,
+    ProjectAnalysisResult,
+    FileAnalysisResult,
+)
 from src.utils.config import LATEST_VERSIONS, get_logger
 
 logger = get_logger('api.service')
@@ -786,6 +793,198 @@ class AnalyzerService:
         except Exception as e:
             logger.error(f"Failed to get tag counts: {e}")
             return {}
+
+    # =========================================================================
+    # Project Scanner Methods
+    # =========================================================================
+
+    def scan_project_directory(
+        self,
+        path: str,
+        config: ScanConfig = None,
+        progress_callback: callable = None
+    ) -> ScanResult:
+        """
+        Scan a project directory for analyzable files.
+
+        Args:
+            path: Path to the project root directory
+            config: Scan configuration (uses defaults if not provided)
+            progress_callback: Optional callback(current, total, message)
+
+        Returns:
+            ScanResult with found files and tree structure
+        """
+        try:
+            from src.scanner import ProjectScanner
+
+            scanner = ProjectScanner()
+            result = scanner.scan_directory(path, config, progress_callback)
+            return result
+
+        except Exception as e:
+            logger.error(f"Failed to scan directory {path}: {e}")
+            return ScanResult(project_path=path)
+
+    def detect_project_framework(self, path: str) -> ProjectInfo:
+        """
+        Detect the framework and build tools used in a project.
+
+        Args:
+            path: Path to the project root directory
+
+        Returns:
+            ProjectInfo with detected framework details
+        """
+        try:
+            from src.scanner import FrameworkDetector
+
+            detector = FrameworkDetector()
+            return detector.detect(path)
+
+        except Exception as e:
+            logger.error(f"Failed to detect framework in {path}: {e}")
+            return ProjectInfo()
+
+    def analyze_project(
+        self,
+        scan_result: ScanResult,
+        target_browsers: Dict[str, str] = None,
+        progress_callback: callable = None
+    ) -> ProjectAnalysisResult:
+        """
+        Analyze all files from a project scan.
+
+        Args:
+            scan_result: ScanResult from scan_project_directory()
+            target_browsers: Target browsers (uses defaults if not provided)
+            progress_callback: Optional callback(current, total, file_name)
+
+        Returns:
+            ProjectAnalysisResult with aggregate results
+        """
+        import time
+        from datetime import datetime
+        import os
+
+        start_time = time.time()
+        target_browsers = target_browsers or self.DEFAULT_BROWSERS
+
+        # Get project info
+        project_info = self.detect_project_framework(scan_result.project_path)
+
+        result = ProjectAnalysisResult(
+            success=True,
+            project_path=scan_result.project_path,
+            project_name=os.path.basename(scan_result.project_path),
+            framework=project_info.framework,
+            build_tool=project_info.build_tool,
+            html_files=scan_result.html_count,
+            css_files=scan_result.css_count,
+            js_files=scan_result.js_count,
+            total_files=scan_result.total_files,
+            scanned_at=datetime.now().isoformat(),
+        )
+
+        if scan_result.total_files == 0:
+            result.error = "No files to analyze"
+            return result
+
+        # Analyze files
+        all_files = scan_result.get_all_files()
+        file_results = []
+        total_score = 0.0
+        all_unsupported = []
+        all_partial = []
+        unique_features = set()
+
+        for i, file_path in enumerate(all_files):
+            if progress_callback:
+                progress_callback(i + 1, len(all_files), os.path.basename(file_path))
+
+            # Determine file type
+            ext = os.path.splitext(file_path)[1].lower()
+            if ext in ('.html', '.htm'):
+                file_type = 'html'
+                analysis_result = self.analyze_files(html_files=[file_path], target_browsers=target_browsers)
+            elif ext == '.css':
+                file_type = 'css'
+                analysis_result = self.analyze_files(css_files=[file_path], target_browsers=target_browsers)
+            else:
+                file_type = 'javascript'
+                analysis_result = self.analyze_files(js_files=[file_path], target_browsers=target_browsers)
+
+            if not analysis_result.success:
+                continue
+
+            # Collect file result
+            file_result = FileAnalysisResult(
+                file_path=file_path,
+                file_name=os.path.basename(file_path),
+                file_type=file_type,
+                score=analysis_result.scores.simple_score if analysis_result.scores else 0.0,
+                grade=analysis_result.scores.grade if analysis_result.scores else 'N/A',
+                features_count=analysis_result.summary.total_features if analysis_result.summary else 0,
+            )
+
+            # Collect issues from browsers
+            for browser_name, browser_data in analysis_result.browsers.items():
+                file_result.unsupported_features.extend(browser_data.unsupported_features)
+                file_result.partial_features.extend(browser_data.partial_features)
+
+            file_result.issues_count = len(set(file_result.unsupported_features)) + len(set(file_result.partial_features))
+
+            file_results.append(file_result)
+            total_score += file_result.score
+
+            # Aggregate features
+            if analysis_result.detected_features:
+                unique_features.update(analysis_result.detected_features.all)
+            all_unsupported.extend(file_result.unsupported_features)
+            all_partial.extend(file_result.partial_features)
+
+        # Calculate aggregates
+        result.file_results = file_results
+        result.total_features = sum(fr.features_count for fr in file_results)
+        result.unique_features = len(unique_features)
+
+        if file_results:
+            result.overall_score = total_score / len(file_results)
+            result.overall_grade = self._score_to_grade(result.overall_score)
+
+            # Find worst files
+            sorted_by_score = sorted(file_results, key=lambda x: x.score)
+            result.worst_files = sorted_by_score[:5]
+
+        # Count unique issues
+        result.unsupported_count = len(set(all_unsupported))
+        result.partial_count = len(set(all_partial))
+
+        # Top issues (most frequent unsupported features)
+        from collections import Counter
+        issue_counts = Counter(all_unsupported)
+        result.top_issues = [
+            {'feature': feat, 'count': count}
+            for feat, count in issue_counts.most_common(10)
+        ]
+
+        # Timing
+        result.analysis_duration_ms = int((time.time() - start_time) * 1000)
+
+        return result
+
+    def _score_to_grade(self, score: float) -> str:
+        """Convert a score to a letter grade."""
+        if score >= 90:
+            return 'A'
+        elif score >= 80:
+            return 'B'
+        elif score >= 70:
+            return 'C'
+        elif score >= 60:
+            return 'D'
+        else:
+            return 'F'
 
 
 # Singleton instance for convenience

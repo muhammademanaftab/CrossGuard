@@ -48,6 +48,11 @@ from .statistics_panel import StatisticsPanel, CompactStatsBar
 from .bookmark_button import BookmarkButton, BookmarkIndicator
 from .tag_widget import TagChip, TagList, TagSelector, TagManagerDialog
 
+# Project Scanner widgets
+from .project_tree import ProjectTreeWidget, TreeItemWidget
+from .scan_config_panel import ScanConfigPanel
+from .project_stats_card import ProjectStatsCard, ProjectSummaryBadge
+
 __all__ = [
     # Drop zone
     'DropZone',
@@ -120,4 +125,11 @@ __all__ = [
     'TagList',
     'TagSelector',
     'TagManagerDialog',
+
+    # Project Scanner
+    'ProjectTreeWidget',
+    'TreeItemWidget',
+    'ScanConfigPanel',
+    'ProjectStatsCard',
+    'ProjectSummaryBadge',
 ]
