@@ -214,11 +214,15 @@ ICONS = {
     'chevron_down': '\u2304',    # Down arrowhead
 
     # Misc
-    'folder': '\u2302',          # House
+    'folder': '\U0001F4C1',      # Folder
+    'folder_open': '\U0001F4C2', # Open folder
     'search': '\u2315',          # Telephone recorder
     'menu': '\u2630',            # Trigram for heaven
     'dot': '\u2022',             # Bullet
     'diamond': '\u25C6',         # Black diamond
+    'scan': '\U0001F50D',        # Magnifying glass
+    'tree': '\u251C',            # Tree branch
+    'project': '\U0001F4C1',     # Project folder
 
     # History and Statistics
     'history': '\u25D4',         # Circle with upper right quadrant black (simple)

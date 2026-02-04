@@ -318,21 +318,43 @@ class ProgressDialog(ctk.CTkToplevel):
 
         self.geometry(f"+{x}+{y}")
 
-    def set_progress(self, value: int, message: str = None):
+    def set_progress(self, current: int, total: int = 100, message: str = None):
         """Update the progress value and optional message.
 
         Args:
-            value: Progress percentage (0-100)
+            current: Current progress value
+            total: Total value (default 100 for percentage)
             message: Optional new status message
         """
-        self.progress_bar.set(value / 100.0)
-        self.percent_label.configure(text=f"{value}%")
+        if total > 0:
+            percent = int((current / total) * 100)
+            self.progress_bar.set(current / total)
+        else:
+            percent = 0
+            self.progress_bar.set(0)
+
+        self.percent_label.configure(text=f"{percent}%")
 
         if message:
             self.status_label.configure(text=message)
 
         self.update()
 
+    def show(self):
+        """Show the progress dialog and force UI update."""
+        self.update_idletasks()
+        self.update()
+
+    def set_message(self, message: str):
+        """Update the status message.
+
+        Args:
+            message: New status message
+        """
+        self.status_label.configure(text=message)
+        self.update()
+
     def close(self):
         """Close the progress dialog."""
+        self.grab_release()
         self.destroy()

@@ -48,8 +48,15 @@ from .widgets import (
     # Bookmark and Tag widgets
     BookmarkButton,
     TagManagerDialog,
+    # Project Scanner widgets
+    ProjectTreeWidget,
+    ScanConfigPanel,
+    ProjectStatsCard,
 )
 from .widgets.rules_manager import show_rules_manager
+
+# Project scanner imports
+from src.scanner import ProjectScanner, ScanConfig, FrameworkDetector
 from .export_manager import ExportManager
 
 # Import feature name utilities
@@ -149,6 +156,8 @@ class MainWindow(ctk.CTkFrame):
         # Build the requested view
         if view_id == "files":
             self._build_files_view()
+        elif view_id == "project":
+            self._build_project_view()
         elif view_id == "results":
             self._build_results_view()
         elif view_id == "history":
@@ -159,6 +168,7 @@ class MainWindow(ctk.CTkFrame):
         # Update header
         titles = {
             "files": "File Selection",
+            "project": "Project Scanner",
             "results": "Analysis Results",
             "history": "Analysis History",
             "settings": "Settings",
@@ -293,6 +303,345 @@ class MainWindow(ctk.CTkFrame):
         analyze_btn.pack(side="right")
 
         self._update_status()
+
+    def _build_project_view(self):
+        """Build the project scanner view.
+
+        Allows users to scan entire project directories for compatibility analysis.
+        """
+        # Scrollable container
+        scroll_frame = ctk.CTkScrollableFrame(
+            self.content_frame,
+            fg_color="transparent",
+            scrollbar_button_color=COLORS['bg_light'],
+            scrollbar_button_hover_color=COLORS['accent'],
+        )
+        scroll_frame.pack(fill="both", expand=True, padx=SPACING['xl'], pady=SPACING['xl'])
+        enable_smooth_scrolling(scroll_frame)
+
+        # Title section
+        title_frame = ctk.CTkFrame(scroll_frame, fg_color="transparent")
+        title_frame.pack(fill="x", pady=(0, SPACING['lg']))
+
+        title_label = ctk.CTkLabel(
+            title_frame,
+            text="Scan Project Directory",
+            font=ctk.CTkFont(size=20, weight="bold"),
+            text_color=COLORS['text_primary'],
+        )
+        title_label.pack(side="left")
+
+        subtitle_label = ctk.CTkLabel(
+            title_frame,
+            text="Analyze all HTML, CSS, and JavaScript files in a project",
+            font=ctk.CTkFont(size=13),
+            text_color=COLORS['text_muted'],
+        )
+        subtitle_label.pack(side="left", padx=(SPACING['lg'], 0))
+
+        # Project path selection
+        path_frame = ctk.CTkFrame(
+            scroll_frame,
+            fg_color=COLORS['bg_medium'],
+            corner_radius=8,
+            border_width=1,
+            border_color=COLORS['border'],
+        )
+        path_frame.pack(fill="x", pady=(0, SPACING['md']))
+
+        path_inner = ctk.CTkFrame(path_frame, fg_color="transparent")
+        path_inner.pack(fill="x", padx=SPACING['md'], pady=SPACING['md'])
+
+        path_label = ctk.CTkLabel(
+            path_inner,
+            text="Project Path:",
+            font=ctk.CTkFont(size=12, weight="bold"),
+            text_color=COLORS['text_primary'],
+        )
+        path_label.pack(side="left")
+
+        # Path entry
+        self._project_path_var = ctk.StringVar()
+        self._project_path_entry = ctk.CTkEntry(
+            path_inner,
+            textvariable=self._project_path_var,
+            font=ctk.CTkFont(size=12),
+            height=36,
+            fg_color=COLORS['input_bg'],
+            border_color=COLORS['border'],
+            text_color=COLORS['text_primary'],
+            placeholder_text="Select a project directory...",
+        )
+        self._project_path_entry.pack(side="left", fill="x", expand=True, padx=(SPACING['md'], SPACING['sm']))
+
+        # Browse button
+        folder_icon = ICONS.get('folder', '\U0001F4C1')
+        browse_btn = ctk.CTkButton(
+            path_inner,
+            text=f"{folder_icon} Browse",
+            width=100,
+            height=36,
+            fg_color=COLORS['accent'],
+            hover_color=COLORS['accent_dim'],
+            command=self._browse_project_directory,
+        )
+        browse_btn.pack(side="right")
+
+        # Configuration panel
+        self._scan_config_panel = ScanConfigPanel(
+            scroll_frame,
+            on_config_change=self._on_scan_config_change,
+        )
+        self._scan_config_panel.pack(fill="x", pady=(0, SPACING['md']))
+
+        # Project stats card (hidden until scan)
+        self._project_stats_card = ProjectStatsCard(scroll_frame)
+        self._project_stats_card.pack(fill="x", pady=(0, SPACING['md']))
+        self._project_stats_card.pack_forget()  # Hide initially
+
+        # Project tree widget (hidden until scan)
+        self._project_tree = ProjectTreeWidget(
+            scroll_frame,
+            on_selection_change=self._on_project_selection_change,
+            max_height=350,
+        )
+        self._project_tree.pack(fill="x", pady=(0, SPACING['md']))
+        self._project_tree.pack_forget()  # Hide initially
+
+        # Actions frame
+        self._project_actions_frame = ctk.CTkFrame(scroll_frame, fg_color="transparent")
+        self._project_actions_frame.pack(fill="x", pady=(SPACING['md'], 0))
+
+        # Preview button
+        search_icon = ICONS.get('search', '\U0001F50D')
+        self._preview_btn = ctk.CTkButton(
+            self._project_actions_frame,
+            text=f"{search_icon} Preview Files",
+            width=150,
+            height=40,
+            fg_color=COLORS['bg_medium'],
+            hover_color=COLORS['hover_bg'],
+            border_width=1,
+            border_color=COLORS['border'],
+            text_color=COLORS['text_primary'],
+            command=self._preview_project,
+        )
+        self._preview_btn.pack(side="left")
+
+        # Scan button
+        self._scan_project_btn = ctk.CTkButton(
+            self._project_actions_frame,
+            text=f"{ICONS['check']} Scan Project",
+            width=180,
+            height=40,
+            fg_color=COLORS['accent'],
+            hover_color=COLORS['accent_dim'],
+            command=self._scan_project,
+            state="disabled",
+        )
+        self._scan_project_btn.pack(side="right")
+
+        # Status label
+        self._project_status_label = ctk.CTkLabel(
+            self._project_actions_frame,
+            text="Select a project directory to begin",
+            font=ctk.CTkFont(size=11),
+            text_color=COLORS['text_muted'],
+        )
+        self._project_status_label.pack(side="right", padx=(0, SPACING['lg']))
+
+        # Store reference for scroll frame
+        self._project_scroll_frame = scroll_frame
+
+    def _browse_project_directory(self):
+        """Open directory browser to select project folder."""
+        from tkinter import filedialog
+
+        directory = filedialog.askdirectory(
+            title="Select Project Directory",
+            mustexist=True,
+        )
+
+        if directory:
+            self._project_path_var.set(directory)
+            self._project_status_label.configure(
+                text="Click 'Preview Files' to scan the directory",
+                text_color=COLORS['text_secondary'],
+            )
+
+    def _on_scan_config_change(self, config: ScanConfig):
+        """Handle scan configuration changes."""
+        # Could trigger re-scan if preview is already shown
+        pass
+
+    def _on_project_selection_change(self, count: int):
+        """Handle file selection changes in project tree."""
+        if count > 0:
+            self._scan_project_btn.configure(state="normal")
+            self._project_status_label.configure(
+                text=f"{count} file{'s' if count != 1 else ''} selected",
+                text_color=COLORS['text_secondary'],
+            )
+        else:
+            self._scan_project_btn.configure(state="disabled")
+            self._project_status_label.configure(
+                text="No files selected",
+                text_color=COLORS['text_muted'],
+            )
+
+    def _preview_project(self):
+        """Preview project files without analyzing."""
+        path = self._project_path_var.get()
+        if not path:
+            show_warning(self, "No Directory", "Please select a project directory first.")
+            return
+
+        import os
+        if not os.path.isdir(path):
+            show_error(self, "Invalid Directory", f"The path does not exist or is not a directory:\n{path}")
+            return
+
+        # Get scan config
+        config = self._scan_config_panel.get_config()
+
+        # Create progress dialog
+        progress = ProgressDialog(
+            self,
+            title="Scanning Project",
+            message="Scanning directory...",
+        )
+        progress.show()
+
+        # Force UI to update before starting scan
+        self.update_idletasks()
+
+        try:
+            # Scan directory
+            progress.set_message("Finding files...")
+            scanner = ProjectScanner()
+            result = scanner.scan_directory(path, config)
+
+            # Detect framework
+            progress.set_message("Detecting framework...")
+            detector = FrameworkDetector()
+            project_info = detector.detect(path)
+
+            # Close progress dialog before updating UI
+            progress.close()
+
+            # Update stats card
+            self._project_stats_card.update_stats(
+                framework_name=project_info.framework.name if project_info.framework else None,
+                framework_version=project_info.framework.version if project_info.framework else None,
+                framework_color=project_info.framework.color if project_info.framework else None,
+                build_tool=project_info.build_tool.name if project_info.build_tool else None,
+                html_count=result.html_count,
+                css_count=result.css_count,
+                js_count=result.js_count,
+                minified_count=result.minified_files,
+                has_typescript=project_info.has_typescript,
+            )
+            self._project_stats_card.pack(fill="x", pady=(0, SPACING['md']))
+
+            # Update tree widget
+            self._project_tree.set_tree(result.file_tree)
+            self._project_tree.pack(fill="x", pady=(0, SPACING['md']))
+
+            # Update status
+            total = result.total_files
+            if total > 0:
+                self._scan_project_btn.configure(state="normal")
+                self._project_status_label.configure(
+                    text=f"Found {total} file{'s' if total != 1 else ''}",
+                    text_color=COLORS['success'],
+                )
+            else:
+                self._scan_project_btn.configure(state="disabled")
+                self._project_status_label.configure(
+                    text="No analyzable files found",
+                    text_color=COLORS['warning'],
+                )
+
+            # Store scan result for later use
+            self._last_scan_result = result
+
+        except Exception as e:
+            progress.close()
+            show_error(self, "Scan Error", f"Failed to scan directory:\n{str(e)}")
+
+    def _scan_project(self):
+        """Analyze all selected files in the project."""
+        if not hasattr(self, '_last_scan_result') or not self._last_scan_result:
+            show_warning(self, "No Files", "Please preview the project first.")
+            return
+
+        # Get selected files from tree
+        selected_files = self._project_tree.get_selected_files()
+        total_files = sum(len(files) for files in selected_files.values())
+
+        if total_files == 0:
+            show_warning(self, "No Files Selected", "Please select at least one file to analyze.")
+            return
+
+        # Create progress dialog
+        progress = ProgressDialog(
+            self,
+            title="Analyzing Project",
+            message=f"Analyzing {total_files} files...",
+        )
+        progress.show()
+        self.update_idletasks()
+
+        try:
+            def update_progress(current, total, filename):
+                progress.set_progress(current, total)
+                progress.set_message(f"Analyzing: {filename}")
+                self.update_idletasks()
+
+            # Analyze all selected files together
+            from src.api.schemas import AnalysisRequest
+
+            request = AnalysisRequest(
+                html_files=selected_files.get('html', []),
+                css_files=selected_files.get('css', []),
+                js_files=selected_files.get('javascript', []),
+                target_browsers=self._selected_browsers or self._analyzer_service.DEFAULT_BROWSERS,
+            )
+
+            # Run analysis
+            progress.set_message(f"Analyzing {total_files} files...")
+            combined_result = self._analyzer_service.analyze(request)
+
+            if combined_result.success:
+                self.current_report = combined_result.to_dict()
+                self._last_files = (
+                    selected_files.get('html', []) +
+                    selected_files.get('css', []) +
+                    selected_files.get('javascript', [])
+                )
+
+                # Close progress before switching views
+                progress.close()
+
+                # Show results
+                self.sidebar.set_active_view("results")
+                self._show_view("results")
+
+                # Update status
+                score = combined_result.scores.simple_score if combined_result.scores else 0
+                grade = combined_result.scores.grade if combined_result.scores else 'N/A'
+                self.status_bar.set_status(
+                    f"Project analysis complete: {grade} ({score:.1f}%)",
+                    "success"
+                )
+                return  # Exit early since we closed progress
+            else:
+                show_error(self, "Analysis Error", combined_result.error or "Unknown error occurred")
+
+        except Exception as e:
+            show_error(self, "Analysis Error", f"Failed to analyze project:\n{str(e)}")
+        finally:
+            progress.close()
 
     def _build_results_view(self):
         """Build the results view with progressive disclosure design.
