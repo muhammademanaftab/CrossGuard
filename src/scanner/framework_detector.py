@@ -9,7 +9,7 @@ import json
 import os
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 
 @dataclass
@@ -345,3 +345,198 @@ class FrameworkDetector:
             badge_text += f" | {info.build_tool.name}"
 
         return badge_text, badge_color
+
+    def get_scanning_hint(self, project_info: ProjectInfo, project_path: str) -> Optional[Dict[str, Any]]:
+        """
+        Generate appropriate hint based on detected framework.
+
+        Args:
+            project_info: ProjectInfo from detect()
+            project_path: Path to the project root
+
+        Returns:
+            Dictionary with hint information or None if no hint needed
+        """
+        # Framework-specific hints
+        FRAMEWORK_HINTS = {
+            'React': {
+                'hint_type': 'build_required',
+                'title': 'React project detected',
+                'message': 'Source files (.jsx, .tsx) cannot be analyzed directly.\nRun your build command and scan the output folder.',
+                'build_command': 'npm run build',
+                'build_folder': 'build',
+                'icon': 'info',
+            },
+            'Next.js': {
+                'hint_type': 'build_required',
+                'title': 'Next.js project detected',
+                'message': 'Source files cannot be analyzed directly.\nBuild the project and scan the output folder.',
+                'build_command': 'npm run build',
+                'build_folder': 'out',  # Static export; .next for SSR
+                'icon': 'info',
+            },
+            'Vue': {
+                'hint_type': 'build_required',
+                'title': 'Vue project detected',
+                'message': 'Single-file components (.vue) cannot be analyzed directly.\nBuild and scan the dist folder.',
+                'build_command': 'npm run build',
+                'build_folder': 'dist',
+                'icon': 'info',
+            },
+            'Nuxt': {
+                'hint_type': 'build_required',
+                'title': 'Nuxt project detected',
+                'message': 'Vue components cannot be analyzed directly.\nBuild and scan the output folder.',
+                'build_command': 'npm run build',
+                'build_folder': 'dist',
+                'icon': 'info',
+            },
+            'Angular': {
+                'hint_type': 'build_required',
+                'title': 'Angular project detected',
+                'message': 'TypeScript source cannot be analyzed directly.\nBuild and scan the dist folder.',
+                'build_command': 'ng build',
+                'build_folder': 'dist',
+                'icon': 'info',
+            },
+            'Svelte': {
+                'hint_type': 'build_required',
+                'title': 'Svelte project detected',
+                'message': 'Svelte components (.svelte) cannot be analyzed directly.\nBuild and scan the output folder.',
+                'build_command': 'npm run build',
+                'build_folder': 'build',
+                'icon': 'info',
+            },
+            'SvelteKit': {
+                'hint_type': 'build_required',
+                'title': 'SvelteKit project detected',
+                'message': 'Svelte components cannot be analyzed directly.\nBuild and scan the output folder.',
+                'build_command': 'npm run build',
+                'build_folder': '.svelte-kit',
+                'icon': 'info',
+            },
+            'Solid': {
+                'hint_type': 'build_required',
+                'title': 'Solid.js project detected',
+                'message': 'JSX source files cannot be analyzed directly.\nBuild and scan the output folder.',
+                'build_command': 'npm run build',
+                'build_folder': 'dist',
+                'icon': 'info',
+            },
+            'Preact': {
+                'hint_type': 'build_required',
+                'title': 'Preact project detected',
+                'message': 'JSX source files cannot be analyzed directly.\nBuild and scan the output folder.',
+                'build_command': 'npm run build',
+                'build_folder': 'build',
+                'icon': 'info',
+            },
+        }
+
+        # Check if this is a framework project
+        if project_info.framework and project_info.framework.name in FRAMEWORK_HINTS:
+            return FRAMEWORK_HINTS[project_info.framework.name]
+
+        # TypeScript-only project (no framework)
+        if project_info.has_typescript and not project_info.framework:
+            return {
+                'hint_type': 'build_required',
+                'title': 'TypeScript project detected',
+                'message': 'TypeScript files (.ts) cannot be analyzed directly.\nCompile to JavaScript first.',
+                'build_command': 'tsc',
+                'build_folder': 'dist',
+                'icon': 'info',
+            }
+
+        # Check if this is a server-side Node.js project
+        if self._is_server_side_project(project_path, project_info):
+            return {
+                'hint_type': 'server_side',
+                'title': 'Server-side code detected',
+                'message': 'This appears to be a Node.js server project.\nBrowser compatibility analysis may show irrelevant warnings for server-only APIs.',
+                'build_command': None,
+                'build_folder': None,
+                'icon': 'info',
+            }
+
+        return None
+
+    def _is_server_side_project(self, project_path: str, project_info: ProjectInfo) -> bool:
+        """
+        Check if the project appears to be a server-side Node.js project.
+
+        Args:
+            project_path: Path to the project root
+            project_info: ProjectInfo from detect()
+
+        Returns:
+            True if project appears to be server-side only
+        """
+        path = Path(project_path)
+
+        # If there's a frontend framework, it's not purely server-side
+        if project_info.framework:
+            return False
+
+        # Check for server indicators in package.json
+        package_json_path = path / 'package.json'
+        if package_json_path.exists():
+            try:
+                with open(package_json_path, 'r', encoding='utf-8') as f:
+                    import json
+                    data = json.load(f)
+
+                # Check dependencies for server-only packages
+                deps = {}
+                deps.update(data.get('dependencies', {}))
+                deps.update(data.get('devDependencies', {}))
+
+                server_packages = [
+                    'express', 'fastify', 'koa', 'hapi', 'nestjs',
+                    '@nestjs/core', 'socket.io', 'ws', 'mongodb',
+                    'mongoose', 'sequelize', 'prisma', '@prisma/client',
+                    'pg', 'mysql', 'mysql2', 'redis', 'ioredis',
+                ]
+
+                has_server_deps = any(pkg in deps for pkg in server_packages)
+
+                # Check if there are NO browser-related packages
+                browser_packages = [
+                    'react', 'react-dom', 'vue', '@angular/core',
+                    'svelte', 'preact', 'solid-js', 'jquery',
+                ]
+
+                has_browser_deps = any(pkg in deps for pkg in browser_packages)
+
+                # Server-side if has server deps but no browser deps
+                if has_server_deps and not has_browser_deps:
+                    return True
+
+            except (json.JSONDecodeError, IOError):
+                pass
+
+        return False
+
+    def check_build_folders(self, project_path: str) -> Dict[str, bool]:
+        """
+        Check which build folders exist and have content.
+
+        Args:
+            project_path: Path to the project root
+
+        Returns:
+            Dictionary mapping folder names to boolean (exists and has content)
+        """
+        path = Path(project_path)
+        folders = ['build', 'dist', '.next', '.nuxt', '.svelte-kit', 'out']
+
+        result = {}
+        for folder in folders:
+            folder_path = path / folder
+            try:
+                # Check if folder exists and has at least one item
+                result[folder] = folder_path.exists() and any(folder_path.iterdir())
+            except (PermissionError, OSError):
+                result[folder] = False
+
+        return result

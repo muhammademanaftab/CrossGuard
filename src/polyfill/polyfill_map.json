@@ -1,0 +1,736 @@
+{
+  "metadata": {
+    "version": "1.0.0",
+    "description": "Polyfill mappings for Can I Use feature IDs",
+    "last_updated": "2024-01-01"
+  },
+  "javascript": {
+    "fetch": {
+      "name": "Fetch API",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "whatwg-fetch",
+          "npm": "whatwg-fetch",
+          "import": "import 'whatwg-fetch';",
+          "cdn": "https://unpkg.com/whatwg-fetch@3.6/dist/fetch.umd.js",
+          "size_kb": 3.2,
+          "note": "Full Fetch API polyfill"
+        }
+      ]
+    },
+    "promises": {
+      "name": "JavaScript Promises",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "core-js (promises)",
+          "npm": "core-js",
+          "import": "import 'core-js/features/promise';",
+          "size_kb": 6.4,
+          "note": "Part of core-js polyfill suite"
+        },
+        {
+          "name": "es6-promise",
+          "npm": "es6-promise",
+          "import": "import 'es6-promise/auto';",
+          "cdn": "https://unpkg.com/es6-promise@4/dist/es6-promise.auto.min.js",
+          "size_kb": 2.4,
+          "note": "Lightweight alternative"
+        }
+      ]
+    },
+    "async-functions": {
+      "name": "Async/Await Functions",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "regenerator-runtime",
+          "npm": "regenerator-runtime",
+          "import": "import 'regenerator-runtime/runtime';",
+          "size_kb": 7.5,
+          "note": "Required for async/await transpilation"
+        }
+      ]
+    },
+    "array-includes": {
+      "name": "Array.includes()",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "core-js (array-includes)",
+          "npm": "core-js",
+          "import": "import 'core-js/features/array/includes';",
+          "size_kb": 0.5
+        }
+      ]
+    },
+    "array-flat": {
+      "name": "Array.flat() / Array.flatMap()",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "core-js (array-flat)",
+          "npm": "core-js",
+          "import": "import 'core-js/features/array/flat';",
+          "size_kb": 0.8
+        }
+      ]
+    },
+    "object-entries": {
+      "name": "Object.entries()",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "core-js (object-entries)",
+          "npm": "core-js",
+          "import": "import 'core-js/features/object/entries';",
+          "size_kb": 0.4
+        }
+      ]
+    },
+    "object-values": {
+      "name": "Object.values()",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "core-js (object-values)",
+          "npm": "core-js",
+          "import": "import 'core-js/features/object/values';",
+          "size_kb": 0.4
+        }
+      ]
+    },
+    "object-assign": {
+      "name": "Object.assign()",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "core-js (object-assign)",
+          "npm": "core-js",
+          "import": "import 'core-js/features/object/assign';",
+          "size_kb": 0.6
+        },
+        {
+          "name": "object-assign",
+          "npm": "object-assign",
+          "import": "import 'object-assign';",
+          "size_kb": 0.3,
+          "note": "Standalone polyfill"
+        }
+      ]
+    },
+    "object-fromentries": {
+      "name": "Object.fromEntries()",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "core-js (object-fromentries)",
+          "npm": "core-js",
+          "import": "import 'core-js/features/object/from-entries';",
+          "size_kb": 0.4
+        }
+      ]
+    },
+    "pad-start-end": {
+      "name": "String.padStart() / padEnd()",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "core-js (string-padding)",
+          "npm": "core-js",
+          "import": "import 'core-js/features/string/pad-start';\nimport 'core-js/features/string/pad-end';",
+          "size_kb": 0.5
+        }
+      ]
+    },
+    "es6-string-includes": {
+      "name": "String.includes()",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "core-js (string-includes)",
+          "npm": "core-js",
+          "import": "import 'core-js/features/string/includes';",
+          "size_kb": 0.3
+        }
+      ]
+    },
+    "es6-number": {
+      "name": "ES6 Number Methods",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "core-js (number)",
+          "npm": "core-js",
+          "import": "import 'core-js/features/number';",
+          "size_kb": 1.2
+        }
+      ]
+    },
+    "es6-map": {
+      "name": "ES6 Map",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "core-js (map)",
+          "npm": "core-js",
+          "import": "import 'core-js/features/map';",
+          "size_kb": 3.5
+        }
+      ]
+    },
+    "es6-set": {
+      "name": "ES6 Set",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "core-js (set)",
+          "npm": "core-js",
+          "import": "import 'core-js/features/set';",
+          "size_kb": 3.2
+        }
+      ]
+    },
+    "es6-weakmap": {
+      "name": "ES6 WeakMap",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "core-js (weakmap)",
+          "npm": "core-js",
+          "import": "import 'core-js/features/weak-map';",
+          "size_kb": 2.8
+        }
+      ]
+    },
+    "es6-weakset": {
+      "name": "ES6 WeakSet",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "core-js (weakset)",
+          "npm": "core-js",
+          "import": "import 'core-js/features/weak-set';",
+          "size_kb": 2.5
+        }
+      ]
+    },
+    "es6-symbol": {
+      "name": "ES6 Symbol",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "core-js (symbol)",
+          "npm": "core-js",
+          "import": "import 'core-js/features/symbol';",
+          "size_kb": 4.2
+        }
+      ]
+    },
+    "proxy": {
+      "name": "ES6 Proxy",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "proxy-polyfill",
+          "npm": "proxy-polyfill",
+          "import": "import 'proxy-polyfill';",
+          "size_kb": 2.1,
+          "note": "Limited polyfill - not all traps supported"
+        }
+      ]
+    },
+    "intersectionobserver": {
+      "name": "Intersection Observer API",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "intersection-observer",
+          "npm": "intersection-observer",
+          "import": "import 'intersection-observer';",
+          "cdn": "https://unpkg.com/intersection-observer@0.12/intersection-observer.js",
+          "size_kb": 4.8,
+          "note": "Official W3C polyfill"
+        }
+      ]
+    },
+    "resizeobserver": {
+      "name": "Resize Observer API",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "@juggle/resize-observer",
+          "npm": "@juggle/resize-observer",
+          "import": "import { ResizeObserver } from '@juggle/resize-observer';\nwindow.ResizeObserver = window.ResizeObserver || ResizeObserver;",
+          "size_kb": 3.2,
+          "note": "High-quality polyfill"
+        },
+        {
+          "name": "resize-observer-polyfill",
+          "npm": "resize-observer-polyfill",
+          "import": "import ResizeObserver from 'resize-observer-polyfill';\nwindow.ResizeObserver = window.ResizeObserver || ResizeObserver;",
+          "size_kb": 2.8
+        }
+      ]
+    },
+    "mutationobserver": {
+      "name": "Mutation Observer API",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "mutationobserver-shim",
+          "npm": "mutationobserver-shim",
+          "import": "import 'mutationobserver-shim';",
+          "size_kb": 3.5
+        }
+      ]
+    },
+    "requestanimationframe": {
+      "name": "requestAnimationFrame",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "raf",
+          "npm": "raf",
+          "import": "import 'raf/polyfill';",
+          "size_kb": 0.8
+        }
+      ]
+    },
+    "classlist": {
+      "name": "Element.classList",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "classlist-polyfill",
+          "npm": "classlist-polyfill",
+          "import": "import 'classlist-polyfill';",
+          "size_kb": 1.2
+        }
+      ]
+    },
+    "url": {
+      "name": "URL API",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "url-polyfill",
+          "npm": "url-polyfill",
+          "import": "import 'url-polyfill';",
+          "cdn": "https://unpkg.com/url-polyfill@1/url-polyfill.min.js",
+          "size_kb": 2.8
+        },
+        {
+          "name": "core-js (url)",
+          "npm": "core-js",
+          "import": "import 'core-js/features/url';",
+          "size_kb": 3.2
+        }
+      ]
+    },
+    "urlsearchparams": {
+      "name": "URLSearchParams API",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "url-search-params-polyfill",
+          "npm": "url-search-params-polyfill",
+          "import": "import 'url-search-params-polyfill';",
+          "size_kb": 1.5
+        }
+      ]
+    },
+    "customevent": {
+      "name": "CustomEvent Constructor",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "custom-event-polyfill",
+          "npm": "custom-event-polyfill",
+          "import": "import 'custom-event-polyfill';",
+          "size_kb": 0.4
+        }
+      ]
+    },
+    "abortcontroller": {
+      "name": "AbortController API",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "abortcontroller-polyfill",
+          "npm": "abortcontroller-polyfill",
+          "import": "import 'abortcontroller-polyfill/dist/polyfill-patch-fetch';",
+          "size_kb": 2.2
+        }
+      ]
+    },
+    "textencoder": {
+      "name": "TextEncoder / TextDecoder",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "text-encoding",
+          "npm": "text-encoding",
+          "import": "import 'text-encoding';",
+          "size_kb": 4.5
+        },
+        {
+          "name": "fastestsmallesttextencoderdecoder",
+          "npm": "fastestsmallesttextencoderdecoder",
+          "import": "import 'fastestsmallesttextencoderdecoder';",
+          "size_kb": 1.2,
+          "note": "Smaller alternative"
+        }
+      ]
+    },
+    "matchmedia": {
+      "name": "matchMedia API",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "matchmedia-polyfill",
+          "npm": "matchmedia-polyfill",
+          "import": "import 'matchmedia-polyfill';",
+          "size_kb": 0.6
+        }
+      ]
+    },
+    "requestidlecallback": {
+      "name": "requestIdleCallback",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "requestidlecallback-polyfill",
+          "npm": "requestidlecallback-polyfill",
+          "import": "import 'requestidlecallback-polyfill';",
+          "size_kb": 0.3
+        }
+      ]
+    },
+    "structuredclone": {
+      "name": "structuredClone",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "@ungap/structured-clone",
+          "npm": "@ungap/structured-clone",
+          "import": "import structuredClone from '@ungap/structured-clone';\nwindow.structuredClone = window.structuredClone || structuredClone;",
+          "size_kb": 3.8
+        }
+      ]
+    },
+    "broadcastchannel": {
+      "name": "BroadcastChannel API",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "broadcast-channel",
+          "npm": "broadcast-channel",
+          "import": "import { BroadcastChannel } from 'broadcast-channel';",
+          "size_kb": 8.5,
+          "note": "Full-featured cross-tab communication"
+        }
+      ]
+    },
+    "globalthis": {
+      "name": "globalThis",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "core-js (globalthis)",
+          "npm": "core-js",
+          "import": "import 'core-js/features/global-this';",
+          "size_kb": 0.2
+        }
+      ]
+    },
+    "array-findindex": {
+      "name": "Array.findIndex()",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "core-js (array-findindex)",
+          "npm": "core-js",
+          "import": "import 'core-js/features/array/find-index';",
+          "size_kb": 0.4
+        }
+      ]
+    },
+    "array-find": {
+      "name": "Array.find()",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "core-js (array-find)",
+          "npm": "core-js",
+          "import": "import 'core-js/features/array/find';",
+          "size_kb": 0.4
+        }
+      ]
+    },
+    "array-from": {
+      "name": "Array.from()",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "core-js (array-from)",
+          "npm": "core-js",
+          "import": "import 'core-js/features/array/from';",
+          "size_kb": 0.6
+        }
+      ]
+    },
+    "array-of": {
+      "name": "Array.of()",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "core-js (array-of)",
+          "npm": "core-js",
+          "import": "import 'core-js/features/array/of';",
+          "size_kb": 0.2
+        }
+      ]
+    },
+    "es6-array-fill": {
+      "name": "Array.fill()",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "core-js (array-fill)",
+          "npm": "core-js",
+          "import": "import 'core-js/features/array/fill';",
+          "size_kb": 0.3
+        }
+      ]
+    },
+    "pointer": {
+      "name": "Pointer Events",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "pepjs",
+          "npm": "pepjs",
+          "import": "import 'pepjs';",
+          "cdn": "https://unpkg.com/pepjs@0.5/dist/pep.min.js",
+          "size_kb": 9.2,
+          "note": "jQuery Pointer Events Polyfill"
+        }
+      ]
+    },
+    "focuswithin": {
+      "name": ":focus-within CSS Selector",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "focus-within-polyfill",
+          "npm": "focus-within-polyfill",
+          "import": "import 'focus-within-polyfill';",
+          "size_kb": 0.5
+        }
+      ]
+    },
+    "focusvisible": {
+      "name": ":focus-visible CSS Selector",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "focus-visible",
+          "npm": "focus-visible",
+          "import": "import 'focus-visible';",
+          "size_kb": 2.1
+        }
+      ]
+    }
+  },
+  "css": {
+    "css-grid": {
+      "name": "CSS Grid Layout",
+      "polyfillable": false,
+      "fallback": {
+        "type": "css",
+        "description": "Use Flexbox as fallback for older browsers",
+        "code": "/* Flexbox fallback for CSS Grid */\n.grid-container {\n  display: flex;\n  flex-wrap: wrap;\n}\n\n/* Modern browsers with Grid support */\n@supports (display: grid) {\n  .grid-container {\n    display: grid;\n    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));\n    gap: 1rem;\n  }\n}"
+      }
+    },
+    "css-variables": {
+      "name": "CSS Custom Properties (Variables)",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "css-vars-ponyfill",
+          "npm": "css-vars-ponyfill",
+          "import": "import cssVars from 'css-vars-ponyfill';\ncssVars();",
+          "size_kb": 5.8,
+          "note": "Client-side transformation of CSS variables"
+        }
+      ]
+    },
+    "flexbox": {
+      "name": "CSS Flexible Box Layout",
+      "polyfillable": false,
+      "fallback": {
+        "type": "css",
+        "description": "Use inline-block or float as fallback",
+        "code": "/* Float/inline-block fallback */\n.flex-container > * {\n  display: inline-block;\n  vertical-align: top;\n}\n\n/* Modern browsers */\n@supports (display: flex) {\n  .flex-container {\n    display: flex;\n  }\n  .flex-container > * {\n    display: block;\n  }\n}"
+      }
+    },
+    "css-sticky": {
+      "name": "CSS position: sticky",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "stickyfilljs",
+          "npm": "stickyfilljs",
+          "import": "import Stickyfill from 'stickyfilljs';\nStickyfill.add(document.querySelectorAll('.sticky'));",
+          "size_kb": 3.2
+        }
+      ]
+    },
+    "object-fit": {
+      "name": "CSS object-fit",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "object-fit-images",
+          "npm": "object-fit-images",
+          "import": "import objectFitImages from 'object-fit-images';\nobjectFitImages();",
+          "size_kb": 1.5
+        }
+      ]
+    },
+    "css-scroll-snap": {
+      "name": "CSS Scroll Snap",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "css-scroll-snap-polyfill",
+          "npm": "css-scroll-snap-polyfill",
+          "import": "import scrollSnapPolyfill from 'css-scroll-snap-polyfill';\nscrollSnapPolyfill();",
+          "size_kb": 4.2
+        }
+      ]
+    },
+    "css-backdrop-filter": {
+      "name": "CSS backdrop-filter",
+      "polyfillable": false,
+      "fallback": {
+        "type": "css",
+        "description": "Use solid background color as fallback",
+        "code": "/* Solid color fallback */\n.glass-effect {\n  background-color: rgba(255, 255, 255, 0.9);\n}\n\n/* Modern browsers */\n@supports (backdrop-filter: blur(10px)) {\n  .glass-effect {\n    background-color: rgba(255, 255, 255, 0.5);\n    backdrop-filter: blur(10px);\n  }\n}"
+      }
+    },
+    "css-filters": {
+      "name": "CSS Filter Effects",
+      "polyfillable": false,
+      "fallback": {
+        "type": "css",
+        "description": "Provide non-filtered fallback",
+        "code": "/* No filter fallback - element appears normally */\n.filtered {\n  /* Base styles */\n}\n\n/* Modern browsers */\n@supports (filter: blur(5px)) {\n  .filtered {\n    filter: blur(5px);\n  }\n}"
+      }
+    },
+    "css-scroll-behavior": {
+      "name": "CSS scroll-behavior: smooth",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "smoothscroll-polyfill",
+          "npm": "smoothscroll-polyfill",
+          "import": "import smoothscroll from 'smoothscroll-polyfill';\nsmoothscroll.polyfill();",
+          "size_kb": 2.8
+        }
+      ]
+    }
+  },
+  "html": {
+    "dialog": {
+      "name": "HTML <dialog> Element",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "dialog-polyfill",
+          "npm": "dialog-polyfill",
+          "import": "import dialogPolyfill from 'dialog-polyfill';\nimport 'dialog-polyfill/dist/dialog-polyfill.css';\n// For each dialog: dialogPolyfill.registerDialog(dialogElement);",
+          "cdn": "https://unpkg.com/dialog-polyfill@0.5/dist/dialog-polyfill.js",
+          "size_kb": 3.5
+        }
+      ]
+    },
+    "details": {
+      "name": "HTML <details> & <summary> Elements",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "details-element-polyfill",
+          "npm": "details-element-polyfill",
+          "import": "import 'details-element-polyfill';",
+          "size_kb": 1.2
+        }
+      ]
+    },
+    "datalist": {
+      "name": "HTML <datalist> Element",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "datalist-polyfill",
+          "npm": "datalist-polyfill",
+          "import": "import 'datalist-polyfill';",
+          "size_kb": 2.5
+        }
+      ]
+    },
+    "picture": {
+      "name": "HTML <picture> Element",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "picturefill",
+          "npm": "picturefill",
+          "import": "import 'picturefill';",
+          "cdn": "https://unpkg.com/picturefill@3/dist/picturefill.min.js",
+          "size_kb": 4.2
+        }
+      ]
+    },
+    "template": {
+      "name": "HTML <template> Element",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "@nicepkg/template-polyfill",
+          "npm": "@nicepkg/template-polyfill",
+          "import": "import '@nicepkg/template-polyfill';",
+          "size_kb": 1.0
+        }
+      ]
+    },
+    "input-color": {
+      "name": "HTML input type=\"color\"",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "spectrum-colorpicker2",
+          "npm": "spectrum-colorpicker2",
+          "import": "// Requires jQuery\nimport 'spectrum-colorpicker2/dist/spectrum.min.css';\nimport 'spectrum-colorpicker2';",
+          "size_kb": 15.0,
+          "note": "Feature-rich color picker (requires jQuery)"
+        }
+      ]
+    },
+    "input-date": {
+      "name": "HTML input type=\"date\"",
+      "polyfillable": true,
+      "packages": [
+        {
+          "name": "flatpickr",
+          "npm": "flatpickr",
+          "import": "import flatpickr from 'flatpickr';\nimport 'flatpickr/dist/flatpickr.min.css';",
+          "size_kb": 16.5,
+          "note": "Lightweight date picker"
+        }
+      ]
+    }
+  }
+}

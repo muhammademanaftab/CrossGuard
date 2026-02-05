@@ -261,3 +261,27 @@ class ScanConfigPanel(ctk.CTkFrame):
             True if at least one file type is enabled
         """
         return any(var.get() for var in self._file_type_vars.values())
+
+    def set_exclude(self, pattern: str, excluded: bool):
+        """Set the exclusion state for a specific pattern.
+
+        Args:
+            pattern: The pattern name (e.g., 'build', 'dist', 'node_modules')
+            excluded: True to exclude, False to include
+        """
+        if pattern in self._exclude_vars:
+            self._exclude_vars[pattern].set(excluded)
+            self._on_change()
+
+    def is_excluded(self, pattern: str) -> bool:
+        """Check if a pattern is currently excluded.
+
+        Args:
+            pattern: The pattern name to check
+
+        Returns:
+            True if the pattern is excluded
+        """
+        if pattern in self._exclude_vars:
+            return self._exclude_vars[pattern].get()
+        return False

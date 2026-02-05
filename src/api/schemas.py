@@ -269,3 +269,26 @@ class DatabaseUpdateResult:
 
 # Type alias for progress callback
 ProgressCallback = Optional[callable]
+
+
+@dataclass
+class PolyfillPackageInfo:
+    """Information about a single polyfill package option."""
+    name: str
+    npm_package: str
+    import_statement: str
+    cdn_url: Optional[str] = None
+    size_kb: Optional[float] = None
+    note: Optional[str] = None
+
+
+@dataclass
+class PolyfillRecommendationSchema:
+    """A polyfill recommendation for a feature (API schema version)."""
+    feature_id: str
+    feature_name: str
+    polyfill_type: str  # 'npm' or 'fallback'
+    packages: List[PolyfillPackageInfo] = field(default_factory=list)
+    fallback_code: Optional[str] = None
+    fallback_description: Optional[str] = None
+    browsers_affected: List[str] = field(default_factory=list)

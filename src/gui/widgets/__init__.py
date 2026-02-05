@@ -52,6 +52,10 @@ from .tag_widget import TagChip, TagList, TagSelector, TagManagerDialog
 from .project_tree import ProjectTreeWidget, TreeItemWidget
 from .scan_config_panel import ScanConfigPanel
 from .project_stats_card import ProjectStatsCard, ProjectSummaryBadge
+from .framework_hint_card import FrameworkHintCard, FrameworkHint
+
+# Polyfill Recommendations
+from .polyfill_card import PolyfillCard, PolyfillEmptyCard
 
 __all__ = [
     # Drop zone
@@ -132,4 +136,10 @@ __all__ = [
     'ScanConfigPanel',
     'ProjectStatsCard',
     'ProjectSummaryBadge',
+    'FrameworkHintCard',
+    'FrameworkHint',
+
+    # Polyfill Recommendations
+    'PolyfillCard',
+    'PolyfillEmptyCard',
 ]
