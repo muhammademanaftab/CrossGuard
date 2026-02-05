@@ -52,6 +52,11 @@ from .widgets import (
     ProjectTreeWidget,
     ScanConfigPanel,
     ProjectStatsCard,
+    FrameworkHintCard,
+    FrameworkHint,
+    # Polyfill Recommendations
+    PolyfillCard,
+    PolyfillEmptyCard,
 )
 from .widgets.rules_manager import show_rules_manager
 
@@ -64,6 +69,9 @@ from src.utils.feature_names import get_feature_name, get_fix_suggestion
 
 # Import feature flags
 from src.utils.config import ML_ENABLED
+
+# Import polyfill service
+from src.polyfill import PolyfillService, generate_polyfills_file
 
 
 class MainWindow(ctk.CTkFrame):
@@ -399,6 +407,15 @@ class MainWindow(ctk.CTkFrame):
         self._project_stats_card.pack(fill="x", pady=(0, SPACING['md']))
         self._project_stats_card.pack_forget()  # Hide initially
 
+        # Framework hint card (hidden until scan detects framework)
+        self._framework_hint_card = FrameworkHintCard(
+            scroll_frame,
+            on_include_build=self._on_include_build_folder,
+            on_dismiss=self._on_dismiss_hint,
+        )
+        self._framework_hint_card.pack(fill="x", pady=(0, SPACING['md']))
+        self._framework_hint_card.pack_forget()  # Hide initially
+
         # Project tree widget (hidden until scan)
         self._project_tree = ProjectTreeWidget(
             scroll_frame,
@@ -489,6 +506,21 @@ class MainWindow(ctk.CTkFrame):
                 text_color=COLORS['text_muted'],
             )
 
+    def _on_include_build_folder(self, folder_name: str):
+        """Handle 'Include build folder' button - unchecks exclusion and re-scans.
+
+        Args:
+            folder_name: The name of the build folder to include (e.g., 'build', 'dist')
+        """
+        # Uncheck the exclusion for this folder in the config panel
+        self._scan_config_panel.set_exclude(folder_name, False)
+        # Re-scan to show the build folder contents
+        self._preview_project()
+
+    def _on_dismiss_hint(self):
+        """Handle hint dismissal."""
+        self._framework_hint_card.pack_forget()
+
     def _preview_project(self):
         """Preview project files without analyzing."""
         path = self._project_path_var.get()
@@ -542,6 +574,29 @@ class MainWindow(ctk.CTkFrame):
                 has_typescript=project_info.has_typescript,
             )
             self._project_stats_card.pack(fill="x", pady=(0, SPACING['md']))
+
+            # Generate and display framework hint
+            hint_data = detector.get_scanning_hint(project_info, path)
+            build_folders = detector.check_build_folders(path)
+
+            if hint_data and hint_data.get('hint_type') != 'ready':
+                # Create FrameworkHint from dictionary
+                hint = FrameworkHint(
+                    hint_type=hint_data['hint_type'],
+                    title=hint_data['title'],
+                    message=hint_data['message'],
+                    build_command=hint_data.get('build_command'),
+                    build_folder=hint_data.get('build_folder'),
+                    icon=hint_data.get('icon', 'info'),
+                )
+
+                # Check if the relevant build folder exists
+                build_exists = build_folders.get(hint.build_folder, False) if hint.build_folder else False
+
+                self._framework_hint_card.update_hint(hint, build_exists)
+                self._framework_hint_card.pack(fill="x", pady=(0, SPACING['md']))
+            else:
+                self._framework_hint_card.pack_forget()
 
             # Update tree widget
             self._project_tree.set_tree(result.file_tree)
@@ -796,6 +851,30 @@ class MainWindow(ctk.CTkFrame):
         if issues:
             issues_summary = IssuesSummary(scroll_frame, issues=issues)
             issues_summary.pack(fill="x", pady=(0, SPACING['lg']))
+
+        # ===== SECTION 3.5: Polyfill Recommendations =====
+        polyfill_data = self._get_polyfill_recommendations(browsers)
+        if polyfill_data['has_recommendations']:
+            polyfill_section = CollapsibleSection(
+                scroll_frame,
+                title="Polyfill Recommendations",
+                badge_text=str(polyfill_data['count']),
+                badge_color=COLORS['info'],
+                expanded=True,  # Expanded by default - actionable info
+            )
+            polyfill_section.pack(fill="x", pady=(0, SPACING['lg']))
+
+            polyfill_content = polyfill_section.get_content_frame()
+            polyfill_card = PolyfillCard(
+                polyfill_content,
+                install_command=polyfill_data['install_command'],
+                import_statements=polyfill_data['imports'],
+                npm_recommendations=polyfill_data['npm'],
+                css_fallbacks=polyfill_data['css'],
+                total_size_kb=polyfill_data['total_size_kb'],
+                on_generate_file=self._generate_polyfills_file,
+            )
+            polyfill_card.pack(fill="x")
 
         # ===== SECTION 4: Browser Support (Collapsed by Default) =====
         if browsers:
@@ -1558,6 +1637,98 @@ class MainWindow(ctk.CTkFrame):
                 })
 
         return issues
+
+    def _get_polyfill_recommendations(self, browsers: Dict) -> dict:
+        """Extract polyfill recommendations from browser compatibility data.
+
+        Args:
+            browsers: Dict of browser name to compatibility data
+
+        Returns:
+            Dict with:
+            - has_recommendations: bool
+            - count: int
+            - install_command: str
+            - imports: List[str]
+            - npm: List of npm PolyfillRecommendation objects
+            - css: List of CSS fallback PolyfillRecommendation objects
+            - total_size_kb: float
+        """
+        if not browsers:
+            return {'has_recommendations': False}
+
+        service = PolyfillService()
+
+        # Collect unsupported/partial features from all browsers
+        unsupported = set()
+        partial = set()
+        browser_versions = {}
+
+        for browser_name, data in browsers.items():
+            browser_versions[browser_name] = data.get('version', '')
+            unsupported.update(data.get('unsupported_features', []))
+            partial.update(data.get('partial_features', []))
+
+        recommendations = service.get_recommendations(unsupported, partial, browser_versions)
+
+        if not recommendations:
+            return {'has_recommendations': False}
+
+        categorized = service.categorize_recommendations(recommendations)
+        npm_recs = categorized['npm']
+        css_recs = categorized['fallback']
+
+        return {
+            'has_recommendations': True,
+            'count': len(recommendations),
+            'install_command': service.get_aggregate_install_command(recommendations),
+            'imports': service.get_aggregate_imports(recommendations),
+            'npm': npm_recs,
+            'css': css_recs,
+            'total_size_kb': service.get_total_size_kb(recommendations),
+        }
+
+    def _generate_polyfills_file(self, filename: str):
+        """Generate a polyfills.js file with all necessary imports.
+
+        Args:
+            filename: Suggested filename (default: 'polyfills.js')
+        """
+        if not self.current_report:
+            show_warning(self, "No Analysis", "Please run an analysis first.")
+            return
+
+        browsers = self.current_report.get('browsers', {})
+        polyfill_data = self._get_polyfill_recommendations(browsers)
+
+        if not polyfill_data['has_recommendations']:
+            show_info(self, "No Polyfills", "No polyfills are needed for your current analysis.")
+            return
+
+        # Ask user where to save the file
+        from tkinter import filedialog
+        output_path = filedialog.asksaveasfilename(
+            defaultextension=".js",
+            filetypes=[("JavaScript files", "*.js"), ("All files", "*.*")],
+            initialfile=filename,
+            title="Save Polyfills File"
+        )
+
+        if not output_path:
+            return  # User cancelled
+
+        try:
+            # Get all npm recommendations
+            all_recs = polyfill_data['npm']
+            generated_path = generate_polyfills_file(all_recs, output_path)
+            show_info(
+                self,
+                "File Generated",
+                f"Polyfills file created:\n{generated_path}\n\n"
+                f"Don't forget to install the packages:\n{polyfill_data['install_command']}"
+            )
+        except Exception as e:
+            show_error(self, "Error", f"Failed to generate file: {e}")
 
     def _get_ml_risk_assessment(self, features: Dict) -> Optional[Dict]:
         """Get ML-based risk assessment for detected features.
