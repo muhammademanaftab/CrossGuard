@@ -1,0 +1,44 @@
+/**
+ * CSS Custom Rules Test - Existing Rules from custom_rules.json
+ * Tests the rules that actually exist in the production custom_rules.json
+ *
+ * No prerequisites needed - uses the built-in custom rules:
+ *   "special-animation-custom" with pattern "special-animation"
+ *   "my-custom-property" with pattern "my-custom-property"
+ *
+ * Expected custom features: special-animation-custom, my-custom-property
+ */
+
+/* === special-animation-custom === */
+.animated-box {
+    special-animation: slide-in 2s ease;
+}
+
+.another-animation {
+    animation-name: special-animation;
+}
+
+/* === my-custom-property === */
+.widget {
+    my-custom-property: enabled;
+}
+
+.panel {
+    my-custom-property: 42px auto;
+}
+
+/* === Built-in CSS that should also be detected === */
+.flex-container {
+    display: flex;
+    gap: 10px;
+}
+
+.grid-layout {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+}
+
+/* Expected features:
+ * Custom: special-animation-custom, my-custom-property
+ * Built-in: flexbox, css-grid
+ */

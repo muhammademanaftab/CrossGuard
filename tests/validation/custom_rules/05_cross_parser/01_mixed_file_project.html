@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<!--
+  Cross-Parser Test - Full Project Page
+  Tests custom rules across HTML elements, inline CSS, and inline JavaScript
+
+  Prerequisites: All custom rules from 02_css_rules and 03_js_rules tests
+
+  This file should be tested by uploading to the GUI and checking that:
+  1. HTML custom rules are detected from the markup
+  2. Built-in HTML features are detected
+  3. The HTML parser correctly handles a complex document
+-->
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Cross-Parser Integration Test</title>
+    <link rel="preload" href="style.css" as="style">
+    <script type="module" src="app.js"></script>
+</head>
+<body>
+
+    <!-- Custom element from custom_rules.json -->
+    <my-component>
+        <h1>Cross-Parser Test Page</h1>
+    </my-component>
+
+    <!-- Built-in HTML5 features -->
+    <main>
+        <video src="demo.mp4" controls>
+            <source type="video/webm" src="demo.webm">
+        </video>
+
+        <form>
+            <input type="email" placeholder="Email" required>
+            <input type="date" name="start">
+            <input type="color" name="theme">
+            <button type="submit">Send</button>
+        </form>
+
+        <dialog id="confirm-dialog">
+            <p>Are you sure?</p>
+            <button>Confirm</button>
+        </dialog>
+
+        <details>
+            <summary>More info</summary>
+            <p>Detailed content here.</p>
+        </details>
+
+        <canvas id="chart" width="400" height="300"></canvas>
+    </main>
+
+    <footer>
+        <p>Built with Cross Guard</p>
+    </footer>
+
+</body>
+</html>
+
+<!-- Expected features:
+  Custom: custom-elementsv1 (my-component)
+  Built-in: link-rel-preload, es6-module, video, webm,
+            input-email-tel-url, input-placeholder, form-validation,
+            input-datetime, input-color, dialog, details, canvas,
+            html5semantic (main, footer)
+-->

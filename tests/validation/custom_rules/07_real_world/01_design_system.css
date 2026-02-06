@@ -1,0 +1,94 @@
+/**
+ * Real-World Test: Design System Stylesheet
+ * Simulates a design system using both built-in and custom CSS features
+ *
+ * Uses existing custom_rules.json:
+ *   "special-animation-custom" with pattern "special-animation"
+ *   "my-custom-property" with pattern "my-custom-property"
+ *
+ * Expected custom features: special-animation-custom, my-custom-property
+ * Expected built-in features: css-variables, flexbox, css-grid, css-animation,
+ *   css-transitions, border-radius, css-gradients, transforms2d, css-filters,
+ *   css-boxshadow
+ */
+
+/* CSS Variables (Design Tokens) */
+:root {
+    --color-primary: #3b82f6;
+    --color-secondary: #10b981;
+    --color-danger: #ef4444;
+    --spacing-sm: 8px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 16px;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+    --transition-fast: 150ms ease;
+    --transition-normal: 300ms ease;
+}
+
+/* Custom property from custom_rules.json */
+.ds-component {
+    my-custom-property: active;
+}
+
+/* Custom animation from custom_rules.json */
+.ds-entrance {
+    special-animation: fadeSlideIn 0.5s ease forwards;
+}
+
+/* Layout */
+.ds-container {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-md);
+}
+
+.ds-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: var(--spacing-lg);
+}
+
+/* Components */
+.ds-card {
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+    background: linear-gradient(135deg, #ffffff, #f8fafc);
+    overflow: hidden;
+}
+
+.ds-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+.ds-button {
+    border-radius: var(--radius-sm);
+    transition: all var(--transition-normal);
+    filter: brightness(1);
+}
+
+.ds-button:hover {
+    filter: brightness(0.9);
+}
+
+@keyframes fadeSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Expected features:
+ * Custom: special-animation-custom, my-custom-property
+ * Built-in: css-variables, flexbox, css-grid, css-animation, css-transitions,
+ *   border-radius, css-gradients, transforms2d, css-filters, css-boxshadow
+ */

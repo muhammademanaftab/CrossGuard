@@ -1,0 +1,45 @@
+/**
+ * CSS Custom Rules Test - No False Positives
+ * Ensures custom rules don't trigger on unrelated CSS
+ *
+ * Prerequisites: Same custom rules as 01_basic_properties.css
+ *
+ * Expected custom features: NONE
+ * Expected built-in features: flexbox, css-transitions
+ */
+
+/* Regular CSS - should NOT trigger custom rules */
+.box {
+    color: red;
+    margin: 10px;
+    padding: 20px;
+    background: linear-gradient(to right, red, blue); /* NOT custom-gradient */
+    border: 1px solid #ccc;
+}
+
+/* This mentions 'scroll' but NOT 'scroll-timeline' */
+.scroller {
+    overflow: scroll;
+    scroll-behavior: smooth;
+}
+
+/* This mentions 'anchor' in a comment, not as a property */
+/* anchor positioning is not used here */
+.link {
+    color: blue;
+    text-decoration: none;
+}
+
+/* Built-in features that SHOULD be detected */
+.container {
+    display: flex;
+}
+
+.animated {
+    transition: all 0.3s ease;
+}
+
+/* Expected features:
+ * Custom: NONE (no custom patterns should match)
+ * Built-in: flexbox, css-transitions
+ */

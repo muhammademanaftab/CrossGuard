@@ -1,0 +1,21 @@
+{
+  "_comment": "Edge case: Unicode characters in rule patterns",
+  "css": {
+    "test-unicode-prop": {
+      "patterns": ["caf\u00e9-style\\s*:"],
+      "description": "Unicode property (cafe with accent)"
+    }
+  },
+  "javascript": {
+    "test-unicode-api": {
+      "patterns": ["\\b\u00e9l\u00e9ment\\b"],
+      "description": "Unicode API name"
+    }
+  },
+  "html": {
+    "elements": {},
+    "attributes": {},
+    "input_types": {},
+    "attribute_values": {}
+  }
+}

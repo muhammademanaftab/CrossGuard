@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<!--
+  HTML Custom Rules Test - Custom Attributes
+  Tests detection of custom attribute rules from custom_rules.json
+
+  Prerequisites: Add to custom_rules.json under "html" > "attributes":
+    "x-data": "alpine-reactive",
+    "v-if": "vue-directive",
+    "hx-get": "htmx-feature"
+
+  Expected custom features: alpine-reactive, vue-directive, htmx-feature
+  Expected built-in features: input-placeholder, form-validation, contenteditable
+-->
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Custom Attributes Test</title>
+</head>
+<body>
+
+    <!-- Custom attribute on standard element (alpine-reactive) -->
+    <div x-data="{ open: false }">
+        <button @click="open = !open">Toggle</button>
+        <div x-show="open">Content</div>
+    </div>
+
+    <!-- Vue directive attribute (vue-directive) -->
+    <div id="app">
+        <p v-if="isVisible">Visible paragraph</p>
+        <ul>
+            <li v-for="item in items">{{ item.name }}</li>
+        </ul>
+    </div>
+
+    <!-- HTMX attribute (htmx-feature) -->
+    <button hx-get="/api/data" hx-target="#result">
+        Load Data
+    </button>
+    <div id="result"></div>
+
+    <!-- Built-in attributes that should also be detected -->
+    <input placeholder="Enter name" required>
+    <div contenteditable="true">Editable content</div>
+
+</body>
+</html>
+
+<!-- Expected features:
+  Custom: alpine-reactive (x-data), vue-directive (v-if), htmx-feature (hx-get)
+  Built-in: input-placeholder, form-validation, contenteditable
+-->

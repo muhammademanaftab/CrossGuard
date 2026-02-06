@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<!--
+  Real-World Test: Web Component Page
+  Simulates a page using custom web components
+
+  Uses existing custom_rules.json:
+    elements: "my-component" -> "custom-elementsv1"
+
+  Expected custom features: custom-elementsv1
+  Expected built-in features: html5semantic, dialog, details, video,
+    input-placeholder, form-validation, input-email-tel-url, es6-module,
+    link-rel-preload, srcset, wai-aria, contenteditable, dataset
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Web Component App</title>
+    <link rel="preload" href="fonts/inter.woff2" as="font" type="font/woff2" crossorigin>
+    <link rel="stylesheet" href="styles.css">
+    <script type="module" src="components.js"></script>
+</head>
+<body>
+
+    <!-- Custom components from custom_rules.json -->
+    <my-component>
+        <header>
+            <nav role="navigation" aria-label="Main navigation">
+                <a href="/">Home</a>
+                <a href="/about">About</a>
+                <a href="/contact">Contact</a>
+            </nav>
+        </header>
+    </my-component>
+
+    <main>
+        <section>
+            <h1>Welcome to the Component Demo</h1>
+
+            <!-- Responsive image -->
+            <img src="hero-800.jpg"
+                 srcset="hero-400.jpg 400w, hero-800.jpg 800w, hero-1200.jpg 1200w"
+                 sizes="(max-width: 600px) 400px, (max-width: 1000px) 800px, 1200px"
+                 alt="Hero banner">
+
+            <!-- Another custom component instance -->
+            <my-component>
+                <div data-widget="card" data-theme="dark">
+                    <h2>Featured Content</h2>
+                    <p>Interactive card component built with Custom Elements.</p>
+                </div>
+            </my-component>
+        </section>
+
+        <!-- Video section -->
+        <section>
+            <video controls poster="thumbnail.jpg">
+                <source src="demo.webm" type="video/webm">
+                <source src="demo.mp4" type="video/mp4">
+            </video>
+        </section>
+
+        <!-- Form with modern features -->
+        <section>
+            <form>
+                <label for="email">Email:</label>
+                <input type="email" id="email" placeholder="you@example.com" required>
+
+                <label for="message">Message:</label>
+                <div contenteditable="true" role="textbox" aria-label="Message editor"
+                     data-field="message">
+                    Type your message here...
+                </div>
+
+                <button type="submit">Send</button>
+            </form>
+        </section>
+
+        <!-- Interactive elements -->
+        <details>
+            <summary>FAQ</summary>
+            <p>Frequently asked questions content.</p>
+        </details>
+
+        <dialog id="modal">
+            <h2>Confirmation</h2>
+            <p>Are you sure you want to proceed?</p>
+            <button>Confirm</button>
+            <button>Cancel</button>
+        </dialog>
+    </main>
+
+    <footer>
+        <p>Copyright 2024</p>
+    </footer>
+
+</body>
+</html>
+
+<!-- Expected features:
+  Custom: custom-elementsv1 (my-component)
+  Built-in: html5semantic (main, section, header, footer, nav),
+    dialog, details, video, webm, srcset,
+    input-email-tel-url, input-placeholder, form-validation,
+    contenteditable, wai-aria (role, aria-label),
+    dataset (data-widget, data-theme, data-field),
+    es6-module (type="module"), link-rel-preload,
+    viewport-units (meta viewport)
+-->
