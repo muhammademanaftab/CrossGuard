@@ -1,0 +1,32 @@
+{
+  "css": {
+    "valid-rule": {
+      "patterns": ["valid-pattern"],
+      "description": "This rule is valid"
+    },
+    "missing-patterns": {
+      "description": "No patterns key - should be skipped"
+    },
+    "not-a-dict": "just a string value",
+    "_comment": "This should be skipped (underscore prefix)"
+  },
+  "javascript": {
+    "also-valid": {
+      "patterns": ["also-valid\\b"],
+      "description": "Also valid"
+    },
+    "empty-patterns": {
+      "patterns": [],
+      "description": "Empty patterns list"
+    }
+  },
+  "html": {
+    "elements": {
+      "_ignore": "skip-me",
+      "real-elem": "real-feature"
+    }
+  },
+  "extra_unknown_section": {
+    "should": "be ignored"
+  }
+}

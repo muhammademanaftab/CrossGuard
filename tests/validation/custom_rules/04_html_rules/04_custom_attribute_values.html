@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<!--
+  HTML Custom Rules Test - Custom Attribute Values
+  Tests detection of custom attribute value rules from custom_rules.json
+
+  Prerequisites: Add to custom_rules.json under "html" > "attribute_values":
+    "fetchpriority:high": "fetch-priority",
+    "rel:modulepreload": "link-rel-modulepreload-custom",
+    "loading:lazy": "loading-lazy-custom"
+
+  Expected custom features: fetch-priority, link-rel-modulepreload-custom, loading-lazy-custom
+  Expected built-in features: link-rel-preload, es6-module
+-->
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Custom Attribute Values Test</title>
+
+    <!-- Custom attribute value: fetchpriority:high -->
+    <link rel="preload" href="critical.css" as="style" fetchpriority="high">
+
+    <!-- Custom attribute value: rel:modulepreload -->
+    <link rel="modulepreload" href="module.js">
+
+    <!-- Built-in attribute value: type:module -->
+    <script type="module" src="app.js"></script>
+
+</head>
+<body>
+
+    <!-- Custom attribute value: loading:lazy -->
+    <img src="photo.jpg" alt="Photo" loading="lazy" width="800" height="600">
+
+    <!-- Another lazy-loaded element -->
+    <iframe src="widget.html" loading="lazy"></iframe>
+
+    <!-- Case sensitivity test: should match lowercase -->
+    <img src="banner.jpg" alt="Banner" loading="Lazy" fetchpriority="High">
+
+</body>
+</html>
+
+<!-- Expected features:
+  Custom: fetch-priority, link-rel-modulepreload-custom, loading-lazy-custom
+  Built-in: link-rel-preload (from rel="preload"), es6-module (from type="module"),
+            link-rel-modulepreload (built-in detection from _detect_special_patterns)
+-->

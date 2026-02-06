@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<!--
+  HTML Custom Rules Test - Custom Elements
+  Tests detection of custom element rules from custom_rules.json
+
+  Prerequisites: Add to custom_rules.json under "html" > "elements":
+    "app-header": "custom-elementsv1",
+    "data-table": "custom-elementsv1",
+    "ui-modal": "custom-elementsv1"
+
+  Expected custom features: custom-elementsv1
+  Expected built-in features: video, html5semantic
+-->
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Custom Elements Test</title>
+</head>
+<body>
+
+    <!-- Custom elements (should trigger custom-elementsv1) -->
+    <app-header>
+        <h1>My Application</h1>
+    </app-header>
+
+    <main>
+        <!-- Nested custom element deep in DOM -->
+        <section>
+            <article>
+                <div>
+                    <data-table>
+                        <div>Row 1</div>
+                        <div>Row 2</div>
+                    </data-table>
+                </div>
+            </article>
+        </section>
+
+        <!-- Self-closing custom element -->
+        <ui-modal />
+
+        <!-- Custom element with attributes -->
+        <app-header class="main" data-theme="dark">
+            Content with attributes
+        </app-header>
+    </main>
+
+    <!-- Built-in elements that should also be detected -->
+    <video src="video.mp4" controls></video>
+
+    <!-- Text mentioning custom element names should NOT trigger detection -->
+    <p>The app-header component is great for page layouts.</p>
+    <p>Use data-table for displaying tabular data.</p>
+
+</body>
+</html>
+
+<!-- Expected features:
+  Custom: custom-elementsv1 (from app-header, data-table, ui-modal)
+  Built-in: video, html5semantic (from main, section, article)
+-->

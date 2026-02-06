@@ -1,0 +1,48 @@
+/**
+ * Cross-Parser Test - CSS Companion File
+ * Pair with 01_mixed_file_project.html for multi-file analysis
+ *
+ * Uses existing custom rules from custom_rules.json:
+ *   "special-animation-custom" with pattern "special-animation"
+ *   "my-custom-property" with pattern "my-custom-property"
+ *
+ * Expected custom features: special-animation-custom, my-custom-property
+ * Expected built-in features: flexbox, css-grid, css-animation, css-transitions
+ */
+
+/* Custom rules */
+.hero {
+    special-animation: fadeIn 1s ease;
+    my-custom-property: enabled;
+}
+
+/* Built-in features */
+.layout {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.card {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    border-radius: 8px;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+}
+
+/* Expected features:
+ * Custom: special-animation-custom, my-custom-property
+ * Built-in: flexbox, css-grid, css-animation, css-transitions, border-radius, transforms2d
+ */

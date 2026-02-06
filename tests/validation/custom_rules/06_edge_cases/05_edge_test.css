@@ -1,0 +1,50 @@
+/**
+ * Edge Case CSS Test File
+ * Tests edge cases in CSS custom rule detection
+ *
+ * Uses existing custom_rules.json rules:
+ *   "special-animation-custom" with pattern "special-animation"
+ *   "my-custom-property" with pattern "my-custom-property"
+ *
+ * Tests:
+ *   - Custom property in a comment (should NOT detect)
+ *   - Custom property in a very long declaration block
+ *   - Custom property with unusual whitespace
+ *   - Multiple occurrences of same custom property
+ */
+
+/* Custom property in comment - should NOT be detected */
+/* special-animation: test; */
+/* my-custom-property: disabled; */
+
+/* Custom property with unusual whitespace */
+.box1 {
+    special-animation:    slide-in    2s    ease;
+}
+
+/* Custom property in long declaration block */
+.complex-box {
+    color: red;
+    margin: 10px 20px 30px 40px;
+    padding: 5px;
+    background: linear-gradient(to right, #fff, #000);
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    font-family: Arial, sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    text-align: center;
+    my-custom-property: active;
+    z-index: 10;
+}
+
+/* Multiple occurrences */
+.item1 { my-custom-property: value1; }
+.item2 { my-custom-property: value2; }
+.item3 { my-custom-property: value3; }
+
+/* Expected features:
+ * Custom: special-animation-custom, my-custom-property
+ * Built-in: border-radius, css-gradients (linear-gradient), css-boxshadow
+ */

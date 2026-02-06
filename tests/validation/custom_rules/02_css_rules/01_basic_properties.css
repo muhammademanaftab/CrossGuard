@@ -1,0 +1,64 @@
+/**
+ * CSS Custom Rules Test - Basic Property Detection
+ * Tests that custom CSS rules defined in custom_rules.json are detected
+ *
+ * Prerequisites: Add the following to src/parsers/custom_rules.json under "css":
+ *   "test-custom-gradient": {
+ *     "patterns": ["custom-gradient\\s*\\("],
+ *     "description": "Custom Gradient Function"
+ *   },
+ *   "test-scroll-timeline": {
+ *     "patterns": ["scroll-timeline\\s*:", "scroll-timeline-name\\s*:"],
+ *     "description": "Scroll Timeline"
+ *   },
+ *   "test-anchor-position": {
+ *     "patterns": ["anchor\\s*\\(", "position-anchor\\s*:"],
+ *     "description": "CSS Anchor Positioning"
+ *   }
+ *
+ * Expected custom features: test-custom-gradient, test-scroll-timeline, test-anchor-position
+ * Expected built-in features: flexbox, css-grid (to verify no interference)
+ */
+
+/* === Custom Gradient Function (test-custom-gradient) === */
+.hero {
+    background: custom-gradient(to right, red, blue);
+}
+
+.card {
+    background-image: custom-gradient(45deg, #ff0000, #0000ff);
+}
+
+/* === Scroll Timeline (test-scroll-timeline) === */
+.parallax {
+    scroll-timeline: --page-scroll block;
+}
+
+.progress-bar {
+    scroll-timeline-name: --progress;
+    animation-timeline: --progress;
+}
+
+/* === Anchor Positioning (test-anchor-position) === */
+.tooltip {
+    position: fixed;
+    position-anchor: --trigger;
+    top: anchor(bottom);
+    left: anchor(center);
+}
+
+/* === Built-in rules should still work === */
+.container {
+    display: flex;
+    flex-direction: column;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+}
+
+/* Expected features:
+ * Custom: test-custom-gradient, test-scroll-timeline, test-anchor-position
+ * Built-in: flexbox, css-grid
+ */

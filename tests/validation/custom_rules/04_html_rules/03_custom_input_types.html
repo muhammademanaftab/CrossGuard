@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<!--
+  HTML Custom Rules Test - Custom Input Types
+  Tests detection of custom input type rules from custom_rules.json
+
+  Prerequisites: Add to custom_rules.json under "html" > "input_types":
+    "week": "input-datetime"
+
+  Note: "week" is already a built-in input type mapping.
+  This test verifies both built-in and any additional custom input type mappings.
+
+  Expected features: input-datetime, input-email-tel-url, input-color, input-range
+-->
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Custom Input Types Test</title>
+</head>
+<body>
+
+    <form>
+        <!-- Built-in input types -->
+        <label>Date: <input type="date"></label>
+        <label>Time: <input type="time"></label>
+        <label>Email: <input type="email"></label>
+        <label>Color: <input type="color"></label>
+        <label>Range: <input type="range" min="0" max="100"></label>
+
+        <!-- Week input type (tested via custom or built-in) -->
+        <label>Week: <input type="week"></label>
+
+        <!-- Month input type -->
+        <label>Month: <input type="month"></label>
+
+        <button type="submit">Submit</button>
+    </form>
+
+</body>
+</html>
+
+<!-- Expected features:
+  input-datetime (from date, time, week, month)
+  input-email-tel-url (from email)
+  input-color (from color)
+  input-range (from range)
+-->

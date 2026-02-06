@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<!--
+  HTML Custom Rules Test - Existing Rules from custom_rules.json
+  Tests the rules that actually exist in the production custom_rules.json:
+    elements: "my-component" -> "custom-elementsv1"
+
+  No prerequisites needed - uses the built-in custom rules.
+
+  Expected custom features: custom-elementsv1
+  Expected built-in features: video, html5semantic
+-->
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Existing HTML Custom Rules Test</title>
+</head>
+<body>
+
+    <!-- Custom element from custom_rules.json -->
+    <my-component>
+        <h2>Custom Component Content</h2>
+        <p>This element is defined in custom_rules.json</p>
+    </my-component>
+
+    <!-- Same element nested -->
+    <div>
+        <my-component>Nested instance</my-component>
+    </div>
+
+    <!-- Built-in elements -->
+    <main>
+        <video src="clip.mp4" controls></video>
+    </main>
+
+    <!-- Text mention should NOT trigger -->
+    <p>The my-component element is registered via Custom Elements v1.</p>
+
+</body>
+</html>
+
+<!-- Expected features:
+  Custom: custom-elementsv1 (from my-component in custom_rules.json)
+  Built-in: video, html5semantic (from main)
+-->

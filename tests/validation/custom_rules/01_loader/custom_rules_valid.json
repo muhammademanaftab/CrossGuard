@@ -1,0 +1,42 @@
+{
+  "_comment": "Valid custom rules file for manual testing",
+  "css": {
+    "_comment": "CSS custom rules section",
+    "css-accent-color": {
+      "patterns": ["accent-color\\s*:"],
+      "description": "CSS accent-color property"
+    },
+    "css-text-wrap-balance": {
+      "patterns": ["text-wrap\\s*:\\s*balance"],
+      "description": "CSS text-wrap: balance"
+    },
+    "css-color-mix": {
+      "patterns": ["color-mix\\s*\\("],
+      "description": "CSS color-mix() function"
+    }
+  },
+  "javascript": {
+    "js-structured-clone": {
+      "patterns": ["\\bstructuredClone\\s*\\("],
+      "description": "structuredClone API"
+    },
+    "js-navigation-api": {
+      "patterns": ["\\bnavigation\\.navigate\\s*\\(", "\\bNavigateEvent\\b"],
+      "description": "Navigation API"
+    }
+  },
+  "html": {
+    "elements": {
+      "search": "html-search-element"
+    },
+    "attributes": {
+      "popover": "html-popover"
+    },
+    "input_types": {
+      "month": "input-datetime"
+    },
+    "attribute_values": {
+      "fetchpriority:high": "fetch-priority"
+    }
+  }
+}

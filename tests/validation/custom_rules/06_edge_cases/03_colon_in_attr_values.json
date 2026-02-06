@@ -1,0 +1,16 @@
+{
+  "_comment": "Edge case: Colon parsing in attribute_values keys",
+  "css": {},
+  "javascript": {},
+  "html": {
+    "elements": {},
+    "attributes": {},
+    "input_types": {},
+    "attribute_values": {
+      "data-mode:advanced": "test-data-mode",
+      "type:application/ld+json": "test-json-ld",
+      "rel:dns-prefetch": "test-dns-prefetch",
+      "accept:image/*": "test-accept-image"
+    }
+  }
+}

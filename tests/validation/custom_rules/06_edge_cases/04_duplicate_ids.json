@@ -1,0 +1,21 @@
+{
+  "_comment": "Edge case: Same feature ID in CSS and JS sections (should work independently)",
+  "css": {
+    "shared-feature-id": {
+      "patterns": ["shared-css-prop\\s*:"],
+      "description": "CSS version of shared feature"
+    }
+  },
+  "javascript": {
+    "shared-feature-id": {
+      "patterns": ["\\bsharedJsApi\\b"],
+      "description": "JS version of shared feature"
+    }
+  },
+  "html": {
+    "elements": {},
+    "attributes": {},
+    "input_types": {},
+    "attribute_values": {}
+  }
+}

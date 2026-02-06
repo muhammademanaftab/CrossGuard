@@ -1,0 +1,25 @@
+{
+  "_comment": "Edge case: Complex regex patterns with special characters",
+  "css": {
+    "test-alternation": {
+      "patterns": ["(?:foo|bar|baz)-special\\s*:"],
+      "description": "Alternation pattern"
+    },
+    "test-lookahead": {
+      "patterns": ["edge-prop(?=\\s*:)"],
+      "description": "Lookahead pattern"
+    }
+  },
+  "javascript": {
+    "test-char-class": {
+      "patterns": ["\\bspecial[A-Z]\\w+API\\b"],
+      "description": "Character class pattern"
+    }
+  },
+  "html": {
+    "elements": {},
+    "attributes": {},
+    "input_types": {},
+    "attribute_values": {}
+  }
+}

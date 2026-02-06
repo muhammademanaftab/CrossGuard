@@ -1,0 +1,62 @@
+/**
+ * CSS Custom Rules Test - Multiple Patterns Per Rule
+ * Tests rules with multiple regex patterns and complex matching
+ *
+ * Prerequisites: Add to custom_rules.json under "css":
+ *   "test-container-queries": {
+ *     "patterns": ["@container\\b", "container-type\\s*:", "container-name\\s*:"],
+ *     "description": "CSS Container Queries"
+ *   },
+ *   "test-view-transitions": {
+ *     "patterns": ["view-transition-name\\s*:", "::view-transition"],
+ *     "description": "CSS View Transitions"
+ *   }
+ *
+ * Expected custom features: test-container-queries, test-view-transitions
+ */
+
+/* === Container Queries - pattern 1: @container === */
+@container sidebar (min-width: 700px) {
+    .card {
+        font-size: 1.2em;
+    }
+}
+
+/* === Container Queries - pattern 2: container-type === */
+.sidebar {
+    container-type: inline-size;
+}
+
+/* === Container Queries - pattern 3: container-name === */
+.main-content {
+    container-name: main;
+}
+
+/* === View Transitions - pattern 1: view-transition-name === */
+.page-header {
+    view-transition-name: header;
+}
+
+/* === View Transitions - pattern 2: ::view-transition pseudo === */
+::view-transition-old(header) {
+    animation: fade-out 0.25s;
+}
+
+::view-transition-new(header) {
+    animation: fade-in 0.25s;
+}
+
+@keyframes fade-out {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+@keyframes fade-in {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+/* Expected features:
+ * Custom: test-container-queries (3 patterns), test-view-transitions (2 patterns)
+ * Built-in: css-animation (from @keyframes)
+ */

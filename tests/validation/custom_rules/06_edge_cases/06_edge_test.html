@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<!--
+  Edge Case HTML Test File
+  Tests edge cases in HTML custom rule detection
+
+  Uses existing custom_rules.json HTML rule:
+    elements: "my-component" -> "custom-elementsv1"
+
+  Tests:
+    - Custom element in HTML comment (should NOT detect)
+    - Custom element name in text content (should NOT detect)
+    - Custom element name in attribute value (should NOT detect)
+    - Multiple instances of same custom element
+    - Custom element with no content
+-->
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Edge Case HTML Test</title>
+</head>
+<body>
+
+    <!-- my-component in a comment - should NOT trigger detection -->
+    <!-- <my-component>This is commented out</my-component> -->
+
+    <!-- Custom element name in text - should NOT trigger -->
+    <p>The my-component element is a custom web component.</p>
+    <p>To use my-component, include the script tag first.</p>
+
+    <!-- Custom element name in attribute value - should NOT trigger -->
+    <div data-component="my-component">Not an element</div>
+    <div title="my-component documentation">Not an element either</div>
+
+    <!-- Actual custom elements - SHOULD trigger -->
+    <my-component></my-component>
+    <my-component>With content</my-component>
+    <my-component>
+        <p>Nested content</p>
+    </my-component>
+
+    <!-- Empty custom element -->
+    <my-component/>
+
+    <!-- Built-in features -->
+    <video src="v.mp4"></video>
+    <main><p>Semantic content</p></main>
+
+</body>
+</html>
+
+<!-- Expected features:
+  Custom: custom-elementsv1 (from my-component instances, NOT from comments/text/attrs)
+  Built-in: video, html5semantic (from main)
+-->
