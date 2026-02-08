@@ -14,23 +14,23 @@
 
 **Purpose:** Validate CustomRulesLoader singleton, loading, saving, reloading, and is_user_rule
 
-| Status | Test |
-| ------ | ---- |
-| [ ] | Singleton returns same instance |
-| [ ] | get_custom_rules_loader returns same instance |
-| [ ] | _loaded flag set after init |
-| [ ] | CSS rules loaded as dict |
-| [ ] | JS rules loaded as dict |
-| [ ] | HTML rules has elements, attributes, input_types, attribute_values |
-| [ ] | Convenience functions return dicts |
-| [ ] | is_user_rule identifies custom CSS rules |
-| [ ] | is_user_rule returns False for built-in rules |
-| [ ] | is_user_rule returns False for unknown rules |
-| [ ] | load_raw_custom_rules returns full JSON |
-| [ ] | Raw output modifying doesn't affect source |
-| [ ] | save_custom_rules writes file and reloads |
-| [ ] | Roundtrip save/load preserves data |
-| [ ] | Reload picks up file changes |
+| Status | Test                                                               |
+| ------ | ------------------------------------------------------------------ |
+| [ ]    | Singleton returns same instance                                    |
+| [ ]    | get_custom_rules_loader returns same instance                      |
+| [ ]    | \_loaded flag set after init                                       |
+| [ ]    | CSS rules loaded as dict                                           |
+| [ ]    | JS rules loaded as dict                                            |
+| [ ]    | HTML rules has elements, attributes, input_types, attribute_values |
+| [ ]    | Convenience functions return dicts                                 |
+| [ ]    | is_user_rule identifies custom CSS rules                           |
+| [ ]    | is_user_rule returns False for built-in rules                      |
+| [ ]    | is_user_rule returns False for unknown rules                       |
+| [ ]    | load_raw_custom_rules returns full JSON                            |
+| [ ]    | Raw output modifying doesn't affect source                         |
+| [ ]    | save_custom_rules writes file and reloads                          |
+| [ ]    | Roundtrip save/load preserves data                                 |
+| [ ]    | Reload picks up file changes                                       |
 
 - [ ] All checks passed
 - **Notes:** \_\_\_
@@ -43,13 +43,13 @@
 
 **Purpose:** Reference valid custom rules file
 
-| Status | Test |
-| ------ | ---- |
-| [ ] | File parses as valid JSON |
-| [ ] | Has css, javascript, html sections |
-| [ ] | CSS rules have patterns and description |
-| [ ] | JS rules have patterns and description |
-| [ ] | HTML has elements, attributes, input_types, attribute_values |
+| Status | Test                                                         |
+| ------ | ------------------------------------------------------------ |
+| [ ]    | File parses as valid JSON                                    |
+| [ ]    | Has css, javascript, html sections                           |
+| [ ]    | CSS rules have patterns and description                      |
+| [ ]    | JS rules have patterns and description                       |
+| [ ]    | HTML has elements, attributes, input_types, attribute_values |
 
 - **Notes:** \_\_\_
 
@@ -59,15 +59,15 @@
 
 **Purpose:** Partially invalid entries that should be handled gracefully
 
-| Status | Test |
-| ------ | ---- |
-| [ ] | File loads without crash |
-| [ ] | Valid entries still loaded (valid-rule, also-valid) |
-| [ ] | Missing patterns key skipped (missing-patterns) |
-| [ ] | Non-dict value skipped (not-a-dict) |
-| [ ] | Comment key skipped (_comment) |
-| [ ] | Empty patterns list loaded (empty-patterns) |
-| [ ] | Unknown section ignored (extra_unknown_section) |
+| Status | Test                                                |
+| ------ | --------------------------------------------------- |
+| [ ]    | File loads without crash                            |
+| [ ]    | Valid entries still loaded (valid-rule, also-valid) |
+| [ ]    | Missing patterns key skipped (missing-patterns)     |
+| [ ]    | Non-dict value skipped (not-a-dict)                 |
+| [ ]    | Comment key skipped (\_comment)                     |
+| [ ]    | Empty patterns list loaded (empty-patterns)         |
+| [ ]    | Unknown section ignored (extra_unknown_section)     |
 
 - **Notes:** \_\_\_
 
@@ -77,12 +77,12 @@
 
 **Purpose:** All-empty rules file
 
-| Status | Test |
-| ------ | ---- |
-| [ ] | Loads without crash |
-| [ ] | Returns empty CSS rules |
-| [ ] | Returns empty JS rules |
-| [ ] | Returns empty HTML sub-dicts |
+| Status | Test                         |
+| ------ | ---------------------------- |
+| [ ]    | Loads without crash          |
+| [ ]    | Returns empty CSS rules      |
+| [ ]    | Returns empty JS rules       |
+| [ ]    | Returns empty HTML sub-dicts |
 
 - **Notes:** \_\_\_
 
@@ -92,11 +92,11 @@
 
 **Purpose:** Invalid JSON syntax
 
-| Status | Test |
-| ------ | ---- |
-| [ ] | Loader does not crash |
-| [ ] | Returns empty rules for all sections |
-| [ ] | Error logged (check console output) |
+| Status | Test                                 |
+| ------ | ------------------------------------ |
+| [ ]    | Loader does not crash                |
+| [ ]    | Returns empty rules for all sections |
+| [ ]    | Error logged (check console output)  |
 
 - **Notes:** \_\_\_
 
@@ -109,12 +109,12 @@
 **Expected custom features:** `special-animation-custom`, `my-custom-property`
 **Expected built-in features:** `flexbox`, `css-grid`
 
-| Status | Feature | Type |
-| ------ | ------- | ---- |
-| [ ] | special-animation-custom | Custom |
-| [ ] | my-custom-property | Custom |
-| [ ] | flexbox | Built-in |
-| [ ] | css-grid | Built-in |
+| Status | Feature                  | Type     |
+| ------ | ------------------------ | -------- |
+| [ ]    | special-animation-custom | Custom   |
+| [ ]    | my-custom-property       | Custom   |
+| [ ]    | flexbox                  | Built-in |
+| [ ]    | css-grid                 | Built-in |
 
 - [ ] All 4 features detected
 - [ ] Custom and built-in coexist correctly
@@ -127,13 +127,13 @@
 **Expected custom features:** NONE
 **Expected built-in features:** `flexbox`, `css-transitions`
 
-| Status | Test |
-| ------ | ---- |
-| [ ] | No custom rules triggered |
-| [ ] | flexbox detected (built-in) |
-| [ ] | css-transitions detected (built-in) |
-| [ ] | linear-gradient does NOT trigger custom-gradient |
-| [ ] | scroll-behavior does NOT trigger scroll-timeline |
+| Status | Test                                             |
+| ------ | ------------------------------------------------ |
+| [ ]    | No custom rules triggered                        |
+| [ ]    | flexbox detected (built-in)                      |
+| [ ]    | css-transitions detected (built-in)              |
+| [ ]    | linear-gradient does NOT trigger custom-gradient |
+| [ ]    | scroll-behavior does NOT trigger scroll-timeline |
 
 - **Notes:** \_\_\_
 
@@ -146,13 +146,13 @@
 **Expected custom features:** `test-custom-gradient`, `test-scroll-timeline`, `test-anchor-position`
 **Expected built-in features:** `flexbox`, `css-grid`
 
-| Status | Feature | Type |
-| ------ | ------- | ---- |
-| [ ] | test-custom-gradient | Custom |
-| [ ] | test-scroll-timeline | Custom |
-| [ ] | test-anchor-position | Custom |
-| [ ] | flexbox | Built-in |
-| [ ] | css-grid | Built-in |
+| Status | Feature              | Type     |
+| ------ | -------------------- | -------- |
+| [ ]    | test-custom-gradient | Custom   |
+| [ ]    | test-scroll-timeline | Custom   |
+| [ ]    | test-anchor-position | Custom   |
+| [ ]    | flexbox              | Built-in |
+| [ ]    | css-grid             | Built-in |
 
 - [ ] All 5 features detected
 - **Notes:** \_\_\_
@@ -165,10 +165,10 @@
 
 **Expected custom features:** `test-container-queries`, `test-view-transitions`
 
-| Status | Feature | Patterns Tested |
-| ------ | ------- | --------------- |
-| [ ] | test-container-queries | @container, container-type, container-name |
-| [ ] | test-view-transitions | view-transition-name, ::view-transition |
+| Status | Feature                | Patterns Tested                            |
+| ------ | ---------------------- | ------------------------------------------ |
+| [ ]    | test-container-queries | @container, container-type, container-name |
+| [ ]    | test-view-transitions  | view-transition-name, ::view-transition    |
 
 - [ ] All patterns in each rule trigger detection
 - **Notes:** \_\_\_
@@ -182,14 +182,14 @@
 **Expected custom features:** NONE
 **Expected built-in features:** `const`, `let`, `arrow-functions`
 
-| Status | Test |
-| ------ | ---- |
-| [ ] | No custom JS rules triggered |
-| [ ] | Variable name 'taskScheduler' does NOT trigger scheduler API |
-| [ ] | String 'CompressionStream' does NOT trigger compression API |
-| [ ] | const detected (built-in) |
-| [ ] | let detected (built-in) |
-| [ ] | arrow-functions detected (built-in) |
+| Status | Test                                                         |
+| ------ | ------------------------------------------------------------ |
+| [ ]    | No custom JS rules triggered                                 |
+| [ ]    | Variable name 'taskScheduler' does NOT trigger scheduler API |
+| [ ]    | String 'CompressionStream' does NOT trigger compression API  |
+| [ ]    | const detected (built-in)                                    |
+| [ ]    | let detected (built-in)                                      |
+| [ ]    | arrow-functions detected (built-in)                          |
 
 - **Notes:** \_\_\_
 
@@ -200,15 +200,15 @@
 **Expected custom features:** NONE
 **Expected built-in features:** `const`, `arrow-functions`, `template-literals`
 
-| Status | Test |
-| ------ | ---- |
-| [ ] | Custom APIs in single-line comments NOT detected |
-| [ ] | Custom APIs in multi-line comments NOT detected |
-| [ ] | Custom APIs in JSDoc NOT detected |
-| [ ] | Custom APIs in string literals NOT detected |
-| [ ] | Custom APIs in template literals NOT detected |
-| [ ] | const detected (actual code) |
-| [ ] | arrow-functions detected (actual code) |
+| Status | Test                                             |
+| ------ | ------------------------------------------------ |
+| [ ]    | Custom APIs in single-line comments NOT detected |
+| [ ]    | Custom APIs in multi-line comments NOT detected  |
+| [ ]    | Custom APIs in JSDoc NOT detected                |
+| [ ]    | Custom APIs in string literals NOT detected      |
+| [ ]    | Custom APIs in template literals NOT detected    |
+| [ ]    | const detected (actual code)                     |
+| [ ]    | arrow-functions detected (actual code)           |
 
 - **Notes:** \_\_\_
 
@@ -220,11 +220,11 @@
 
 **Expected custom features:** `test-scheduler-api`, `test-compression-api`, `test-url-pattern`
 
-| Status | Feature | Can I Use URL |
-| ------ | ------- | ------------- |
-| [ ] | test-scheduler-api | https://caniuse.com/scheduler-postTask |
-| [ ] | test-compression-api | https://caniuse.com/compressstream |
-| [ ] | test-url-pattern | https://caniuse.com/urlpattern |
+| Status | Feature              | Can I Use URL                          |
+| ------ | -------------------- | -------------------------------------- |
+| [ ]    | test-scheduler-api   | https://caniuse.com/scheduler-postTask |
+| [ ]    | test-compression-api | https://caniuse.com/compressstream     |
+| [ ]    | test-url-pattern     | https://caniuse.com/urlpattern         |
 
 - [ ] All 3 custom features detected
 - [ ] Built-in features (promises, fetch) also detected
@@ -236,12 +236,12 @@
 
 **Prerequisites:** Add `test-eye-dropper`, `test-barcode-api` to JS section
 
-| Status | Test |
-| ------ | ---- |
-| [ ] | `new EyeDropper()` triggers test-eye-dropper |
-| [ ] | `myEyeDropperWrapper` does NOT trigger (substring) |
-| [ ] | `new BarcodeDetector()` triggers test-barcode-api |
-| [ ] | `fakeBarcodeDetectorName` does NOT trigger (substring) |
+| Status | Test                                                   |
+| ------ | ------------------------------------------------------ |
+| [ ]    | `new EyeDropper()` triggers test-eye-dropper           |
+| [ ]    | `myEyeDropperWrapper` does NOT trigger (substring)     |
+| [ ]    | `new BarcodeDetector()` triggers test-barcode-api      |
+| [ ]    | `fakeBarcodeDetectorName` does NOT trigger (substring) |
 
 - **Notes:** \_\_\_
 
@@ -254,11 +254,11 @@
 **Expected custom features:** `custom-elementsv1`
 **Expected built-in features:** `video`, `html5semantic`
 
-| Status | Feature | Source |
-| ------ | ------- | ------ |
-| [ ] | custom-elementsv1 | my-component element |
-| [ ] | video | Built-in video element |
-| [ ] | html5semantic | Built-in main element |
+| Status | Feature           | Source                 |
+| ------ | ----------------- | ---------------------- |
+| [ ]    | custom-elementsv1 | my-component element   |
+| [ ]    | video             | Built-in video element |
+| [ ]    | html5semantic     | Built-in main element  |
 
 - [ ] All 3 features detected
 - [ ] Text mention of 'my-component' does NOT trigger detection
@@ -270,12 +270,12 @@
 
 **Prerequisites:** Add `app-header`, `data-table`, `ui-modal` to HTML elements section
 
-| Status | Test |
-| ------ | ---- |
-| [ ] | Nested custom element detected (data-table inside div/article/section) |
-| [ ] | Self-closing custom element detected (ui-modal) |
-| [ ] | Custom element with attributes detected (app-header with class, data-theme) |
-| [ ] | Text content 'app-header' does NOT trigger detection |
+| Status | Test                                                                        |
+| ------ | --------------------------------------------------------------------------- |
+| [ ]    | Nested custom element detected (data-table inside div/article/section)      |
+| [ ]    | Self-closing custom element detected (ui-modal)                             |
+| [ ]    | Custom element with attributes detected (app-header with class, data-theme) |
+| [ ]    | Text content 'app-header' does NOT trigger detection                        |
 
 - **Notes:** \_\_\_
 
@@ -285,14 +285,14 @@
 
 **Prerequisites:** Add `x-data`, `v-if`, `hx-get` to HTML attributes section
 
-| Status | Feature | Source |
-| ------ | ------- | ------ |
-| [ ] | alpine-reactive | x-data attribute |
-| [ ] | vue-directive | v-if attribute |
-| [ ] | htmx-feature | hx-get attribute |
-| [ ] | input-placeholder | Built-in placeholder |
-| [ ] | form-validation | Built-in required |
-| [ ] | contenteditable | Built-in contenteditable |
+| Status | Feature           | Source                   |
+| ------ | ----------------- | ------------------------ |
+| [ ]    | alpine-reactive   | x-data attribute         |
+| [ ]    | vue-directive     | v-if attribute           |
+| [ ]    | htmx-feature      | hx-get attribute         |
+| [ ]    | input-placeholder | Built-in placeholder     |
+| [ ]    | form-validation   | Built-in required        |
+| [ ]    | contenteditable   | Built-in contenteditable |
 
 - **Notes:** \_\_\_
 
@@ -302,12 +302,12 @@
 
 **Expected features:** `input-datetime`, `input-email-tel-url`, `input-color`, `input-range`
 
-| Status | Feature | Input Type |
-| ------ | ------- | ---------- |
-| [ ] | input-datetime | date, time, week, month |
-| [ ] | input-email-tel-url | email |
-| [ ] | input-color | color |
-| [ ] | input-range | range |
+| Status | Feature             | Input Type              |
+| ------ | ------------------- | ----------------------- |
+| [ ]    | input-datetime      | date, time, week, month |
+| [ ]    | input-email-tel-url | email                   |
+| [ ]    | input-color         | color                   |
+| [ ]    | input-range         | range                   |
 
 - [ ] All 4 features detected
 - **Notes:** \_\_\_
@@ -318,13 +318,13 @@
 
 **Prerequisites:** Add `fetchpriority:high`, `rel:modulepreload`, `loading:lazy` to attribute_values
 
-| Status | Feature | Attribute Value |
-| ------ | ------- | --------------- |
-| [ ] | fetch-priority | fetchpriority="high" |
-| [ ] | link-rel-modulepreload-custom | rel="modulepreload" |
-| [ ] | loading-lazy-custom | loading="lazy" |
-| [ ] | link-rel-preload | Built-in rel="preload" |
-| [ ] | es6-module | Built-in type="module" |
+| Status | Feature                       | Attribute Value        |
+| ------ | ----------------------------- | ---------------------- |
+| [ ]    | fetch-priority                | fetchpriority="high"   |
+| [ ]    | link-rel-modulepreload-custom | rel="modulepreload"    |
+| [ ]    | loading-lazy-custom           | loading="lazy"         |
+| [ ]    | link-rel-preload              | Built-in rel="preload" |
+| [ ]    | es6-module                    | Built-in type="module" |
 
 - [ ] Case-insensitive matching works (loading="Lazy") |
 - **Notes:** \_\_\_
@@ -337,16 +337,16 @@
 
 **Purpose:** Upload all 3 files together to test cross-parser detection
 
-| Status | Test |
-| ------ | ---- |
-| [ ] | HTML file: custom-elementsv1 detected (my-component) |
-| [ ] | HTML file: Built-in features detected (video, html5semantic, dialog, etc.) |
-| [ ] | CSS file: special-animation-custom detected |
-| [ ] | CSS file: my-custom-property detected |
-| [ ] | CSS file: Built-in features detected (flexbox, css-grid, css-animation) |
-| [ ] | JS file: No custom rules falsely triggered |
-| [ ] | JS file: Built-in features detected (const, fetch, promises, etc.) |
-| [ ] | Combined: At least 20 unique features across all files |
+| Status | Test                                                                       |
+| ------ | -------------------------------------------------------------------------- |
+| [ ]    | HTML file: custom-elementsv1 detected (my-component)                       |
+| [ ]    | HTML file: Built-in features detected (video, html5semantic, dialog, etc.) |
+| [ ]    | CSS file: special-animation-custom detected                                |
+| [ ]    | CSS file: my-custom-property detected                                      |
+| [ ]    | CSS file: Built-in features detected (flexbox, css-grid, css-animation)    |
+| [ ]    | JS file: No custom rules falsely triggered                                 |
+| [ ]    | JS file: Built-in features detected (const, fetch, promises, etc.)         |
+| [ ]    | Combined: At least 20 unique features across all files                     |
 
 - **Notes:** \_\_\_
 
@@ -358,12 +358,12 @@
 
 **Purpose:** CSS detection edge cases with existing custom rules
 
-| Status | Test |
-| ------ | ---- |
-| [ ] | Custom property in CSS comment NOT detected |
-| [ ] | Custom property with extra whitespace IS detected |
-| [ ] | Custom property in long declaration block IS detected |
-| [ ] | Multiple occurrences of same custom property counted correctly |
+| Status | Test                                                           |
+| ------ | -------------------------------------------------------------- |
+| [ ]    | Custom property in CSS comment NOT detected                    |
+| [ ]    | Custom property with extra whitespace IS detected              |
+| [ ]    | Custom property in long declaration block IS detected          |
+| [ ]    | Multiple occurrences of same custom property counted correctly |
 
 - **Notes:** \_\_\_
 
@@ -373,14 +373,14 @@
 
 **Purpose:** HTML detection edge cases with existing custom rules
 
-| Status | Test |
-| ------ | ---- |
-| [ ] | my-component in HTML comment NOT detected |
-| [ ] | my-component in text content NOT detected |
-| [ ] | my-component in attribute value NOT detected |
-| [ ] | Actual my-component elements ARE detected |
-| [ ] | Self-closing my-component IS detected |
-| [ ] | Built-in video element IS detected |
+| Status | Test                                         |
+| ------ | -------------------------------------------- |
+| [ ]    | my-component in HTML comment NOT detected    |
+| [ ]    | my-component in text content NOT detected    |
+| [ ]    | my-component in attribute value NOT detected |
+| [ ]    | Actual my-component elements ARE detected    |
+| [ ]    | Self-closing my-component IS detected        |
+| [ ]    | Built-in video element IS detected           |
 
 - **Notes:** \_\_\_
 
@@ -388,12 +388,12 @@
 
 ### JSON Edge Case Files
 
-| Status | File | Test |
-| ------ | ---- | ---- |
-| [ ] | 01_unicode_patterns.json | Unicode in patterns loads without error |
-| [ ] | 02_special_regex.json | Alternation/lookahead patterns load correctly |
-| [ ] | 03_colon_in_attr_values.json | Colon-separated keys parse to tuples |
-| [ ] | 04_duplicate_ids.json | Same ID in CSS and JS works independently |
+| Status | File                         | Test                                          |
+| ------ | ---------------------------- | --------------------------------------------- |
+| [ ]    | 01_unicode_patterns.json     | Unicode in patterns loads without error       |
+| [ ]    | 02_special_regex.json        | Alternation/lookahead patterns load correctly |
+| [ ]    | 03_colon_in_attr_values.json | Colon-separated keys parse to tuples          |
+| [ ]    | 04_duplicate_ids.json        | Same ID in CSS and JS works independently     |
 
 - **Notes:** \_\_\_
 
@@ -406,12 +406,12 @@
 **Expected custom features:** `special-animation-custom`, `my-custom-property`
 **Expected built-in features:** `css-variables`, `flexbox`, `css-grid`, `css-animation`, `css-transitions`, `border-radius`, `css-gradients`, `transforms2d`, `css-filters`, `css-boxshadow`
 
-| Status | Test |
-| ------ | ---- |
-| [ ] | Custom special-animation-custom detected |
-| [ ] | Custom my-custom-property detected |
-| [ ] | At least 10 features detected total |
-| [ ] | No false positives from custom rules |
+| Status | Test                                     |
+| ------ | ---------------------------------------- |
+| [ ]    | Custom special-animation-custom detected |
+| [ ]    | Custom my-custom-property detected       |
+| [ ]    | At least 10 features detected total      |
+| [ ]    | No false positives from custom rules     |
 
 - **Detected count:** \_\_\_
 - **Notes:** \_\_\_
@@ -423,11 +423,11 @@
 **Expected custom features:** `custom-elementsv1`
 **Expected built-in features:** `html5semantic`, `dialog`, `details`, `video`, `webm`, `srcset`, `input-email-tel-url`, `input-placeholder`, `form-validation`, `contenteditable`, `wai-aria`, `dataset`, `es6-module`, `link-rel-preload`, `viewport-units`
 
-| Status | Test |
-| ------ | ---- |
-| [ ] | custom-elementsv1 detected (my-component) |
-| [ ] | At least 12 features detected total |
-| [ ] | All major categories represented |
+| Status | Test                                      |
+| ------ | ----------------------------------------- |
+| [ ]    | custom-elementsv1 detected (my-component) |
+| [ ]    | At least 12 features detected total       |
+| [ ]    | All major categories represented          |
 
 - **Detected count:** \_\_\_
 - **Notes:** \_\_\_
@@ -439,14 +439,14 @@
 **Expected custom features:** NONE (JS section is empty in custom_rules.json)
 **Expected built-in features:** `const`, `let`, `arrow-functions`, `async-functions`, `template-literals`, `es6`, `promises`, `fetch`, `abortcontroller`, `namevalue-storage`, `json`, `queryselector`, `classlist`, `history`, `intersectionobserver`, `matchmedia`, `es6-class`, `use-strict`
 
-| Status | Test |
-| ------ | ---- |
-| [ ] | No custom JS rules falsely triggered |
-| [ ] | const detected |
-| [ ] | fetch detected |
-| [ ] | es6-class detected |
-| [ ] | use-strict detected |
-| [ ] | At least 15 features detected total |
+| Status | Test                                 |
+| ------ | ------------------------------------ |
+| [ ]    | No custom JS rules falsely triggered |
+| [ ]    | const detected                       |
+| [ ]    | fetch detected                       |
+| [ ]    | es6-class detected                   |
+| [ ]    | use-strict detected                  |
+| [ ]    | At least 15 features detected total  |
 
 - **Detected count:** \_\_\_
 - **Notes:** \_\_\_
@@ -457,20 +457,20 @@
 
 **Purpose:** End-to-end validation script covering all parsers
 
-| Status | Test |
-| ------ | ---- |
-| [ ] | All loader checks pass |
-| [ ] | CSS existing rules detected |
-| [ ] | CSS no false positives confirmed |
-| [ ] | JS no false positives confirmed |
-| [ ] | JS comments/strings ignored |
-| [ ] | HTML existing rules detected |
-| [ ] | HTML edge cases pass |
-| [ ] | CSS edge cases pass |
-| [ ] | Real-world CSS features detected |
-| [ ] | Real-world HTML features detected |
-| [ ] | Real-world JS features detected |
-| [ ] | Cross-parser combined features >= 20 |
+| Status | Test                                 |
+| ------ | ------------------------------------ |
+| [ ]    | All loader checks pass               |
+| [ ]    | CSS existing rules detected          |
+| [ ]    | CSS no false positives confirmed     |
+| [ ]    | JS no false positives confirmed      |
+| [ ]    | JS comments/strings ignored          |
+| [ ]    | HTML existing rules detected         |
+| [ ]    | HTML edge cases pass                 |
+| [ ]    | CSS edge cases pass                  |
+| [ ]    | Real-world CSS features detected     |
+| [ ]    | Real-world HTML features detected    |
+| [ ]    | Real-world JS features detected      |
+| [ ]    | Cross-parser combined features >= 20 |
 
 - **Run:** `.venv/bin/python tests/validation/custom_rules/comprehensive_test.py`
 - **Notes:** \_\_\_
@@ -479,17 +479,17 @@
 
 ## Summary
 
-| Category | Files | Pass | Fail | Notes |
-| -------- | ----- | ---- | ---- | ----- |
-| 01_loader | 5 | | | |
-| 02_css_rules | 4 | | | |
-| 03_js_rules | 4 | | | |
-| 04_html_rules | 5 | | | |
-| 05_cross_parser | 3 | | | |
-| 06_edge_cases | 6 | | | |
-| 07_real_world | 3 | | | |
-| comprehensive | 1 | | | |
-| **Total** | **31** | | | |
+| Category        | Files  | Pass | Fail | Notes |
+| --------------- | ------ | ---- | ---- | ----- |
+| 01_loader       | 5      |      |      |       |
+| 02_css_rules    | 4      |      |      |       |
+| 03_js_rules     | 4      |      |      |       |
+| 04_html_rules   | 5      |      |      |       |
+| 05_cross_parser | 3      |      |      |       |
+| 06_edge_cases   | 6      |      |      |       |
+| 07_real_world   | 3      |      |      |       |
+| comprehensive   | 1      |      |      |       |
+| **Total**       | **31** |      |      |       |
 
 **Test Date:** \_\_\_
 **Tester:** \_\_\_

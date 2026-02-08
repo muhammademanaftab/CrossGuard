@@ -1,0 +1,44 @@
+/**
+ * CSS Custom Rules Test - Real Can I Use Feature ID
+ * Tests a custom rule that uses a REAL Can I Use feature ID,
+ * so it shows up in BOTH Detected Features AND Browser Support.
+ *
+ * Prerequisites: Add to custom_rules.json under "css":
+ *   "css-grid-lanes": {
+ *     "patterns": ["masonry"],
+ *     "description": "CSS Grid Lanes (Masonry Layout)"
+ *   }
+ *
+ * Expected custom features: css-grid-lanes (with browser support data!)
+ * Expected built-in features: css-grid, flexbox
+ */
+
+/* === CSS Grid Lanes / Masonry Layout (css-grid-lanes) === */
+.gallery {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: masonry;
+}
+
+.pinterest-layout {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: masonry;
+    gap: 16px;
+}
+
+/* === Built-in features that should also be detected === */
+.container {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.sidebar {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+}
+
+/* Expected features:
+ * Custom: css-grid-lanes (REAL Can I Use ID - will show browser support!)
+ * Built-in: css-grid, flexbox
+ */

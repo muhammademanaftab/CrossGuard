@@ -65,18 +65,9 @@ HTML_INPUT_TYPES = {
 # HTML Attributes to Feature ID mapping
 HTML_ATTRIBUTES = {
     'datetime': 'html5semantic',  # datetime attribute on <time> element
-    'open': 'details',  # open attribute on <details> element
-    'high': 'meter',  # high attribute on <meter> element
-    'low': 'meter',  # low attribute on <meter> element
-    'optimum': 'meter',  # optimum attribute on <meter> element
-    'as': 'link-rel-preload',  # as attribute for link preload (as="style", as="font", etc.)
     'allow': 'permissions-policy',  # allow attribute on iframes for Permissions Policy
     'srcset': 'srcset',  # srcset attribute for responsive images
     'sizes': 'srcset',  # sizes attribute for responsive images (part of srcset feature)
-    'default': 'webvtt',  # default attribute on <track> element
-    'kind': 'webvtt',  # kind attribute on <track> element (subtitles, captions, etc.)
-    'srclang': 'webvtt',  # srclang attribute on <track> element
-    'label': 'webvtt',  # label attribute on <track> element (also used on <option>)
     'nomodule': 'es6-module',  # nomodule attribute for legacy browser fallback (part of ES6 modules)
     'loading': 'loading-lazy-attr',
     'autocomplete': 'input-autocomplete-onoff',
@@ -171,6 +162,29 @@ HTML_ATTRIBUTES = {
     # Directory attribute for file input
     'webkitdirectory': 'input-file-directory',
     'directory': 'input-file-directory',
+}
+
+# Element-specific attributes that should only trigger features on certain elements.
+# These were removed from HTML_ATTRIBUTES to prevent false positives when the
+# attribute appears on an unrelated element (e.g. "label" on <option> != webvtt).
+ELEMENT_SPECIFIC_ATTRIBUTES = {
+    "track": {
+        "label": "webvtt",
+        "kind": "webvtt",
+        "default": "webvtt",
+        "srclang": "webvtt",
+    },
+    "details": {
+        "open": "details",
+    },
+    "meter": {
+        "high": "meter",
+        "low": "meter",
+        "optimum": "meter",
+    },
+    "link": {
+        "as": "link-rel-preload",
+    },
 }
 
 # HTML Attribute Values to Feature ID mapping
@@ -410,6 +424,7 @@ ALL_HTML_FEATURES = {
     **HTML_MEDIA_FEATURES,
     **HTML_ADDITIONAL_FEATURES,
     **HTML_ATTRIBUTES,  # Include all attributes!
+    **{attr: fid for attrs in ELEMENT_SPECIFIC_ATTRIBUTES.values() for attr, fid in attrs.items()},
     **{v: v for k, v in HTML_ATTRIBUTE_VALUES.items()},  # Include attribute values!
     **HTML_SPECIAL_ELEMENTS,  # MathML, etc.
     **HTML_ARIA_ATTRIBUTES,  # WAI-ARIA attributes

@@ -317,11 +317,13 @@ class JavaScriptParser:
 
             if feature_found:
                 self.features_found.add(feature_id)
-                self.feature_details.append({
-                    'feature': feature_id,
-                    'description': feature_info.get('description', ''),
-                    'matched_apis': matched_apis,
-                })
+                # Deduplicate: only append if feature_id not already in feature_details
+                if not any(d['feature'] == feature_id for d in self.feature_details):
+                    self.feature_details.append({
+                        'feature': feature_id,
+                        'description': feature_info.get('description', ''),
+                        'matched_apis': matched_apis,
+                    })
                 # Track matched APIs for unrecognized pattern filtering
                 for api in matched_apis:
                     # Extract method/API name from matched API
@@ -966,10 +968,9 @@ class JavaScriptParser:
         dom_apis = []
         
         for feature in self.features_found:
-            if feature in ['arrow-functions', 'async-functions', 'const', 'let', 
-                          'template-literals', 'destructuring', 'spread', 
-                          'rest-parameters', 'optional-chaining', 'nullish-coalescing', 
-                          'es6-class']:
+            if feature in ['arrow-functions', 'async-functions', 'const', 'let',
+                          'template-literals', 'destructuring', 'spread',
+                          'rest-parameters', 'es6-class']:
                 syntax_features.append(feature)
             elif feature.startswith('array-'):
                 array_methods.append(feature)

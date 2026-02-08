@@ -18,6 +18,7 @@ from .html_feature_maps import (
     HTML_ARIA_ATTRIBUTES,
     HTML_MEDIA_TYPE_VALUES,
     HTML_CSP_ATTRIBUTES,
+    ELEMENT_SPECIFIC_ATTRIBUTES,
     ALL_HTML_FEATURES
 )
 from .custom_rules_loader import get_custom_html_rules
@@ -44,6 +45,7 @@ class HTMLParser:
         self._elements = {**HTML_ELEMENTS, **HTML_SPECIAL_ELEMENTS, **custom_html.get('elements', {})}
         self._input_types = {**HTML_INPUT_TYPES, **custom_html.get('input_types', {})}
         self._attributes = {**HTML_ATTRIBUTES, **HTML_ARIA_ATTRIBUTES, **custom_html.get('attributes', {})}
+        self._element_specific_attributes = ELEMENT_SPECIFIC_ATTRIBUTES
         # Parse attribute_values from "attr:value" format to tuple format
         custom_attr_values = {}
         for key, value in custom_html.get('attribute_values', {}).items():
@@ -168,9 +170,23 @@ class HTMLParser:
         all_elements = soup.find_all()
 
         for element in all_elements:
+            # Check element-specific attributes first
+            elem_attrs = self._element_specific_attributes.get(element.name, {})
             for attr_name in element.attrs:
+                # Check global attributes
                 if attr_name in self._attributes:
                     feature_id = self._attributes[attr_name]
+                    self.features_found.add(feature_id)
+                    self.attributes_found.append({
+                        'attribute': attr_name,
+                        'element': element.name,
+                        'feature': feature_id
+                    })
+                    # Track for feature_details
+                    self._add_match(feature_id, 'attributes', attr_name)
+                # Check element-specific attributes
+                elif attr_name in elem_attrs:
+                    feature_id = elem_attrs[attr_name]
                     self.features_found.add(feature_id)
                     self.attributes_found.append({
                         'attribute': attr_name,
