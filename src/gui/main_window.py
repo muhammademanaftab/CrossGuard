@@ -2543,7 +2543,7 @@ class MainWindow(ctk.CTkFrame):
             progress.set_progress(10)
             self.master.update()
 
-            progress.set_progress(30, "Analyzing browser compatibility...")
+            progress.set_progress(30, message="Analyzing browser compatibility...")
 
             # Use selected browsers or fall back to service defaults
             target_browsers = self._selected_browsers if self._selected_browsers else None
@@ -2644,7 +2644,7 @@ class MainWindow(ctk.CTkFrame):
             progress.set_progress(0)
 
             def update_progress(message: str, percentage: int):
-                progress.set_progress(percentage, message)
+                progress.set_progress(percentage, message=message)
                 self.master.update()
 
             result = self._analyzer_service.update_database(update_progress)

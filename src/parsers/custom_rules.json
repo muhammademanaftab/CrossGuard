@@ -1,15 +1,60 @@
 {
   "css": {
-    "special-animation-custom": {
-      "patterns": ["special-animation"],
-      "description": "Special Animation Property"
+    "test-container-queries": {
+      "patterns": [
+        "@container\\b",
+        "container-type\\s*:",
+        "container-name\\s*:"
+      ],
+      "description": "CSS Container Queries",
+      "keywords": [
+        "container",
+        "@container"
+      ]
     },
-    "my-custom-property": {
-      "patterns": ["my-custom-property"],
-      "description": "My Custom Property"
+    "test-view-transitions": {
+      "patterns": [
+        "view-transition-name\\s*:",
+        "::view-transition"
+      ],
+      "description": "CSS View Transitions",
+      "keywords": [
+        "view-transition"
+      ]
+    },
+    "css-grid-lanes": {
+      "patterns": [
+        "masonry"
+      ],
+      "description": "CSS Grid Lanes (Masonry Layout)",
+      "keywords": [
+        "masonry",
+        "grid-lanes"
+      ]
     }
   },
-  "javascript": {},
+  "javascript": {
+    "test-scheduler-api": {
+      "patterns": [
+        "\\bscheduler\\.postTask\\s*\\(",
+        "\\bscheduler\\.yield\\s*\\("
+      ],
+      "description": "Scheduler API"
+    },
+    "test-compression-api": {
+      "patterns": [
+        "\\bCompressionStream\\b",
+        "\\bDecompressionStream\\b"
+      ],
+      "description": "Compression Streams API"
+    },
+    "test-url-pattern": {
+      "patterns": [
+        "\\bnew\\s+URLPattern\\b"
+      ],
+      "description": "URL Pattern API"
+    }
+  },
   "html": {
     "elements": {
       "my-component": "custom-elementsv1"

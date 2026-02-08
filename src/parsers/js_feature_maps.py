@@ -126,7 +126,7 @@ JS_API_FEATURES = {
         'description': 'Web Notifications'
     },
     'serviceworkers': {
-        'patterns': [r'navigator\.serviceWorker', r'\.register\s*\('],
+        'patterns': [r'navigator\.serviceWorker', r'serviceWorker\.register\s*\('],
         'keywords': ['serviceWorker'],
         'description': 'Service Workers'
     },
@@ -176,7 +176,7 @@ JS_API_FEATURES = {
         'description': 'XMLHttpRequest Level 2'
     },
     'online-status': {
-        'patterns': [r'navigator\.onLine', r'online', r'offline'],
+        'patterns': [r'navigator\.onLine', r"addEventListener\s*\(\s*['\"]online['\"]", r"addEventListener\s*\(\s*['\"]offline['\"]"],
         'keywords': ['navigator.onLine'],
         'description': 'Online/offline status'
     },
@@ -199,11 +199,6 @@ JS_API_FEATURES = {
         'patterns': [r'postMessage', r'window\.postMessage'],
         'keywords': ['postMessage'],
         'description': 'Cross-document messaging'
-    },
-    'indexeddb': {
-        'patterns': [r'indexedDB', r'\.openDatabase'],
-        'keywords': ['indexedDB'],
-        'description': 'IndexedDB'
     },
     'indexeddb2': {
         'patterns': [r'indexedDB', r'IDBKeyRange'],
@@ -281,7 +276,7 @@ JS_API_FEATURES = {
         'description': 'Payment Request API'
     },
     'push-api': {
-        'patterns': [r'PushManager', r'\.subscribe\s*\('],
+        'patterns': [r'PushManager', r'pushManager\.subscribe\s*\('],
         'keywords': ['PushManager'],
         'description': 'Push API'
     },
@@ -361,12 +356,12 @@ JS_API_FEATURES = {
         'description': 'Speech Synthesis API'
     },
     'web-share': {
-        'patterns': [r'navigator\.share', r'\.share\s*\('],
+        'patterns': [r'navigator\.share', r'navigator\.share\s*\('],
         'keywords': ['navigator.share'],
         'description': 'Web Share API'
     },
     'web-animation': {
-        'patterns': [r'\.animate\s*\(', r'Animation', r'KeyframeEffect'],
+        'patterns': [r'\.animate\s*\(\s*\[', r'\.animate\s*\(\s*\w', r'\bKeyframeEffect\b', r'\.getAnimations\s*\(', r'\bnew\s+Animation\b'],
         'keywords': ['animate'],
         'description': 'Web Animations API'
     },
@@ -539,11 +534,6 @@ JS_API_FEATURES = {
         'patterns': [r'Number\.isNaN', r'Number\.isFinite', r'Number\.parseInt'],
         'keywords': ['Number.isNaN'],
         'description': 'ES6 Number'
-    },
-    'use-strict': {
-        'patterns': [r'["\']use strict["\']'],
-        'keywords': ['use strict'],
-        'description': 'ECMAScript 5 Strict Mode'
     },
     'setimmediate': {
         'patterns': [r'setImmediate', r'clearImmediate'],
@@ -765,11 +755,6 @@ JS_API_FEATURES = {
         'keywords': ['findIndex'],
         'description': 'Array.prototype.findIndex'
     },
-    'asmjs': {
-        'patterns': [r'"use asm"', r'\'use asm\''],
-        'keywords': ['asm.js'],
-        'description': 'asm.js'
-    },
     'audio-api': {
         'patterns': [r'AudioContext', r'webkitAudioContext', r'new AudioContext'],
         'keywords': ['AudioContext'],
@@ -791,7 +776,7 @@ JS_API_FEATURES = {
         'description': 'Blob constructing'
     },
     'client-hints-dpr-width-viewport': {
-        'patterns': [r'DPR', r'Width', r'Viewport-Width'],
+        'patterns': [r'Viewport-Width', r'\bdevice-memory\b', r'Sec-CH-'],
         'keywords': ['Client Hints'],
         'description': 'Client Hints: DPR, Width, Viewport-Width'
     },
@@ -846,7 +831,7 @@ JS_API_FEATURES = {
         'description': 'CustomEvent'
     },
     'decorators': {
-        'patterns': [r'@\w+', r'decorator'],
+        'patterns': [r'^\s*@\w+', r'decorator'],
         'keywords': ['decorators'],
         'description': 'Decorators'
     },
@@ -866,7 +851,7 @@ JS_API_FEATURES = {
         'description': 'document.currentScript'
     },
     'dom-manip-convenience': {
-        'patterns': [r'\.append\s*\(', r'\.prepend\s*\(', r'\.before\s*\(', r'\.after\s*\('],
+        'patterns': [r'(?:document|Element|element|node|el|div|span|body|container|wrapper|parent|child)\.append\s*\(', r'\.prepend\s*\(', r'\.before\s*\(', r'\.after\s*\(', r'\.replaceWith\s*\('],
         'keywords': ['append', 'prepend'],
         'description': 'DOM manipulation convenience methods'
     },
@@ -886,7 +871,7 @@ JS_API_FEATURES = {
         'description': 'Scroll methods on elements'
     },
     'es6-module': {
-        'patterns': [r'<script type="module"', r'import\s+', r'export\s+'],
+        'patterns': [r'import\s+', r'export\s+'],
         'keywords': ['module'],
         'description': 'JavaScript modules via script tag'
     },
@@ -1146,7 +1131,7 @@ JS_DOM_APIS = {
         'description': 'Element.insertAdjacentElement()'
     },
     'childnode-remove': {
-        'patterns': [r'\.remove\s*\('],
+        'patterns': [r'\.remove\s*\(\s*\)'],
         'keywords': ['.remove'],
         'description': 'ChildNode.remove()'
     },
@@ -1429,13 +1414,13 @@ JS_DOM_APIS = {
     },
     # Data URIs
     'datauri': {
-        'patterns': [r'data:', r'data:image/', r'data:text/', r'data:application/'],
+        'patterns': [r'data:image/', r'data:text/', r'data:application/'],
         'keywords': ['data:'],
         'description': 'Data URIs'
     },
     # URL Scroll-To-Text Fragment
     'url-scroll-to-text-fragment': {
-        'patterns': [r':~:text=', r'text='],
+        'patterns': [r':~:text='],
         'keywords': ['scroll-to-text'],
         'description': 'URL Scroll-To-Text Fragment'
     },

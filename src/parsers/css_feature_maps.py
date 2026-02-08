@@ -131,7 +131,7 @@ CSS_TYPOGRAPHY = {
         'description': '@font-face Web fonts'
     },
     'woff': {
-        'patterns': [r'\.woff', r'format\(["\']woff["\']'],
+        'patterns': [r'\.woff(?!2)', r'format\(["\']woff["\'](?!2)'],
         'keywords': ['woff'],
         'description': 'WOFF - Web Open Font Format'
     },
@@ -406,11 +406,6 @@ CSS_SELECTORS = {
         'keywords': ['read-only', 'read-write'],
         'description': 'CSS :read-only and :read-write selectors'
     },
-    'css-cascade-scope': {
-        'patterns': [r':scope'],
-        'keywords': ['scope'],
-        'description': 'CSS :scope pseudo-class'
-    },
     'css-matches-pseudo': {
         'patterns': [r':is\(', r':matches\(', r':where\('],
         'keywords': ['is', 'matches', 'where'],
@@ -634,7 +629,7 @@ CSS_MISC = {
         'description': 'CSS zoom'
     },
     'css-all': {
-        'patterns': [r'all\s*:'],
+        'patterns': [r'(?<![a-z-])all\s*:'],
         'keywords': ['all'],
         'description': 'CSS all property'
     },
@@ -811,14 +806,9 @@ CSS_ADDITIONAL_1 = {
         'description': 'CSS Canvas Drawings'
     },
     'css-cascade-scope': {
-        'patterns': [r'@scope'],
-        'keywords': ['@scope'],
-        'description': 'Scoped Styles: the @scope rule'
-    },
-    'css-color-adjust': {
-        'patterns': [r'color-adjust\s*:', r'print-color-adjust\s*:'],
-        'keywords': ['color-adjust'],
-        'description': 'CSS print-color-adjust'
+        'patterns': [r':scope', r'@scope'],
+        'keywords': ['scope', '@scope'],
+        'description': 'CSS :scope pseudo-class and @scope rule'
     },
     'css-color-function': {
         'patterns': [r'color\('],
@@ -1019,7 +1009,7 @@ CSS_ADDITIONAL_3 = {
         'description': 'CSS Regions'
     },
     'css-relative-colors': {
-        'patterns': [r'from\s+'],
+        'patterns': [r'(?:oklch|lch|lab|oklab|color|hsl|hsla|hwb|rgb|rgba)\s*\(\s*from\s+'],
         'keywords': ['relative colors'],
         'description': 'CSS Relative color syntax'
     },
@@ -1039,7 +1029,7 @@ CSS_ADDITIONAL_3 = {
         'description': 'CSS scrollbar styling'
     },
     'css-shapes': {
-        'patterns': [r'shape-outside\s*:', r'shape-margin\s*:', r'circle\(', r'polygon\('],
+        'patterns': [r'shape-outside\s*:', r'shape-margin\s*:', r'shape-image-threshold\s*:'],
         'keywords': ['shape-outside'],
         'description': 'CSS Shapes Level 1'
     },
