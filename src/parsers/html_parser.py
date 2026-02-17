@@ -555,6 +555,8 @@ class HTMLParser:
             'placeholder', 'pattern', 'min', 'max', 'step', 'list',
             'autocomplete', 'autofocus', 'required', 'novalidate',
             'hidden', 'spellcheck', 'translate', 'contenteditable', 'draggable',
+            # Non-standard WebKit search input attributes (no Can I Use mapping)
+            'autosave', 'incremental', 'results',
             # SVG attributes (part of SVG spec, well-supported)
             'd', 'fill', 'fill-rule', 'fill-opacity', 'stroke', 'stroke-width',
             'stroke-linecap', 'stroke-linejoin', 'stroke-opacity', 'stroke-dasharray',
@@ -606,6 +608,9 @@ class HTMLParser:
                 continue
             # Skip if in our rules
             if attr_name in self._attributes:
+                continue
+            # Skip if in element-specific attributes
+            if any(attr_name in attrs for attrs in self._element_specific_attributes.values()):
                 continue
 
             # This attribute is unrecognized

@@ -179,6 +179,7 @@ SIDEBAR = {
 ICONS = {
     # Navigation (simple ASCII-compatible symbols that render everywhere)
     'files': '\u2630',           # ☰ Trigram - hamburger menu (3 lines)
+    'project': '\u25A3',         # ▣ Square with inner square (project/folder)
     'results': '\u25CF',         # ● Black circle (simple, distinct)
     'settings': '\u2699',        # ⚙ Gear
     'help': '?',                 # Simple question mark

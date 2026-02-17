@@ -7,7 +7,7 @@ Organized by category for maintainability.
 # CSS Layout Features
 CSS_LAYOUT_FEATURES = {
     'flexbox': {
-        'patterns': [r'display\s*:\s*(?:inline-)?flex', r'flex-direction', r'flex-wrap', r'flex-grow', r'flex-shrink', r'flex-basis', r'flex\s*:\s*\d', r'flex-flow', r'(?<![a-z-])order\s*:'],
+        'patterns': [r'display\s*:\s*(?:inline-)?flex', r'flex-direction', r'flex-wrap', r'flex-grow', r'flex-shrink', r'flex-basis', r'flex\s*:\s*\d', r'flex-flow', r'(?<![a-z-])order\s*:', r'-webkit-box-orient', r'-webkit-box-direction', r'-webkit-box-pack', r'-webkit-box-align', r'-webkit-box-flex', r'-webkit-box-ordinal-group', r'display\s*:\s*-webkit-(?:inline-)?box'],
         'keywords': ['flexbox'],
         'description': 'CSS Flexbox'
     },
