@@ -29,9 +29,12 @@ _TREE_SITTER_AVAILABLE = False
 _JS_LANGUAGE = None
 _JS_PARSER = None
 try:
-    from tree_sitter_languages import get_language, get_parser as _get_ts_parser
-    _JS_LANGUAGE = get_language('javascript')
-    _JS_PARSER = _get_ts_parser('javascript')
+    import warnings
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore", FutureWarning)
+        from tree_sitter_languages import get_language, get_parser as _get_ts_parser
+        _JS_LANGUAGE = get_language('javascript')
+        _JS_PARSER = _get_ts_parser('javascript')
     _TREE_SITTER_AVAILABLE = True
 except (ImportError, Exception):
     pass  # Falls back to regex-only
