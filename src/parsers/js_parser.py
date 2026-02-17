@@ -1,19 +1,40 @@
 """JavaScript Parser for Feature Extraction.
 
 This module parses JavaScript files and extracts modern ES6+ features
-that need compatibility checking.
+that need compatibility checking. Uses tree-sitter AST for accurate
+detection with regex fallback.
 """
 
 from typing import Set, List, Dict, Optional
 from pathlib import Path
 import re
 
-from .js_feature_maps import ALL_JS_FEATURES
+from .js_feature_maps import (
+    ALL_JS_FEATURES,
+    AST_SYNTAX_NODE_MAP,
+    AST_NEW_EXPRESSION_MAP,
+    AST_CALL_EXPRESSION_MAP,
+    AST_MEMBER_EXPRESSION_MAP,
+    AST_IDENTIFIER_MAP,
+    AST_OPERATOR_MAP,
+)
 from .custom_rules_loader import get_custom_js_rules
 from ..utils.config import get_logger
 
 # Module logger
 logger = get_logger('parsers.js')
+
+# Graceful tree-sitter import
+_TREE_SITTER_AVAILABLE = False
+_JS_LANGUAGE = None
+_JS_PARSER = None
+try:
+    from tree_sitter_languages import get_language, get_parser as _get_ts_parser
+    _JS_LANGUAGE = get_language('javascript')
+    _JS_PARSER = _get_ts_parser('javascript')
+    _TREE_SITTER_AVAILABLE = True
+except (ImportError, Exception):
+    pass  # Falls back to regex-only
 
 
 class JavaScriptParser:
@@ -60,6 +81,9 @@ class JavaScriptParser:
     def parse_string(self, js_content: str) -> Set[str]:
         """Parse JavaScript string and extract features.
 
+        Uses tree-sitter AST when available for accurate detection,
+        falling back to regex-only when tree-sitter is unavailable.
+
         Args:
             js_content: JavaScript content as string
 
@@ -80,14 +104,32 @@ class JavaScriptParser:
         # (because event names like 'unhandledrejection' are inside strings)
         self._detect_event_listeners(js_content)
 
-        # Remove comments to avoid false positives
-        cleaned_content = self._remove_comments(js_content)
+        # Try tree-sitter AST pipeline
+        tree = self._parse_with_tree_sitter(js_content)
 
-        # Detect features using regex patterns
-        self._detect_features(cleaned_content)
+        if tree is not None:
+            source_bytes = js_content.encode('utf-8')
+            root_node = tree.root_node
 
-        # Find unrecognized patterns
-        self._find_unrecognized_patterns(cleaned_content)
+            # Tier 1: AST syntax features (node types)
+            self._detect_ast_syntax_features(root_node, source_bytes)
+
+            # Tier 2: AST API features (identifiers, calls, members)
+            self._detect_ast_api_features(root_node, source_bytes)
+
+            # Build matchable text from AST (strips comments/strings accurately)
+            matchable = self._build_matchable_text_from_ast(root_node, source_bytes)
+
+            # Tier 3: Regex patterns on AST-cleaned text
+            self._detect_features(matchable)
+
+            # Find unrecognized patterns
+            self._find_unrecognized_patterns(matchable)
+        else:
+            # Fallback: original regex-only pipeline
+            cleaned_content = self._remove_comments(js_content)
+            self._detect_features(cleaned_content)
+            self._find_unrecognized_patterns(cleaned_content)
 
         return self.features_found
 
@@ -286,7 +328,331 @@ class JavaScriptParser:
             Code without comments and string content
         """
         return self._remove_comments_and_strings(js_content)
-    
+
+    # ============================================================
+    # Tree-sitter AST methods
+    # ============================================================
+
+    def _parse_with_tree_sitter(self, js_content: str):
+        """Parse JS content with tree-sitter.
+
+        Args:
+            js_content: JavaScript source code
+
+        Returns:
+            tree-sitter Tree object or None on failure
+        """
+        if not _TREE_SITTER_AVAILABLE or _JS_PARSER is None:
+            return None
+        try:
+            tree = _JS_PARSER.parse(js_content.encode('utf-8'))
+            return tree
+        except Exception as e:
+            logger.debug(f"tree-sitter parse failed: {e}")
+            return None
+
+    def _add_ast_feature(self, feature_id: str, api_name: str, description: str):
+        """Add a feature found via AST detection.
+
+        Args:
+            feature_id: Can I Use feature ID
+            api_name: API/syntax name for details
+            description: Human-readable description
+        """
+        self.features_found.add(feature_id)
+        # Deduplicate: merge api_name into existing detail entry
+        for detail in self.feature_details:
+            if detail['feature'] == feature_id:
+                if api_name not in detail['matched_apis']:
+                    detail['matched_apis'].append(api_name)
+                return
+        self.feature_details.append({
+            'feature': feature_id,
+            'description': description,
+            'matched_apis': [api_name],
+        })
+
+    def _detect_ast_syntax_features(self, root_node, source_bytes: bytes):
+        """Tier 1: Detect features by AST node types.
+
+        Walks the tree and maps node types to feature IDs.
+        Zero false positive risk — these are unique syntax constructs.
+
+        Args:
+            root_node: tree-sitter root node
+            source_bytes: source code as bytes
+        """
+        # Also detect const/let declarations and async functions via AST
+        stack = [root_node]
+        while stack:
+            node = stack.pop()
+            node_type = node.type
+
+            # Check syntax node map
+            if node_type in AST_SYNTAX_NODE_MAP:
+                feature_id = AST_SYNTAX_NODE_MAP[node_type]
+                self._add_ast_feature(feature_id, node_type, feature_id)
+
+            # const/let declarations
+            if node_type == 'lexical_declaration':
+                # First child is 'const' or 'let' keyword
+                if node.child_count > 0:
+                    keyword = node.children[0].type
+                    if keyword == 'const':
+                        self._add_ast_feature('const', 'const', 'Const declaration')
+                    elif keyword == 'let':
+                        self._add_ast_feature('let', 'let', 'Let declaration')
+                    # Check for destructuring in declarators
+                    for child in node.children:
+                        if child.type == 'variable_declarator':
+                            name_node = child.child_by_field_name('name')
+                            if name_node and name_node.type in ('object_pattern', 'array_pattern'):
+                                self._add_ast_feature('es6', 'destructuring', 'ES6 destructuring')
+
+            # async function declarations and expressions
+            if node_type in ('function_declaration', 'function',
+                             'arrow_function', 'method_definition'):
+                # Check if preceded by 'async' keyword
+                text_start = source_bytes[node.start_byte:min(node.start_byte + 20, len(source_bytes))].decode('utf-8', errors='replace')
+                if text_start.startswith('async'):
+                    self._add_ast_feature('async-functions', 'async', 'Async/await')
+
+            # Optional chaining (?.) — detected via optional_chain child node
+            if node_type == 'member_expression' or node_type == 'call_expression':
+                for child in node.children:
+                    if child.type == 'optional_chain':
+                        self._add_ast_feature(
+                            AST_OPERATOR_MAP.get('?.', 'mdn-javascript_operators_optional_chaining'),
+                            '?.', 'Optional chaining'
+                        )
+                        break
+
+            # Private field identifiers (#x)
+            if node_type == 'private_property_identifier':
+                self._add_ast_feature(
+                    'mdn-javascript_classes_private_class_fields',
+                    '#private', 'Private class fields'
+                )
+
+            # Nullish coalescing (??)
+            if node_type == 'binary_expression':
+                operator_node = node.child_by_field_name('operator')
+                if operator_node:
+                    op_text = source_bytes[operator_node.start_byte:operator_node.end_byte].decode('utf-8', errors='replace')
+                    if op_text == '??':
+                        self._add_ast_feature(
+                            AST_OPERATOR_MAP.get('??', 'mdn-javascript_operators_nullish_coalescing'),
+                            '??', 'Nullish coalescing'
+                        )
+
+            for child in node.children:
+                stack.append(child)
+
+    def _detect_ast_api_features(self, root_node, source_bytes: bytes):
+        """Tier 2: Detect API features from AST identifiers and expressions.
+
+        Uses tree-sitter node walking to find:
+        - new Expression constructors (new Promise, new Worker, etc.)
+        - Call expressions (fetch(), requestAnimationFrame(), etc.)
+        - Member expressions (navigator.geolocation, crypto.subtle, etc.)
+        - Standalone identifiers (SharedArrayBuffer, ReadableStream, etc.)
+
+        Args:
+            root_node: tree-sitter root node
+            source_bytes: source code as bytes
+        """
+        stack = [root_node]
+        while stack:
+            node = stack.pop()
+            node_type = node.type
+
+            # new Expression: new Promise(...), new Worker(...)
+            if node_type == 'new_expression':
+                constructor = node.child_by_field_name('constructor')
+                if constructor:
+                    name = source_bytes[constructor.start_byte:constructor.end_byte].decode('utf-8', errors='replace')
+                    if name in AST_NEW_EXPRESSION_MAP:
+                        feature_id = AST_NEW_EXPRESSION_MAP[name]
+                        self._add_ast_feature(feature_id, f'new {name}', feature_id)
+
+            # Call expressions: fetch(...), requestAnimationFrame(...)
+            elif node_type == 'call_expression':
+                func_node = node.child_by_field_name('function')
+                if func_node:
+                    func_text = source_bytes[func_node.start_byte:func_node.end_byte].decode('utf-8', errors='replace')
+
+                    # Direct function call: fetch()
+                    if func_text in AST_CALL_EXPRESSION_MAP:
+                        feature_id = AST_CALL_EXPRESSION_MAP[func_text]
+                        self._add_ast_feature(feature_id, f'{func_text}()', feature_id)
+
+                    # Member call: navigator.geolocation, Promise.all()
+                    if func_node.type == 'member_expression':
+                        obj_node = func_node.child_by_field_name('object')
+                        prop_node = func_node.child_by_field_name('property')
+                        if obj_node and prop_node:
+                            obj_text = source_bytes[obj_node.start_byte:obj_node.end_byte].decode('utf-8', errors='replace')
+                            prop_text = source_bytes[prop_node.start_byte:prop_node.end_byte].decode('utf-8', errors='replace')
+                            member_key = f'{obj_text}.{prop_text}'
+                            if member_key in AST_MEMBER_EXPRESSION_MAP:
+                                feature_id = AST_MEMBER_EXPRESSION_MAP[member_key]
+                                self._add_ast_feature(feature_id, member_key, feature_id)
+
+            # Member expressions (non-call): navigator.geolocation, document.hidden
+            elif node_type == 'member_expression':
+                # Only process if not already handled as part of a call_expression
+                parent = node.parent
+                if parent and parent.type == 'call_expression' and parent.child_by_field_name('function') == node:
+                    pass  # Already handled above
+                else:
+                    obj_node = node.child_by_field_name('object')
+                    prop_node = node.child_by_field_name('property')
+                    if obj_node and prop_node:
+                        obj_text = source_bytes[obj_node.start_byte:obj_node.end_byte].decode('utf-8', errors='replace')
+                        prop_text = source_bytes[prop_node.start_byte:prop_node.end_byte].decode('utf-8', errors='replace')
+                        member_key = f'{obj_text}.{prop_text}'
+                        if member_key in AST_MEMBER_EXPRESSION_MAP:
+                            feature_id = AST_MEMBER_EXPRESSION_MAP[member_key]
+                            self._add_ast_feature(feature_id, member_key, feature_id)
+
+            # Standalone identifiers
+            elif node_type == 'identifier':
+                name = source_bytes[node.start_byte:node.end_byte].decode('utf-8', errors='replace')
+                if name in AST_IDENTIFIER_MAP:
+                    feature_id = AST_IDENTIFIER_MAP[name]
+                    self._add_ast_feature(feature_id, name, feature_id)
+
+            for child in node.children:
+                stack.append(child)
+
+    def _build_matchable_text_from_ast(self, root_node, source_bytes: bytes) -> str:
+        """Build matchable text from AST, stripping comments and string content.
+
+        This produces text equivalent to _remove_comments_and_strings() but uses
+        the AST to accurately identify comment and string nodes.
+
+        - Comments → replaced with spaces (preserving line structure)
+        - String content → keep quote delimiters, strip content between
+        - Template literals → keep backticks, keep ${x} markers, strip text content
+        - All other code → preserved as-is
+
+        Args:
+            root_node: tree-sitter root node
+            source_bytes: source code as bytes
+
+        Returns:
+            Cleaned text suitable for regex-based feature detection
+        """
+        source_text = source_bytes.decode('utf-8', errors='replace')
+        length = len(source_text)
+
+        # Collect ranges to blank out (comments) or transform (strings)
+        # We'll build a list of (start, end, replacement) tuples
+        replacements = []
+
+        stack = [root_node]
+        while stack:
+            node = stack.pop()
+            node_type = node.type
+
+            if node_type == 'comment':
+                # Replace comment with spaces, preserving newlines
+                start, end = node.start_byte, node.end_byte
+                comment_text = source_text[start:end]
+                replacement = ''.join('\n' if c == '\n' else ' ' for c in comment_text)
+                replacements.append((start, end, replacement))
+                continue  # Don't recurse into comments
+
+            if node_type == 'string':
+                # Keep quote delimiters, strip content
+                start, end = node.start_byte, node.end_byte
+                text = source_text[start:end]
+                if len(text) >= 2:
+                    quote = text[0]
+                    replacement = quote + quote  # Empty string with delimiters
+                else:
+                    replacement = text
+                replacements.append((start, end, replacement))
+                continue
+
+            if node_type == 'template_string':
+                # Keep backticks and ${x} substitution markers, strip text
+                self._process_template_string(node, source_text, replacements)
+                continue  # Don't recurse — handled internally
+
+            for child in node.children:
+                stack.append(child)
+
+        if not replacements:
+            return source_text
+
+        # Sort replacements by start position and apply
+        replacements.sort(key=lambda x: x[0])
+
+        parts = []
+        last_end = 0
+        for start, end, replacement in replacements:
+            if start < last_end:
+                continue  # Skip overlapping replacements
+            parts.append(source_text[last_end:start])
+            parts.append(replacement)
+            last_end = end
+        parts.append(source_text[last_end:])
+
+        return ''.join(parts)
+
+    def _process_template_string(self, node, source_text: str, replacements: list):
+        """Process a template string node for matchable text.
+
+        Keeps backtick delimiters and ${x} markers, strips literal text.
+
+        Args:
+            node: template_string tree-sitter node
+            source_text: full source as string
+            replacements: list to append (start, end, replacement) tuples to
+        """
+        start = node.start_byte
+        end = node.end_byte
+        text = source_text[start:end]
+
+        # Build replacement that preserves structure
+        result = []
+        i = 0
+        length = len(text)
+
+        if length == 0:
+            return
+
+        # Opening backtick
+        result.append('`')
+        i = 1
+
+        while i < length:
+            if text[i] == '`':
+                # Closing backtick
+                result.append('`')
+                i += 1
+                break
+            elif text[i] == '\\' and i + 1 < length:
+                # Skip escaped character
+                i += 2
+            elif text[i:i+2] == '${':
+                # Template expression — keep ${x} marker
+                result.append('${x}')
+                i += 2
+                depth = 1
+                while i < length and depth > 0:
+                    if text[i] == '{':
+                        depth += 1
+                    elif text[i] == '}':
+                        depth -= 1
+                    i += 1
+            else:
+                # Regular text character — strip (skip)
+                i += 1
+
+        replacements.append((start, end, ''.join(result)))
+
     def _detect_features(self, js_content: str):
         """Detect JavaScript features using regex patterns.
 
