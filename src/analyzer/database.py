@@ -113,17 +113,21 @@ class CanIUseDatabase:
         
         logger.debug(f"Index built with {len(self.feature_index)} entries")
     
+    def _ensure_loaded(self):
+        """Auto-load the database if not already loaded."""
+        if not self.loaded:
+            self.load()
+
     def get_feature(self, feature_id: str) -> Optional[Dict]:
         """Get detailed information about a specific feature.
-        
+
         Args:
             feature_id: The feature identifier (e.g., 'flexbox', 'css-grid')
-            
+
         Returns:
             Dict containing feature data, or None if not found.
         """
-        if not self.loaded:
-            raise RuntimeError("Database not loaded. Call load() first.")
+        self._ensure_loaded()
         
         return self.features.get(feature_id)
     
@@ -247,9 +251,8 @@ class CanIUseDatabase:
         Returns:
             List of matching feature IDs
         """
-        if not self.loaded:
-            raise RuntimeError("Database not loaded. Call load() first.")
-        
+        self._ensure_loaded()
+
         query = query.lower().strip()
         results = set()
         
@@ -285,9 +288,8 @@ class CanIUseDatabase:
         Returns:
             List of feature IDs
         """
-        if not self.loaded:
-            raise RuntimeError("Database not loaded. Call load() first.")
-        
+        self._ensure_loaded()
+
         return list(self.features.keys())
     
     def get_feature_categories(self) -> Dict[str, List[str]]:
