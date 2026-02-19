@@ -9,8 +9,9 @@ from typing import Dict, List, Optional
 
 import customtkinter as ctk
 
-# API Layer imports
+# API Layer imports (all backend access goes through service)
 from src.api import get_analyzer_service, AnalysisResult
+from src.api.project_schemas import ScanConfig
 
 from .theme import COLORS, SPACING, ICONS, WINDOW, LOGO_SIMPLE, enable_smooth_scrolling
 from .widgets import (
@@ -60,18 +61,8 @@ from .widgets import (
 )
 from .widgets.rules_manager import show_rules_manager
 
-# Project scanner imports
-from src.scanner import ProjectScanner, ScanConfig, FrameworkDetector
+# GUI-only imports (all backend access goes through self.service)
 from .export_manager import ExportManager
-
-# Import feature name utilities
-from src.utils.feature_names import get_feature_name, get_fix_suggestion
-
-# Import feature flags
-from src.utils.config import ML_ENABLED
-
-# Import polyfill service
-from src.polyfill import PolyfillService, generate_polyfills_file
 
 
 class MainWindow(ctk.CTkFrame):
@@ -550,13 +541,11 @@ class MainWindow(ctk.CTkFrame):
         try:
             # Scan directory
             progress.set_message("Finding files...")
-            scanner = ProjectScanner()
-            result = scanner.scan_directory(path, config)
+            result = self._analyzer_service.scan_project_directory(path, config)
 
             # Detect framework
             progress.set_message("Detecting framework...")
-            detector = FrameworkDetector()
-            project_info = detector.detect(path)
+            project_info = self._analyzer_service.detect_project_framework(path)
 
             # Close progress dialog before updating UI
             progress.close()
@@ -792,7 +781,7 @@ class MainWindow(ctk.CTkFrame):
 
         # ===== SECTION 2.5: ML Risk Assessment (On-Demand) =====
         # Only show ML section if ML is enabled
-        if ML_ENABLED:
+        if self._analyzer_service.is_ml_enabled():
             # Store features for later ML analysis
             self._ml_features = features
             self._ml_total_features = total_features
@@ -1010,7 +999,7 @@ class MainWindow(ctk.CTkFrame):
                             detail.get('matched_apis', []) or
                             detail.get('matched_items', [])
                         )
-                        description = detail.get('description', get_feature_name(feature_id))
+                        description = detail.get('description', self._analyzer_service.get_feature_display_name(feature_id))
 
                         item_frame = ctk.CTkFrame(parent, fg_color="transparent")
                         item_frame.pack(fill="x", pady=(2, 0), padx=(SPACING['md'], 0))
@@ -1618,22 +1607,22 @@ class MainWindow(ctk.CTkFrame):
         # Add critical issues (unsupported)
         for feature_id, affected_browsers in unsupported_map.items():
             issues.append({
-                'feature_name': get_feature_name(feature_id),
+                'feature_name': self._analyzer_service.get_feature_display_name(feature_id),
                 'feature_id': feature_id,
                 'severity': 'critical',
                 'browsers': affected_browsers,
-                'fix_suggestion': get_fix_suggestion(feature_id),
+                'fix_suggestion': self._analyzer_service.get_fix_suggestion(feature_id),
             })
 
         # Add warning issues (partial) - only if not already critical
         for feature_id, affected_browsers in partial_map.items():
             if feature_id not in unsupported_map:
                 issues.append({
-                    'feature_name': get_feature_name(feature_id),
+                    'feature_name': self._analyzer_service.get_feature_display_name(feature_id),
                     'feature_id': feature_id,
                     'severity': 'warning',
                     'browsers': affected_browsers,
-                    'fix_suggestion': get_fix_suggestion(feature_id),
+                    'fix_suggestion': self._analyzer_service.get_fix_suggestion(feature_id),
                 })
 
         return issues
@@ -1657,7 +1646,8 @@ class MainWindow(ctk.CTkFrame):
         if not browsers:
             return {'has_recommendations': False}
 
-        service = PolyfillService()
+        from src.polyfill import PolyfillService
+        polyfill_svc = PolyfillService()
 
         # Collect unsupported/partial features from all browsers
         unsupported = set()
@@ -1669,23 +1659,23 @@ class MainWindow(ctk.CTkFrame):
             unsupported.update(data.get('unsupported_features', []))
             partial.update(data.get('partial_features', []))
 
-        recommendations = service.get_recommendations(unsupported, partial, browser_versions)
+        recommendations = polyfill_svc.get_recommendations(unsupported, partial, browser_versions)
 
         if not recommendations:
             return {'has_recommendations': False}
 
-        categorized = service.categorize_recommendations(recommendations)
+        categorized = polyfill_svc.categorize_recommendations(recommendations)
         npm_recs = categorized['npm']
         css_recs = categorized['fallback']
 
         return {
             'has_recommendations': True,
             'count': len(recommendations),
-            'install_command': service.get_aggregate_install_command(recommendations),
-            'imports': service.get_aggregate_imports(recommendations),
+            'install_command': polyfill_svc.get_aggregate_install_command(recommendations),
+            'imports': polyfill_svc.get_aggregate_imports(recommendations),
             'npm': npm_recs,
             'css': css_recs,
-            'total_size_kb': service.get_total_size_kb(recommendations),
+            'total_size_kb': polyfill_svc.get_total_size_kb(recommendations),
         }
 
     def _generate_polyfills_file(self, filename: str):
@@ -1720,7 +1710,7 @@ class MainWindow(ctk.CTkFrame):
         try:
             # Get all npm recommendations
             all_recs = polyfill_data['npm']
-            generated_path = generate_polyfills_file(all_recs, output_path)
+            generated_path = self._analyzer_service.generate_polyfills_file(all_recs, output_path)
             show_info(
                 self,
                 "File Generated",

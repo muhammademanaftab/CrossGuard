@@ -1,21 +1,32 @@
 # Cross Guard - Browser Compatibility Checker
 
 ## Project Overview
-Cross Guard is a desktop application that analyzes HTML, CSS, and JavaScript files for browser compatibility issues. It uses the Can I Use database to check feature support across major browsers.
+Cross Guard analyzes HTML, CSS, and JavaScript files for browser compatibility issues using the Can I Use database. It provides both a desktop GUI and a CLI, sharing a single backend via `src/api/`.
 
 ## Tech Stack
 - **GUI Framework**: CustomTkinter (with TkinterDnD2 for drag-and-drop)
+- **CLI Framework**: Click
 - **Language**: Python 3.9+
 - **Database**: SQLite (for analysis history)
 - **HTML Parsing**: BeautifulSoup4
 - **Data Source**: Can I Use database
+- **Distribution**: pyproject.toml with optional deps (gui, cli, ml)
 
 ## Project Structure
 ```
 src/
 ├── api/                    # API layer (service facade)
-│   ├── schemas.py          # Data schemas
-│   └── service.py          # Main service class
+│   ├── schemas.py          # Data schemas (incl. ExportRequest)
+│   ├── service.py          # Main service class (~70 methods)
+│   └── project_schemas.py  # Project scanner schemas
+├── cli/                    # CLI (Click-based)
+│   ├── main.py             # CLI commands (analyze, export, history, stats, config, update-db)
+│   └── formatters.py       # Terminal output formatting
+├── config/                 # Configuration file support
+│   └── config_manager.py   # crossguard.config.json loader
+├── export/                 # Report export (GUI-independent)
+│   ├── json_exporter.py    # JSON export
+│   └── pdf_exporter.py     # PDF export (reportlab)
 ├── analyzer/               # Compatibility analysis logic
 │   ├── compatibility.py    # Browser compatibility checker
 │   ├── database.py         # Can I Use database wrapper
@@ -34,7 +45,7 @@ src/
 │   ├── theme.py            # Dark blue theme configuration
 │   ├── config.py           # GUI configuration
 │   ├── file_selector.py    # File selection with drag-and-drop
-│   ├── export_manager.py   # PDF/JSON export
+│   ├── export_manager.py   # GUI export dialogs (delegates to src/export/)
 │   └── widgets/            # Reusable UI widgets
 │       ├── bookmark_button.py
 │       ├── browser_card.py
@@ -81,10 +92,18 @@ src/
 
 tests/
 ├── conftest.py             # Shared pytest fixtures
+├── analyzer/               # Compatibility engine tests (282 tests)
+├── api/                    # API service layer tests (142 tests)
+├── database/               # Database layer tests (168 tests)
+│   ├── conftest.py         # In-memory DB fixtures
+│   ├── test_models.py      # Dataclass unit tests (44 tests)
+│   ├── test_migrations.py  # Schema versioning tests (16 tests)
+│   ├── test_repositories.py # All 4 repos CRUD tests (83 tests)
+│   └── test_statistics.py  # Aggregation query tests (25 tests)
 ├── parsers/
-│   ├── css/                # CSS parser tests (17 test files)
+│   ├── css/                # CSS parser tests (17 test files, 532 tests)
 │   ├── html/               # HTML parser tests (25 test files)
-│   └── js/                 # JS parser tests (12 test files)
+│   └── js/                 # JS parser tests (12 test files, 332 tests)
 └── validation/
     └── js/                 # Manual JS validation tests
         ├── 01_syntax/
@@ -102,8 +121,31 @@ run_gui.py                  # GUI entry point
 ```
 
 ## How to Run
+
+### GUI
 ```bash
 python run_gui.py
+```
+
+### CLI
+```bash
+# Analyze a file
+python -m src.cli.main analyze path/to/file.js --format table
+
+# Analyze a directory
+python -m src.cli.main analyze path/to/project/ --format json
+
+# With custom browsers
+python -m src.cli.main analyze file.css --browsers "chrome:120,firefox:121"
+
+# Export a past analysis
+python -m src.cli.main export 42 --format pdf --output report.pdf
+
+# Show config
+python -m src.cli.main config
+
+# Initialize config file
+python -m src.cli.main config --init
 ```
 
 ## Key Features
@@ -116,18 +158,21 @@ python run_gui.py
 7. **Statistics Dashboard**: Aggregated insights from all analyses
 
 ## Database Schema
-The app uses SQLite with 3 related tables:
+The app uses SQLite with 8 tables (schema version 2):
 
 ```sql
--- Main analysis records
+-- V1 tables
 analyses (id, file_name, file_path, file_type, overall_score, grade,
           total_features, analyzed_at, browsers_json)
-
--- Detected features per analysis
 analysis_features (id, analysis_id FK, feature_id, feature_name, category)
-
--- Browser support status per feature
 browser_results (id, analysis_feature_id FK, browser, version, support_status)
+
+-- V2 tables (settings, bookmarks, tags)
+settings (key PK, value, updated_at)
+bookmarks (id, analysis_id FK UNIQUE, note, created_at)
+tags (id, name UNIQUE, color, created_at)
+analysis_tags (analysis_id FK, tag_id FK, created_at)  -- junction table
+schema_version (version PK, applied_at)
 ```
 
 ## Custom Rules System
@@ -162,30 +207,51 @@ Edit `src/parsers/custom_rules.json`:
 ```
 
 ## Architecture Notes
-- **API Layer**: `src/api/` provides a clean facade between GUI and backend
+- **API Layer**: `src/api/` provides the complete facade between frontends (GUI + CLI) and backend
+- **Shared Backend**: Both GUI and CLI use `AnalyzerService` — no direct backend imports in frontends
+- **Export Module**: `src/export/` handles PDF/JSON generation, GUI only shows file dialogs
+- **Config Module**: `src/config/` loads `crossguard.config.json` for CLI configuration
 - **Singleton Pattern**: CustomRulesLoader uses singleton to cache rules
 - **Repository Pattern**: `src/database/repositories.py` handles all CRUD operations
 - **Parser Design**: Each parser merges built-in rules with custom rules on instantiation
 - **Theme**: Dark blue color scheme defined in `src/gui/theme.py`
+- **Distribution**: `pyproject.toml` with optional deps: `gui`, `cli`, `ml`
 
 ## Testing
+
+**Total: 2913 tests** across all modules.
 
 ### Run All Tests
 ```bash
 pytest tests/
 ```
 
-### Run Parser Tests Only
+### Run by Module
 ```bash
-pytest tests/parsers/ -v
+pytest tests/parsers/css/ -v    # CSS parser tests (532)
+pytest tests/parsers/html/ -v   # HTML parser tests
+pytest tests/parsers/js/ -v     # JS parser tests (332 incl. 87 AST)
+pytest tests/database/ -v       # Database layer tests (168)
+pytest tests/analyzer/ -v       # Compatibility engine tests (282)
+pytest tests/api/ -v            # API service layer tests (226)
+pytest tests/export/ -v         # Export module tests (18)
+pytest tests/config/ -v         # Config module tests (18)
+pytest tests/cli/ -v            # CLI tests (22)
 ```
 
-### Run Specific Parser Tests
-```bash
-pytest tests/parsers/css/ -v    # CSS parser tests
-pytest tests/parsers/html/ -v   # HTML parser tests
-pytest tests/parsers/js/ -v     # JS parser tests
-```
+### Test Coverage Summary
+
+| Module | Tests | What's Covered |
+|--------|-------|----------------|
+| `src/parsers/css_parser.py` | 532 | Properties, selectors, at-rules, tinycss2 AST |
+| `src/parsers/html_parser.py` | ~1373 | Elements, attributes, input types |
+| `src/parsers/js_parser.py` | 332 | APIs, syntax, tree-sitter AST, custom rules |
+| `src/database/` | 168 | Models, migrations, all 4 repos, statistics |
+| `src/analyzer/` | 282 | Compatibility checking engine |
+| `src/api/` | 226 | Service facade layer (incl. export, config, custom rules) |
+| `src/export/` | 18 | JSON and PDF export |
+| `src/config/` | 18 | Config file loading, merging, defaults |
+| `src/cli/` | 22 | CLI commands, helpers, formatters |
 
 ### Manual JS Validation
 See `tests/validation/js/README.md` and `CHECKLIST.md` for manual testing procedures.

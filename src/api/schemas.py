@@ -272,6 +272,21 @@ ProgressCallback = Optional[callable]
 
 
 @dataclass
+class ExportRequest:
+    """Request to export an analysis report."""
+    format: str  # "json" or "pdf"
+    analysis_id: Optional[int] = None
+    result: Optional[AnalysisResult] = None
+    output_path: Optional[str] = None
+
+    def __post_init__(self):
+        if self.format not in ('json', 'pdf'):
+            raise ValueError(f"Unsupported export format: {self.format}")
+        if self.analysis_id is None and self.result is None:
+            raise ValueError("Either analysis_id or result must be provided")
+
+
+@dataclass
 class PolyfillPackageInfo:
     """Information about a single polyfill package option."""
     name: str

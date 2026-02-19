@@ -46,10 +46,16 @@ class AnalyzerService:
         'edge': LATEST_VERSIONS['edge']
     }
 
-    def __init__(self):
-        """Initialize the analyzer service."""
+    def __init__(self, config: Optional[Dict] = None):
+        """Initialize the analyzer service.
+
+        Args:
+            config: Optional config dict to override defaults (e.g. browsers).
+                    Typically loaded via src.config.load_config().
+        """
         self._analyzer = None
         self._database_updater = None
+        self._config = config
 
     def _get_analyzer(self):
         """Lazy-load the analyzer to avoid import at module level."""
@@ -793,6 +799,232 @@ class AnalyzerService:
         except Exception as e:
             logger.error(f"Failed to get tag counts: {e}")
             return {}
+
+    # =========================================================================
+    # Configuration Methods
+    # =========================================================================
+
+    def load_config(self, config_path: Optional[str] = None) -> Dict:
+        """Load configuration from a file.
+
+        Merges file config with defaults and stores on this instance.
+
+        Args:
+            config_path: Path to config file. If None, searches for
+                         crossguard.config.json in current dir and parents.
+
+        Returns:
+            The merged config dict.
+        """
+        from src.config import load_config
+        mgr = load_config(config_path=config_path, overrides=self._config)
+        self._config = mgr.to_dict()
+        # Update default browsers if config specifies them
+        if 'browsers' in self._config:
+            self.DEFAULT_BROWSERS.update(self._config['browsers'])
+        return self._config
+
+    # =========================================================================
+    # Export Methods
+    # =========================================================================
+
+    def export_to_json(
+        self,
+        analysis_id_or_result=None,
+        output_path: Optional[str] = None,
+    ) -> Any:
+        """Export an analysis report as JSON.
+
+        Args:
+            analysis_id_or_result: An AnalysisResult, a report dict, or an
+                                   int analysis_id to load from history.
+            output_path: If given, write to file and return path.
+                         If None, return the enriched dict.
+
+        Returns:
+            Enriched dict (no output_path) or file path string.
+        """
+        report = self._resolve_report(analysis_id_or_result)
+        from src.export.json_exporter import export_json
+        return export_json(report, output_path=output_path)
+
+    def export_to_pdf(
+        self,
+        analysis_id_or_result=None,
+        output_path: str = '',
+    ) -> str:
+        """Export an analysis report as PDF.
+
+        Args:
+            analysis_id_or_result: An AnalysisResult, a report dict, or an
+                                   int analysis_id to load from history.
+            output_path: Path where the PDF will be written.
+
+        Returns:
+            The output file path.
+        """
+        report = self._resolve_report(analysis_id_or_result)
+        from src.export.pdf_exporter import export_pdf
+        return export_pdf(report, output_path)
+
+    def _resolve_report(self, analysis_id_or_result) -> Dict:
+        """Convert various input types to a report dict."""
+        if isinstance(analysis_id_or_result, int):
+            record = self.get_analysis_by_id(analysis_id_or_result)
+            if record is None:
+                raise ValueError(f"Analysis #{analysis_id_or_result} not found")
+            return record
+        if hasattr(analysis_id_or_result, 'to_dict'):
+            return analysis_id_or_result.to_dict()
+        if isinstance(analysis_id_or_result, dict):
+            return analysis_id_or_result
+        raise TypeError(f"Expected int, dict, or AnalysisResult, got {type(analysis_id_or_result)}")
+
+    # =========================================================================
+    # Feature Utility Methods
+    # =========================================================================
+
+    def get_feature_display_name(self, feature_id: str) -> str:
+        """Get human-readable name for a feature ID.
+
+        Args:
+            feature_id: Technical feature ID (e.g., 'css-grid')
+
+        Returns:
+            Human-readable feature name
+        """
+        from src.utils.feature_names import get_feature_name
+        return get_feature_name(feature_id)
+
+    def get_fix_suggestion(self, feature_id: str) -> Optional[str]:
+        """Get fix suggestion for a feature.
+
+        Args:
+            feature_id: Technical feature ID
+
+        Returns:
+            Fix suggestion text or None
+        """
+        from src.utils.feature_names import get_fix_suggestion
+        return get_fix_suggestion(feature_id)
+
+    def get_polyfill_suggestions(
+        self,
+        unsupported_features: List[str],
+        partial_features: List[str] = None,
+        browsers: Dict[str, str] = None,
+    ) -> List[Any]:
+        """Get polyfill recommendations for features with issues.
+
+        Args:
+            unsupported_features: Feature IDs that are unsupported
+            partial_features: Feature IDs with partial support
+            browsers: Target browsers dict
+
+        Returns:
+            List of PolyfillRecommendation objects
+        """
+        try:
+            from src.polyfill import PolyfillService
+            service = PolyfillService()
+            return service.get_recommendations(
+                unsupported_features=set(unsupported_features),
+                partial_features=set(partial_features or []),
+                browsers=browsers or self.DEFAULT_BROWSERS,
+            )
+        except Exception as e:
+            logger.error(f"Failed to get polyfill suggestions: {e}")
+            return []
+
+    def generate_polyfills_file(
+        self,
+        recommendations: List[Any],
+        output_path: str,
+    ) -> str:
+        """Generate a polyfills.js file.
+
+        Args:
+            recommendations: List of PolyfillRecommendation objects
+            output_path: Path where the file will be written
+
+        Returns:
+            Path to the created file
+        """
+        from src.polyfill import generate_polyfills_file
+        return generate_polyfills_file(recommendations, output_path)
+
+    def classify_file(self, file_path: str) -> Optional[str]:
+        """Classify a file by its extension.
+
+        Args:
+            file_path: Path to the file
+
+        Returns:
+            'html', 'css', 'js', or None if unrecognized
+        """
+        import os
+        ext = os.path.splitext(file_path)[1].lower()
+        ext_map = {
+            '.html': 'html', '.htm': 'html',
+            '.css': 'css',
+            '.js': 'js', '.mjs': 'js', '.jsx': 'js',
+            '.ts': 'js', '.tsx': 'js',
+        }
+        return ext_map.get(ext)
+
+    def is_ml_enabled(self) -> bool:
+        """Check if ML features are enabled.
+
+        Returns:
+            True if ML features are enabled
+        """
+        from src.utils.config import ML_ENABLED
+        return ML_ENABLED
+
+    # =========================================================================
+    # Custom Rules Methods
+    # =========================================================================
+
+    def get_custom_rules(self) -> Dict:
+        """Get raw custom rules data.
+
+        Returns:
+            Dictionary containing the raw custom rules data
+        """
+        from src.parsers.custom_rules_loader import load_raw_custom_rules
+        return load_raw_custom_rules()
+
+    def save_custom_rules(self, rules_data: Dict) -> bool:
+        """Save custom rules to file and reload.
+
+        Args:
+            rules_data: The rules data dictionary to save
+
+        Returns:
+            True if save was successful
+        """
+        from src.parsers.custom_rules_loader import save_custom_rules
+        result = save_custom_rules(rules_data)
+        if result:
+            # Reset analyzer to pick up new rules
+            self._analyzer = None
+        return result
+
+    def is_user_rule(
+        self, category: str, feature_id: str, subtype: Optional[str] = None
+    ) -> bool:
+        """Check if a rule is user-added (vs built-in).
+
+        Args:
+            category: Rule category ('css', 'javascript', 'html')
+            feature_id: The feature ID to check
+            subtype: For HTML rules, the subtype ('elements', 'attributes', etc.)
+
+        Returns:
+            True if the rule is user-added
+        """
+        from src.parsers.custom_rules_loader import is_user_rule
+        return is_user_rule(category, feature_id, subtype)
 
     # =========================================================================
     # Project Scanner Methods

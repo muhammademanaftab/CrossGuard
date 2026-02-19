@@ -34,6 +34,7 @@ from .schemas import (
     # Request/Response
     AnalysisRequest,
     AnalysisResult,
+    ExportRequest,
     # Data structures
     BrowserTarget,
     FeatureSummary,
@@ -55,6 +56,7 @@ __all__ = [
     # Request/Response
     'AnalysisRequest',
     'AnalysisResult',
+    'ExportRequest',
     # Data structures
     'BrowserTarget',
     'FeatureSummary',

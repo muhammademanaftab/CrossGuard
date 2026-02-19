@@ -1,0 +1,69 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.backends._legacy:_Backend"
+
+[project]
+name = "crossguard"
+version = "1.0.0"
+description = "Browser compatibility checker for HTML, CSS, and JavaScript"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.9"
+keywords = ["browser", "compatibility", "caniuse", "css", "javascript", "html"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Topic :: Software Development :: Quality Assurance",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
+
+dependencies = [
+    "beautifulsoup4>=4.12",
+    "tinycss2>=1.2.1",
+    "tree-sitter==0.21.3",
+    "tree-sitter-languages==1.10.2",
+    "lxml>=5.0",
+    "requests>=2.31",
+    "regex>=2023.12",
+    "typing_extensions>=4.0",
+]
+
+[project.optional-dependencies]
+gui = [
+    "customtkinter>=5.2",
+    "tkinterdnd2>=0.3",
+    "reportlab>=4.0",
+    "Pillow>=10.0",
+    "matplotlib>=3.8",
+    "numpy>=1.26",
+]
+cli = [
+    "click>=8.1",
+]
+ml = [
+    "scikit-learn>=1.0",
+    "joblib>=1.2",
+    "pandas>=2.0",
+    "matplotlib>=3.8",
+    "numpy>=1.26",
+]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+]
+
+[project.scripts]
+crossguard = "src.cli.main:cli"
+
+[tool.setuptools.packages.find]
+include = ["src*"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
