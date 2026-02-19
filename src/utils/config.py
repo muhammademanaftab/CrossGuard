@@ -122,7 +122,7 @@ class CrossGuardLogger:
             return
 
         # Console handler
-        console_handler = logging.StreamHandler(sys.stdout)
+        console_handler = logging.StreamHandler(sys.stderr)
         console_handler.setLevel(logging.INFO)
         console_formatter = logging.Formatter(LOG_FORMAT, LOG_DATE_FORMAT)
         console_handler.setFormatter(console_formatter)
