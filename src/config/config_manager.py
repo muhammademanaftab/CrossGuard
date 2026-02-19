@@ -61,6 +61,8 @@ class ConfigManager:
     def _load_from_file(self, config_path: Optional[str]) -> Optional[Dict]:
         """Load config from file.
 
+        Precedence: explicit path > crossguard.config.json > package.json "crossguard" key.
+
         Args:
             config_path: Explicit path, or None to search.
 
@@ -74,11 +76,17 @@ class ConfigManager:
                 return _read_json(path)
             return None
 
-        # Search current directory and parents
+        # Search current directory and parents for crossguard.config.json
         found = _find_config_file(Path.cwd())
         if found:
             self._config_path = found
             return _read_json(found)
+
+        # Fallback: check package.json for a "crossguard" key
+        pkg_config = _load_from_package_json(Path.cwd())
+        if pkg_config is not None:
+            return pkg_config
+
         return None
 
     @property
@@ -178,6 +186,28 @@ def _read_json(path: Path) -> Optional[Dict]:
             return json.load(f)
     except (json.JSONDecodeError, IOError):
         return None
+
+
+def _load_from_package_json(start: Path) -> Optional[Dict]:
+    """Search for package.json with a ``"crossguard"`` key.
+
+    Walks up from *start* (same as config file search).
+
+    Returns:
+        Config dict from the ``"crossguard"`` section, or None.
+    """
+    current = start.resolve()
+    for _ in range(10):
+        candidate = current / 'package.json'
+        if candidate.is_file():
+            data = _read_json(candidate)
+            if data and isinstance(data.get('crossguard'), dict):
+                return data['crossguard']
+        parent = current.parent
+        if parent == current:
+            break
+        current = parent
+    return None
 
 
 def _deep_copy(d: Dict) -> Dict:

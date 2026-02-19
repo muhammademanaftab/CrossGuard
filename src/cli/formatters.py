@@ -1,19 +1,83 @@
 """Output formatters for Cross Guard CLI.
 
 Formats analysis results for terminal output in table, JSON, or summary mode.
+All public format functions accept an optional ``color`` flag (default False)
+for backward compatibility.
 """
 
 import json
-import sys
 from typing import Any, Dict, List
 
+import click
 
-def format_result(result: Dict, fmt: str = 'table') -> str:
+
+# ── Color helpers ─────────────────────────────────────────────────────
+
+
+def _grade_color(grade: str, color: bool) -> str:
+    """Return the grade string, optionally wrapped in ANSI color."""
+    if not color:
+        return grade
+    mapping = {
+        'A': 'green', 'A+': 'green', 'A-': 'green',
+        'B': 'cyan', 'B+': 'cyan', 'B-': 'cyan',
+        'C': 'yellow', 'C+': 'yellow', 'C-': 'yellow',
+        'D': 'red', 'D+': 'red', 'D-': 'red',
+        'F': 'red',
+    }
+    return click.style(grade, fg=mapping.get(grade, None), bold=True)
+
+
+def _score_color(score: float, color: bool) -> str:
+    """Return the score as a string, optionally colored."""
+    text = f"{score:.1f}%"
+    if not color:
+        return text
+    if score >= 90:
+        return click.style(text, fg='green')
+    if score >= 75:
+        return click.style(text, fg='cyan')
+    if score >= 60:
+        return click.style(text, fg='yellow')
+    return click.style(text, fg='red')
+
+
+def _status_text(status: str, color: bool) -> str:
+    """Color a support status label."""
+    if not color:
+        return status
+    mapping = {
+        'supported': 'green',
+        'partial': 'yellow',
+        'unsupported': 'red',
+        'unknown': None,
+    }
+    return click.style(status, fg=mapping.get(status.lower(), None))
+
+
+def _risk_color(risk: str, color: bool) -> str:
+    """Color a risk-level label."""
+    if not color:
+        return risk
+    mapping = {
+        'low': 'green',
+        'medium': 'yellow',
+        'high': 'red',
+        'critical': 'red',
+    }
+    return click.style(risk, fg=mapping.get(risk.lower(), None), bold=risk.lower() == 'critical')
+
+
+# ── Public format functions ───────────────────────────────────────────
+
+
+def format_result(result: Dict, fmt: str = 'table', *, color: bool = False) -> str:
     """Format an analysis result for terminal output.
 
     Args:
         result: Analysis result dict (from AnalysisResult.to_dict()).
         fmt: Output format — 'table', 'json', or 'summary'.
+        color: Emit ANSI color codes.
 
     Returns:
         Formatted string.
@@ -21,8 +85,8 @@ def format_result(result: Dict, fmt: str = 'table') -> str:
     if fmt == 'json':
         return format_json(result)
     elif fmt == 'summary':
-        return format_summary(result)
-    return format_table(result)
+        return format_summary(result, color=color)
+    return format_table(result, color=color)
 
 
 def format_json(result: Dict) -> str:
@@ -30,7 +94,7 @@ def format_json(result: Dict) -> str:
     return json.dumps(result, indent=2, ensure_ascii=False)
 
 
-def format_summary(result: Dict) -> str:
+def format_summary(result: Dict, *, color: bool = False) -> str:
     """Format result as a compact one-line summary."""
     if not result.get('success'):
         return f"Error: {result.get('error', 'Unknown error')}"
@@ -43,15 +107,19 @@ def format_summary(result: Dict) -> str:
     total = summary.get('total_features', 0)
     critical = summary.get('critical_issues', 0)
 
-    return f"Grade: {grade}  Score: {score:.0f}%  Features: {total}  Issues: {critical}"
+    return (
+        f"Grade: {_grade_color(grade, color)}  "
+        f"Score: {_score_color(score, color)}  "
+        f"Features: {total}  Issues: {critical}"
+    )
 
 
-def format_table(result: Dict) -> str:
+def format_table(result: Dict, *, color: bool = False) -> str:
     """Format result as a readable terminal table."""
     if not result.get('success'):
         return f"Error: {result.get('error', 'Unknown error')}"
 
-    lines = []
+    lines: List[str] = []
 
     # Header
     lines.append("")
@@ -67,8 +135,12 @@ def format_table(result: Dict) -> str:
     risk = scores.get('risk_level', 'unknown')
 
     lines.append("")
-    lines.append(f"  Grade: {grade}    Score: {simple:.1f}%    "
-                 f"Weighted: {weighted:.1f}%    Risk: {risk}")
+    lines.append(
+        f"  Grade: {_grade_color(grade, color)}    "
+        f"Score: {_score_color(simple, color)}    "
+        f"Weighted: {_score_color(weighted, color)}    "
+        f"Risk: {_risk_color(risk, color)}"
+    )
 
     # Feature summary
     summary = result.get('summary', {})
@@ -93,7 +165,7 @@ def format_table(result: Dict) -> str:
             pct = data.get('compatibility_percentage', 0)
             lines.append(
                 f"  {name.capitalize():<12} {data.get('version', ''):>8} "
-                f"{pct:>7.1f}% "
+                f"{_score_color(pct, color):>7} "
                 f"{data.get('supported', 0):>5} "
                 f"{data.get('partial', 0):>8} "
                 f"{data.get('unsupported', 0):>5}"
@@ -104,7 +176,8 @@ def format_table(result: Dict) -> str:
             unsupported = data.get('unsupported_features', [])
             if unsupported:
                 lines.append("")
-                lines.append(f"  {name.capitalize()} — unsupported ({len(unsupported)}):")
+                label = _status_text('unsupported', color)
+                lines.append(f"  {name.capitalize()} — {label} ({len(unsupported)}):")
                 for feat in unsupported[:10]:
                     lines.append(f"    - {feat}")
                 if len(unsupported) > 10:
@@ -123,36 +196,38 @@ def format_table(result: Dict) -> str:
     return "\n".join(lines)
 
 
-def format_history(analyses: List[Dict]) -> str:
+def format_history(analyses: List[Dict], *, color: bool = False) -> str:
     """Format analysis history as a table."""
     if not analyses:
         return "No analysis history found."
 
-    lines = []
+    lines: List[str] = []
     lines.append(f"{'ID':>5}  {'Date':<20} {'File':<30} {'Grade':>5} {'Score':>7}")
     lines.append("-" * 72)
 
     for a in analyses:
+        grade = a.get('grade', 'N/A')
+        score = a.get('overall_score', 0)
         lines.append(
             f"{a.get('id', '?'):>5}  "
             f"{a.get('analyzed_at', ''):<20.20} "
             f"{a.get('file_name', ''):<30.30} "
-            f"{a.get('grade', 'N/A'):>5} "
-            f"{a.get('overall_score', 0):>6.1f}%"
+            f"{_grade_color(grade, color):>5} "
+            f"{_score_color(score, color):>6}"
         )
 
     return "\n".join(lines)
 
 
-def format_stats(stats: Dict) -> str:
+def format_stats(stats: Dict, *, color: bool = False) -> str:
     """Format statistics as a readable table."""
-    lines = []
+    lines: List[str] = []
     lines.append("Cross Guard Statistics")
     lines.append("=" * 40)
     lines.append(f"  Total Analyses: {stats.get('total_analyses', 0)}")
-    lines.append(f"  Average Score:  {stats.get('average_score', 0):.1f}%")
-    lines.append(f"  Best Score:     {stats.get('best_score', 0):.1f}%")
-    lines.append(f"  Worst Score:    {stats.get('worst_score', 0):.1f}%")
+    lines.append(f"  Average Score:  {_score_color(stats.get('average_score', 0), color)}")
+    lines.append(f"  Best Score:     {_score_color(stats.get('best_score', 0), color)}")
+    lines.append(f"  Worst Score:    {_score_color(stats.get('worst_score', 0), color)}")
 
     top_issues = stats.get('top_problematic_features', [])
     if top_issues:
@@ -165,19 +240,23 @@ def format_stats(stats: Dict) -> str:
     return "\n".join(lines)
 
 
-def format_project_result(result: Dict) -> str:
+def format_project_result(result: Dict, *, color: bool = False) -> str:
     """Format a project analysis result."""
     if not result.get('success'):
         return f"Error: {result.get('error', 'Unknown error')}"
 
-    lines = []
+    lines: List[str] = []
     lines.append("")
     lines.append("=" * 60)
     lines.append(f"  Project: {result.get('project_name', 'Unknown')}")
     lines.append("=" * 60)
 
-    lines.append(f"  Score: {result.get('overall_score', 0):.1f}%  "
-                 f"Grade: {result.get('overall_grade', 'N/A')}")
+    score = result.get('overall_score', 0)
+    grade = result.get('overall_grade', 'N/A')
+    lines.append(
+        f"  Score: {_score_color(score, color)}  "
+        f"Grade: {_grade_color(grade, color)}"
+    )
     lines.append(f"  Files: {result.get('total_files', 0)} "
                  f"(HTML: {result.get('html_files', 0)}, "
                  f"CSS: {result.get('css_files', 0)}, "
@@ -192,8 +271,12 @@ def format_project_result(result: Dict) -> str:
         lines.append("")
         lines.append("  Worst Files:")
         for f in worst[:5]:
-            lines.append(f"    {f.get('file_name', '?')} — "
-                         f"{f.get('score', 0):.0f}% ({f.get('grade', '?')})")
+            w_score = f.get('score', 0)
+            w_grade = f.get('grade', '?')
+            lines.append(
+                f"    {f.get('file_name', '?')} — "
+                f"{_score_color(w_score, color)} ({_grade_color(w_grade, color)})"
+            )
 
     top_issues = result.get('top_issues', [])
     if top_issues:
