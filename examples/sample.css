@@ -2,31 +2,31 @@
 
 /* CSS Grid */
 .container {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    display: grid;                              /* → "css-grid" */
+    grid-template-columns: repeat(3, 1fr);      /* → "css-grid" */
     gap: 20px;
 }
 
 /* Flexbox */
 .flex-container {
-    display: flex;
+    display: flex;                              /* → "flexbox" */
     justify-content: space-between;
     align-items: center;
 }
 
 /* CSS Custom Properties (Variables) */
 :root {
-    --primary-color: #3498db;
-    --spacing: 16px;
+    --primary-color: #3498db;                   /* → "css-variables" */
+    --spacing: 16px;                            /* → "css-variables" */
 }
 
 /* Modern selectors */
-.parent:has(.child) {
-    background: var(--primary-color);
+.parent:has(.child) {                           /* → "css-has" */
+    background: var(--primary-color);           /* → "css-variables" */
 }
 
 /* Container queries */
-@container (min-width: 700px) {
+@container (min-width: 700px) {                 /* → "css-container-queries" */
     .card {
         display: flex;
     }
@@ -34,35 +34,36 @@
 
 /* Backdrop filter */
 .modal {
-    backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);                /* → "css-backdrop-filter" + "css-filters" + "css-filter-function" */
     -webkit-backdrop-filter: blur(10px);
 }
 
 /* CSS Grid subgrid */
 .subgrid {
     display: grid;
-    grid-template-columns: subgrid;
+    grid-template-columns: subgrid;             /* → "css-subgrid" */
 }
 
 /* Modern functions */
 .element {
-    width: clamp(200px, 50%, 500px);
-    padding: calc(var(--spacing) * 2);
+    width: clamp(200px, 50%, 500px);            /* → "css-math-functions" */
+    padding: calc(var(--spacing) * 2);          /* → "calc" + "css-variables" */
 }
 
 /* Aspect ratio */
 .video-container {
-    aspect-ratio: 16 / 9;
+    aspect-ratio: 16 / 9;                       /* → "minmaxwh" */
 }
 
 /* Logical properties */
 .box {
-    margin-inline: auto;
-    padding-block: 20px;
+    margin-inline: auto;                        /* → "css-logical-props" */
+    padding-block: 20px;                        /* → "css-logical-props" */
 }
 
 /* Color functions */
 .color-test {
-    color: oklch(0.5 0.2 180);
-    background: color-mix(in srgb, red 50%, blue);
+    color: oklch(0.5 0.2 180);                  /* → "css-lch-lab" */
+    background: color-mix(in srgb, red 50%, blue); /* → "css3-colors" */
 }
+/* Score: 89.06 | Grade: B | 16 features found */
