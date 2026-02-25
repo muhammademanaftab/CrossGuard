@@ -1,9 +1,4 @@
-"""
-Professional Rules Manager Dialog for Cross Guard.
-
-A unified UI where users can browse ALL existing feature detection rules
-(built-in + custom) and add their own new rules seamlessly.
-"""
+"""Rules manager dialog -- browse, add, edit, and delete feature detection rules."""
 
 import json
 from pathlib import Path
@@ -14,7 +9,6 @@ import customtkinter as ctk
 from ..theme import COLORS, SPACING, enable_smooth_scrolling
 from .messagebox import show_info, show_error, show_warning, ask_question
 
-# Import built-in feature maps
 from ...parsers.css_feature_maps import (
     ALL_CSS_FEATURES,
     CSS_LAYOUT_FEATURES, CSS_TRANSFORM_ANIMATION, CSS_COLOR_BACKGROUND,
@@ -37,7 +31,6 @@ from ...parsers.custom_rules_loader import (
 )
 
 
-# Category mappings for CSS features
 CSS_CATEGORIES = {
     'Layout': CSS_LAYOUT_FEATURES,
     'Transforms & Animation': CSS_TRANSFORM_ANIMATION,
@@ -61,7 +54,6 @@ CSS_CATEGORIES = {
     'Other': {**CSS_MISC, **CSS_ADDITIONAL_1, **CSS_ADDITIONAL_2, **CSS_ADDITIONAL_3},
 }
 
-# Category mappings for JS features
 JS_CATEGORIES = {
     'Syntax': JS_SYNTAX_FEATURES,
     'Web APIs': JS_API_FEATURES,
@@ -72,12 +64,10 @@ JS_CATEGORIES = {
     'DOM APIs': JS_DOM_APIS,
 }
 
-# HTML types
 HTML_TYPES = ['Elements', 'Attributes', 'Input Types', 'Attribute Values']
 
 
 def get_css_category(feature_id: str) -> str:
-    """Get the category name for a CSS feature."""
     for cat_name, cat_features in CSS_CATEGORIES.items():
         if feature_id in cat_features:
             return cat_name
@@ -85,7 +75,6 @@ def get_css_category(feature_id: str) -> str:
 
 
 def get_js_category(feature_id: str) -> str:
-    """Get the category name for a JS feature."""
     for cat_name, cat_features in JS_CATEGORIES.items():
         if feature_id in cat_features:
             return cat_name
@@ -93,7 +82,7 @@ def get_js_category(feature_id: str) -> str:
 
 
 class RulesManagerDialog(ctk.CTkToplevel):
-    """Professional dialog for managing feature detection rules."""
+    """Modal dialog for browsing and managing all feature detection rules."""
 
     def __init__(self, parent, on_rules_changed: Optional[Callable] = None):
         super().__init__(parent)
@@ -107,25 +96,20 @@ class RulesManagerDialog(ctk.CTkToplevel):
         self._category_filter_var = ctk.StringVar(value="All")
         self._html_type_filter_var = ctk.StringVar(value="All")
 
-        # Configure window
         self.title("Feature Detection Rules")
         self.configure(fg_color=COLORS['bg_dark'])
         self.geometry("1000x700")
         self.minsize(900, 600)
 
-        # Make modal
         self.transient(parent)
         self.grab_set()
 
-        # Build UI
         self._build_ui()
         self._center_on_parent()
 
-        # Bind search
         self._search_var.trace_add('write', lambda *args: self._refresh_rules_list())
 
     def _center_on_parent(self):
-        """Center the dialog on the parent window."""
         self.update_idletasks()
         parent_x = self.parent.winfo_rootx()
         parent_y = self.parent.winfo_rooty()
@@ -141,35 +125,23 @@ class RulesManagerDialog(ctk.CTkToplevel):
         self.geometry(f"+{x}+{y}")
 
     def _build_ui(self):
-        """Build the complete UI."""
-        # Header
         self._build_header()
 
-        # Main content container
         main_frame = ctk.CTkFrame(self, fg_color="transparent")
         main_frame.pack(fill="both", expand=True, padx=20, pady=(10, 20))
 
-        # Tab bar
         self._build_tab_bar(main_frame)
-
-        # Search and filter bar
         self._build_filter_bar(main_frame)
 
-        # Split view container
         split_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
         split_frame.pack(fill="both", expand=True, pady=(10, 0))
 
-        # Left panel - Rules list
         self._build_rules_list_panel(split_frame)
-
-        # Right panel - Details
         self._build_details_panel(split_frame)
 
-        # Initial load
         self._refresh_rules_list()
 
     def _build_header(self):
-        """Build the header section."""
         header = ctk.CTkFrame(self, fg_color=COLORS['bg_medium'], corner_radius=0)
         header.pack(fill="x")
 
@@ -180,7 +152,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
             text_color=COLORS['text_primary'],
         ).pack(side="left", padx=20, pady=15)
 
-        # Close button
         close_btn = ctk.CTkButton(
             header,
             text="X",
@@ -194,7 +165,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
         close_btn.pack(side="right", padx=15, pady=10)
 
     def _build_tab_bar(self, parent):
-        """Build the category tab bar."""
         tab_frame = ctk.CTkFrame(parent, fg_color="transparent")
         tab_frame.pack(fill="x", pady=(0, 10))
 
@@ -215,14 +185,12 @@ class RulesManagerDialog(ctk.CTkToplevel):
             self._tab_buttons[category] = btn
 
     def _build_filter_bar(self, parent):
-        """Build the search and filter bar."""
         filter_frame = ctk.CTkFrame(parent, fg_color=COLORS['bg_medium'], corner_radius=8)
         filter_frame.pack(fill="x", pady=(0, 10))
 
         inner = ctk.CTkFrame(filter_frame, fg_color="transparent")
         inner.pack(fill="x", padx=15, pady=12)
 
-        # Search box
         search_frame = ctk.CTkFrame(inner, fg_color="transparent")
         search_frame.pack(side="left", fill="x", expand=True)
 
@@ -244,7 +212,7 @@ class RulesManagerDialog(ctk.CTkToplevel):
         )
         self._search_entry.pack(side="left")
 
-        # Category/Type filter (changes based on tab)
+        # Filter dropdown changes based on active tab (CSS categories vs HTML types)
         filter_right = ctk.CTkFrame(inner, fg_color="transparent")
         filter_right.pack(side="right")
 
@@ -270,7 +238,7 @@ class RulesManagerDialog(ctk.CTkToplevel):
         )
         self._category_dropdown.pack(side="left")
 
-        # HTML type dropdown (hidden by default)
+        # Hidden by default, shown on HTML tab
         self._html_type_dropdown = ctk.CTkOptionMenu(
             filter_right,
             variable=self._html_type_filter_var,
@@ -285,12 +253,10 @@ class RulesManagerDialog(ctk.CTkToplevel):
         )
 
     def _build_rules_list_panel(self, parent):
-        """Build the left panel with rules list."""
         left_panel = ctk.CTkFrame(parent, fg_color=COLORS['bg_medium'], corner_radius=8, width=350)
         left_panel.pack(side="left", fill="y", padx=(0, 10))
         left_panel.pack_propagate(False)
 
-        # Header
         header_frame = ctk.CTkFrame(left_panel, fg_color="transparent")
         header_frame.pack(fill="x", padx=15, pady=(15, 10))
 
@@ -302,7 +268,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
         )
         self._rules_count_label.pack(side="left")
 
-        # Add New Rule button - in the rules panel header
         self._add_btn = ctk.CTkButton(
             header_frame,
             text="+",
@@ -317,7 +282,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
         )
         self._add_btn.pack(side="right")
 
-        # Scrollable list
         self._rules_list_frame = ctk.CTkScrollableFrame(
             left_panel,
             fg_color=COLORS['bg_light'],
@@ -327,7 +291,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
         enable_smooth_scrolling(self._rules_list_frame)
 
     def _build_details_panel(self, parent):
-        """Build the right panel for rule details."""
         self._details_panel = ctk.CTkFrame(parent, fg_color=COLORS['bg_medium'], corner_radius=8)
         self._details_panel.pack(side="right", fill="both", expand=True)
 
@@ -343,16 +306,14 @@ class RulesManagerDialog(ctk.CTkToplevel):
         self._show_details_placeholder()
 
     def _select_tab(self, category: str):
-        """Switch to a different category tab."""
         self._selected_category = category
         self._selected_rule_id = None
         self._search_var.set("")
 
-        # Update tab button colors
         for cat, btn in self._tab_buttons.items():
             btn.configure(fg_color=COLORS['accent'] if cat == category else COLORS['bg_medium'])
 
-        # Update filter dropdown
+        # Swap the filter dropdown to match the tab
         if category == "css":
             self._filter_label.configure(text="Category:")
             self._category_dropdown.configure(values=["All"] + list(CSS_CATEGORIES.keys()))
@@ -365,7 +326,7 @@ class RulesManagerDialog(ctk.CTkToplevel):
             self._category_filter_var.set("All")
             self._category_dropdown.pack(side="left")
             self._html_type_dropdown.pack_forget()
-        else:  # html
+        else:
             self._filter_label.configure(text="Type:")
             self._category_dropdown.pack_forget()
             self._html_type_filter_var.set("All")
@@ -375,18 +336,13 @@ class RulesManagerDialog(ctk.CTkToplevel):
         self._show_details_placeholder()
 
     def _get_all_rules(self) -> List[Tuple[str, dict, bool, str]]:
-        """Get all rules for current category.
-
-        Returns:
-            List of (feature_id, rule_data, is_custom, category/type) tuples
-        """
+        """Get filtered rules for current tab. Returns (id, data, is_custom, category) tuples."""
         rules = []
         search = self._search_var.get().lower().strip()
         category_filter = self._category_filter_var.get()
         html_type_filter = self._html_type_filter_var.get()
 
         if self._selected_category == "css":
-            # Built-in CSS rules
             for feature_id, rule_data in ALL_CSS_FEATURES.items():
                 cat = get_css_category(feature_id)
                 if category_filter != "All" and cat != category_filter:
@@ -395,7 +351,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
                     continue
                 rules.append((feature_id, rule_data, False, cat))
 
-            # Custom CSS rules
             for feature_id, rule_data in self._custom_rules.get('css', {}).items():
                 if search and not self._matches_search(feature_id, rule_data, search):
                     continue
@@ -404,7 +359,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
                 rules.append((feature_id, rule_data, True, 'Custom'))
 
         elif self._selected_category == "javascript":
-            # Built-in JS rules
             for feature_id, rule_data in ALL_JS_FEATURES.items():
                 cat = get_js_category(feature_id)
                 if category_filter != "All" and cat != category_filter:
@@ -413,7 +367,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
                     continue
                 rules.append((feature_id, rule_data, False, cat))
 
-            # Custom JS rules
             for feature_id, rule_data in self._custom_rules.get('javascript', {}).items():
                 if search and not self._matches_search(feature_id, rule_data, search):
                     continue
@@ -421,16 +374,14 @@ class RulesManagerDialog(ctk.CTkToplevel):
                     continue
                 rules.append((feature_id, rule_data, True, 'Custom'))
 
-        else:  # html
+        else:
             rules = self._get_html_rules(search, html_type_filter)
 
         return rules
 
     def _get_html_rules(self, search: str, type_filter: str) -> List[Tuple[str, dict, bool, str]]:
-        """Get all HTML rules."""
         rules = []
 
-        # Elements
         if type_filter in ("All", "Elements"):
             for name, feature_id in HTML_ELEMENTS.items():
                 if search and search not in name.lower() and search not in feature_id.lower():
@@ -441,7 +392,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
                     continue
                 rules.append((name, {'maps_to': feature_id}, True, 'Elements'))
 
-        # Attributes
         if type_filter in ("All", "Attributes"):
             for name, feature_id in HTML_ATTRIBUTES.items():
                 if search and search not in name.lower() and search not in feature_id.lower():
@@ -452,7 +402,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
                     continue
                 rules.append((name, {'maps_to': feature_id}, True, 'Attributes'))
 
-        # Input Types
         if type_filter in ("All", "Input Types"):
             for name, feature_id in HTML_INPUT_TYPES.items():
                 if search and search not in name.lower() and search not in feature_id.lower():
@@ -463,7 +412,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
                     continue
                 rules.append((name, {'maps_to': feature_id}, True, 'Input Types'))
 
-        # Attribute Values
         if type_filter in ("All", "Attribute Values"):
             for (attr, val), feature_id in HTML_ATTRIBUTE_VALUES.items():
                 display_name = f"{attr}:{val}"
@@ -478,7 +426,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
         return rules
 
     def _matches_search(self, feature_id: str, rule_data: dict, search: str) -> bool:
-        """Check if a rule matches the search query."""
         if search in feature_id.lower():
             return True
         desc = rule_data.get('description', '').lower()
@@ -491,8 +438,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
         return False
 
     def _refresh_rules_list(self):
-        """Refresh the rules list."""
-        # Clear existing items
         for widget in self._rules_list_frame.winfo_children():
             widget.destroy()
 
@@ -508,23 +453,19 @@ class RulesManagerDialog(ctk.CTkToplevel):
             ).pack(pady=30)
             return
 
-        # Group by category/type for HTML
         if self._selected_category == "html":
             self._render_html_rules_list(rules)
         else:
             self._render_css_js_rules_list(rules)
 
     def _render_css_js_rules_list(self, rules: List[Tuple[str, dict, bool, str]]):
-        """Render the CSS/JS rules list."""
-        # Sort: custom first, then alphabetical
+        # Custom rules first, then alphabetical
         rules.sort(key=lambda r: (0 if r[2] else 1, r[0].lower()))
 
         for feature_id, rule_data, is_custom, category in rules:
             self._create_rule_list_item(feature_id, is_custom, category)
 
     def _render_html_rules_list(self, rules: List[Tuple[str, dict, bool, str]]):
-        """Render the HTML rules list grouped by type."""
-        # Group by type
         by_type = {}
         for name, rule_data, is_custom, rule_type in rules:
             if rule_type not in by_type:
@@ -536,10 +477,8 @@ class RulesManagerDialog(ctk.CTkToplevel):
                 continue
 
             items = by_type[rule_type]
-            # Sort: custom first
             items.sort(key=lambda r: (0 if r[2] else 1, r[0].lower()))
 
-            # Type header
             ctk.CTkLabel(
                 self._rules_list_frame,
                 text=rule_type,
@@ -551,7 +490,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
                 self._create_html_rule_list_item(name, rule_data, is_custom, rule_type)
 
     def _create_rule_list_item(self, feature_id: str, is_custom: bool, category: str):
-        """Create a rule list item."""
         item_frame = ctk.CTkFrame(self._rules_list_frame, fg_color="transparent", height=32)
         item_frame.pack(fill="x", pady=1, padx=5)
 
@@ -582,7 +520,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
             badge.pack(side="right", padx=5)
 
     def _create_html_rule_list_item(self, name: str, rule_data: dict, is_custom: bool, rule_type: str):
-        """Create an HTML rule list item."""
         item_frame = ctk.CTkFrame(self._rules_list_frame, fg_color="transparent", height=32)
         item_frame.pack(fill="x", pady=1, padx=5)
 
@@ -615,7 +552,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
             badge.pack(side="right", padx=5)
 
     def _show_details_placeholder(self):
-        """Show placeholder in details panel."""
         for widget in self._details_frame.winfo_children():
             widget.destroy()
 
@@ -627,13 +563,11 @@ class RulesManagerDialog(ctk.CTkToplevel):
         ).pack(expand=True, pady=100)
 
     def _show_rule_details(self, feature_id: str, is_custom: bool):
-        """Show details for a CSS/JS rule."""
         for widget in self._details_frame.winfo_children():
             widget.destroy()
 
         self._selected_rule_id = feature_id
 
-        # Get rule data
         if self._selected_category == "css":
             if is_custom:
                 rule_data = self._custom_rules.get('css', {}).get(feature_id, {})
@@ -647,7 +581,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
                 rule_data = ALL_JS_FEATURES.get(feature_id, {})
             category = get_js_category(feature_id) if not is_custom else 'Custom'
 
-        # Title
         title_frame = ctk.CTkFrame(self._details_frame, fg_color="transparent")
         title_frame.pack(fill="x", pady=(0, 15))
 
@@ -670,7 +603,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
                 height=22,
             ).pack(side="left", padx=10)
 
-        # Description
         desc = rule_data.get('description', 'No description')
         ctk.CTkLabel(
             self._details_frame,
@@ -680,7 +612,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
             wraplength=400,
         ).pack(anchor="w", pady=(0, 15))
 
-        # Category
         ctk.CTkLabel(
             self._details_frame,
             text=f"Category: {category}",
@@ -688,7 +619,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
             text_color=COLORS['text_muted'],
         ).pack(anchor="w", pady=(0, 15))
 
-        # Patterns
         patterns = rule_data.get('patterns', [])
         if patterns:
             ctk.CTkLabel(
@@ -711,7 +641,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
             patterns_box.insert("1.0", "\n".join(patterns))
             patterns_box.configure(state="disabled")
 
-        # Keywords
         keywords = rule_data.get('keywords', [])
         if keywords:
             ctk.CTkLabel(
@@ -721,7 +650,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
                 text_color=COLORS['text_muted'],
             ).pack(anchor="w", pady=(0, 15))
 
-        # Edit/Delete buttons (only for custom rules)
         if is_custom:
             btn_frame = ctk.CTkFrame(self._details_frame, fg_color="transparent")
             btn_frame.pack(fill="x", pady=(20, 0))
@@ -749,13 +677,11 @@ class RulesManagerDialog(ctk.CTkToplevel):
             ).pack(side="left")
 
     def _show_html_rule_details(self, name: str, rule_data: dict, is_custom: bool, rule_type: str):
-        """Show details for an HTML rule."""
         for widget in self._details_frame.winfo_children():
             widget.destroy()
 
         self._selected_rule_id = name
 
-        # Title
         title_frame = ctk.CTkFrame(self._details_frame, fg_color="transparent")
         title_frame.pack(fill="x", pady=(0, 15))
 
@@ -778,7 +704,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
                 height=22,
             ).pack(side="left", padx=10)
 
-        # Type
         ctk.CTkLabel(
             self._details_frame,
             text=f"Type: {rule_type}",
@@ -786,7 +711,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
             text_color=COLORS['text_secondary'],
         ).pack(anchor="w", pady=(0, 10))
 
-        # Maps to
         maps_to = rule_data.get('maps_to', '')
         ctk.CTkLabel(
             self._details_frame,
@@ -795,7 +719,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
             text_color=COLORS['text_secondary'],
         ).pack(anchor="w", pady=(0, 15))
 
-        # Description
         ctk.CTkLabel(
             self._details_frame,
             text=f"This {rule_type.lower().rstrip('s')} is detected and checked against\nthe \"{maps_to}\" feature in Can I Use database.",
@@ -804,7 +727,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
             justify="left",
         ).pack(anchor="w", pady=(0, 15))
 
-        # Edit/Delete buttons (only for custom rules)
         if is_custom:
             btn_frame = ctk.CTkFrame(self._details_frame, fg_color="transparent")
             btn_frame.pack(fill="x", pady=(20, 0))
@@ -832,21 +754,18 @@ class RulesManagerDialog(ctk.CTkToplevel):
             ).pack(side="left")
 
     def _show_add_form(self):
-        """Show the add new rule form."""
         if self._selected_category == "html":
             self._show_html_add_form()
         else:
             self._show_css_js_add_form()
 
     def _show_css_js_add_form(self, edit_id: str = None, edit_data: dict = None):
-        """Show add/edit form for CSS/JS rules."""
         for widget in self._details_frame.winfo_children():
             widget.destroy()
 
         is_edit = edit_id is not None
         cat_type = self._selected_category.upper()
 
-        # Title
         ctk.CTkLabel(
             self._details_frame,
             text=f"{'Edit' if is_edit else 'Add New'} {cat_type} Rule",
@@ -854,7 +773,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
             text_color=COLORS['text_primary'],
         ).pack(anchor="w", pady=(0, 20))
 
-        # Feature ID
         ctk.CTkLabel(
             self._details_frame,
             text="Feature ID (Can I Use ID)*:",
@@ -874,7 +792,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
         if edit_id:
             id_entry.insert(0, edit_id)
 
-        # Description
         ctk.CTkLabel(
             self._details_frame,
             text="Description:",
@@ -894,7 +811,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
         if edit_data and edit_data.get('description'):
             desc_entry.insert(0, edit_data['description'])
 
-        # Patterns
         ctk.CTkLabel(
             self._details_frame,
             text="Patterns (regex, one per line)*:",
@@ -914,7 +830,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
         if edit_data and edit_data.get('patterns'):
             patterns_text.insert("1.0", "\n".join(edit_data['patterns']))
 
-        # Keywords
         ctk.CTkLabel(
             self._details_frame,
             text="Keywords (comma-separated, optional):",
@@ -934,7 +849,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
         if edit_data and edit_data.get('keywords'):
             keywords_entry.insert(0, ", ".join(edit_data['keywords']))
 
-        # Buttons
         btn_frame = ctk.CTkFrame(self._details_frame, fg_color="transparent")
         btn_frame.pack(fill="x")
 
@@ -968,15 +882,12 @@ class RulesManagerDialog(ctk.CTkToplevel):
         ).pack(side="left")
 
     def _show_edit_form(self, feature_id: str, rule_data: dict):
-        """Show the edit form for a CSS/JS rule."""
         self._show_css_js_add_form(feature_id, rule_data)
 
     def _show_html_add_form(self, rule_type: str = None):
-        """Show add form for HTML rules."""
         for widget in self._details_frame.winfo_children():
             widget.destroy()
 
-        # Title
         ctk.CTkLabel(
             self._details_frame,
             text="Add New HTML Rule",
@@ -984,7 +895,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
             text_color=COLORS['text_primary'],
         ).pack(anchor="w", pady=(0, 20))
 
-        # Type selection
         ctk.CTkLabel(
             self._details_frame,
             text="Type*:",
@@ -1006,7 +916,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
         )
         type_dropdown.pack(anchor="w", pady=(0, 15))
 
-        # Name
         ctk.CTkLabel(
             self._details_frame,
             text="Name*:",
@@ -1024,7 +933,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
         )
         name_entry.pack(fill="x", pady=(0, 15))
 
-        # Feature ID
         ctk.CTkLabel(
             self._details_frame,
             text="Can I Use Feature ID*:",
@@ -1042,7 +950,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
         )
         feature_entry.pack(fill="x", pady=(0, 20))
 
-        # Buttons
         btn_frame = ctk.CTkFrame(self._details_frame, fg_color="transparent")
         btn_frame.pack(fill="x")
 
@@ -1074,11 +981,9 @@ class RulesManagerDialog(ctk.CTkToplevel):
         ).pack(side="left")
 
     def _show_html_edit_form(self, name: str, feature_id: str, rule_type: str):
-        """Show edit form for an HTML rule."""
         for widget in self._details_frame.winfo_children():
             widget.destroy()
 
-        # Title
         ctk.CTkLabel(
             self._details_frame,
             text=f"Edit HTML Rule",
@@ -1086,7 +991,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
             text_color=COLORS['text_primary'],
         ).pack(anchor="w", pady=(0, 20))
 
-        # Type (read-only)
         ctk.CTkLabel(
             self._details_frame,
             text=f"Type: {rule_type}",
@@ -1094,7 +998,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
             text_color=COLORS['text_muted'],
         ).pack(anchor="w", pady=(0, 15))
 
-        # Name
         ctk.CTkLabel(
             self._details_frame,
             text="Name*:",
@@ -1112,7 +1015,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
         name_entry.pack(fill="x", pady=(0, 15))
         name_entry.insert(0, name)
 
-        # Feature ID
         ctk.CTkLabel(
             self._details_frame,
             text="Can I Use Feature ID*:",
@@ -1130,7 +1032,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
         feature_entry.pack(fill="x", pady=(0, 20))
         feature_entry.insert(0, feature_id)
 
-        # Buttons
         btn_frame = ctk.CTkFrame(self._details_frame, fg_color="transparent")
         btn_frame.pack(fill="x")
 
@@ -1163,13 +1064,11 @@ class RulesManagerDialog(ctk.CTkToplevel):
         ).pack(side="left")
 
     def _save_css_js_rule(self, feature_id: str, description: str, patterns_text: str, keywords_text: str, old_id: str = None):
-        """Save a CSS/JS rule."""
         feature_id = feature_id.strip()
         description = description.strip()
         patterns_text = patterns_text.strip()
         keywords_text = keywords_text.strip()
 
-        # Validation
         if not feature_id:
             show_warning(self, "Validation", "Feature ID is required")
             return
@@ -1178,35 +1077,29 @@ class RulesManagerDialog(ctk.CTkToplevel):
             show_warning(self, "Validation", "At least one pattern is required")
             return
 
-        # Check if ID conflicts with built-in
+        # Don't let custom rules shadow built-in ones
         built_in = ALL_CSS_FEATURES if self._selected_category == "css" else ALL_JS_FEATURES
         if feature_id in built_in and (not old_id or old_id != feature_id):
             show_warning(self, "Validation", f"Feature ID '{feature_id}' already exists as a built-in rule")
             return
 
-        # Parse patterns
         patterns = [p.strip() for p in patterns_text.split('\n') if p.strip()]
-
-        # Parse keywords
         keywords = [k.strip() for k in keywords_text.split(',') if k.strip()] if keywords_text else []
 
-        # Build rule data
         rule_data = {"patterns": patterns}
         if description:
             rule_data["description"] = description
         if keywords:
             rule_data["keywords"] = keywords
 
-        # Delete old rule if ID changed
+        # Clean up old entry if ID was renamed
         if old_id and old_id != feature_id:
             if old_id in self._custom_rules.get(self._selected_category, {}):
                 del self._custom_rules[self._selected_category][old_id]
 
-        # Ensure category exists
         if self._selected_category not in self._custom_rules:
             self._custom_rules[self._selected_category] = {}
 
-        # Save rule
         self._custom_rules[self._selected_category][feature_id] = rule_data
 
         if save_custom_rules(self._custom_rules):
@@ -1217,11 +1110,9 @@ class RulesManagerDialog(ctk.CTkToplevel):
             self._show_rule_details(feature_id, True)
 
     def _save_html_rule(self, rule_type: str, name: str, feature_id: str, old_name: str = None):
-        """Save an HTML rule."""
         name = name.strip()
         feature_id = feature_id.strip()
 
-        # Validation
         if not name:
             show_warning(self, "Validation", "Name is required")
             return
@@ -1230,7 +1121,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
             show_warning(self, "Validation", "Feature ID is required")
             return
 
-        # Map type to key
         type_key_map = {
             'Elements': 'elements',
             'Attributes': 'attributes',
@@ -1242,7 +1132,7 @@ class RulesManagerDialog(ctk.CTkToplevel):
             show_error(self, "Error", "Invalid rule type")
             return
 
-        # Check if conflicts with built-in
+        # Don't shadow built-in rules
         built_in_map = {
             'elements': HTML_ELEMENTS,
             'attributes': HTML_ATTRIBUTES,
@@ -1253,18 +1143,15 @@ class RulesManagerDialog(ctk.CTkToplevel):
             show_warning(self, "Validation", f"'{name}' already exists as a built-in rule")
             return
 
-        # Ensure structure exists
         if 'html' not in self._custom_rules:
             self._custom_rules['html'] = {}
         if key not in self._custom_rules['html']:
             self._custom_rules['html'][key] = {}
 
-        # Delete old if name changed
         if old_name and old_name != name:
             if old_name in self._custom_rules['html'].get(key, {}):
                 del self._custom_rules['html'][key][old_name]
 
-        # Save
         self._custom_rules['html'][key][name] = feature_id
 
         if save_custom_rules(self._custom_rules):
@@ -1275,7 +1162,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
             self._show_html_rule_details(name, {'maps_to': feature_id}, True, rule_type)
 
     def _delete_rule(self, feature_id: str):
-        """Delete a CSS/JS custom rule."""
         if not ask_question(self, "Confirm Delete", f"Delete rule '{feature_id}'?"):
             return
 
@@ -1290,7 +1176,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
                 self._show_details_placeholder()
 
     def _delete_html_rule(self, name: str, rule_type: str):
-        """Delete an HTML custom rule."""
         if not ask_question(self, "Confirm Delete", f"Delete rule '{name}'?"):
             return
 
@@ -1314,11 +1199,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
 
 
 def show_rules_manager(parent, on_rules_changed: Optional[Callable] = None):
-    """Show the rules manager dialog.
-
-    Args:
-        parent: Parent window
-        on_rules_changed: Callback when rules are modified
-    """
+    """Open the rules manager as a modal dialog."""
     dialog = RulesManagerDialog(parent, on_rules_changed)
     dialog.wait_window()

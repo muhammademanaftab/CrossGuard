@@ -1,9 +1,4 @@
-"""
-Custom message dialog widgets for CustomTkinter.
-
-Provides show_info, show_warning, show_error, and ask_question dialogs
-that match the modern charcoal + cyan theme.
-"""
+"""Themed message dialogs: info, warning, error, question, and progress."""
 
 from typing import Optional
 
@@ -13,7 +8,7 @@ from ..theme import COLORS, SPACING, ICONS
 
 
 class MessageDialog(ctk.CTkToplevel):
-    """Base class for custom message dialogs."""
+    """Modal message dialog with icon and configurable buttons."""
 
     def __init__(
         self,
@@ -23,49 +18,30 @@ class MessageDialog(ctk.CTkToplevel):
         icon_type: str = "info",
         buttons: list = None,
     ):
-        """Initialize the message dialog.
-
-        Args:
-            parent: Parent window
-            title: Dialog title
-            message: Message to display
-            icon_type: Type of icon ("info", "warning", "error", "question")
-            buttons: List of button labels (default: ["OK"])
-        """
         super().__init__(parent)
 
         self.result = None
         self._buttons = buttons or ["OK"]
 
-        # Configure window
         self.title(title)
         self.configure(fg_color=COLORS['bg_medium'])
         self.resizable(False, False)
 
-        # Make modal
         self.transient(parent)
         self.grab_set()
 
-        # Build UI
         self._build_ui(message, icon_type)
-
-        # Center on parent
         self._center_on_parent(parent)
 
-        # Handle window close
         self.protocol("WM_DELETE_WINDOW", self._on_close)
 
     def _build_ui(self, message: str, icon_type: str):
-        """Build the dialog UI."""
-        # Main frame
         main_frame = ctk.CTkFrame(self, fg_color="transparent")
         main_frame.pack(fill="both", expand=True, padx=SPACING['xl'], pady=SPACING['xl'])
 
-        # Icon and message row
         content_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
         content_frame.pack(fill="x", pady=(0, SPACING['xl']))
 
-        # Icon
         icon_colors = {
             "info": COLORS['accent'],
             "warning": COLORS['warning'],
@@ -88,7 +64,6 @@ class MessageDialog(ctk.CTkToplevel):
         )
         icon_label.pack(side="left", padx=(0, SPACING['lg']))
 
-        # Message
         message_label = ctk.CTkLabel(
             content_frame,
             text=message,
@@ -99,13 +74,12 @@ class MessageDialog(ctk.CTkToplevel):
         )
         message_label.pack(side="left", fill="x", expand=True)
 
-        # Buttons frame
         buttons_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
         buttons_frame.pack(fill="x")
 
-        # Add buttons
+        # First button is treated as primary (accent colored)
         for i, btn_text in enumerate(self._buttons):
-            is_primary = i == 0  # First button is primary
+            is_primary = i == 0
             btn = ctk.CTkButton(
                 buttons_frame,
                 text=btn_text,
@@ -122,19 +96,15 @@ class MessageDialog(ctk.CTkToplevel):
             btn.pack(side="right", padx=(SPACING['sm'], 0))
 
     def _center_on_parent(self, parent):
-        """Center the dialog on the parent window."""
         self.update_idletasks()
 
-        # Get dialog size
         width = self.winfo_width()
         height = self.winfo_height()
 
-        # Ensure minimum size
         if width < 350:
             width = 350
             self.geometry(f"{width}x{height}")
 
-        # Get parent position and size
         if parent:
             parent_x = parent.winfo_rootx()
             parent_y = parent.winfo_rooty()
@@ -144,75 +114,42 @@ class MessageDialog(ctk.CTkToplevel):
             x = parent_x + (parent_width - width) // 2
             y = parent_y + (parent_height - height) // 2
         else:
-            # Center on screen
             x = (self.winfo_screenwidth() - width) // 2
             y = (self.winfo_screenheight() - height) // 2
 
         self.geometry(f"+{x}+{y}")
 
     def _on_button_click(self, button_text: str):
-        """Handle button click."""
         self.result = button_text
         self.destroy()
 
     def _on_close(self):
-        """Handle window close."""
         self.result = None
         self.destroy()
 
     def get_result(self) -> Optional[str]:
-        """Wait for dialog to close and return result."""
+        """Block until the dialog is closed, then return which button was clicked."""
         self.wait_window()
         return self.result
 
 
 def show_info(parent, title: str, message: str) -> None:
-    """Show an information dialog.
-
-    Args:
-        parent: Parent window
-        title: Dialog title
-        message: Message to display
-    """
     dialog = MessageDialog(parent, title, message, icon_type="info")
     dialog.get_result()
 
 
 def show_warning(parent, title: str, message: str) -> None:
-    """Show a warning dialog.
-
-    Args:
-        parent: Parent window
-        title: Dialog title
-        message: Message to display
-    """
     dialog = MessageDialog(parent, title, message, icon_type="warning")
     dialog.get_result()
 
 
 def show_error(parent, title: str, message: str) -> None:
-    """Show an error dialog.
-
-    Args:
-        parent: Parent window
-        title: Dialog title
-        message: Message to display
-    """
     dialog = MessageDialog(parent, title, message, icon_type="error")
     dialog.get_result()
 
 
 def ask_question(parent, title: str, message: str) -> bool:
-    """Show a question dialog with Yes/No buttons.
-
-    Args:
-        parent: Parent window
-        title: Dialog title
-        message: Message to display
-
-    Returns:
-        True if Yes was clicked, False otherwise
-    """
+    """Returns True if Yes was clicked."""
     dialog = MessageDialog(
         parent,
         title,
@@ -225,7 +162,7 @@ def ask_question(parent, title: str, message: str) -> bool:
 
 
 class ProgressDialog(ctk.CTkToplevel):
-    """Progress dialog with progress bar and status message."""
+    """Modal progress bar dialog."""
 
     def __init__(
         self,
@@ -233,40 +170,25 @@ class ProgressDialog(ctk.CTkToplevel):
         title: str,
         message: str = "Processing...",
     ):
-        """Initialize the progress dialog.
-
-        Args:
-            parent: Parent window
-            title: Dialog title
-            message: Initial status message
-        """
         super().__init__(parent)
 
-        # Configure window
         self.title(title)
         self.configure(fg_color=COLORS['bg_medium'])
         self.resizable(False, False)
 
-        # Make modal
         self.transient(parent)
         self.grab_set()
 
-        # Build UI
         self._build_ui(message)
-
-        # Center on parent
         self._center_on_parent(parent)
 
-        # Prevent closing with X button during progress
+        # Block the X button while in progress
         self.protocol("WM_DELETE_WINDOW", lambda: None)
 
     def _build_ui(self, message: str):
-        """Build the dialog UI."""
-        # Main frame
         main_frame = ctk.CTkFrame(self, fg_color="transparent")
         main_frame.pack(fill="both", expand=True, padx=SPACING['xxl'], pady=SPACING['xl'])
 
-        # Status message
         self.status_label = ctk.CTkLabel(
             main_frame,
             text=message,
@@ -275,7 +197,6 @@ class ProgressDialog(ctk.CTkToplevel):
         )
         self.status_label.pack(pady=(0, SPACING['md']))
 
-        # Progress bar
         self.progress_bar = ctk.CTkProgressBar(
             main_frame,
             width=300,
@@ -287,7 +208,6 @@ class ProgressDialog(ctk.CTkToplevel):
         self.progress_bar.pack()
         self.progress_bar.set(0)
 
-        # Percentage label
         self.percent_label = ctk.CTkLabel(
             main_frame,
             text="0%",
@@ -297,7 +217,6 @@ class ProgressDialog(ctk.CTkToplevel):
         self.percent_label.pack(pady=(SPACING['sm'], 0))
 
     def _center_on_parent(self, parent):
-        """Center the dialog on the parent window."""
         self.update_idletasks()
 
         width = max(360, self.winfo_width())
@@ -319,13 +238,6 @@ class ProgressDialog(ctk.CTkToplevel):
         self.geometry(f"+{x}+{y}")
 
     def set_progress(self, current: int, total: int = 100, message: str = None):
-        """Update the progress value and optional message.
-
-        Args:
-            current: Current progress value
-            total: Total value (default 100 for percentage)
-            message: Optional new status message
-        """
         if total > 0:
             percent = int((current / total) * 100)
             self.progress_bar.set(current / total)
@@ -341,20 +253,13 @@ class ProgressDialog(ctk.CTkToplevel):
         self.update()
 
     def show(self):
-        """Show the progress dialog and force UI update."""
         self.update_idletasks()
         self.update()
 
     def set_message(self, message: str):
-        """Update the status message.
-
-        Args:
-            message: New status message
-        """
         self.status_label.configure(text=message)
         self.update()
 
     def close(self):
-        """Close the progress dialog."""
         self.grab_release()
         self.destroy()

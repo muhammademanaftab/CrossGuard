@@ -1,6 +1,4 @@
-"""
-Header bar widget for Cross Guard - Top bar with logo and title.
-"""
+"""Top header bar with logo, title, and action buttons."""
 
 from typing import Optional
 import customtkinter as ctk
@@ -9,7 +7,7 @@ from ..theme import COLORS, SPACING, LOGO_SIMPLE
 
 
 class HeaderBar(ctk.CTkFrame):
-    """Top header bar with application branding."""
+    """App header with branding on the left and action buttons on the right."""
 
     def __init__(
         self,
@@ -18,13 +16,6 @@ class HeaderBar(ctk.CTkFrame):
         subtitle: Optional[str] = None,
         **kwargs
     ):
-        """Initialize header bar.
-
-        Args:
-            master: Parent widget
-            title: Main title text
-            subtitle: Optional subtitle/breadcrumb text
-        """
         super().__init__(
             master,
             height=56,
@@ -36,22 +27,17 @@ class HeaderBar(ctk.CTkFrame):
         self._title = title
         self._subtitle = subtitle
 
-        # Prevent resize
         self.pack_propagate(False)
 
         self._init_ui()
 
     def _init_ui(self):
-        """Initialize the user interface."""
-        # Inner container with padding
         container = ctk.CTkFrame(self, fg_color="transparent")
         container.pack(fill="both", expand=True, padx=SPACING['lg'], pady=SPACING['sm'])
 
-        # Left side - Logo and title
         left_frame = ctk.CTkFrame(container, fg_color="transparent")
         left_frame.pack(side="left", fill="y")
 
-        # Logo text
         logo_label = ctk.CTkLabel(
             left_frame,
             text=LOGO_SIMPLE,
@@ -60,7 +46,6 @@ class HeaderBar(ctk.CTkFrame):
         )
         logo_label.pack(side="left", padx=(0, SPACING['lg']))
 
-        # Separator
         sep_label = ctk.CTkLabel(
             left_frame,
             text="|",
@@ -69,7 +54,6 @@ class HeaderBar(ctk.CTkFrame):
         )
         sep_label.pack(side="left", padx=(0, SPACING['lg']))
 
-        # Title
         self.title_label = ctk.CTkLabel(
             left_frame,
             text=self._title,
@@ -78,7 +62,6 @@ class HeaderBar(ctk.CTkFrame):
         )
         self.title_label.pack(side="left")
 
-        # Subtitle/breadcrumb (if provided)
         if self._subtitle:
             breadcrumb_label = ctk.CTkLabel(
                 left_frame,
@@ -88,27 +71,16 @@ class HeaderBar(ctk.CTkFrame):
             )
             breadcrumb_label.pack(side="left")
 
-        # Right side - Actions frame (for buttons)
         self.actions_frame = ctk.CTkFrame(container, fg_color="transparent")
         self.actions_frame.pack(side="right", fill="y")
 
     def set_title(self, title: str):
-        """Update the title text.
-
-        Args:
-            title: New title text
-        """
         self._title = title
         self.title_label.configure(text=title)
 
     def set_subtitle(self, subtitle: Optional[str]):
-        """Update the subtitle text.
-
-        Args:
-            subtitle: New subtitle text (or None to hide)
-        """
         self._subtitle = subtitle
-        # Would need to rebuild UI to properly show/hide subtitle
+        # Would need UI rebuild to properly show/hide subtitle
 
     def add_action_button(
         self,
@@ -118,18 +90,6 @@ class HeaderBar(ctk.CTkFrame):
         hover_color: Optional[str] = None,
         **kwargs
     ) -> ctk.CTkButton:
-        """Add an action button to the header.
-
-        Args:
-            text: Button text
-            command: Button callback
-            fg_color: Button foreground color
-            hover_color: Button hover color
-            **kwargs: Additional button arguments
-
-        Returns:
-            The created button widget
-        """
         btn = ctk.CTkButton(
             self.actions_frame,
             text=text,
@@ -144,6 +104,5 @@ class HeaderBar(ctk.CTkFrame):
         return btn
 
     def clear_actions(self):
-        """Remove all action buttons."""
         for widget in self.actions_frame.winfo_children():
             widget.destroy()

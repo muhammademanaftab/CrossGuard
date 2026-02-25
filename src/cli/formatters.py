@@ -1,9 +1,4 @@
-"""Output formatters for Cross Guard CLI.
-
-Formats analysis results for terminal output in table, JSON, or summary mode.
-All public format functions accept an optional ``color`` flag (default False)
-for backward compatibility.
-"""
+"""Terminal output formatters (table, JSON, summary)."""
 
 import json
 from typing import Any, Dict, List
@@ -11,11 +6,8 @@ from typing import Any, Dict, List
 import click
 
 
-# ── Color helpers ─────────────────────────────────────────────────────
-
-
 def _grade_color(grade: str, color: bool) -> str:
-    """Return the grade string, optionally wrapped in ANSI color."""
+    """Colorize a letter grade when color is on."""
     if not color:
         return grade
     mapping = {
@@ -29,7 +21,7 @@ def _grade_color(grade: str, color: bool) -> str:
 
 
 def _score_color(score: float, color: bool) -> str:
-    """Return the score as a string, optionally colored."""
+    """Green/cyan/yellow/red based on score threshold."""
     text = f"{score:.1f}%"
     if not color:
         return text
@@ -43,7 +35,7 @@ def _score_color(score: float, color: bool) -> str:
 
 
 def _status_text(status: str, color: bool) -> str:
-    """Color a support status label."""
+    """Colorize supported/partial/unsupported labels."""
     if not color:
         return status
     mapping = {
@@ -56,7 +48,7 @@ def _status_text(status: str, color: bool) -> str:
 
 
 def _risk_color(risk: str, color: bool) -> str:
-    """Color a risk-level label."""
+    """Colorize risk level, bold for critical."""
     if not color:
         return risk
     mapping = {
@@ -68,20 +60,8 @@ def _risk_color(risk: str, color: bool) -> str:
     return click.style(risk, fg=mapping.get(risk.lower(), None), bold=risk.lower() == 'critical')
 
 
-# ── Public format functions ───────────────────────────────────────────
-
-
 def format_result(result: Dict, fmt: str = 'table', *, color: bool = False) -> str:
-    """Format an analysis result for terminal output.
-
-    Args:
-        result: Analysis result dict (from AnalysisResult.to_dict()).
-        fmt: Output format — 'table', 'json', or 'summary'.
-        color: Emit ANSI color codes.
-
-    Returns:
-        Formatted string.
-    """
+    """Route to the right formatter (table/json/summary)."""
     if fmt == 'json':
         return format_json(result)
     elif fmt == 'summary':
@@ -90,12 +70,12 @@ def format_result(result: Dict, fmt: str = 'table', *, color: bool = False) -> s
 
 
 def format_json(result: Dict) -> str:
-    """Format result as pretty-printed JSON."""
+    """Pretty-print as JSON."""
     return json.dumps(result, indent=2, ensure_ascii=False)
 
 
 def format_summary(result: Dict, *, color: bool = False) -> str:
-    """Format result as a compact one-line summary."""
+    """One-line grade + score + feature count."""
     if not result.get('success'):
         return f"Error: {result.get('error', 'Unknown error')}"
 
@@ -115,19 +95,16 @@ def format_summary(result: Dict, *, color: bool = False) -> str:
 
 
 def format_table(result: Dict, *, color: bool = False) -> str:
-    """Format result as a readable terminal table."""
+    """Full report with scores, browser breakdown, and recommendations."""
     if not result.get('success'):
         return f"Error: {result.get('error', 'Unknown error')}"
 
     lines: List[str] = []
-
-    # Header
     lines.append("")
     lines.append("=" * 60)
     lines.append("  CROSS GUARD — Browser Compatibility Report")
     lines.append("=" * 60)
 
-    # Scores
     scores = result.get('scores', {})
     grade = scores.get('grade', 'N/A')
     simple = scores.get('simple_score', 0)
@@ -142,7 +119,6 @@ def format_table(result: Dict, *, color: bool = False) -> str:
         f"Risk: {_risk_color(risk, color)}"
     )
 
-    # Feature summary
     summary = result.get('summary', {})
     lines.append("")
     lines.append("  Features Detected:")
@@ -152,7 +128,6 @@ def format_table(result: Dict, *, color: bool = False) -> str:
     lines.append(f"    JS:    {summary.get('js_features', 0)}")
     lines.append(f"    Critical Issues: {summary.get('critical_issues', 0)}")
 
-    # Browser table
     browsers = result.get('browsers', {})
     if browsers:
         lines.append("")
@@ -171,7 +146,6 @@ def format_table(result: Dict, *, color: bool = False) -> str:
                 f"{data.get('unsupported', 0):>5}"
             )
 
-        # Issues
         for name, data in browsers.items():
             unsupported = data.get('unsupported_features', [])
             if unsupported:
@@ -183,7 +157,6 @@ def format_table(result: Dict, *, color: bool = False) -> str:
                 if len(unsupported) > 10:
                     lines.append(f"    ... and {len(unsupported) - 10} more")
 
-    # Recommendations
     recs = result.get('recommendations', [])
     if recs:
         lines.append("")
@@ -197,7 +170,7 @@ def format_table(result: Dict, *, color: bool = False) -> str:
 
 
 def format_history(analyses: List[Dict], *, color: bool = False) -> str:
-    """Format analysis history as a table."""
+    """History list with ID, date, file, grade, score."""
     if not analyses:
         return "No analysis history found."
 
@@ -220,7 +193,7 @@ def format_history(analyses: List[Dict], *, color: bool = False) -> str:
 
 
 def format_stats(stats: Dict, *, color: bool = False) -> str:
-    """Format statistics as a readable table."""
+    """Aggregated stats: totals, averages, top issues."""
     lines: List[str] = []
     lines.append("Cross Guard Statistics")
     lines.append("=" * 40)
@@ -241,7 +214,7 @@ def format_stats(stats: Dict, *, color: bool = False) -> str:
 
 
 def format_project_result(result: Dict, *, color: bool = False) -> str:
-    """Format a project analysis result."""
+    """Project-level report with per-file breakdown and top issues."""
     if not result.get('success'):
         return f"Error: {result.get('error', 'Unknown error')}"
 

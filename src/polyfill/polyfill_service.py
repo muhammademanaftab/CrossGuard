@@ -1,8 +1,4 @@
-"""Service for generating polyfill recommendations.
-
-This module analyzes compatibility results and recommends appropriate polyfills
-for features that have issues in target browsers.
-"""
+"""Generates polyfill recommendations from compatibility results."""
 
 from dataclasses import dataclass, field
 from typing import Dict, List, Set, Optional
@@ -12,7 +8,6 @@ from .polyfill_loader import get_polyfill_loader
 
 @dataclass
 class PolyfillPackage:
-    """Information about a single polyfill package option."""
     name: str
     npm_package: str
     import_statement: str
@@ -23,10 +18,9 @@ class PolyfillPackage:
 
 @dataclass
 class PolyfillRecommendation:
-    """A single polyfill recommendation."""
     feature_id: str
     feature_name: str
-    polyfill_type: str  # 'npm', 'fallback'
+    polyfill_type: str  # 'npm' or 'fallback'
     packages: List[PolyfillPackage] = field(default_factory=list)
     fallback_code: Optional[str] = None
     fallback_description: Optional[str] = None
@@ -34,7 +28,7 @@ class PolyfillRecommendation:
 
 
 class PolyfillService:
-    """Generates polyfill recommendations based on analysis results."""
+    """Turns compatibility issues into actionable polyfill recommendations."""
 
     def __init__(self):
         self._loader = get_polyfill_loader()
@@ -45,17 +39,7 @@ class PolyfillService:
         partial_features: Set[str],
         browsers: Dict[str, str]
     ) -> List[PolyfillRecommendation]:
-        """
-        Get polyfill recommendations for features with compatibility issues.
-
-        Args:
-            unsupported_features: Set of feature IDs that are unsupported
-            partial_features: Set of feature IDs with partial support
-            browsers: Dict of browser name to version
-
-        Returns:
-            List of PolyfillRecommendation objects
-        """
+        """Build recommendations for all unsupported/partial features."""
         recommendations = []
         all_problem_features = unsupported_features | partial_features
 
@@ -65,7 +49,6 @@ class PolyfillService:
                 continue
 
             if polyfill_info.get('polyfillable'):
-                # This feature can be polyfilled with npm packages
                 packages = []
                 for pkg in polyfill_info.get('packages', []):
                     packages.append(PolyfillPackage(
@@ -87,7 +70,6 @@ class PolyfillService:
                 recommendations.append(rec)
 
             elif 'fallback' in polyfill_info:
-                # This feature has a CSS/code fallback strategy
                 fallback = polyfill_info['fallback']
                 rec = PolyfillRecommendation(
                     feature_id=feature_id,
@@ -106,18 +88,11 @@ class PolyfillService:
         self,
         recommendations: List[PolyfillRecommendation]
     ) -> str:
-        """Generate a single npm install command for all recommendations.
-
-        Args:
-            recommendations: List of polyfill recommendations
-
-        Returns:
-            npm install command string (empty if no packages needed)
-        """
+        """Build a single `npm install` command for all recommended packages."""
         packages = set()
         for rec in recommendations:
             if rec.polyfill_type == 'npm' and rec.packages:
-                # Use first package option (recommended one)
+                # first package is the recommended one
                 packages.add(rec.packages[0].npm_package)
 
         if not packages:
@@ -129,18 +104,10 @@ class PolyfillService:
         self,
         recommendations: List[PolyfillRecommendation]
     ) -> List[str]:
-        """Generate import statements for all recommendations.
-
-        Args:
-            recommendations: List of polyfill recommendations
-
-        Returns:
-            List of import statement strings
-        """
+        """Collect import statements for all npm polyfill packages."""
         imports = []
         for rec in recommendations:
             if rec.polyfill_type == 'npm' and rec.packages:
-                # Use first package option (recommended one)
                 imports.append(rec.packages[0].import_statement)
         return imports
 
@@ -148,14 +115,7 @@ class PolyfillService:
         self,
         recommendations: List[PolyfillRecommendation]
     ) -> float:
-        """Calculate total estimated size of all polyfills.
-
-        Args:
-            recommendations: List of polyfill recommendations
-
-        Returns:
-            Total size in KB
-        """
+        """Sum up estimated bundle size (KB) of all recommended polyfills."""
         total = 0.0
         for rec in recommendations:
             if rec.polyfill_type == 'npm' and rec.packages:
@@ -168,14 +128,7 @@ class PolyfillService:
         self,
         recommendations: List[PolyfillRecommendation]
     ) -> Dict[str, List[PolyfillRecommendation]]:
-        """Categorize recommendations by type.
-
-        Args:
-            recommendations: List of polyfill recommendations
-
-        Returns:
-            Dict with 'npm' and 'fallback' keys
-        """
+        """Split recommendations into 'npm' vs 'fallback' buckets."""
         result = {
             'npm': [],
             'fallback': []

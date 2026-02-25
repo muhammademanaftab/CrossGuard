@@ -1,9 +1,4 @@
-"""
-Polyfill recommendation module for Cross Guard.
-
-This module provides polyfill recommendations based on browser compatibility analysis.
-It maintains a curated database of polyfills mapped to Can I Use feature IDs.
-"""
+"""Polyfill recommendation module."""
 
 from .polyfill_loader import PolyfillLoader, get_polyfill_loader
 from .polyfill_service import PolyfillService, PolyfillRecommendation

@@ -1,7 +1,4 @@
-"""
-ML Risk Assessment Card widget for displaying ML-based compatibility predictions.
-Shows risk level, confidence, and contributing factors from the ML module.
-"""
+"""ML risk assessment card -- shows risk level, confidence, and contributing factors."""
 
 from typing import List, Optional, Dict, Any
 
@@ -10,14 +7,12 @@ import customtkinter as ctk
 from ..theme import COLORS, SPACING
 
 
-# Risk level colors
 RISK_COLORS = {
     'low': COLORS.get('success', '#22c55e'),
     'medium': COLORS.get('warning', '#f59e0b'),
     'high': COLORS.get('danger', '#ef4444'),
 }
 
-# Risk level icons
 RISK_ICONS = {
     'low': '\u2713',     # Checkmark
     'medium': '\u26A0',  # Warning
@@ -26,14 +21,7 @@ RISK_ICONS = {
 
 
 class MLRiskCard(ctk.CTkFrame):
-    """Card displaying ML-based risk assessment for detected features.
-
-    Shows:
-    - Overall ML risk prediction
-    - Confidence score
-    - Top contributing factors
-    - Feature importance insights
-    """
+    """Card showing ML-based risk prediction with confidence and top factors."""
 
     def __init__(
         self,
@@ -41,13 +29,6 @@ class MLRiskCard(ctk.CTkFrame):
         title: str = "ML Risk Assessment",
         **kwargs
     ):
-        """Initialize the ML risk card.
-
-        Args:
-            master: Parent widget
-            title: Card title
-            **kwargs: Additional arguments passed to CTkFrame
-        """
         super().__init__(
             master,
             fg_color=COLORS.get('bg_medium', '#1e293b'),
@@ -63,12 +44,9 @@ class MLRiskCard(ctk.CTkFrame):
         self._init_ui()
 
     def _init_ui(self):
-        """Initialize the user interface."""
-        # Header
         header_frame = ctk.CTkFrame(self, fg_color="transparent")
         header_frame.pack(fill="x", padx=SPACING.get('lg', 16), pady=(SPACING.get('lg', 16), SPACING.get('sm', 8)))
 
-        # ML badge
         ml_badge = ctk.CTkLabel(
             header_frame,
             text=" ML ",
@@ -79,7 +57,6 @@ class MLRiskCard(ctk.CTkFrame):
         )
         ml_badge.pack(side="left")
 
-        # Title
         title_label = ctk.CTkLabel(
             header_frame,
             text=self._title,
@@ -88,7 +65,7 @@ class MLRiskCard(ctk.CTkFrame):
         )
         title_label.pack(side="left", padx=(SPACING.get('sm', 8), 0))
 
-        # Status indicator (will be updated with risk level)
+        # Updated dynamically with risk level
         self.status_indicator = ctk.CTkLabel(
             header_frame,
             text="",
@@ -97,15 +74,12 @@ class MLRiskCard(ctk.CTkFrame):
         )
         self.status_indicator.pack(side="right")
 
-        # Content frame
         self.content_frame = ctk.CTkFrame(self, fg_color="transparent")
         self.content_frame.pack(fill="both", expand=True, padx=SPACING.get('lg', 16), pady=(0, SPACING.get('lg', 16)))
 
-        # Risk summary row
         self.summary_frame = ctk.CTkFrame(self.content_frame, fg_color="transparent")
         self.summary_frame.pack(fill="x", pady=(0, SPACING.get('md', 12)))
 
-        # Risk level indicator
         self.risk_level_frame = ctk.CTkFrame(
             self.summary_frame,
             fg_color=COLORS.get('bg_light', '#334155'),
@@ -131,7 +105,6 @@ class MLRiskCard(ctk.CTkFrame):
         )
         self.risk_label.pack(side="left", padx=(0, SPACING.get('sm', 8)), pady=SPACING.get('xs', 4))
 
-        # Confidence meter
         confidence_frame = ctk.CTkFrame(self.summary_frame, fg_color="transparent")
         confidence_frame.pack(side="left", fill="x", expand=True)
 
@@ -161,7 +134,6 @@ class MLRiskCard(ctk.CTkFrame):
         )
         self.confidence_label.pack(anchor="e")
 
-        # Factors list
         factors_header = ctk.CTkLabel(
             self.content_frame,
             text="Contributing Factors:",
@@ -177,7 +149,6 @@ class MLRiskCard(ctk.CTkFrame):
         )
         self.factors_frame.pack(fill="x")
 
-        # Placeholder for factors
         self.factors_placeholder = ctk.CTkLabel(
             self.factors_frame,
             text="Analyze files to see ML risk factors",
@@ -195,17 +166,7 @@ class MLRiskCard(ctk.CTkFrame):
         total_features: int = 0,
         model_accuracy: Optional[float] = None,
     ):
-        """Update the risk assessment display.
-
-        Args:
-            risk_level: Risk level ('low', 'medium', 'high')
-            confidence: Confidence score (0.0 - 1.0) - actual prediction confidence
-            factors: List of contributing factor strings
-            high_risk_count: Number of high-risk features
-            total_features: Total features analyzed
-            model_accuracy: Model's test accuracy (optional, for display)
-        """
-        # Update risk level display
+        """Update the risk display with new prediction data."""
         risk_level = risk_level.lower()
         color = RISK_COLORS.get(risk_level, COLORS.get('text_muted', '#94a3b8'))
         icon = RISK_ICONS.get(risk_level, '?')
@@ -217,7 +178,6 @@ class MLRiskCard(ctk.CTkFrame):
         )
         self.risk_level_frame.configure(border_width=1, border_color=color)
 
-        # Update status indicator - show flagged count and model accuracy
         status_parts = []
         if total_features > 0:
             status_parts.append(f"{high_risk_count}/{total_features} flagged")
@@ -226,16 +186,14 @@ class MLRiskCard(ctk.CTkFrame):
         if status_parts:
             self.status_indicator.configure(text=" | ".join(status_parts))
 
-        # Update confidence bar and label
         self.confidence_bar.set(confidence)
         self.confidence_label.configure(text=f"{confidence * 100:.1f}%")
 
-        # Update factors
         for widget in self.factors_frame.winfo_children():
             widget.destroy()
 
         if factors:
-            for i, factor in enumerate(factors[:5]):  # Show top 5 factors
+            for i, factor in enumerate(factors[:5]):
                 factor_row = ctk.CTkFrame(self.factors_frame, fg_color="transparent")
                 factor_row.pack(fill="x", padx=SPACING.get('sm', 8), pady=(SPACING.get('xs', 4) if i == 0 else 0, SPACING.get('xs', 4)))
 
@@ -267,24 +225,16 @@ class MLRiskCard(ctk.CTkFrame):
             no_factors.pack(padx=SPACING.get('sm', 8), pady=SPACING.get('sm', 8))
 
     def set_loading(self, loading: bool = True):
-        """Show loading state.
-
-        Args:
-            loading: Whether to show loading state
-        """
+        """Toggle loading spinner state."""
         if loading:
-            self.risk_icon.configure(text="\u23F3")  # Hourglass
+            self.risk_icon.configure(text="\u23F3")
             self.risk_label.configure(text="Analyzing...")
             self.status_indicator.configure(text="Processing")
         else:
             self.status_indicator.configure(text="")
 
     def set_error(self, error_message: str):
-        """Show error state.
-
-        Args:
-            error_message: Error message to display
-        """
+        """Show fallback state when ML module isn't available."""
         self.risk_icon.configure(text="\u26A0", text_color=COLORS.get('warning', '#f59e0b'))
         self.risk_label.configure(text="ML Unavailable", text_color=COLORS.get('warning', '#f59e0b'))
         self.status_indicator.configure(text="Using rule-based analysis")
@@ -303,18 +253,9 @@ class MLRiskCard(ctk.CTkFrame):
 
 
 class MLFeatureImportanceCard(ctk.CTkFrame):
-    """Card displaying top feature importance from ML model.
-
-    Shows which characteristics most strongly predict compatibility risk.
-    """
+    """Shows which features most strongly predict compatibility risk."""
 
     def __init__(self, master, **kwargs):
-        """Initialize the feature importance card.
-
-        Args:
-            master: Parent widget
-            **kwargs: Additional arguments
-        """
         super().__init__(
             master,
             fg_color=COLORS.get('bg_medium', '#1e293b'),
@@ -327,8 +268,6 @@ class MLFeatureImportanceCard(ctk.CTkFrame):
         self._init_ui()
 
     def _init_ui(self):
-        """Initialize the user interface."""
-        # Header
         header_frame = ctk.CTkFrame(self, fg_color="transparent")
         header_frame.pack(fill="x", padx=SPACING.get('lg', 16), pady=(SPACING.get('lg', 16), SPACING.get('sm', 8)))
 
@@ -346,11 +285,9 @@ class MLFeatureImportanceCard(ctk.CTkFrame):
             text_color=COLORS.get('text_muted', '#94a3b8'),
         ).pack(side="right")
 
-        # Content
         self.content_frame = ctk.CTkFrame(self, fg_color="transparent")
         self.content_frame.pack(fill="both", expand=True, padx=SPACING.get('lg', 16), pady=(0, SPACING.get('lg', 16)))
 
-        # Placeholder
         self.placeholder = ctk.CTkLabel(
             self.content_frame,
             text="Train ML model to see feature importance",
@@ -360,11 +297,7 @@ class MLFeatureImportanceCard(ctk.CTkFrame):
         self.placeholder.pack(pady=SPACING.get('md', 12))
 
     def set_importances(self, importances: List[tuple]):
-        """Update feature importance display.
-
-        Args:
-            importances: List of (feature_name, importance) tuples
-        """
+        """Update with list of (feature_name, importance) tuples."""
         for widget in self.content_frame.winfo_children():
             widget.destroy()
 
@@ -377,14 +310,12 @@ class MLFeatureImportanceCard(ctk.CTkFrame):
             ).pack(pady=SPACING.get('md', 12))
             return
 
-        # Show top features with bars
         max_importance = max(imp for _, imp in importances[:5]) if importances else 1
 
         for name, importance in importances[:5]:
             row = ctk.CTkFrame(self.content_frame, fg_color="transparent")
             row.pack(fill="x", pady=(0, SPACING.get('xs', 4)))
 
-            # Feature name (formatted)
             display_name = name.replace('_', ' ').title()
             if len(display_name) > 18:
                 display_name = display_name[:16] + "..."
@@ -399,7 +330,6 @@ class MLFeatureImportanceCard(ctk.CTkFrame):
             )
             name_label.pack(side="left")
 
-            # Importance bar
             bar_frame = ctk.CTkFrame(
                 row,
                 fg_color=COLORS.get('bg_light', '#334155'),
@@ -417,7 +347,6 @@ class MLFeatureImportanceCard(ctk.CTkFrame):
             )
             bar.place(relx=0, rely=0, relwidth=bar_width, relheight=1)
 
-            # Value
             val_label = ctk.CTkLabel(
                 row,
                 text=f"{importance:.3f}",

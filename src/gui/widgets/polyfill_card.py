@@ -1,9 +1,4 @@
-"""
-PolyfillCard widget - Display polyfill recommendations with copy functionality.
-
-Shows npm install commands, import statements, and CSS fallbacks with
-actionable copy buttons and optional file generation.
-"""
+"""Polyfill recommendation card with copy-to-clipboard and file generation."""
 
 from typing import List, Callable, Optional
 import customtkinter as ctk
@@ -12,39 +7,19 @@ from ..theme import COLORS, SPACING, FONTS
 
 
 class PolyfillCard(ctk.CTkFrame):
-    """Card displaying polyfill recommendations with actionable buttons.
-
-    Features:
-    - npm install command with copy button
-    - Import statements with copy button
-    - CSS fallback code display
-    - Generate polyfills.js button
-    - Total bundle size estimate
-    """
+    """Shows polyfill recommendations: npm commands, imports, CSS fallbacks."""
 
     def __init__(
         self,
         master,
         install_command: str,
         import_statements: List[str],
-        npm_recommendations: List,  # List of PolyfillRecommendation
-        css_fallbacks: List,  # List of PolyfillRecommendation
+        npm_recommendations: List,
+        css_fallbacks: List,
         total_size_kb: float = 0.0,
         on_generate_file: Optional[Callable[[str], None]] = None,
         **kwargs
     ):
-        """Initialize the polyfill card.
-
-        Args:
-            master: Parent widget
-            install_command: npm install command string
-            import_statements: List of import statement strings
-            npm_recommendations: List of npm polyfill recommendations
-            css_fallbacks: List of CSS fallback recommendations
-            total_size_kb: Estimated total bundle size in KB
-            on_generate_file: Callback when generate file button is clicked
-            **kwargs: Additional arguments passed to CTkFrame
-        """
         super().__init__(
             master,
             fg_color=COLORS['bg_medium'],
@@ -64,14 +39,12 @@ class PolyfillCard(ctk.CTkFrame):
         self._init_ui()
 
     def _init_ui(self):
-        """Build the UI."""
-        # Header
         header = ctk.CTkFrame(self, fg_color="transparent")
         header.pack(fill="x", padx=SPACING['md'], pady=(SPACING['md'], SPACING['sm']))
 
         icon = ctk.CTkLabel(
             header,
-            text="\U0001F4E6",  # Package emoji
+            text="\U0001F4E6",
             font=ctk.CTkFont(size=16)
         )
         icon.pack(side="left")
@@ -84,7 +57,6 @@ class PolyfillCard(ctk.CTkFrame):
         )
         title.pack(side="left", padx=(SPACING['xs'], 0))
 
-        # Count badge
         count = len(self._npm_recommendations) + len(self._css_fallbacks)
         badge = ctk.CTkLabel(
             header,
@@ -96,7 +68,6 @@ class PolyfillCard(ctk.CTkFrame):
         )
         badge.pack(side="left", padx=(SPACING['sm'], 0))
 
-        # Size estimate (if available)
         if self._total_size_kb > 0:
             size_label = ctk.CTkLabel(
                 header,
@@ -106,15 +77,12 @@ class PolyfillCard(ctk.CTkFrame):
             )
             size_label.pack(side="right")
 
-        # Separator
         sep = ctk.CTkFrame(self, fg_color=COLORS['border'], height=1)
         sep.pack(fill="x", padx=SPACING['md'])
 
-        # Content
         content = ctk.CTkFrame(self, fg_color="transparent")
         content.pack(fill="x", padx=SPACING['md'], pady=SPACING['md'])
 
-        # NPM Install command section (if npm packages needed)
         if self._install_command:
             self._build_command_section(
                 content,
@@ -123,7 +91,6 @@ class PolyfillCard(ctk.CTkFrame):
                 is_multiline=False
             )
 
-        # Import statements section
         if self._import_statements:
             imports_text = "\n".join(self._import_statements)
             self._build_command_section(
@@ -133,22 +100,19 @@ class PolyfillCard(ctk.CTkFrame):
                 is_multiline=True
             )
 
-        # Individual polyfill details (expandable)
         if self._npm_recommendations:
             self._build_polyfill_list(content)
 
-        # CSS Fallbacks section
         if self._css_fallbacks:
             self._build_fallbacks_section(content)
 
-        # Generate file button
         if self._on_generate_file and self._npm_recommendations:
             btn_frame = ctk.CTkFrame(self, fg_color="transparent")
             btn_frame.pack(fill="x", padx=SPACING['md'], pady=(0, SPACING['md']))
 
             gen_btn = ctk.CTkButton(
                 btn_frame,
-                text="\U0001F4C4  Generate polyfills.js",  # Document emoji
+                text="\U0001F4C4  Generate polyfills.js",
                 fg_color=COLORS['accent'],
                 hover_color=COLORS['accent_dim'],
                 font=ctk.CTkFont(size=12),
@@ -172,7 +136,7 @@ class PolyfillCard(ctk.CTkFrame):
         command: str,
         is_multiline: bool = False
     ):
-        """Build a section with copyable command."""
+        """Build a copyable command block."""
         frame = ctk.CTkFrame(parent, fg_color="transparent")
         frame.pack(fill="x", pady=(0, SPACING['md']))
 
@@ -187,7 +151,6 @@ class PolyfillCard(ctk.CTkFrame):
         cmd_frame = ctk.CTkFrame(frame, fg_color=COLORS['bg_dark'], corner_radius=4)
         cmd_frame.pack(fill="x", pady=(SPACING['xs'], 0))
 
-        # Command text
         if is_multiline:
             cmd_text = ctk.CTkTextbox(
                 cmd_frame,
@@ -226,7 +189,7 @@ class PolyfillCard(ctk.CTkFrame):
         copy_btn.pack(side="right", padx=SPACING['xs'], pady=SPACING['xs'])
 
     def _build_polyfill_list(self, parent):
-        """Build a list of individual polyfill recommendations."""
+        """Build the list of individual polyfill packages."""
         frame = ctk.CTkFrame(parent, fg_color="transparent")
         frame.pack(fill="x", pady=(0, SPACING['sm']))
 
@@ -245,7 +208,6 @@ class PolyfillCard(ctk.CTkFrame):
             item = ctk.CTkFrame(list_frame, fg_color="transparent")
             item.pack(fill="x", padx=SPACING['sm'], pady=SPACING['xs'])
 
-            # Bullet point
             bullet = ctk.CTkLabel(
                 item,
                 text="\u2022",
@@ -255,7 +217,6 @@ class PolyfillCard(ctk.CTkFrame):
             )
             bullet.pack(side="left")
 
-            # Feature name
             name_lbl = ctk.CTkLabel(
                 item,
                 text=rec.feature_name,
@@ -264,7 +225,6 @@ class PolyfillCard(ctk.CTkFrame):
             )
             name_lbl.pack(side="left")
 
-            # Package name
             if rec.packages:
                 pkg_name = rec.packages[0].npm_package
                 pkg_lbl = ctk.CTkLabel(
@@ -275,7 +235,6 @@ class PolyfillCard(ctk.CTkFrame):
                 )
                 pkg_lbl.pack(side="left", padx=(SPACING['xs'], 0))
 
-                # Size (if available)
                 if rec.packages[0].size_kb:
                     size_lbl = ctk.CTkLabel(
                         item,
@@ -286,7 +245,7 @@ class PolyfillCard(ctk.CTkFrame):
                     size_lbl.pack(side="right")
 
     def _build_fallbacks_section(self, parent):
-        """Build CSS fallback code sections."""
+        """Build CSS fallback code blocks."""
         frame = ctk.CTkFrame(parent, fg_color="transparent")
         frame.pack(fill="x", pady=(SPACING['sm'], 0))
 
@@ -302,19 +261,17 @@ class PolyfillCard(ctk.CTkFrame):
             fallback_frame = ctk.CTkFrame(frame, fg_color=COLORS['bg_dark'], corner_radius=4)
             fallback_frame.pack(fill="x", pady=(SPACING['xs'], 0))
 
-            # Header with feature name
             header = ctk.CTkFrame(fallback_frame, fg_color="transparent")
             header.pack(fill="x", padx=SPACING['sm'], pady=(SPACING['sm'], 0))
 
             name_lbl = ctk.CTkLabel(
                 header,
-                text=f"\u26A0  {rec.feature_name}",  # Warning emoji
+                text=f"\u26A0  {rec.feature_name}",
                 font=ctk.CTkFont(size=12, weight="bold"),
                 text_color=COLORS['warning']
             )
             name_lbl.pack(side="left")
 
-            # Description
             if rec.fallback_description:
                 desc_lbl = ctk.CTkLabel(
                     fallback_frame,
@@ -326,7 +283,6 @@ class PolyfillCard(ctk.CTkFrame):
                 )
                 desc_lbl.pack(anchor="w", padx=SPACING['sm'], pady=(SPACING['xs'], 0))
 
-            # Code block
             if rec.fallback_code:
                 code_frame = ctk.CTkFrame(fallback_frame, fg_color=COLORS['bg_darkest'], corner_radius=4)
                 code_frame.pack(fill="x", padx=SPACING['sm'], pady=SPACING['sm'])
@@ -357,28 +313,18 @@ class PolyfillCard(ctk.CTkFrame):
                 copy_code_btn.pack(anchor="e", padx=SPACING['xs'], pady=(0, SPACING['xs']))
 
     def _copy_to_clipboard(self, text: str):
-        """Copy text to clipboard and show feedback."""
         self.clipboard_clear()
         self.clipboard_append(text)
 
-        # Could show a brief "Copied!" feedback here
-
     def _on_generate_click(self):
-        """Handle generate button click."""
         if self._on_generate_file:
             self._on_generate_file("polyfills.js")
 
 
 class PolyfillEmptyCard(ctk.CTkFrame):
-    """Card shown when no polyfills are available for detected issues."""
+    """Shown when no polyfills are needed."""
 
     def __init__(self, master, **kwargs):
-        """Initialize the empty polyfill card.
-
-        Args:
-            master: Parent widget
-            **kwargs: Additional arguments passed to CTkFrame
-        """
         super().__init__(
             master,
             fg_color=COLORS['bg_medium'],
@@ -391,13 +337,12 @@ class PolyfillEmptyCard(ctk.CTkFrame):
         self._init_ui()
 
     def _init_ui(self):
-        """Build the UI."""
         content = ctk.CTkFrame(self, fg_color="transparent")
         content.pack(fill="x", padx=SPACING['lg'], pady=SPACING['lg'])
 
         icon = ctk.CTkLabel(
             content,
-            text="\u2713",  # Check mark
+            text="\u2713",
             font=ctk.CTkFont(size=24),
             text_color=COLORS['success']
         )

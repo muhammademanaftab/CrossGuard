@@ -1,9 +1,4 @@
-"""JavaScript Parser for Feature Extraction.
-
-This module parses JavaScript files and extracts modern ES6+ features
-that need compatibility checking. Uses tree-sitter AST for accurate
-detection with regex fallback.
-"""
+"""JS parser -- extracts browser features using tree-sitter AST with regex fallback."""
 
 from typing import Set, List, Dict, Optional
 from pathlib import Path
@@ -21,10 +16,9 @@ from .js_feature_maps import (
 from .custom_rules_loader import get_custom_js_rules
 from ..utils.config import get_logger
 
-# Module logger
 logger = get_logger('parsers.js')
 
-# Graceful tree-sitter import
+# tree-sitter is optional -- falls back to regex-only if unavailable
 _TREE_SITTER_AVAILABLE = False
 _JS_LANGUAGE = None
 _JS_PARSER = None
@@ -37,99 +31,70 @@ try:
         _JS_PARSER = _get_ts_parser('javascript')
     _TREE_SITTER_AVAILABLE = True
 except (ImportError, Exception):
-    pass  # Falls back to regex-only
+    pass
 
 
 class JavaScriptParser:
-    """Parser for extracting JavaScript features from JS files."""
+    """Extracts Can I Use feature IDs from JavaScript files."""
 
     def __init__(self):
-        """Initialize the JavaScript parser."""
         self.features_found = set()
         self.feature_details = []
-        self.unrecognized_patterns = set()  # Patterns not matched by any rule
-        self._matched_apis = set()  # Track APIs/methods matched during detection
-        # Merge built-in rules with custom rules
+        self.unrecognized_patterns = set()
+        self._matched_apis = set()
         self._all_features = {**ALL_JS_FEATURES, **get_custom_js_rules()}
-        
+
     def parse_file(self, filepath: str) -> Set[str]:
-        """Parse a JavaScript file and extract features.
-        
-        Args:
-            filepath: Path to the JavaScript file
-            
-        Returns:
-            Set of Can I Use feature IDs found in the file
-            
-        Raises:
-            FileNotFoundError: If file doesn't exist
-            ValueError: If file is not valid
-        """
+        """Parse a JS file and return detected feature IDs."""
         filepath = Path(filepath)
-        
+
         if not filepath.exists():
             raise FileNotFoundError(f"JavaScript file not found: {filepath}")
-        
+
         try:
             with open(filepath, 'r', encoding='utf-8') as f:
                 js_content = f.read()
-            
+
             return self.parse_string(js_content)
-            
+
         except UnicodeDecodeError:
             raise ValueError(f"File is not valid UTF-8: {filepath}")
         except Exception as e:
             raise ValueError(f"Error parsing JavaScript file: {e}")
-    
+
     def parse_string(self, js_content: str) -> Set[str]:
-        """Parse JavaScript string and extract features.
-
-        Uses tree-sitter AST when available for accurate detection,
-        falling back to regex-only when tree-sitter is unavailable.
-
-        Args:
-            js_content: JavaScript content as string
-
-        Returns:
-            Set of Can I Use feature IDs found
-        """
-        # Reset state
+        """Parse JS string. Uses tree-sitter AST when available, regex otherwise."""
         self.features_found = set()
         self.feature_details = []
         self.unrecognized_patterns = set()
         self._matched_apis = set()
 
-        # Detect directive strings BEFORE removing comments/strings
-        # (because "use strict" and "use asm" are string directives)
+        # Must run before string removal -- these ARE string literals
         self._detect_directives(js_content)
 
-        # Detect event listeners BEFORE removing strings
-        # (because event names like 'unhandledrejection' are inside strings)
+        # Event names live inside string args, so detect before stripping
         self._detect_event_listeners(js_content)
 
-        # Try tree-sitter AST pipeline
         tree = self._parse_with_tree_sitter(js_content)
 
         if tree is not None:
             source_bytes = js_content.encode('utf-8')
             root_node = tree.root_node
 
-            # Tier 1: AST syntax features (node types)
+            # Tier 1: syntax features from node types (zero false positives)
             self._detect_ast_syntax_features(root_node, source_bytes)
 
-            # Tier 2: AST API features (identifiers, calls, members)
+            # Tier 2: API features from identifiers, calls, member expressions
             self._detect_ast_api_features(root_node, source_bytes)
 
-            # Build matchable text from AST (strips comments/strings accurately)
+            # Build text with comments/strings stripped via AST
             matchable = self._build_matchable_text_from_ast(root_node, source_bytes)
 
-            # Tier 3: Regex patterns on AST-cleaned text
+            # Tier 3: regex patterns on cleaned text
             self._detect_features(matchable)
-
-            # Find unrecognized patterns
             self._find_unrecognized_patterns(matchable)
         else:
-            # Fallback: original regex-only pipeline
+            # Fallback: regex-only pipeline
             cleaned_content = self._remove_comments(js_content)
             self._detect_features(cleaned_content)
             self._find_unrecognized_patterns(cleaned_content)
@@ -137,14 +102,7 @@ class JavaScriptParser:
         return self.features_found
 
     def _detect_directives(self, js_content: str):
-        """Detect JavaScript directive strings like 'use strict' and 'use asm'.
-
-        These need to be detected before string removal since they ARE strings.
-
-        Args:
-            js_content: Original JavaScript content
-        """
-        # Directives to detect (feature_id, patterns, description)
+        """Detect "use strict" and "use asm" before string removal."""
         directives = [
             ('use-strict', [r'["\']use strict["\']'], 'ECMAScript 5 Strict Mode'),
             ('asmjs', [r'["\']use asm["\']'], 'asm.js'),
@@ -167,13 +125,9 @@ class JavaScriptParser:
     def _detect_event_listeners(self, js_content: str):
         """Detect event listeners before string removal.
 
-        Event names like 'unhandledrejection' appear inside addEventListener()
-        string arguments and would be missed after string content is removed.
-
-        Args:
-            js_content: Original JavaScript content
+        Event names like 'unhandledrejection' are inside string args and
+        would be lost after stripping string content.
         """
-        # Event name to Can I Use feature mapping
         event_features = {
             'unhandledrejection': ('unhandledrejection', 'unhandledrejection event'),
             'rejectionhandled': ('unhandledrejection', 'rejectionhandled event'),
@@ -191,20 +145,15 @@ class JavaScriptParser:
             'pointerlockerror': ('pointerlock', 'pointerlockerror event'),
             'gamepadconnected': ('gamepad', 'gamepadconnected event'),
             'gamepaddisconnected': ('gamepad', 'gamepaddisconnected event'),
-            # Focus events
             'focusin': ('focusin-focusout-events', 'focusin event'),
             'focusout': ('focusin-focusout-events', 'focusout event'),
-            # Page transition events
             'pageshow': ('page-transition-events', 'pageshow event'),
             'pagehide': ('page-transition-events', 'pagehide event'),
-            # Print events
             'beforeprint': ('beforeafterprint', 'beforeprint event'),
             'afterprint': ('beforeafterprint', 'afterprint event'),
-            # Mouse events
             'auxclick': ('auxclick', 'auxclick event'),
         }
 
-        # Pattern to match addEventListener('eventName', ...) or on('eventName', ...)
         event_pattern = r'''(?:addEventListener|on)\s*\(\s*['"](\w+)['"]'''
 
         for match in re.finditer(event_pattern, js_content):
@@ -220,84 +169,64 @@ class JavaScriptParser:
                     })
 
     def _remove_comments_and_strings(self, js_content: str) -> str:
-        """Remove JavaScript comments and string literals from code.
+        """Strip comments and string content to prevent false positives.
 
-        This prevents false positives from features mentioned in:
-        - Single-line comments //
-        - Multi-line comments /* */
-        - String literals "..." and '...'
-        - Template literals `...` (but not the backticks themselves)
-
-        The order of operations is important:
-        1. First remove strings (so // inside strings doesn't get treated as comment)
-        2. Then remove comments
-
-        Args:
-            js_content: JavaScript code
-
-        Returns:
-            Code without comments and string literals
+        Keeps quote delimiters and template literal structure (backticks + ${x})
+        so template-literal detection still works.
         """
         result = []
         i = 0
         length = len(js_content)
 
         while i < length:
-            # Check for single-line comment
             if i < length - 1 and js_content[i:i+2] == '//':
-                # Skip until end of line
                 while i < length and js_content[i] != '\n':
                     i += 1
                 continue
 
-            # Check for multi-line comment
             if i < length - 1 and js_content[i:i+2] == '/*':
-                # Skip until */
                 i += 2
                 while i < length - 1 and js_content[i:i+2] != '*/':
                     i += 1
-                i += 2  # Skip */
+                i += 2
                 continue
 
-            # Check for double-quoted string
             if js_content[i] == '"':
-                result.append('"')  # Keep opening quote
+                result.append('"')
                 i += 1
                 while i < length:
                     if js_content[i] == '\\' and i + 1 < length:
-                        i += 2  # Skip escaped character
+                        i += 2
                     elif js_content[i] == '"':
-                        result.append('"')  # Keep closing quote
+                        result.append('"')
                         i += 1
                         break
                     else:
                         i += 1
                 continue
 
-            # Check for single-quoted string
             if js_content[i] == "'":
-                result.append("'")  # Keep opening quote
+                result.append("'")
                 i += 1
                 while i < length:
                     if js_content[i] == '\\' and i + 1 < length:
-                        i += 2  # Skip escaped character
+                        i += 2
                     elif js_content[i] == "'":
-                        result.append("'")  # Keep closing quote
+                        result.append("'")
                         i += 1
                         break
                     else:
                         i += 1
                 continue
 
-            # Check for template literal
             if js_content[i] == '`':
-                result.append('`')  # Keep backtick for template-literal detection
+                result.append('`')
                 i += 1
                 while i < length:
                     if js_content[i] == '\\' and i + 1 < length:
-                        i += 2  # Skip escaped character
+                        i += 2
                     elif js_content[i] == '`':
-                        result.append('`')  # Keep closing backtick
+                        result.append('`')
                         i += 1
                         break
                     elif js_content[i:i+2] == '${':
@@ -315,36 +244,18 @@ class JavaScriptParser:
                         i += 1
                 continue
 
-            # Regular character - keep it
             result.append(js_content[i])
             i += 1
 
         return ''.join(result)
 
     def _remove_comments(self, js_content: str) -> str:
-        """Remove JavaScript comments and strings from code.
-
-        Args:
-            js_content: JavaScript code
-
-        Returns:
-            Code without comments and string content
-        """
         return self._remove_comments_and_strings(js_content)
 
-    # ============================================================
-    # Tree-sitter AST methods
-    # ============================================================
+    # --- Tree-sitter AST methods ---
 
     def _parse_with_tree_sitter(self, js_content: str):
-        """Parse JS content with tree-sitter.
-
-        Args:
-            js_content: JavaScript source code
-
-        Returns:
-            tree-sitter Tree object or None on failure
-        """
+        """Try to parse with tree-sitter. Returns tree or None."""
         if not _TREE_SITTER_AVAILABLE or _JS_PARSER is None:
             return None
         try:
@@ -355,15 +266,8 @@ class JavaScriptParser:
             return None
 
     def _add_ast_feature(self, feature_id: str, api_name: str, description: str):
-        """Add a feature found via AST detection.
-
-        Args:
-            feature_id: Can I Use feature ID
-            api_name: API/syntax name for details
-            description: Human-readable description
-        """
+        """Record a feature found via AST, merging into existing details."""
         self.features_found.add(feature_id)
-        # Deduplicate: merge api_name into existing detail entry
         for detail in self.feature_details:
             if detail['feature'] == feature_id:
                 if api_name not in detail['matched_apis']:
@@ -376,51 +280,39 @@ class JavaScriptParser:
         })
 
     def _detect_ast_syntax_features(self, root_node, source_bytes: bytes):
-        """Tier 1: Detect features by AST node types.
-
-        Walks the tree and maps node types to feature IDs.
-        Zero false positive risk — these are unique syntax constructs.
-
-        Args:
-            root_node: tree-sitter root node
-            source_bytes: source code as bytes
-        """
-        # Also detect const/let declarations and async functions via AST
+        """Tier 1: detect features by AST node type (zero false positives)."""
         stack = [root_node]
         while stack:
             node = stack.pop()
             node_type = node.type
 
-            # Check syntax node map
             if node_type in AST_SYNTAX_NODE_MAP:
                 feature_id = AST_SYNTAX_NODE_MAP[node_type]
                 self._add_ast_feature(feature_id, node_type, feature_id)
 
-            # const/let declarations
+            # const/let via lexical_declaration
             if node_type == 'lexical_declaration':
-                # First child is 'const' or 'let' keyword
                 if node.child_count > 0:
                     keyword = node.children[0].type
                     if keyword == 'const':
                         self._add_ast_feature('const', 'const', 'Const declaration')
                     elif keyword == 'let':
                         self._add_ast_feature('let', 'let', 'Let declaration')
-                    # Check for destructuring in declarators
+                    # Destructuring in variable declarators
                     for child in node.children:
                         if child.type == 'variable_declarator':
                             name_node = child.child_by_field_name('name')
                             if name_node and name_node.type in ('object_pattern', 'array_pattern'):
                                 self._add_ast_feature('es6', 'destructuring', 'ES6 destructuring')
 
-            # async function declarations and expressions
+            # async functions -- check if node text starts with 'async'
             if node_type in ('function_declaration', 'function',
                              'arrow_function', 'method_definition'):
-                # Check if preceded by 'async' keyword
                 text_start = source_bytes[node.start_byte:min(node.start_byte + 20, len(source_bytes))].decode('utf-8', errors='replace')
                 if text_start.startswith('async'):
                     self._add_ast_feature('async-functions', 'async', 'Async/await')
 
-            # Optional chaining (?.) — detected via optional_chain child node
+            # Optional chaining (?.) via optional_chain child
             if node_type == 'member_expression' or node_type == 'call_expression':
                 for child in node.children:
                     if child.type == 'optional_chain':
@@ -430,14 +322,14 @@ class JavaScriptParser:
                         )
                         break
 
-            # Private field identifiers (#x)
+            # Private fields (#x)
             if node_type == 'private_property_identifier':
                 self._add_ast_feature(
                     'mdn-javascript_classes_private_class_fields',
                     '#private', 'Private class fields'
                 )
 
-            # Nullish coalescing (??)
+            # Nullish coalescing (??) via binary_expression operator
             if node_type == 'binary_expression':
                 operator_node = node.child_by_field_name('operator')
                 if operator_node:
@@ -452,24 +344,13 @@ class JavaScriptParser:
                 stack.append(child)
 
     def _detect_ast_api_features(self, root_node, source_bytes: bytes):
-        """Tier 2: Detect API features from AST identifiers and expressions.
-
-        Uses tree-sitter node walking to find:
-        - new Expression constructors (new Promise, new Worker, etc.)
-        - Call expressions (fetch(), requestAnimationFrame(), etc.)
-        - Member expressions (navigator.geolocation, crypto.subtle, etc.)
-        - Standalone identifiers (SharedArrayBuffer, ReadableStream, etc.)
-
-        Args:
-            root_node: tree-sitter root node
-            source_bytes: source code as bytes
-        """
+        """Tier 2: detect API features from constructors, calls, members, identifiers."""
         stack = [root_node]
         while stack:
             node = stack.pop()
             node_type = node.type
 
-            # new Expression: new Promise(...), new Worker(...)
+            # new Expression: new Promise(...), new Worker(...), etc.
             if node_type == 'new_expression':
                 constructor = node.child_by_field_name('constructor')
                 if constructor:
@@ -478,18 +359,16 @@ class JavaScriptParser:
                         feature_id = AST_NEW_EXPRESSION_MAP[name]
                         self._add_ast_feature(feature_id, f'new {name}', feature_id)
 
-            # Call expressions: fetch(...), requestAnimationFrame(...)
+            # Call expressions: fetch(), requestAnimationFrame(), obj.method()
             elif node_type == 'call_expression':
                 func_node = node.child_by_field_name('function')
                 if func_node:
                     func_text = source_bytes[func_node.start_byte:func_node.end_byte].decode('utf-8', errors='replace')
 
-                    # Direct function call: fetch()
                     if func_text in AST_CALL_EXPRESSION_MAP:
                         feature_id = AST_CALL_EXPRESSION_MAP[func_text]
                         self._add_ast_feature(feature_id, f'{func_text}()', feature_id)
 
-                    # Member call: navigator.geolocation, Promise.all()
                     if func_node.type == 'member_expression':
                         obj_node = func_node.child_by_field_name('object')
                         prop_node = func_node.child_by_field_name('property')
@@ -503,10 +382,10 @@ class JavaScriptParser:
 
             # Member expressions (non-call): navigator.geolocation, document.hidden
             elif node_type == 'member_expression':
-                # Only process if not already handled as part of a call_expression
+                # Skip if already handled as call_expression function
                 parent = node.parent
                 if parent and parent.type == 'call_expression' and parent.child_by_field_name('function') == node:
-                    pass  # Already handled above
+                    pass
                 else:
                     obj_node = node.child_by_field_name('object')
                     prop_node = node.child_by_field_name('property')
@@ -518,7 +397,7 @@ class JavaScriptParser:
                             feature_id = AST_MEMBER_EXPRESSION_MAP[member_key]
                             self._add_ast_feature(feature_id, member_key, feature_id)
 
-            # Standalone identifiers
+            # Standalone identifiers: SharedArrayBuffer, ReadableStream, etc.
             elif node_type == 'identifier':
                 name = source_bytes[node.start_byte:node.end_byte].decode('utf-8', errors='replace')
                 if name in AST_IDENTIFIER_MAP:
@@ -529,28 +408,15 @@ class JavaScriptParser:
                 stack.append(child)
 
     def _build_matchable_text_from_ast(self, root_node, source_bytes: bytes) -> str:
-        """Build matchable text from AST, stripping comments and string content.
+        """Build regex-matchable text from AST with comments/strings stripped.
 
-        This produces text equivalent to _remove_comments_and_strings() but uses
-        the AST to accurately identify comment and string nodes.
-
-        - Comments → replaced with spaces (preserving line structure)
-        - String content → keep quote delimiters, strip content between
-        - Template literals → keep backticks, keep ${x} markers, strip text content
-        - All other code → preserved as-is
-
-        Args:
-            root_node: tree-sitter root node
-            source_bytes: source code as bytes
-
-        Returns:
-            Cleaned text suitable for regex-based feature detection
+        Comments become spaces (preserving line structure).
+        Strings keep delimiters, content removed.
+        Template literals keep backticks and ${x} markers.
         """
         source_text = source_bytes.decode('utf-8', errors='replace')
         length = len(source_text)
 
-        # Collect ranges to blank out (comments) or transform (strings)
-        # We'll build a list of (start, end, replacement) tuples
         replacements = []
 
         stack = [root_node]
@@ -559,29 +425,26 @@ class JavaScriptParser:
             node_type = node.type
 
             if node_type == 'comment':
-                # Replace comment with spaces, preserving newlines
                 start, end = node.start_byte, node.end_byte
                 comment_text = source_text[start:end]
                 replacement = ''.join('\n' if c == '\n' else ' ' for c in comment_text)
                 replacements.append((start, end, replacement))
-                continue  # Don't recurse into comments
+                continue
 
             if node_type == 'string':
-                # Keep quote delimiters, strip content
                 start, end = node.start_byte, node.end_byte
                 text = source_text[start:end]
                 if len(text) >= 2:
                     quote = text[0]
-                    replacement = quote + quote  # Empty string with delimiters
+                    replacement = quote + quote
                 else:
                     replacement = text
                 replacements.append((start, end, replacement))
                 continue
 
             if node_type == 'template_string':
-                # Keep backticks and ${x} substitution markers, strip text
                 self._process_template_string(node, source_text, replacements)
-                continue  # Don't recurse — handled internally
+                continue
 
             for child in node.children:
                 stack.append(child)
@@ -589,14 +452,13 @@ class JavaScriptParser:
         if not replacements:
             return source_text
 
-        # Sort replacements by start position and apply
         replacements.sort(key=lambda x: x[0])
 
         parts = []
         last_end = 0
         for start, end, replacement in replacements:
             if start < last_end:
-                continue  # Skip overlapping replacements
+                continue  # Skip overlapping
             parts.append(source_text[last_end:start])
             parts.append(replacement)
             last_end = end
@@ -605,20 +467,11 @@ class JavaScriptParser:
         return ''.join(parts)
 
     def _process_template_string(self, node, source_text: str, replacements: list):
-        """Process a template string node for matchable text.
-
-        Keeps backtick delimiters and ${x} markers, strips literal text.
-
-        Args:
-            node: template_string tree-sitter node
-            source_text: full source as string
-            replacements: list to append (start, end, replacement) tuples to
-        """
+        """Keep backtick delimiters and ${x} markers, strip literal text."""
         start = node.start_byte
         end = node.end_byte
         text = source_text[start:end]
 
-        # Build replacement that preserves structure
         result = []
         i = 0
         length = len(text)
@@ -626,21 +479,17 @@ class JavaScriptParser:
         if length == 0:
             return
 
-        # Opening backtick
         result.append('`')
         i = 1
 
         while i < length:
             if text[i] == '`':
-                # Closing backtick
                 result.append('`')
                 i += 1
                 break
             elif text[i] == '\\' and i + 1 < length:
-                # Skip escaped character
                 i += 2
             elif text[i:i+2] == '${':
-                # Template expression — keep ${x} marker
                 result.append('${x}')
                 i += 2
                 depth = 1
@@ -651,32 +500,21 @@ class JavaScriptParser:
                         depth -= 1
                     i += 1
             else:
-                # Regular text character — strip (skip)
                 i += 1
 
         replacements.append((start, end, ''.join(result)))
 
     def _detect_features(self, js_content: str):
-        """Detect JavaScript features using regex patterns.
-
-        Args:
-            js_content: JavaScript code (without comments)
-        """
-        # Check each feature (includes both built-in and custom rules)
+        """Match regex patterns from feature maps against cleaned text."""
         for feature_id, feature_info in self._all_features.items():
             patterns = feature_info.get('patterns', [])
             matched_apis = []
             feature_found = False
 
-            # Check all patterns and collect matched APIs
             for pattern in patterns:
                 try:
                     if re.search(pattern, js_content):
                         feature_found = True
-                        # Extract API name from pattern
-                        # Patterns like 'navigator\.geolocation' -> 'navigator.geolocation'
-                        # Patterns like '\bfetch\s*\(' -> 'fetch()'
-                        # Patterns like '\bnew\s+Promise' -> 'new Promise'
                         api_name = self._extract_api_name(pattern)
                         if api_name and api_name not in matched_apis:
                             matched_apis.append(api_name)
@@ -686,19 +524,14 @@ class JavaScriptParser:
 
             if feature_found:
                 self.features_found.add(feature_id)
-                # Deduplicate: only append if feature_id not already in feature_details
                 if not any(d['feature'] == feature_id for d in self.feature_details):
                     self.feature_details.append({
                         'feature': feature_id,
                         'description': feature_info.get('description', ''),
                         'matched_apis': matched_apis,
                     })
-                # Track matched APIs for unrecognized pattern filtering
+                # Track matched API names for unrecognized pattern filtering
                 for api in matched_apis:
-                    # Extract method/API name from matched API
-                    # e.g., "Promise.all()" -> "Promise", "all"
-                    # e.g., ".then()" -> "then"
-                    # e.g., "new Promise" -> "Promise"
                     api_clean = api.replace('()', '').replace('new ', '')
                     parts = api_clean.split('.')
                     for part in parts:
@@ -706,49 +539,32 @@ class JavaScriptParser:
                             self._matched_apis.add(part)
 
     def _extract_api_name(self, pattern: str) -> str:
-        """Extract a readable API name from a regex pattern.
-
-        Args:
-            pattern: Regex pattern string
-
-        Returns:
-            Human-readable API name or empty string
-        """
-        # Remove common regex escapes and word boundaries
+        """Try to extract a human-readable API name from a regex pattern."""
         cleaned = pattern.replace('\\b', '').replace('\\s*', '').replace('\\s+', ' ')
         cleaned = cleaned.replace('\\(', '(').replace('\\)', ')')
         cleaned = cleaned.replace('\\.', '.').replace('\\[', '[').replace('\\]', ']')
 
-        # Handle 'new X' patterns
         new_match = re.match(r'^new\s+([A-Z]\w*)', cleaned)
         if new_match:
             return f'new {new_match.group(1)}'
 
-        # Extract the main API identifier
-        # Match patterns like: navigator.geolocation, fetch(), localStorage, etc.
         match = re.match(r'^([a-zA-Z_$][\w.]*)', cleaned)
         if match:
             api = match.group(1)
-            # Add () if pattern had parenthesis
             if '(' in cleaned:
                 api += '()'
             return api
 
         return ''
-    
-    def _find_unrecognized_patterns(self, js_content: str):
-        """Find JS APIs/methods that don't match any known rule.
 
-        Args:
-            js_content: JavaScript code (without comments)
-        """
-        # Basic JS constructs that are universally supported - skip these
+    def _find_unrecognized_patterns(self, js_content: str):
+        """Find JS APIs/methods not matched by any feature rule."""
+        # Universally supported -- no need to flag
         basic_patterns = {
             'function', 'return', 'if', 'else', 'for', 'while', 'do',
             'switch', 'case', 'break', 'continue', 'try', 'catch', 'throw',
             'new', 'this', 'typeof', 'instanceof', 'delete', 'void', 'in',
             'true', 'false', 'null', 'undefined', 'var', 'with',
-            # Common methods that are very old and universal
             'toString', 'valueOf', 'hasOwnProperty', 'isPrototypeOf',
             'push', 'pop', 'shift', 'unshift', 'slice', 'splice', 'concat',
             'join', 'reverse', 'sort', 'indexOf', 'lastIndexOf',
@@ -765,182 +581,83 @@ class JavaScriptParser:
             'addEventListener', 'removeEventListener', 'preventDefault', 'stopPropagation',
             'innerHTML', 'textContent', 'style', 'className', 'parentNode', 'childNodes',
             'length', 'prototype', 'constructor', 'call', 'apply', 'bind',
-            # Math methods (universally supported ES1-ES5)
             'floor', 'ceil', 'round', 'random', 'abs', 'max', 'min', 'pow', 'sqrt',
             'sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'atan2', 'exp', 'log',
-            # JSON methods (ES5, universally supported)
             'parse', 'stringify',
-            # Array methods (ES5, universally supported)
             'forEach', 'map', 'filter', 'reduce', 'reduceRight', 'every', 'some',
-            # Object methods (ES5, universally supported)
             'keys', 'create', 'defineProperty', 'defineProperties', 'getOwnPropertyDescriptor',
             'getOwnPropertyNames', 'getPrototypeOf', 'freeze', 'seal', 'preventExtensions',
             'isSealed', 'isFrozen', 'isExtensible',
-            # DOM attribute methods (universally supported)
             'hasAttribute', 'removeAttribute', 'getAttributeNode', 'setAttributeNode',
-            # DOM table methods (universally supported)
             'insertRow', 'deleteRow', 'insertCell', 'deleteCell',
-            # localStorage/sessionStorage methods (covered by namevalue-storage feature)
             'getItem', 'setItem', 'removeItem', 'clear',
-            # Array static methods (ES5)
             'isArray',
-            # classList methods (covered by classlist feature)
             'add', 'remove', 'toggle', 'contains', 'item',
-            # String trim methods (ES5)
             'trimStart', 'trimEnd', 'trimLeft', 'trimRight',
-            # Common DOM traversal
             'firstChild', 'lastChild', 'nextSibling', 'previousSibling',
             'firstElementChild', 'lastElementChild', 'nextElementSibling', 'previousElementSibling',
-            # Common DOM properties
             'nodeName', 'nodeType', 'nodeValue', 'ownerDocument',
-            # Array static methods covered by specific features
             'from', 'of',
-            # DataTransfer methods (covered by dragndrop feature)
             'setData', 'getData', 'clearData', 'setDragImage',
-            # ============================================================
-            # COMPREHENSIVE API METHODS LIST
-            # All methods below are covered by their parent feature
-            # ============================================================
 
-            # --- Promises (promises) ---
+            # Methods covered by their parent features (e.g. .then -> promises)
             'resolve', 'reject', 'then', 'catch', 'finally', 'all', 'race', 'allSettled', 'any',
-
-            # --- AbortController (abortcontroller) ---
             'abort', 'timeout', 'throwIfAborted',
-
-            # --- Fetch API (fetch) ---
             'json', 'text', 'blob', 'arrayBuffer', 'formData', 'clone', 'ok', 'status',
             'headers', 'redirect', 'body', 'bytes',
-
-            # --- requestIdleCallback (requestidlecallback) ---
             'timeRemaining', 'didTimeout',
-
-            # --- requestAnimationFrame (requestanimationframe) ---
-            # (no additional methods)
-
-            # --- Web Animation (web-animation) ---
             'animate', 'getAnimations', 'cancel', 'finish', 'pause', 'play', 'reverse',
             'commitStyles', 'persist', 'updatePlaybackRate',
-
-            # --- Trusted Types (trusted-types) ---
             'createPolicy', 'createHTML', 'createScript', 'createScriptURL', 'isHTML',
             'isScript', 'isScriptURL', 'getAttributeType', 'getPropertyType',
-
-            # --- DOM Range (dom-range) ---
             'selectNode', 'selectNodeContents', 'setStart', 'setEnd', 'setStartBefore',
             'setStartAfter', 'setEndBefore', 'setEndAfter', 'collapse', 'cloneRange',
             'deleteContents', 'extractContents', 'cloneContents', 'insertNode', 'surroundContents',
             'compareBoundaryPoints', 'createContextualFragment', 'isPointInRange', 'comparePoint',
-
-            # --- Custom Elements (custom-elementsv1) ---
             'whenDefined', 'define', 'upgrade',
-
-            # --- Shadow DOM (shadowdomv1) ---
             'attachShadow', 'getInnerHTML', 'setHTMLUnsafe',
-
-            # --- DOM Traversal (universally supported) ---
             'closest', 'matches', 'querySelectorAll', 'getRootNode',
-
-            # --- FileReader (filereader) ---
             'readAsText', 'readAsDataURL', 'readAsArrayBuffer', 'readAsBinaryString', 'abort',
-
-            # --- TextEncoder/TextDecoder (textencoder) ---
             'encode', 'decode', 'encodeInto',
-
-            # --- IndexedDB (indexeddb, indexeddb2) ---
             'open', 'deleteDatabase', 'cmp', 'bound', 'only', 'lowerBound', 'upperBound',
             'createObjectStore', 'transaction', 'objectStore', 'put', 'delete', 'cursor',
             'openCursor', 'openKeyCursor', 'getKey', 'getAll', 'getAllKeys', 'count', 'advance',
             'continue', 'continuePrimaryKey', 'createIndex', 'deleteIndex', 'index',
-
-            # --- Blob URLs (bloburls) ---
             'revokeObjectURL', 'createObjectURL',
-
-            # --- SharedArrayBuffer/Atomics (sharedarraybuffer, wasm-threads) ---
             'wait', 'notify', 'load', 'store', 'exchange', 'compareExchange', 'add', 'sub',
             'and', 'or', 'xor', 'isLockFree', 'waitAsync',
-
-            # --- Observers (intersectionobserver, mutationobserver, resizeobserver) ---
             'observe', 'unobserve', 'disconnect', 'takeRecords',
-
-            # --- WebSocket (websockets) ---
             'send', 'close', 'binaryType',
-
-            # --- Channel Messaging (channel-messaging) ---
             'start', 'postMessage',
-
-            # --- BroadcastChannel (broadcastchannel) ---
-            # uses postMessage, close (already listed)
-
-            # --- Service Workers (serviceworkers) ---
             'waitUntil', 'respondWith', 'register', 'unregister', 'getRegistration',
             'getRegistrations', 'skipWaiting', 'claim', 'update', 'active', 'installing', 'waiting',
-
-            # --- Push API (push-api) ---
             'getSubscription', 'subscribe', 'permissionState', 'unsubscribe',
-
-            # --- Notifications (notifications) ---
             'requestPermission', 'show', 'close', 'vibrate',
-
-            # --- Geolocation (geolocation) ---
             'getCurrentPosition', 'watchPosition', 'clearWatch',
-
-            # --- Web Crypto (cryptography) ---
             'encrypt', 'decrypt', 'sign', 'verify', 'digest', 'generateKey', 'deriveKey',
             'deriveBits', 'importKey', 'exportKey', 'wrapKey', 'unwrapKey',
-
-            # --- Web Audio (audio-api) ---
             'createOscillator', 'createGain', 'createAnalyser', 'createBiquadFilter',
             'createBuffer', 'createBufferSource', 'createMediaStreamSource', 'connect',
             'destination', 'currentTime', 'sampleRate', 'decodeAudioData', 'resume', 'suspend',
-
-            # --- Media Recorder (mediarecorder) ---
             'ondataavailable', 'onerror', 'onstop', 'onstart', 'requestData',
-
-            # --- MediaSource (mediasource) ---
             'addSourceBuffer', 'removeSourceBuffer', 'endOfStream', 'setLiveSeekableRange',
             'clearLiveSeekableRange', 'appendBuffer', 'appendBufferAsync', 'changeType',
-
-            # --- Speech Recognition (speech-recognition) ---
             'onresult', 'onnomatch', 'onerror', 'onstart', 'onend', 'onsoundstart', 'onsoundend',
             'onspeechstart', 'onspeechend', 'onaudiostart', 'onaudioend',
-
-            # --- Speech Synthesis (speech-synthesis) ---
             'speak', 'getVoices', 'onvoiceschanged', 'pending', 'speaking', 'paused',
-
-            # --- Clipboard (async-clipboard, clipboard) ---
             'writeText', 'readText', 'write', 'read',
-
-            # --- Gamepad (gamepad) ---
             'getGamepads', 'vibrationActuator', 'hapticActuators',
-
-            # --- Pointer Lock (pointerlock) ---
             'requestPointerLock', 'exitPointerLock',
-
-            # --- Fullscreen (fullscreen) ---
             'requestFullscreen', 'exitFullscreen', 'fullscreenElement', 'fullscreenEnabled',
-
-            # --- Screen Orientation (screen-orientation) ---
             'lock', 'unlock', 'angle', 'type', 'onchange',
-
-            # --- Wake Lock (wake-lock) ---
             'request', 'release', 'released',
-
-            # --- Battery (battery-status) ---
             'charging', 'chargingTime', 'dischargingTime', 'level', 'onchargingchange',
             'onchargingtimechange', 'ondischargingtimechange', 'onlevelchange',
-
-            # --- Vibration (vibration) ---
-            # uses navigator.vibrate() - pattern matched separately
-
-            # --- WebRTC (rtcpeerconnection) ---
             'createOffer', 'createAnswer', 'setLocalDescription', 'setRemoteDescription',
             'addIceCandidate', 'addTrack', 'removeTrack', 'addTransceiver', 'getTransceivers',
             'getSenders', 'getReceivers', 'createDataChannel', 'getStats', 'restartIce',
             'onicecandidate', 'ontrack', 'ondatachannel', 'oniceconnectionstatechange',
             'onnegotiationneeded', 'onsignalingstatechange', 'onicegatheringstatechange',
-
-            # --- WebGL (webgl, webgl2) ---
             'getContext', 'getExtension', 'createShader', 'shaderSource', 'compileShader',
             'createProgram', 'attachShader', 'linkProgram', 'useProgram', 'createBuffer',
             'bindBuffer', 'bufferData', 'createTexture', 'bindTexture', 'texImage2D',
@@ -948,93 +665,47 @@ class JavaScriptParser:
             'blendFunc', 'depthFunc', 'cullFace', 'uniform1f', 'uniform2f', 'uniform3f', 'uniform4f',
             'uniformMatrix4fv', 'getAttribLocation', 'getUniformLocation', 'vertexAttribPointer',
             'enableVertexAttribArray', 'disableVertexAttribArray',
-
-            # --- WebGPU (webgpu) ---
             'requestAdapter', 'requestDevice', 'createCommandEncoder', 'createRenderPipeline',
             'createComputePipeline', 'createBindGroup', 'createBindGroupLayout',
             'createPipelineLayout', 'createShaderModule', 'createSampler', 'createQuerySet',
             'beginRenderPass', 'beginComputePass', 'copyBufferToBuffer', 'copyTextureToTexture',
             'submit', 'writeBuffer', 'writeTexture', 'mapAsync', 'getMappedRange', 'unmap',
-
-            # --- WebXR (webxr) ---
             'isSessionSupported', 'requestSession', 'requestReferenceSpace', 'requestAnimationFrame',
             'getViewerPose', 'getPose', 'requestHitTestSource', 'updateRenderState',
-
-            # --- Payment Request (payment-request) ---
             'canMakePayment', 'show', 'abort', 'complete', 'retry',
-
-            # --- Credential Management (credential-management) ---
             'create', 'store', 'preventSilentAccess',
-
-            # --- WebAuthn (webauthn) ---
             'isUserVerifyingPlatformAuthenticatorAvailable', 'isConditionalMediationAvailable',
-
-            # --- Permissions (permissions-api) ---
             'query', 'request', 'revoke',
-
-            # --- Performance (high-resolution-time, user-timing, resource-timing, nav-timing) ---
             'now', 'mark', 'measure', 'getEntries', 'getEntriesByName', 'getEntriesByType',
             'clearMarks', 'clearMeasures', 'clearResourceTimings', 'setResourceTimingBufferSize',
             'toJSON',
-
-            # --- Beacon (beacon) ---
             'sendBeacon',
-
-            # --- Streams (streams) ---
             'getReader', 'getWriter', 'pipeTo', 'pipeThrough', 'tee', 'enqueue', 'desiredSize',
             'ready', 'releaseLock', 'locked',
-
-            # --- URL (url, urlsearchparams) ---
             'append', 'set', 'get', 'getAll', 'has', 'delete', 'sort', 'toString', 'forEach',
             'searchParams', 'href', 'origin', 'protocol', 'host', 'hostname', 'port', 'pathname',
             'search', 'hash', 'username', 'password',
-
-            # --- Intl (internationalization) ---
             'format', 'formatToParts', 'resolvedOptions', 'supportedLocalesOf', 'compare',
             'select', 'selectRange',
-
-            # --- Web Share (web-share) ---
             'canShare', 'share',
-
-            # --- Cookie Store (cookie-store-api) ---
             'getAll', 'set', 'delete', 'onchange',
-
-            # --- File System Access (native-filesystem-api) ---
             'getFile', 'createWritable', 'remove', 'isSameEntry', 'queryPermission',
             'requestPermission', 'getDirectory', 'entries', 'values', 'keys', 'resolve',
-
-            # --- History (history) ---
             'pushState', 'replaceState', 'go', 'back', 'forward', 'state', 'scrollRestoration',
-
-            # --- View Transitions (view-transitions) ---
             'startViewTransition', 'skipTransition', 'updateCallbackDone', 'ready', 'finished',
-
-            # --- MIDI (midi) ---
             'requestMIDIAccess', 'inputs', 'outputs', 'onstatechange',
-
-            # --- Bluetooth (web-bluetooth) ---
             'requestDevice', 'getAvailability', 'getPrimaryService', 'getPrimaryServices',
             'getCharacteristic', 'getCharacteristics', 'readValue', 'writeValue',
             'writeValueWithResponse', 'writeValueWithoutResponse', 'startNotifications',
             'stopNotifications', 'getDescriptor', 'getDescriptors',
-
-            # --- USB (webusb) ---
             'getDevices', 'requestDevice', 'open', 'close', 'selectConfiguration',
             'claimInterface', 'releaseInterface', 'selectAlternateInterface', 'controlTransferIn',
             'controlTransferOut', 'transferIn', 'transferOut', 'isochronousTransferIn',
             'isochronousTransferOut', 'reset', 'forget',
-
-            # --- Serial (web-serial) ---
             'getPorts', 'requestPort', 'readable', 'writable', 'getSignals', 'setSignals',
-
-            # --- HID (webhid) ---
             'getDevices', 'requestDevice', 'open', 'close', 'sendReport', 'sendFeatureReport',
             'receiveFeatureReport', 'oninputreport',
-
-            # --- NFC (webnfc) ---
             'write', 'scan', 'makeReadOnly',
-
-            # --- Canvas (canvas, canvas-blending, path2d) ---
             'getContext', 'toDataURL', 'toBlob', 'transferControlToOffscreen', 'captureStream',
             'fillRect', 'strokeRect', 'clearRect', 'fillText', 'strokeText', 'measureText',
             'beginPath', 'closePath', 'moveTo', 'lineTo', 'bezierCurveTo', 'quadraticCurveTo',
@@ -1046,110 +717,57 @@ class JavaScriptParser:
             'shadowOffsetX', 'shadowOffsetY', 'lineCap', 'lineJoin', 'lineWidth', 'miterLimit',
             'setLineDash', 'getLineDash', 'lineDashOffset', 'font', 'textAlign', 'textBaseline',
             'direction', 'imageSmoothingEnabled', 'imageSmoothingQuality', 'addPath', 'roundRect',
-
-            # --- OffscreenCanvas (offscreencanvas) ---
             'convertToBlob', 'transferToImageBitmap',
-
-            # --- createImageBitmap (createimagebitmap) ---
-            # (global function, handled separately)
-
-            # --- EventSource (eventsource) ---
             'onopen', 'onmessage', 'onerror', 'readyState', 'url', 'withCredentials',
-
-            # --- Web Transport (webtransport) ---
             'createBidirectionalStream', 'createUnidirectionalStream', 'datagrams',
             'incomingBidirectionalStreams', 'incomingUnidirectionalStreams',
-
-            # --- Resize Observer Entry properties ---
             'contentRect', 'borderBoxSize', 'contentBoxSize', 'devicePixelContentBoxSize', 'target',
-
-            # --- Intersection Observer Entry properties ---
             'boundingClientRect', 'intersectionRatio', 'intersectionRect', 'isIntersecting',
             'rootBounds', 'time',
-
-            # --- Generic event handlers (covered by addeventlistener) ---
             'on', 'off', 'once', 'emit', 'trigger', 'fire',
-
-            # --- Common utility methods used everywhere ---
             'set', 'get', 'has', 'entries', 'values', 'keys', 'size', 'clear', 'delete',
             'forEach', 'next', 'done', 'value', 'return', 'throw',
-
-            # --- ImageCapture (imagecapture) ---
             'takePhoto', 'grabFrame', 'getPhotoCapabilities', 'getPhotoSettings',
-
-            # --- MediaStream/MediaRecorder (mediarecorder, getusermedia) ---
             'stop', 'getTracks', 'getVideoTracks', 'getAudioTracks', 'addTrack', 'removeTrack',
             'getTrackById', 'clone', 'active', 'muted', 'enabled', 'readyState',
-
-            # --- Temporal (temporal) ---
             'instant', 'plainDateTimeISO', 'plainDate', 'plainTime', 'plainYearMonth',
             'plainMonthDay', 'zonedDateTimeISO', 'now', 'from', 'compare', 'duration',
             'toInstant', 'toZonedDateTime', 'toPlainDate', 'toPlainTime', 'toPlainDateTime',
             'with', 'add', 'subtract', 'until', 'since', 'round', 'equals', 'toString',
-
-            # --- Feature Policy / Permissions Policy ---
             'allowsFeature', 'features', 'allowedFeatures', 'getAllowlistForFeature',
-
-            # --- URL (url) ---
             'canParse', 'parse',
-
-            # --- Number methods (es6-number) ---
             'isInteger', 'isFinite', 'isNaN', 'isSafeInteger', 'parseFloat', 'parseInt',
             'toExponential', 'toFixed', 'toPrecision',
-
-            # --- DOMParser / XMLSerializer (xml-serializer) ---
             'parseFromString', 'serializeToString',
-
-            # --- DOMMatrix (dommatrix) ---
             'rotateSelf', 'translateSelf', 'scaleSelf', 'skewXSelf', 'skewYSelf',
             'invertSelf', 'multiplySelf', 'preMultiplySelf', 'setMatrixValue',
             'rotate', 'translate', 'scale', 'skewX', 'skewY', 'multiply', 'inverse',
             'flipX', 'flipY', 'transformPoint', 'toFloat32Array', 'toFloat64Array',
-
-            # --- Worklet (css-paint-api, audio-api worklet) ---
             'addModule',
-
-            # --- WebAssembly (wasm) ---
             'compile', 'compileStreaming', 'instantiate', 'instantiateStreaming', 'validate',
-
-            # --- General media controls ---
             'load', 'play', 'pause', 'fastSeek', 'setMediaKeys', 'setSinkId', 'captureStream',
-
-            # --- Selection API (selection-api) ---
             'getSelection', 'anchorNode', 'focusNode', 'rangeCount', 'getRangeAt',
             'addRange', 'removeRange', 'removeAllRanges', 'selectAllChildren', 'collapseToStart',
             'collapseToEnd', 'extend', 'containsNode', 'deleteFromDocument',
-
-            # --- Resize / Scroll ---
             'scrollTo', 'scrollBy', 'scrollIntoView', 'scrollIntoViewIfNeeded',
             'getBoundingClientRect', 'getClientRects',
-
-            # --- Focus management ---
             'focus', 'blur', 'hasFocus',
-
-            # --- Form methods ---
             'submit', 'reset', 'checkValidity', 'reportValidity', 'setCustomValidity',
             'select', 'setSelectionRange', 'setRangeText', 'stepUp', 'stepDown',
-
-            # --- Element methods ---
             'getAttribute', 'setAttribute', 'removeAttribute', 'hasAttribute',
             'getAttributeNS', 'setAttributeNS', 'removeAttributeNS', 'hasAttributeNS',
             'toggleAttribute', 'getAttributeNames', 'insertAdjacentElement',
             'insertAdjacentHTML', 'insertAdjacentText', 'before', 'after', 'replaceWith',
             'append', 'prepend', 'replaceChildren',
-
-            # --- Node manipulation ---
             'cloneNode', 'appendChild', 'insertBefore', 'removeChild', 'replaceChild',
             'normalize', 'isEqualNode', 'isSameNode', 'compareDocumentPosition',
             'contains', 'lookupPrefix', 'lookupNamespaceURI', 'isDefaultNamespace',
-
-            # --- Console methods (universally supported) ---
             'log', 'warn', 'error', 'info', 'debug', 'trace', 'dir', 'dirxml', 'table',
             'time', 'timeEnd', 'timeLog', 'count', 'countReset', 'group', 'groupCollapsed',
             'groupEnd', 'clear', 'assert', 'profile', 'profileEnd', 'timeStamp',
         }
 
-        # Common programming method prefixes/patterns - skip these
+        # Common programming verbs -- skip to avoid noise
         common_prefixes = {
             'get', 'set', 'add', 'remove', 'update', 'delete', 'create', 'build', 'make',
             'find', 'fetch', 'load', 'save', 'read', 'write', 'send', 'receive', 'emit',
@@ -1171,7 +789,6 @@ class JavaScriptParser:
             'wait', 'sleep', 'delay', 'timeout', 'interval', 'schedule', 'cancel', 'abort',
             'click', 'focus', 'blur', 'select', 'change', 'input', 'submit', 'keydown', 'keyup',
             'mouse', 'touch', 'scroll', 'resize', 'drag', 'drop', 'move', 'enter', 'leave',
-            # Additional common patterns
             'apply', 'navigate', 'route', 'redirect', 'goto', 'visit', 'browse',
             'theme', 'style', 'color', 'class', 'attr', 'prop', 'data', 'state', 'store',
             'component', 'element', 'node', 'item', 'list', 'array', 'object', 'value',
@@ -1179,7 +796,7 @@ class JavaScriptParser:
             'use', 'provide', 'consume', 'context', 'ref', 'memo', 'lazy', 'suspend',
         }
 
-        # Common capitalized names (React components, UI states, etc.) - not browser APIs
+        # React components, UI names, etc. -- not browser APIs
         common_globals = {
             'Loading', 'Error', 'Success', 'Warning', 'Info', 'Pending', 'Complete',
             'Component', 'Container', 'Wrapper', 'Layout', 'Page', 'View', 'Screen',
@@ -1198,35 +815,24 @@ class JavaScriptParser:
             'Theme', 'Style', 'Config', 'Options', 'Params', 'Query', 'Data', 'Model',
         }
 
-        # Find potential API calls and method usage
-        # Pattern for method calls: .methodName( or Object.method(
         method_pattern = r'\.([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\('
         found_methods = set(re.findall(method_pattern, js_content))
 
-        # Pattern for global objects/APIs: CapitalizedName.
         global_api_pattern = r'\b([A-Z][a-zA-Z0-9_$]*)\.'
         found_globals = set(re.findall(global_api_pattern, js_content))
 
-        # Convert basic_patterns to lowercase for comparison
         basic_patterns_lower = {b.lower() for b in basic_patterns}
 
-        # Check methods
         for method in found_methods:
             method_lower = method.lower()
 
-            # Skip if in basic patterns
             if method_lower in basic_patterns_lower:
                 continue
-
-            # Skip if this method was already matched to a feature
             if method in self._matched_apis:
                 continue
-
-            # Skip very short names (< 4 chars)
             if len(method) < 4:
                 continue
 
-            # Skip methods that start with common programming prefixes
             skip = False
             for prefix in common_prefixes:
                 if method_lower.startswith(prefix) or method_lower.endswith(prefix):
@@ -1235,13 +841,9 @@ class JavaScriptParser:
             if skip:
                 continue
 
-            # Skip camelCase methods that look like custom code (e.g., myCustomMethod)
-            # Only flag methods that look like browser APIs
             if method[0].islower() and not any(c.isupper() for c in method[1:3] if len(method) > 2):
-                # Likely a custom method like "customThing" - skip unless it matches a pattern
                 pass
 
-            # Check if matches any feature pattern
             matched = False
             for feature_info in self._all_features.values():
                 patterns = feature_info.get('patterns', [])
@@ -1258,20 +860,14 @@ class JavaScriptParser:
             if not matched:
                 self.unrecognized_patterns.add(f"method: .{method}()")
 
-        # Check global APIs
         for global_api in found_globals:
             if global_api in basic_patterns:
                 continue
-
-            # Skip if this API was already matched to a feature
             if global_api in self._matched_apis:
                 continue
-
-            # Skip common capitalized names (React components, UI states, etc.)
             if global_api in common_globals:
                 continue
 
-            # Check if matches any feature pattern
             matched = False
             for feature_info in self._all_features.values():
                 patterns = feature_info.get('patterns', [])
@@ -1289,45 +885,26 @@ class JavaScriptParser:
                 self.unrecognized_patterns.add(f"API: {global_api}")
 
     def get_detailed_report(self) -> Dict:
-        """Get detailed report of found features.
-
-        Returns:
-            Dict with detailed information about found features
-        """
         return {
             'total_features': len(self.features_found),
             'features': sorted(list(self.features_found)),
             'feature_details': self.feature_details,
             'unrecognized': sorted(list(self.unrecognized_patterns))
         }
-    
+
     def parse_multiple_files(self, filepaths: List[str]) -> Set[str]:
-        """Parse multiple JavaScript files and combine results.
-        
-        Args:
-            filepaths: List of JavaScript file paths
-            
-        Returns:
-            Combined set of all features found
-        """
         all_features = set()
-        
+
         for filepath in filepaths:
             try:
                 features = self.parse_file(filepath)
                 all_features.update(features)
             except Exception as e:
                 logger.warning(f"Could not parse {filepath}: {e}")
-        
+
         return all_features
-    
+
     def get_statistics(self) -> Dict:
-        """Get parsing statistics.
-        
-        Returns:
-            Dict with parsing statistics
-        """
-        # Group features by category
         syntax_features = []
         api_features = []
         array_methods = []
@@ -1335,7 +912,7 @@ class JavaScriptParser:
         object_methods = []
         storage_apis = []
         dom_apis = []
-        
+
         for feature in self.features_found:
             if feature in ['arrow-functions', 'async-functions', 'const', 'let',
                           'template-literals', 'destructuring', 'spread',
@@ -1353,7 +930,7 @@ class JavaScriptParser:
                 dom_apis.append(feature)
             else:
                 api_features.append(feature)
-        
+
         return {
             'total_features': len(self.features_found),
             'syntax_features': len(syntax_features),
@@ -1374,17 +951,9 @@ class JavaScriptParser:
                 'dom': dom_apis
             }
         }
-    
+
     def validate_javascript(self, js_content: str) -> bool:
-        """Basic validation if content looks like JavaScript.
-        
-        Args:
-            js_content: JavaScript content to validate
-            
-        Returns:
-            True if looks like valid JavaScript, False otherwise
-        """
-        # Very basic check - look for common JS patterns
+        """Quick check if content looks like JavaScript."""
         js_patterns = [
             r'\bfunction\b',
             r'\bconst\b',
@@ -1395,35 +964,19 @@ class JavaScriptParser:
             r'\{',
             r'\}',
         ]
-        
+
         for pattern in js_patterns:
             if re.search(pattern, js_content):
                 return True
-        
+
         return False
 
 
 def parse_js_file(filepath: str) -> Set[str]:
-    """Convenience function to parse a single JavaScript file.
-    
-    Args:
-        filepath: Path to JavaScript file
-        
-    Returns:
-        Set of feature IDs found
-    """
     parser = JavaScriptParser()
     return parser.parse_file(filepath)
 
 
 def parse_js_string(js_content: str) -> Set[str]:
-    """Convenience function to parse JavaScript string.
-    
-    Args:
-        js_content: JavaScript content as string
-        
-    Returns:
-        Set of feature IDs found
-    """
     parser = JavaScriptParser()
     return parser.parse_string(js_content)

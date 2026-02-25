@@ -1,10 +1,4 @@
-"""SARIF 2.1.0 exporter for Cross Guard analysis reports.
-
-Generates Static Analysis Results Interchange Format output consumable
-by GitHub Code Scanning, VS Code SARIF Viewer, and other SARIF tools.
-
-Uses only ``json`` from the standard library — zero extra dependencies.
-"""
+"""SARIF 2.1.0 export for GitHub Code Scanning, VS Code SARIF Viewer, etc."""
 
 import json
 from typing import Dict, List, Optional, Union
@@ -18,30 +12,16 @@ def export_sarif(
     report: Dict,
     output_path: Optional[str] = None,
 ) -> Union[Dict, str]:
-    """Export an analysis report in SARIF 2.1.0 format.
-
-    Args:
-        report: Analysis result dict (single-file ``AnalysisResult.to_dict()``
-                or project ``ProjectAnalysisResult.to_dict()``).
-        output_path: If given, write JSON to this file and return the path.
-                     Otherwise return the SARIF dict.
-
-    Returns:
-        SARIF dict (when *output_path* is None) or the written file path.
-
-    Raises:
-        ValueError: If *report* is empty/None.
-    """
+    """Write SARIF 2.1.0 to file, or return dict if no path given. Handles both single-file and project reports."""
     if not report:
         raise ValueError("No analysis report to export")
 
-    # Detect project-level vs single-file
     if 'file_results' in report:
         results, rules = _project_results(report)
     else:
         results, rules = _single_file_results(report)
 
-    # Build properties from scores
+    # Stash scores in SARIF properties so CI tools can read them
     properties: Dict = {}
     scores = report.get('scores', {})
     if scores:
@@ -78,11 +58,7 @@ def export_sarif(
     return output_path
 
 
-# ── Internal helpers ──────────────────────────────────────────────────
-
-
 def _single_file_results(report: Dict):
-    """Extract SARIF results from a single-file analysis."""
     rules: Dict[str, Dict] = {}
     results: List[Dict] = []
 
@@ -115,7 +91,6 @@ def _single_file_results(report: Dict):
 
 
 def _project_results(report: Dict):
-    """Extract SARIF results from a project-level analysis."""
     rules: Dict[str, Dict] = {}
     results: List[Dict] = []
 
@@ -148,12 +123,12 @@ def _project_results(report: Dict):
 
 
 def _to_rule_id(feature_name: str) -> str:
-    """Normalise a feature name into a SARIF rule ID."""
+    """Turn a feature name into a valid SARIF rule ID (lowercase, dashes)."""
     return feature_name.lower().replace(' ', '-').replace('/', '-')
 
 
 def _ensure_rule(rules: Dict[str, Dict], rule_id: str, feature_name: str):
-    """Add a rule entry if not already present."""
+    """Register a SARIF rule if we haven't seen this feature yet."""
     if rule_id not in rules:
         rules[rule_id] = {
             "id": rule_id,
@@ -168,7 +143,7 @@ def _make_result(
     level: str,
     file_path: str,
 ) -> Dict:
-    """Create a single SARIF result object."""
+    # SARIF requires physicalLocation even without line numbers
     return {
         "ruleId": rule_id,
         "level": level,

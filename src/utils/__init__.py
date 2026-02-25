@@ -1,1 +1,1 @@
-"""Utility functions and configuration."""
+"""Shared utilities, config, types, and exceptions."""

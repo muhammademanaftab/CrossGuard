@@ -1,15 +1,9 @@
-"""
-Project Scanner Schemas - Data contracts for project scanning.
-
-These dataclasses define the structure of data for project scanning
-operations, separate from single-file analysis schemas.
-"""
+"""Data contracts for project-level scanning and analysis."""
 
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Any
 from enum import Enum
 
-# Re-export scanner dataclasses for convenience
 from src.scanner import (
     ScanConfig,
     ScanResult,
@@ -21,7 +15,6 @@ from src.scanner import (
 
 
 class ScanStatus(Enum):
-    """Status of a scan operation."""
     PENDING = "pending"
     SCANNING = "scanning"
     ANALYZING = "analyzing"
@@ -32,7 +25,6 @@ class ScanStatus(Enum):
 
 @dataclass
 class ProjectScanRequest:
-    """Request to scan a project directory."""
     project_path: str
     config: Optional[ScanConfig] = None
     target_browsers: Dict[str, str] = field(default_factory=dict)
@@ -44,7 +36,7 @@ class ProjectScanRequest:
 
 @dataclass
 class FileAnalysisResult:
-    """Result of analyzing a single file within a project."""
+    """Single file result within a project scan."""
     file_path: str
     file_name: str
     file_type: str  # 'html', 'css', 'javascript'
@@ -58,63 +50,45 @@ class FileAnalysisResult:
 
 @dataclass
 class ProjectAnalysisResult:
-    """Aggregate result of analyzing an entire project."""
+    """Aggregate results for an entire project."""
 
-    # Overall metrics
     success: bool = True
     error: Optional[str] = None
 
-    # Project info
     project_path: str = ""
     project_name: str = ""
     framework: Optional[FrameworkInfo] = None
     build_tool: Optional[BuildToolInfo] = None
 
-    # Aggregate scores
     overall_score: float = 0.0
     overall_grade: str = "N/A"
     weighted_score: float = 0.0
 
-    # File breakdown
     total_files: int = 0
     html_files: int = 0
     css_files: int = 0
     js_files: int = 0
 
-    # File results
     file_results: List[FileAnalysisResult] = field(default_factory=list)
-
-    # Worst performing files
     worst_files: List[FileAnalysisResult] = field(default_factory=list)
 
-    # Feature aggregates
     total_features: int = 0
     unique_features: int = 0
     unsupported_count: int = 0
     partial_count: int = 0
 
-    # Most problematic features across project
     top_issues: List[Dict[str, Any]] = field(default_factory=list)
-
-    # Browser breakdown (same as single-file analysis)
     browsers: Dict[str, Any] = field(default_factory=dict)
 
-    # Scan metadata
     scan_duration_ms: int = 0
     analysis_duration_ms: int = 0
     scanned_at: str = ""
 
     @classmethod
     def from_error(cls, error: str, project_path: str = "") -> 'ProjectAnalysisResult':
-        """Create a failed result with an error message."""
-        return cls(
-            success=False,
-            error=error,
-            project_path=project_path
-        )
+        return cls(success=False, error=error, project_path=project_path)
 
     def get_summary(self) -> Dict[str, Any]:
-        """Get a summary dictionary for display."""
         return {
             'project_name': self.project_name,
             'overall_score': self.overall_score,
@@ -128,7 +102,6 @@ class ProjectAnalysisResult:
         }
 
     def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for export/serialization."""
         return {
             'success': self.success,
             'error': self.error,
@@ -184,7 +157,6 @@ class ProjectAnalysisResult:
 
 @dataclass
 class ProjectScanProgress:
-    """Progress update for project scanning."""
     status: ScanStatus
     message: str = ""
     current_file: str = ""
@@ -194,23 +166,18 @@ class ProjectScanProgress:
 
     @property
     def progress_percent(self) -> float:
-        """Get progress as percentage (0-100)."""
         if self.files_total == 0:
             return 0.0
         return (self.files_scanned / self.files_total) * 100
 
 
-# Convenience exports
 __all__ = [
-    # Re-exported from scanner
     'ScanConfig',
     'ScanResult',
     'FileTreeNode',
     'FrameworkInfo',
     'BuildToolInfo',
     'ProjectInfo',
-
-    # New schemas
     'ScanStatus',
     'ProjectScanRequest',
     'FileAnalysisResult',

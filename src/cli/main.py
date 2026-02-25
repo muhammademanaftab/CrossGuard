@@ -1,12 +1,4 @@
-"""Cross Guard CLI — Click-based command-line interface.
-
-Uses the same AnalyzerService backend as the GUI.
-
-Exit codes:
-    0 — All features compatible (or command succeeded)
-    1 — Compatibility issues found (or quality gate failed)
-    2 — Error (bad input, missing file, etc.)
-"""
+"""Cross Guard CLI. Exit codes: 0=ok, 1=issues/gate fail, 2=error."""
 
 import difflib
 import os
@@ -33,16 +25,11 @@ from .gates import ThresholdConfig, evaluate_gates
 from .ignore import find_ignore_file, load_ignore_patterns, should_ignore
 
 
-# ── Browser validation ────────────────────────────────────────────────
-
 _KNOWN_BROWSERS = set(LATEST_VERSIONS.keys())
 
 
 def _parse_browsers(browsers_str: Optional[str]) -> Optional[dict]:
-    """Parse a 'chrome:120,firefox:121' string into a dict.
-
-    Raises click.BadParameter on invalid input with helpful suggestions.
-    """
+    """Parse 'chrome:120,firefox:121' into a dict, with typo suggestions."""
     if not browsers_str:
         return None
     result = {}
@@ -69,7 +56,6 @@ def _parse_browsers(browsers_str: Optional[str]) -> Optional[dict]:
                 param_hint="'--browsers'",
             )
 
-        # Version should be numeric (e.g. 120 or 18.4)
         try:
             float(version)
         except ValueError:
@@ -84,7 +70,7 @@ def _parse_browsers(browsers_str: Optional[str]) -> Optional[dict]:
 
 
 def _classify_files(paths: list[str]) -> tuple[list, list, list]:
-    """Split file paths into HTML, CSS, and JS lists."""
+    """Bucket file paths by type (HTML, CSS, JS)."""
     html, css, js = [], [], []
     ext_map = {
         '.html': html, '.htm': html,
@@ -104,12 +90,7 @@ def _collect_files(
     target: str,
     ignore_patterns: Optional[list[str]] = None,
 ) -> list[str]:
-    """Collect analyzable files from a path (file or directory).
-
-    Args:
-        target: File or directory path.
-        ignore_patterns: Optional list of .crossguardignore patterns.
-    """
+    """Gather web files from a path, respecting ignore patterns."""
     target_path = Path(target)
     if target_path.is_file():
         return [str(target_path)]
@@ -118,7 +99,6 @@ def _collect_files(
         extensions = {'.html', '.htm', '.css', '.js', '.mjs', '.jsx', '.ts', '.tsx'}
         files = []
         for root, dirs, filenames in os.walk(target_path):
-            # Skip common ignore directories
             dirs[:] = [d for d in dirs if d not in {
                 'node_modules', '.git', 'dist', 'build', '__pycache__',
                 '.next', '.nuxt', 'vendor',
@@ -126,7 +106,6 @@ def _collect_files(
             for fname in filenames:
                 if os.path.splitext(fname)[1].lower() in extensions:
                     full_path = os.path.join(root, fname)
-                    # Apply .crossguardignore patterns
                     if ignore_patterns:
                         rel_path = os.path.relpath(full_path, str(target_path))
                         if should_ignore(rel_path, ignore_patterns):
@@ -137,15 +116,8 @@ def _collect_files(
     return []
 
 
-# ── Issue counting helper ─────────────────────────────────────────────
-
-
 def _count_issues(report: dict) -> tuple[int, int]:
-    """Return (error_count, warning_count) from a report dict.
-
-    error_count = total unsupported across browsers.
-    warning_count = total partial across browsers.
-    """
+    """Tally unsupported (errors) and partial (warnings) across all browsers."""
     errors = 0
     warnings = 0
     browsers = report.get('browsers', {})
@@ -156,15 +128,8 @@ def _count_issues(report: dict) -> tuple[int, int]:
     return errors, warnings
 
 
-# ── Multi-output helper ───────────────────────────────────────────────
-
-
 def _write_secondary_outputs(report: dict, **kwargs):
-    """Write secondary output files (--output-sarif, --output-junit, etc.).
-
-    Keyword args are {format_name: output_path} pairs.
-    Only non-None paths trigger output.
-    """
+    """Write any --output-sarif / --output-junit / etc. side files."""
     from src.export import export_sarif, export_junit, export_checkstyle, export_csv
 
     exporters = {
@@ -186,9 +151,6 @@ def _write_secondary_outputs(report: dict, **kwargs):
             from src.export import export_json
             export_json(report, output_path=path)
             click.echo(f"  JSON saved to {path}", err=True)
-
-
-# ── CLI group ─────────────────────────────────────────────────────────
 
 
 @click.group()
@@ -215,16 +177,12 @@ def cli(ctx, verbose, quiet, debug, no_color, timing):
         timing=timing,
     )
 
-    # Configure logging level based on verbosity
     if verbosity == 0:
         set_log_level('WARNING')
     elif verbosity >= 3:
         set_log_level('DEBUG')
     else:
         set_log_level('INFO')
-
-
-# ── analyze ───────────────────────────────────────────────────────────
 
 
 @cli.command()
@@ -275,14 +233,11 @@ def analyze(ctx, target, browsers, fmt, output, config_path,
     cli_ctx: CliContext = ctx.obj['cli_ctx']
     start_time = time.perf_counter()
 
-    # Load config
     config = load_config(config_path=config_path)
     service = AnalyzerService(config=config.to_dict())
 
-    # Parse browser overrides
     browser_dict = _parse_browsers(browsers) or config.browsers
 
-    # ── stdin mode ────────────────────────────────────────────────
     tmp_file = None
     if use_stdin:
         if not stdin_filename:
@@ -313,7 +268,6 @@ def analyze(ctx, target, browsers, fmt, output, config_path,
             click.echo(f"Error: '{target}' not found", err=True)
             sys.exit(2)
 
-        # ── .crossguardignore ────────────────────────────────────
         ignore_pats: Optional[list[str]] = None
         if ignore_path:
             ignore_pats = load_ignore_patterns(Path(ignore_path))
@@ -324,7 +278,6 @@ def analyze(ctx, target, browsers, fmt, output, config_path,
                 if cli_ctx.verbosity >= 2:
                     click.echo(f"Using ignore file: {ig_file}", err=True)
 
-        # ── directory mode ───────────────────────────────────────
         if target_path.is_dir():
             from src.api.project_schemas import ScanConfig
             scan_config = ScanConfig(exclude_patterns=config.ignore_patterns)
@@ -358,7 +311,6 @@ def analyze(ctx, target, browsers, fmt, output, config_path,
             score = project_result.overall_score
             error_count, warning_count = _count_issues(result_dict)
 
-        # ── single-file mode ─────────────────────────────────────
         else:
             files = [str(target_path)]
             html, css, js = _classify_files(files)
@@ -377,8 +329,7 @@ def analyze(ctx, target, browsers, fmt, output, config_path,
             result_dict = result.to_dict()
 
             if fmt in ('sarif', 'junit', 'checkstyle', 'csv'):
-                # Add file_path for CI exporters
-                result_dict['file_path'] = str(target_path)
+                result_dict['file_path'] = str(target_path)  # CI exporters need this
                 result_text = _format_ci_output(result_dict, fmt)
             else:
                 result_text = format_result(result_dict, fmt, color=cli_ctx.color)
@@ -386,7 +337,6 @@ def analyze(ctx, target, browsers, fmt, output, config_path,
             score = result.scores.simple_score if result.scores else 0.0
             error_count, warning_count = _count_issues(result_dict)
 
-        # ── output ───────────────────────────────────────────────
         if output:
             with open(output, 'w', encoding='utf-8') as f:
                 f.write(result_text)
@@ -395,7 +345,6 @@ def analyze(ctx, target, browsers, fmt, output, config_path,
         else:
             click.echo(result_text)
 
-        # ── secondary outputs ────────────────────────────────────
         _write_secondary_outputs(
             result_dict,
             sarif=output_sarif,
@@ -405,12 +354,10 @@ def analyze(ctx, target, browsers, fmt, output, config_path,
             csv=output_csv,
         )
 
-        # ── timing ───────────────────────────────────────────────
         if cli_ctx.timing:
             elapsed = time.perf_counter() - start_time
             click.echo(f"Elapsed: {elapsed:.2f}s", err=True)
 
-        # ── quality gates ────────────────────────────────────────
         gate_config = ThresholdConfig(
             min_score=fail_on_score,
             max_errors=fail_on_errors,
@@ -427,7 +374,6 @@ def analyze(ctx, target, browsers, fmt, output, config_path,
                 sys.exit(1)
             sys.exit(0)
 
-        # Default: exit 1 if any issues
         has_issues = error_count > 0 or warning_count > 0
         sys.exit(1 if has_issues else 0)
 
@@ -437,7 +383,7 @@ def analyze(ctx, target, browsers, fmt, output, config_path,
 
 
 def _format_ci_output(report: dict, fmt: str) -> str:
-    """Dispatch to CI exporters, returning string output."""
+    """Run the right CI exporter and return its string output."""
     from src.export import export_sarif, export_junit, export_checkstyle, export_csv
 
     if fmt == 'sarif':
@@ -450,9 +396,6 @@ def _format_ci_output(report: dict, fmt: str) -> str:
     elif fmt == 'csv':
         return export_csv(report)
     return ''
-
-
-# ── export ────────────────────────────────────────────────────────────
 
 
 @cli.command('export')
@@ -488,9 +431,6 @@ def export_cmd(analysis_id, fmt, output):
         sys.exit(2)
 
 
-# ── history ───────────────────────────────────────────────────────────
-
-
 @cli.command()
 @click.option('--limit', '-n', default=20, help='Number of entries to show')
 @click.option('--type', '-t', 'file_type', default=None,
@@ -509,9 +449,6 @@ def history(ctx, limit, file_type):
     click.echo(format_history(analyses, color=cli_ctx.color))
 
 
-# ── stats ─────────────────────────────────────────────────────────────
-
-
 @cli.command()
 @click.pass_context
 def stats(ctx):
@@ -520,9 +457,6 @@ def stats(ctx):
     service = AnalyzerService()
     statistics = service.get_statistics()
     click.echo(format_stats(statistics, color=cli_ctx.color))
-
-
-# ── config ────────────────────────────────────────────────────────────
 
 
 @cli.command('config')
@@ -548,9 +482,6 @@ def config_cmd(do_init, config_path):
         click.echo("\n(Using defaults — no config file found)", err=True)
 
 
-# ── update-db ─────────────────────────────────────────────────────────
-
-
 @cli.command('update-db')
 def update_db():
     """Update the Can I Use database."""
@@ -570,9 +501,6 @@ def update_db():
         sys.exit(2)
 
 
-# ── init-ci ───────────────────────────────────────────────────────────
-
-
 @cli.command('init-ci')
 @click.option('--provider', '-p', required=True,
               type=click.Choice(['github', 'gitlab']),
@@ -581,9 +509,6 @@ def init_ci(provider):
     """Generate a ready-to-use CI workflow configuration."""
     from .generators import generate_ci_config
     click.echo(generate_ci_config(provider))
-
-
-# ── init-hooks ────────────────────────────────────────────────────────
 
 
 @cli.command('init-hooks')

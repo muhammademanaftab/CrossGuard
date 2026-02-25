@@ -1,8 +1,4 @@
-"""
-Statistics service for Cross Guard database.
-
-Provides aggregated insights from analysis history using SQL queries.
-"""
+"""Aggregated statistics from analysis history."""
 
 import sqlite3
 from typing import Dict, List, Any, Optional, Tuple
@@ -15,93 +11,38 @@ logger = get_logger('database.statistics')
 
 
 class StatisticsService:
-    """Service for computing statistics from analysis history.
-
-    Provides various aggregation methods using SQL queries including:
-    - Total counts
-    - Average scores
-    - Trends over time
-    - Top problematic features
-    - Most analyzed files
-    """
+    """Computes stats like averages, trends, and top problematic features."""
 
     def __init__(self, conn: Optional[sqlite3.Connection] = None):
-        """Initialize the statistics service.
-
-        Args:
-            conn: Optional database connection.
-        """
         self._conn = conn
 
     @property
     def conn(self) -> sqlite3.Connection:
-        """Get the database connection."""
         if self._conn is None:
             return get_connection()
         return self._conn
 
     def get_total_analyses(self) -> int:
-        """Get the total number of analyses performed.
-
-        SQL: SELECT COUNT(*) FROM analyses;
-
-        Returns:
-            Total count of analyses
-        """
         cursor = self.conn.execute("SELECT COUNT(*) FROM analyses")
         return cursor.fetchone()[0]
 
     def get_average_score(self) -> float:
-        """Get the average compatibility score across all analyses.
-
-        SQL: SELECT AVG(overall_score) FROM analyses;
-
-        Returns:
-            Average score (0-100), or 0 if no analyses
-        """
         cursor = self.conn.execute("SELECT AVG(overall_score) FROM analyses")
         result = cursor.fetchone()[0]
         return round(result, 1) if result else 0.0
 
     def get_best_score(self) -> float:
-        """Get the highest compatibility score.
-
-        SQL: SELECT MAX(overall_score) FROM analyses;
-
-        Returns:
-            Best score (0-100), or 0 if no analyses
-        """
         cursor = self.conn.execute("SELECT MAX(overall_score) FROM analyses")
         result = cursor.fetchone()[0]
         return round(result, 1) if result else 0.0
 
     def get_worst_score(self) -> float:
-        """Get the lowest compatibility score.
-
-        SQL: SELECT MIN(overall_score) FROM analyses;
-
-        Returns:
-            Worst score (0-100), or 0 if no analyses
-        """
         cursor = self.conn.execute("SELECT MIN(overall_score) FROM analyses")
         result = cursor.fetchone()[0]
         return round(result, 1) if result else 0.0
 
     def get_score_trend(self, days: int = 7) -> List[Dict[str, Any]]:
-        """Get average score trend over time.
-
-        SQL: SELECT DATE(analyzed_at) as date, AVG(overall_score) as avg_score
-             FROM analyses
-             WHERE analyzed_at >= date('now', '-N days')
-             GROUP BY DATE(analyzed_at)
-             ORDER BY date DESC;
-
-        Args:
-            days: Number of days to look back
-
-        Returns:
-            List of dicts with 'date' and 'avg_score' keys
-        """
+        """Daily average scores over the last N days."""
         cursor = self.conn.execute("""
             SELECT DATE(analyzed_at) as date,
                    AVG(overall_score) as avg_score,
@@ -122,24 +63,7 @@ class StatisticsService:
         ]
 
     def get_top_problematic_features(self, limit: int = 5) -> List[Dict[str, Any]]:
-        """Get the most frequently failing features.
-
-        Uses a JOIN with browser_results to count unsupported instances.
-
-        SQL: SELECT af.feature_name, af.feature_id, COUNT(*) as fail_count
-             FROM analysis_features af
-             JOIN browser_results br ON af.id = br.analysis_feature_id
-             WHERE br.support_status = 'n'
-             GROUP BY af.feature_id
-             ORDER BY fail_count DESC
-             LIMIT ?;
-
-        Args:
-            limit: Maximum number of features to return
-
-        Returns:
-            List of dicts with feature info and fail counts
-        """
+        """Features with the most unsupported browser results across all analyses."""
         cursor = self.conn.execute("""
             SELECT af.feature_name,
                    af.feature_id,
@@ -164,22 +88,7 @@ class StatisticsService:
         ]
 
     def get_most_analyzed_files(self, limit: int = 5) -> List[Dict[str, Any]]:
-        """Get the most frequently analyzed files.
-
-        SQL: SELECT file_name, COUNT(*) as analysis_count,
-                    MAX(overall_score) as best_score,
-                    AVG(overall_score) as avg_score
-             FROM analyses
-             GROUP BY file_name
-             ORDER BY analysis_count DESC
-             LIMIT ?;
-
-        Args:
-            limit: Maximum number of files to return
-
-        Returns:
-            List of dicts with file info and analysis counts
-        """
+        """Files ranked by how many times they've been analyzed."""
         cursor = self.conn.execute("""
             SELECT file_name,
                    file_type,
@@ -204,12 +113,7 @@ class StatisticsService:
         ]
 
     def get_browser_statistics(self) -> Dict[str, Dict[str, Any]]:
-        """Get aggregated statistics per browser.
-
-        Returns:
-            Dict mapping browser name to stats (support counts, percentages)
-        """
-        # Get all distinct browsers from browser_results
+        """Support/partial/unsupported counts and percentages per browser."""
         cursor = self.conn.execute("""
             SELECT browser,
                    SUM(CASE WHEN support_status = 'y' THEN 1 ELSE 0 END) as supported,
@@ -236,16 +140,7 @@ class StatisticsService:
         return stats
 
     def get_grade_distribution(self) -> Dict[str, int]:
-        """Get distribution of grades across all analyses.
-
-        SQL: SELECT grade, COUNT(*) as count
-             FROM analyses
-             GROUP BY grade
-             ORDER BY grade;
-
-        Returns:
-            Dict mapping grade letters to counts
-        """
+        """How many analyses got each letter grade."""
         cursor = self.conn.execute("""
             SELECT grade, COUNT(*) as count
             FROM analyses
@@ -256,15 +151,7 @@ class StatisticsService:
         return {row['grade']: row['count'] for row in cursor.fetchall()}
 
     def get_file_type_distribution(self) -> Dict[str, int]:
-        """Get distribution of file types analyzed.
-
-        SQL: SELECT file_type, COUNT(*) as count
-             FROM analyses
-             GROUP BY file_type;
-
-        Returns:
-            Dict mapping file type to count
-        """
+        """Breakdown of analyzed file types (html, css, js)."""
         cursor = self.conn.execute("""
             SELECT file_type, COUNT(*) as count
             FROM analyses
@@ -274,14 +161,7 @@ class StatisticsService:
         return {row['file_type']: row['count'] for row in cursor.fetchall()}
 
     def get_recent_activity(self, days: int = 30) -> Dict[str, int]:
-        """Get analysis activity counts per day for recent period.
-
-        Args:
-            days: Number of days to look back
-
-        Returns:
-            Dict mapping date strings to counts
-        """
+        """Daily analysis counts for the last N days."""
         cursor = self.conn.execute("""
             SELECT DATE(analyzed_at) as date, COUNT(*) as count
             FROM analyses
@@ -293,11 +173,7 @@ class StatisticsService:
         return {row['date']: row['count'] for row in cursor.fetchall()}
 
     def get_summary_statistics(self) -> Dict[str, Any]:
-        """Get a comprehensive summary of all statistics.
-
-        Returns:
-            Dict with all key statistics combined
-        """
+        """Everything in one call: counts, scores, distributions, top features."""
         total = self.get_total_analyses()
 
         if total == 0:
@@ -325,16 +201,11 @@ class StatisticsService:
         }
 
 
-# Singleton instance for convenience
 _stats_service: Optional[StatisticsService] = None
 
 
 def get_statistics_service() -> StatisticsService:
-    """Get the singleton statistics service instance.
-
-    Returns:
-        StatisticsService instance
-    """
+    """Lazy singleton for the stats service."""
     global _stats_service
     if _stats_service is None:
         _stats_service = StatisticsService()

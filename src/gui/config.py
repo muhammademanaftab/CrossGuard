@@ -1,41 +1,18 @@
-"""
-GUI-specific configuration for Cross Guard frontend.
-
-This module contains configuration settings specific to the GUI layer.
-It should NOT import from backend modules.
-
-Note: Most theme settings have been moved to theme.py for the CustomTkinter
-implementation. This file is kept for backward compatibility and
-application-level settings.
-"""
+"""GUI-level config. Theme stuff lives in theme.py; this is app settings + re-exports."""
 
 from pathlib import Path
 
-# =============================================================================
-# Application Info
-# =============================================================================
-
 APP_NAME = "Cross Guard"
 APP_VERSION = "1.0.0"
-
-# =============================================================================
-# Asset Paths
-# =============================================================================
 
 GUI_DIR = Path(__file__).parent
 ASSETS_DIR = GUI_DIR / "assets"
 LOGO_PATH = GUI_DIR / "logo.png"
 
-# =============================================================================
-# Export Settings
-# =============================================================================
-
 EXPORT_FORMATS = ['PDF', 'JSON']
 DEFAULT_EXPORT_FORMAT = 'PDF'
 
-# =============================================================================
-# Re-export theme settings for backward compatibility
-# =============================================================================
+# Re-exports so old imports from config still work
 
 from .theme import (
     COLORS,

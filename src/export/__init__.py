@@ -1,9 +1,4 @@
-"""
-Export module for Cross Guard.
-
-Provides PDF, JSON, SARIF, JUnit XML, Checkstyle XML, and CSV export
-of analysis reports, independent of any GUI framework.
-"""
+"""Report export in multiple formats (JSON, PDF, SARIF, JUnit, Checkstyle, CSV)."""
 
 from .json_exporter import export_json
 from .pdf_exporter import export_pdf

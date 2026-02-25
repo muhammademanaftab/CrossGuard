@@ -1,11 +1,4 @@
-"""
-Data models for Cross Guard database.
-
-Defines dataclasses that map to database tables:
-- Analysis: Main analysis record
-- AnalysisFeature: Detected features per analysis
-- BrowserResult: Browser support status per feature
-"""
+"""Dataclasses that map to the database tables."""
 
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -15,17 +8,7 @@ import json
 
 @dataclass
 class BrowserResult:
-    """Browser support result for a specific feature.
-
-    Maps to the browser_results table.
-
-    Attributes:
-        id: Primary key (auto-generated)
-        analysis_feature_id: Foreign key to analysis_features
-        browser: Browser name (e.g., 'chrome', 'firefox')
-        version: Browser version tested
-        support_status: Support status code ('y', 'n', 'a', 'x', 'p')
-    """
+    """Support status for one browser on one feature."""
     browser: str
     support_status: str
     version: str = ''
@@ -33,7 +16,6 @@ class BrowserResult:
     analysis_feature_id: Optional[int] = None
 
     def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary."""
         return {
             'id': self.id,
             'analysis_feature_id': self.analysis_feature_id,
@@ -44,14 +26,6 @@ class BrowserResult:
 
     @classmethod
     def from_row(cls, row) -> 'BrowserResult':
-        """Create from database row.
-
-        Args:
-            row: sqlite3.Row object
-
-        Returns:
-            BrowserResult instance
-        """
         return cls(
             id=row['id'],
             analysis_feature_id=row['analysis_feature_id'],
@@ -63,18 +37,7 @@ class BrowserResult:
 
 @dataclass
 class AnalysisFeature:
-    """Detected feature in an analysis.
-
-    Maps to the analysis_features table.
-
-    Attributes:
-        id: Primary key (auto-generated)
-        analysis_id: Foreign key to analyses
-        feature_id: Can I Use feature ID
-        feature_name: Human-readable feature name
-        category: Feature category ('html', 'css', 'js')
-        browser_results: List of browser support results
-    """
+    """A detected Can I Use feature within an analysis."""
     feature_id: str
     category: str
     feature_name: str = ''
@@ -83,7 +46,6 @@ class AnalysisFeature:
     browser_results: List[BrowserResult] = field(default_factory=list)
 
     def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary."""
         return {
             'id': self.id,
             'analysis_id': self.analysis_id,
@@ -95,14 +57,6 @@ class AnalysisFeature:
 
     @classmethod
     def from_row(cls, row) -> 'AnalysisFeature':
-        """Create from database row.
-
-        Args:
-            row: sqlite3.Row object
-
-        Returns:
-            AnalysisFeature instance
-        """
         return cls(
             id=row['id'],
             analysis_id=row['analysis_id'],
@@ -114,22 +68,7 @@ class AnalysisFeature:
 
 @dataclass
 class Analysis:
-    """Analysis record for a file.
-
-    Maps to the analyses table.
-
-    Attributes:
-        id: Primary key (auto-generated)
-        file_name: Name of the analyzed file
-        file_path: Full path to the file
-        file_type: Type of file ('html', 'css', 'js')
-        overall_score: Compatibility score (0-100)
-        grade: Letter grade (A+, A, B, etc.)
-        total_features: Number of features detected
-        analyzed_at: Timestamp of analysis
-        browsers_json: JSON string of target browsers
-        features: List of detected features
-    """
+    """A single file analysis with score, grade, and detected features."""
     file_name: str
     file_type: str
     overall_score: float
@@ -142,13 +81,12 @@ class Analysis:
     features: List[AnalysisFeature] = field(default_factory=list)
 
     def __post_init__(self):
-        """Initialize defaults after dataclass initialization."""
         if self.analyzed_at is None:
             self.analyzed_at = datetime.now()
 
     @property
     def browsers(self) -> Dict[str, str]:
-        """Get browsers dict from JSON string."""
+        """Parse browsers_json into a dict."""
         try:
             return json.loads(self.browsers_json)
         except (json.JSONDecodeError, TypeError):
@@ -156,11 +94,9 @@ class Analysis:
 
     @browsers.setter
     def browsers(self, value: Dict[str, str]):
-        """Set browsers JSON from dict."""
         self.browsers_json = json.dumps(value)
 
     def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary."""
         return {
             'id': self.id,
             'file_name': self.file_name,
@@ -176,21 +112,12 @@ class Analysis:
 
     @classmethod
     def from_row(cls, row) -> 'Analysis':
-        """Create from database row.
-
-        Args:
-            row: sqlite3.Row object
-
-        Returns:
-            Analysis instance
-        """
-        # Parse analyzed_at timestamp
         analyzed_at = None
         if row['analyzed_at']:
             try:
                 analyzed_at = datetime.fromisoformat(row['analyzed_at'])
             except (ValueError, TypeError):
-                # Try parsing as SQLite datetime format
+                # fallback for SQLite's default datetime format
                 try:
                     analyzed_at = datetime.strptime(
                         row['analyzed_at'],
@@ -212,11 +139,7 @@ class Analysis:
         )
 
     def get_formatted_date(self) -> str:
-        """Get a human-readable formatted date string.
-
-        Returns:
-            Formatted date string (e.g., 'Today 2:30 PM', 'Yesterday', 'Jan 15')
-        """
+        """Human-friendly relative date like 'Today 2:30 PM' or 'Jan 15, 2026'."""
         if not self.analyzed_at:
             return 'Unknown'
 
@@ -233,41 +156,24 @@ class Analysis:
             return self.analyzed_at.strftime('%b %d, %Y')
 
     def get_file_type_icon(self) -> str:
-        """Get icon character for file type.
-
-        Returns:
-            Unicode icon character
-        """
+        """Unicode icon for the file type."""
         icons = {
-            'html': '\u25B6',  # Play triangle
+            'html': '\u25B6',
             'htm': '\u25B6',
-            'css': '\u25C6',   # Diamond
-            'js': '\u2605',    # Star
+            'css': '\u25C6',
+            'js': '\u2605',
         }
-        return icons.get(self.file_type.lower(), '\u25A0')  # Square default
+        return icons.get(self.file_type.lower(), '\u25A0')
 
-
-# =============================================================================
-# Version 2 Models - Settings, Bookmarks, Tags
-# =============================================================================
 
 @dataclass
 class Setting:
-    """User setting/preference.
-
-    Maps to the settings table (key-value store).
-
-    Attributes:
-        key: Setting name (primary key)
-        value: Setting value (stored as string)
-        updated_at: Last update timestamp
-    """
+    """Key-value user preference."""
     key: str
     value: str
     updated_at: Optional[datetime] = None
 
     def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary."""
         return {
             'key': self.key,
             'value': self.value,
@@ -276,7 +182,6 @@ class Setting:
 
     @classmethod
     def from_row(cls, row) -> 'Setting':
-        """Create from database row."""
         updated_at = None
         if row['updated_at']:
             try:
@@ -291,34 +196,22 @@ class Setting:
         )
 
     def get_as_bool(self) -> bool:
-        """Get value as boolean."""
         return self.value.lower() in ('true', '1', 'yes', 'on')
 
     def get_as_int(self) -> int:
-        """Get value as integer."""
         try:
             return int(self.value)
         except (ValueError, TypeError):
             return 0
 
     def get_as_list(self) -> List[str]:
-        """Get value as list (comma-separated)."""
+        """Split comma-separated value into a list."""
         return [v.strip() for v in self.value.split(',') if v.strip()]
 
 
 @dataclass
 class Bookmark:
-    """Bookmarked analysis with optional note.
-
-    Maps to the bookmarks table.
-
-    Attributes:
-        id: Primary key (auto-generated)
-        analysis_id: Foreign key to analyses
-        note: Optional user note
-        created_at: When bookmark was created
-        analysis: Optional linked Analysis object
-    """
+    """A bookmarked analysis with an optional note."""
     analysis_id: int
     note: str = ''
     id: Optional[int] = None
@@ -326,12 +219,10 @@ class Bookmark:
     analysis: Optional[Analysis] = None
 
     def __post_init__(self):
-        """Initialize defaults."""
         if self.created_at is None:
             self.created_at = datetime.now()
 
     def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary."""
         result = {
             'id': self.id,
             'analysis_id': self.analysis_id,
@@ -344,7 +235,6 @@ class Bookmark:
 
     @classmethod
     def from_row(cls, row) -> 'Bookmark':
-        """Create from database row."""
         created_at = None
         if row['created_at']:
             try:
@@ -362,28 +252,17 @@ class Bookmark:
 
 @dataclass
 class Tag:
-    """Tag for categorizing analyses.
-
-    Maps to the tags table.
-
-    Attributes:
-        id: Primary key (auto-generated)
-        name: Tag name (unique)
-        color: Hex color code for display
-        created_at: When tag was created
-    """
+    """A named, colored label for categorizing analyses."""
     name: str
     color: str = '#58a6ff'
     id: Optional[int] = None
     created_at: Optional[datetime] = None
 
     def __post_init__(self):
-        """Initialize defaults."""
         if self.created_at is None:
             self.created_at = datetime.now()
 
     def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary."""
         return {
             'id': self.id,
             'name': self.name,
@@ -393,7 +272,6 @@ class Tag:
 
     @classmethod
     def from_row(cls, row) -> 'Tag':
-        """Create from database row."""
         created_at = None
         if row['created_at']:
             try:
@@ -411,21 +289,12 @@ class Tag:
 
 @dataclass
 class AnalysisTag:
-    """Junction record linking analysis to tag (many-to-many).
-
-    Maps to the analysis_tags table.
-
-    Attributes:
-        analysis_id: Foreign key to analyses
-        tag_id: Foreign key to tags
-        created_at: When link was created
-    """
+    """Many-to-many link between an analysis and a tag."""
     analysis_id: int
     tag_id: int
     created_at: Optional[datetime] = None
 
     def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary."""
         return {
             'analysis_id': self.analysis_id,
             'tag_id': self.tag_id,
@@ -434,7 +303,6 @@ class AnalysisTag:
 
     @classmethod
     def from_row(cls, row) -> 'AnalysisTag':
-        """Create from database row."""
         created_at = None
         if row['created_at']:
             try:

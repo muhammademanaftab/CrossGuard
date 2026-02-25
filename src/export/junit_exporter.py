@@ -1,10 +1,4 @@
-"""JUnit XML exporter for Cross Guard analysis reports.
-
-Generates JUnit XML output consumable by Jenkins, GitLab CI,
-and other CI systems that read JUnit reports.
-
-Uses only ``xml.etree.ElementTree`` from the standard library.
-"""
+"""JUnit XML export for Jenkins, GitLab CI, and similar CI systems."""
 
 import xml.etree.ElementTree as ET
 from typing import Dict, Optional, Union
@@ -14,24 +8,10 @@ def export_junit(
     report: Dict,
     output_path: Optional[str] = None,
 ) -> Union[str, None]:
-    """Export an analysis report as JUnit XML.
+    """Write JUnit XML to file, or return XML string if no path given.
 
-    Mapping:
-      - ``<testsuites name="CrossGuard">`` wrapper.
-      - One ``<testsuite>`` per browser.
-      - One ``<testcase>`` per feature; ``<failure>`` for unsupported,
-        ``type="partial"`` for partial.
-
-    Args:
-        report: Analysis result dict (single-file or project).
-        output_path: If given, write XML to this file and return the path.
-                     Otherwise return the XML string.
-
-    Returns:
-        XML string (when *output_path* is None) or the written file path.
-
-    Raises:
-        ValueError: If *report* is empty/None.
+    Structure: one testsuite per browser, one testcase per feature.
+    Unsupported = failure, partial = failure with type="partial".
     """
     if not report:
         raise ValueError("No analysis report to export")
@@ -48,7 +28,6 @@ def export_junit(
         partial_list = browser_data.get('partial_features', [])
         unsupported_count = len(unsupported_list)
         partial_count_actual = len(partial_list)
-        # tests = individual testcases we actually emit
         has_supported_summary = 1 if supported > 0 else 0
         total_tests = unsupported_count + partial_count_actual + has_supported_summary
         failures = unsupported_count
@@ -59,7 +38,6 @@ def export_junit(
                                   tests=str(total_tests),
                                   failures=str(failures))
 
-        # Generate testcases for unsupported
         for feat in unsupported_list:
             tc = ET.SubElement(testsuite, 'testcase',
                                classname=f"crossguard.{browser_name}",
@@ -70,7 +48,6 @@ def export_junit(
                                            f"{browser_name} {version}")
             failure.text = f"Feature '{feat}' is not supported"
 
-        # Generate testcases for partial
         for feat in partial_list:
             tc = ET.SubElement(testsuite, 'testcase',
                                classname=f"crossguard.{browser_name}",
@@ -81,7 +58,7 @@ def export_junit(
                                            f"{browser_name} {version}")
             failure.text = f"Feature '{feat}' has partial support"
 
-        # Generate a passing testcase as a summary for supported features
+        # One passing testcase to represent all supported features
         if supported > 0:
             tc = ET.SubElement(testsuite, 'testcase',
                                classname=f"crossguard.{browser_name}",

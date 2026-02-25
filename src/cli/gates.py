@@ -1,8 +1,4 @@
-"""Quality gate evaluation for CI/CD integration.
-
-Provides threshold-based pass/fail logic so builds can be
-rejected when compatibility scores or issue counts exceed limits.
-"""
+"""Quality gates — pass/fail thresholds for CI builds."""
 
 from dataclasses import dataclass, field
 from typing import List, Optional
@@ -10,10 +6,7 @@ from typing import List, Optional
 
 @dataclass
 class ThresholdConfig:
-    """Configuration for quality gate thresholds.
-
-    All fields are optional — only specified thresholds are enforced.
-    """
+    """Only specified thresholds are enforced; the rest are ignored."""
     min_score: Optional[float] = None
     max_errors: Optional[int] = None
     max_warnings: Optional[int] = None
@@ -21,7 +14,7 @@ class ThresholdConfig:
 
 @dataclass
 class GateResult:
-    """Outcome of a quality-gate evaluation."""
+    """Pass/fail plus a list of failure reasons."""
     passed: bool
     failures: List[str] = field(default_factory=list)
 
@@ -32,17 +25,7 @@ def evaluate_gates(
     warning_count: int,
     config: ThresholdConfig,
 ) -> GateResult:
-    """Evaluate quality gates against analysis results.
-
-    Args:
-        score: Overall compatibility score (0-100).
-        error_count: Number of unsupported features.
-        warning_count: Number of partially-supported features.
-        config: Threshold configuration.
-
-    Returns:
-        GateResult with ``passed=True`` if all gates pass.
-    """
+    """Check score/error/warning counts against thresholds."""
     failures: List[str] = []
 
     if config.min_score is not None and score < config.min_score:

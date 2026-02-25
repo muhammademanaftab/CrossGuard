@@ -1,23 +1,10 @@
-"""
-Custom Exceptions for Cross Guard.
-
-This module defines custom exception classes for better error handling
-and more informative error messages throughout the application.
-"""
+"""Custom exception hierarchy for Cross Guard."""
 
 from typing import Optional, List, Dict, Any
 
 
 class CrossGuardError(Exception):
-    """Base exception for all Cross Guard errors.
-
-    All custom exceptions in Cross Guard should inherit from this class
-    to allow catching all Cross Guard-specific errors with a single except clause.
-
-    Attributes:
-        message: Human-readable error message
-        details: Optional dictionary with additional error context
-    """
+    """Base exception — catch this to handle all Cross Guard errors."""
 
     def __init__(self, message: str, details: Optional[Dict[str, Any]] = None):
         self.message = message
@@ -30,7 +17,7 @@ class CrossGuardError(Exception):
         return self.message
 
     def to_dict(self) -> Dict[str, Any]:
-        """Convert exception to dictionary for JSON serialization."""
+        """For JSON serialization."""
         return {
             'error_type': self.__class__.__name__,
             'message': self.message,
@@ -38,16 +25,10 @@ class CrossGuardError(Exception):
         }
 
 
-# =============================================================================
-# Parser Exceptions
-# =============================================================================
+# --- Parser Exceptions ---
 
 class ParserError(CrossGuardError):
-    """Raised when parsing fails.
-
-    This exception is raised when a parser encounters an error while
-    processing HTML, CSS, or JavaScript files.
-    """
+    """Something went wrong while parsing a file."""
 
     def __init__(self, message: str, file_path: Optional[str] = None,
                  line_number: Optional[int] = None,
@@ -66,7 +47,7 @@ class ParserError(CrossGuardError):
 
 
 class HTMLParserError(ParserError):
-    """Raised when HTML parsing fails."""
+    """HTML parsing failed."""
 
     def __init__(self, message: str, file_path: Optional[str] = None,
                  line_number: Optional[int] = None):
@@ -74,7 +55,7 @@ class HTMLParserError(ParserError):
 
 
 class CSSParserError(ParserError):
-    """Raised when CSS parsing fails."""
+    """CSS parsing failed."""
 
     def __init__(self, message: str, file_path: Optional[str] = None,
                  line_number: Optional[int] = None):
@@ -82,23 +63,17 @@ class CSSParserError(ParserError):
 
 
 class JavaScriptParserError(ParserError):
-    """Raised when JavaScript parsing fails."""
+    """JavaScript parsing failed."""
 
     def __init__(self, message: str, file_path: Optional[str] = None,
                  line_number: Optional[int] = None):
         super().__init__(message, file_path, line_number, parser_type='JavaScript')
 
 
-# =============================================================================
-# Database Exceptions
-# =============================================================================
+# --- Database Exceptions ---
 
 class DatabaseError(CrossGuardError):
-    """Raised when database operations fail.
-
-    This exception is raised when there are issues with loading,
-    querying, or updating the Can I Use database.
-    """
+    """Can I Use database operation failed."""
 
     def __init__(self, message: str, operation: Optional[str] = None,
                  feature_id: Optional[str] = None):
@@ -113,7 +88,7 @@ class DatabaseError(CrossGuardError):
 
 
 class DatabaseLoadError(DatabaseError):
-    """Raised when database fails to load."""
+    """Database couldn't be loaded."""
 
     def __init__(self, message: str, database_path: Optional[str] = None):
         super().__init__(message, operation='load')
@@ -123,7 +98,7 @@ class DatabaseLoadError(DatabaseError):
 
 
 class FeatureNotFoundError(DatabaseError):
-    """Raised when a requested feature is not found in the database."""
+    """Feature ID doesn't exist in the database."""
 
     def __init__(self, feature_id: str):
         message = f"Feature '{feature_id}' not found in database"
@@ -131,7 +106,7 @@ class FeatureNotFoundError(DatabaseError):
 
 
 class DatabaseUpdateError(DatabaseError):
-    """Raised when database update fails."""
+    """Database update failed."""
 
     def __init__(self, message: str, update_url: Optional[str] = None):
         super().__init__(message, operation='update')
@@ -140,16 +115,10 @@ class DatabaseUpdateError(DatabaseError):
         self.update_url = update_url
 
 
-# =============================================================================
-# Analysis Exceptions
-# =============================================================================
+# --- Analysis Exceptions ---
 
 class AnalysisError(CrossGuardError):
-    """Raised when analysis operations fail.
-
-    This exception is raised when there are issues during the
-    compatibility analysis process.
-    """
+    """Something went wrong during compatibility analysis."""
 
     def __init__(self, message: str, phase: Optional[str] = None,
                  features_analyzed: Optional[int] = None):
@@ -164,7 +133,7 @@ class AnalysisError(CrossGuardError):
 
 
 class ValidationError(AnalysisError):
-    """Raised when input validation fails."""
+    """Input validation failed."""
 
     def __init__(self, message: str, invalid_files: Optional[List[str]] = None):
         super().__init__(message, phase='validation')
@@ -174,7 +143,7 @@ class ValidationError(AnalysisError):
 
 
 class CompatibilityCheckError(AnalysisError):
-    """Raised when compatibility checking fails."""
+    """Browser compatibility check failed."""
 
     def __init__(self, message: str, browser: Optional[str] = None,
                  version: Optional[str] = None):
@@ -188,7 +157,7 @@ class CompatibilityCheckError(AnalysisError):
 
 
 class ScoringError(AnalysisError):
-    """Raised when score calculation fails."""
+    """Score calculation failed."""
 
     def __init__(self, message: str, scoring_method: Optional[str] = None):
         super().__init__(message, phase='scoring')
@@ -197,12 +166,10 @@ class ScoringError(AnalysisError):
         self.scoring_method = scoring_method
 
 
-# =============================================================================
-# Export Exceptions
-# =============================================================================
+# --- Export Exceptions ---
 
 class ExportError(CrossGuardError):
-    """Raised when export operations fail."""
+    """Report export failed."""
 
     def __init__(self, message: str, export_format: Optional[str] = None,
                  output_path: Optional[str] = None):
@@ -217,32 +184,30 @@ class ExportError(CrossGuardError):
 
 
 class JSONExportError(ExportError):
-    """Raised when JSON export fails."""
+    """JSON export failed."""
 
     def __init__(self, message: str, output_path: Optional[str] = None):
         super().__init__(message, export_format='JSON', output_path=output_path)
 
 
 class PDFExportError(ExportError):
-    """Raised when PDF export fails."""
+    """PDF export failed."""
 
     def __init__(self, message: str, output_path: Optional[str] = None):
         super().__init__(message, export_format='PDF', output_path=output_path)
 
 
 class HTMLExportError(ExportError):
-    """Raised when HTML export fails."""
+    """HTML export failed."""
 
     def __init__(self, message: str, output_path: Optional[str] = None):
         super().__init__(message, export_format='HTML', output_path=output_path)
 
 
-# =============================================================================
-# File Exceptions
-# =============================================================================
+# --- File Exceptions ---
 
 class FileError(CrossGuardError):
-    """Raised when file operations fail."""
+    """File operation failed."""
 
     def __init__(self, message: str, file_path: Optional[str] = None,
                  operation: Optional[str] = None):
@@ -257,7 +222,7 @@ class FileError(CrossGuardError):
 
 
 class FileNotFoundError(FileError):
-    """Raised when a required file is not found."""
+    """Required file doesn't exist."""
 
     def __init__(self, file_path: str):
         message = f"File not found: {file_path}"
@@ -265,7 +230,7 @@ class FileNotFoundError(FileError):
 
 
 class FileReadError(FileError):
-    """Raised when reading a file fails."""
+    """Couldn't read a file."""
 
     def __init__(self, file_path: str, reason: Optional[str] = None):
         message = f"Failed to read file: {file_path}"
@@ -276,7 +241,7 @@ class FileReadError(FileError):
 
 
 class FileWriteError(FileError):
-    """Raised when writing to a file fails."""
+    """Couldn't write to a file."""
 
     def __init__(self, file_path: str, reason: Optional[str] = None):
         message = f"Failed to write file: {file_path}"
@@ -286,12 +251,10 @@ class FileWriteError(FileError):
         self.reason = reason
 
 
-# =============================================================================
-# Configuration Exceptions
-# =============================================================================
+# --- Configuration Exceptions ---
 
 class ConfigurationError(CrossGuardError):
-    """Raised when configuration is invalid."""
+    """Invalid configuration."""
 
     def __init__(self, message: str, config_key: Optional[str] = None,
                  expected_type: Optional[str] = None):
@@ -306,7 +269,7 @@ class ConfigurationError(CrossGuardError):
 
 
 class InvalidBrowserError(ConfigurationError):
-    """Raised when an invalid browser is specified."""
+    """Unrecognized browser name."""
 
     def __init__(self, browser: str, valid_browsers: Optional[List[str]] = None):
         message = f"Invalid browser: {browser}"
@@ -319,7 +282,7 @@ class InvalidBrowserError(ConfigurationError):
 
 
 class InvalidVersionError(ConfigurationError):
-    """Raised when an invalid browser version is specified."""
+    """Unrecognized browser version."""
 
     def __init__(self, browser: str, version: str):
         message = f"Invalid version '{version}' for browser '{browser}'"
