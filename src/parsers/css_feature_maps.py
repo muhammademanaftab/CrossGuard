@@ -1,10 +1,7 @@
-"""
-CSS Feature Maps
-Maps CSS properties, selectors, and features to Can I Use database feature IDs.
-Organized by category for maintainability.
-"""
+"""CSS property/selector/at-rule to Can I Use feature ID mappings."""
 
-# CSS Layout Features
+# --- Layout ---
+
 CSS_LAYOUT_FEATURES = {
     'flexbox': {
         'patterns': [r'display\s*:\s*(?:inline-)?flex', r'flex-direction', r'flex-wrap', r'flex-grow', r'flex-shrink', r'flex-basis', r'flex\s*:\s*\d', r'flex-flow', r'(?<![a-z-])order\s*:', r'-webkit-box-orient', r'-webkit-box-direction', r'-webkit-box-pack', r'-webkit-box-align', r'-webkit-box-flex', r'-webkit-box-ordinal-group', r'display\s*:\s*-webkit-(?:inline-)?box'],
@@ -50,7 +47,8 @@ CSS_LAYOUT_FEATURES = {
     },
 }
 
-# CSS Transform & Animation Features
+# --- Transforms & Animation ---
+
 CSS_TRANSFORM_ANIMATION = {
     'transforms2d': {
         'patterns': [r'transform\s*:', r'translate\(', r'rotate\(', r'scale\(', r'skew\('],
@@ -79,7 +77,8 @@ CSS_TRANSFORM_ANIMATION = {
     },
 }
 
-# CSS Color & Background Features
+# --- Colors & Backgrounds ---
+
 CSS_COLOR_BACKGROUND = {
     'css3-colors': {
         'patterns': [r'rgba?\(', r'hsla?\(', r'#[0-9a-fA-F]{6}'],
@@ -123,7 +122,8 @@ CSS_COLOR_BACKGROUND = {
     },
 }
 
-# CSS Typography Features
+# --- Typography ---
+
 CSS_TYPOGRAPHY = {
     'fontface': {
         'patterns': [r'@font-face'],
@@ -257,7 +257,8 @@ CSS_TYPOGRAPHY = {
     },
 }
 
-# CSS Box Model & Sizing Features
+# --- Box Model & Sizing ---
+
 CSS_BOX_MODEL = {
     'css3-boxsizing': {
         'patterns': [r'box-sizing\s*:\s*border-box', r'box-sizing\s*:\s*content-box'],
@@ -281,7 +282,8 @@ CSS_BOX_MODEL = {
     },
 }
 
-# CSS Border & Outline Features
+# --- Borders & Outlines ---
+
 CSS_BORDER_OUTLINE = {
     'border-image': {
         'patterns': [r'border-image\s*:', r'border-image-source'],
@@ -305,7 +307,8 @@ CSS_BORDER_OUTLINE = {
     },
 }
 
-# CSS Shadow & Effects Features
+# --- Shadows & Effects ---
+
 CSS_SHADOW_EFFECTS = {
     'css-boxshadow': {
         'patterns': [r'box-shadow\s*:'],
@@ -324,7 +327,8 @@ CSS_SHADOW_EFFECTS = {
     },
 }
 
-# CSS Selectors Features
+# --- Selectors ---
+
 CSS_SELECTORS = {
     'css-sel2': {
         'patterns': [r'\[.*\]', r':hover', r':active', r':focus'],
@@ -428,7 +432,8 @@ CSS_SELECTORS = {
     },
 }
 
-# CSS Media Queries Features
+# --- Media Queries ---
+
 CSS_MEDIA_QUERIES = {
     'css-mediaqueries': {
         'patterns': [r'@media\s*\(', r'@media\s+screen', r'@media\s+print', r'@media\s+all'],
@@ -457,7 +462,8 @@ CSS_MEDIA_QUERIES = {
     },
 }
 
-# CSS Units Features
+# --- Units ---
+
 CSS_UNITS = {
     'rem': {
         'patterns': [r'\d+\.?\d*rem'],
@@ -486,7 +492,8 @@ CSS_UNITS = {
     },
 }
 
-# CSS Variables & Custom Properties
+# --- Variables ---
+
 CSS_VARIABLES = {
     'css-variables': {
         'patterns': [r'--[\w-]+', r'var\(--'],
@@ -495,7 +502,8 @@ CSS_VARIABLES = {
     },
 }
 
-# CSS At-Rules Features
+# --- At-Rules ---
+
 CSS_AT_RULES = {
     'css-featurequeries': {
         'patterns': [r'@supports'],
@@ -524,7 +532,8 @@ CSS_AT_RULES = {
     },
 }
 
-# CSS Positioning & Display Features
+# --- Positioning ---
+
 CSS_POSITIONING = {
     'css-sticky': {
         'patterns': [r'position\s*:\s*sticky'],
@@ -543,7 +552,8 @@ CSS_POSITIONING = {
     },
 }
 
-# CSS Overflow & Clipping Features
+# --- Overflow & Clipping ---
+
 CSS_OVERFLOW = {
     'css-overflow': {
         'patterns': [r'overflow\s*:', r'overflow-x\s*:', r'overflow-y\s*:'],
@@ -562,7 +572,8 @@ CSS_OVERFLOW = {
     },
 }
 
-# CSS Interaction Features
+# --- Interaction ---
+
 CSS_INTERACTION = {
     'css-resize': {
         'patterns': [r'resize\s*:'],
@@ -616,7 +627,8 @@ CSS_INTERACTION = {
     },
 }
 
-# CSS Miscellaneous Features
+# --- Misc ---
+
 CSS_MISC = {
     'css-opacity': {
         'patterns': [r'opacity\s*:'],
@@ -737,7 +749,8 @@ CSS_MISC = {
     },
 }
 
-# CSS Container Queries
+# --- Container Queries ---
+
 CSS_CONTAINER = {
     'css-container-queries': {
         'patterns': [r'@container', r'container-type\s*:', r'container-name\s*:', r'container\s*:'],
@@ -751,7 +764,8 @@ CSS_CONTAINER = {
     },
 }
 
-# CSS Subgrid
+# --- Subgrid ---
+
 CSS_SUBGRID = {
     'css-subgrid': {
         'patterns': [r'grid-template-columns\s*:\s*subgrid', r'grid-template-rows\s*:\s*subgrid'],
@@ -760,7 +774,8 @@ CSS_SUBGRID = {
     },
 }
 
-# CSS Cascade Layers
+# --- Cascade Layers ---
+
 CSS_CASCADE = {
     'css-cascade-layers': {
         'patterns': [r'@layer'],
@@ -769,7 +784,8 @@ CSS_CASCADE = {
     },
 }
 
-# CSS Nesting
+# --- Nesting ---
+
 CSS_NESTING = {
     'css-nesting': {
         'patterns': [r'&\s*{', r'&:hover', r'&\s+\.'],
@@ -778,7 +794,8 @@ CSS_NESTING = {
     },
 }
 
-# CSS Additional Features (Part 1)
+# --- Additional (Part 1) ---
+
 CSS_ADDITIONAL_1 = {
     'css-anchor-positioning': {
         'patterns': [r'anchor-name\s*:', r'position-anchor\s*:', r'anchor\('],
@@ -877,7 +894,8 @@ CSS_ADDITIONAL_1 = {
     },
 }
 
-# CSS Additional Features (Part 2)
+# --- Additional (Part 2) ---
+
 CSS_ADDITIONAL_2 = {
     'css-font-stretch': {
         'patterns': [r'font-stretch\s*:'],
@@ -981,7 +999,8 @@ CSS_ADDITIONAL_2 = {
     },
 }
 
-# CSS Additional Features (Part 3)
+# --- Additional (Part 3) ---
+
 CSS_ADDITIONAL_3 = {
     'css-overscroll-behavior': {
         'patterns': [r'overscroll-behavior(?:-[xy])?\s*:'],
@@ -1120,7 +1139,7 @@ CSS_ADDITIONAL_3 = {
     },
 }
 
-# All CSS features combined for quick lookup
+# Combined
 ALL_CSS_FEATURES = {
     **CSS_LAYOUT_FEATURES,
     **CSS_TRANSFORM_ANIMATION,

@@ -1,13 +1,4 @@
-"""Risk Label Generator for ML-based Compatibility Risk Prediction.
-
-This module computes binary risk labels (HIGH/LOW) from Can I Use data.
-No manual labeling is required - labels are automatically derived from
-usage percentages, browser support, and specification status.
-
-Risk Classification:
-- HIGH RISK (1): Feature has compatibility concerns
-- LOW RISK (0): Feature is widely supported and stable
-"""
+"""Generates binary risk labels (HIGH/LOW) from caniuse data for ML training."""
 
 import json
 from pathlib import Path
@@ -26,25 +17,13 @@ logger = get_logger('ml.risk_labels')
 
 
 class RiskLevel(IntEnum):
-    """Binary risk classification levels."""
     LOW = 0
     HIGH = 1
 
 
 @dataclass
 class RiskFactors:
-    """Detailed breakdown of risk contributing factors.
-
-    Attributes:
-        low_usage: True if global usage < threshold
-        poor_chrome_support: True if Chrome doesn't fully support
-        poor_firefox_support: True if Firefox doesn't fully support
-        poor_safari_support: True if Safari doesn't fully support
-        poor_edge_support: True if Edge doesn't fully support
-        unstable_spec: True if spec is WD or unofficial
-        many_bugs: True if feature has many known bugs
-        high_variance: True if browser support is inconsistent
-    """
+    """Breakdown of what's contributing to a feature's risk score."""
     low_usage: bool = False
     poor_chrome_support: bool = False
     poor_firefox_support: bool = False
@@ -55,11 +34,7 @@ class RiskFactors:
     high_variance: bool = False
 
     def to_reasons(self) -> List[str]:
-        """Convert factors to human-readable risk reasons.
-
-        Returns:
-            List of risk reason strings
-        """
+        """Convert active factors to human-readable strings."""
         reasons = []
         if self.low_usage:
             reasons.append("Low global browser usage (<90%)")
@@ -80,11 +55,6 @@ class RiskFactors:
         return reasons
 
     def risk_count(self) -> int:
-        """Count number of active risk factors.
-
-        Returns:
-            Number of True risk factors
-        """
         return sum([
             self.low_usage,
             self.poor_chrome_support,
@@ -97,51 +67,32 @@ class RiskFactors:
         ])
 
 
-# Risk thresholds (configurable for experiments)
+# Tweak these to experiment with label sensitivity
 THRESHOLDS = {
-    'usage_perc_y_min': 90.0,      # Minimum % for low risk
-    'usage_perc_combined_min': 95.0,  # Combined y+a minimum
-    'browser_support_min': 0.9,    # Minimum browser support score
-    'bug_count_max': 3,            # Maximum bugs for low risk
-    'support_variance_max': 0.1,   # Maximum variance for low risk
+    'usage_perc_y_min': 90.0,
+    'usage_perc_combined_min': 95.0,
+    'browser_support_min': 0.9,
+    'bug_count_max': 3,
+    'support_variance_max': 0.1,
 }
 
-# Unstable specification statuses
 UNSTABLE_STATUSES = {'wd', 'unoff', 'other'}
 
 
 class RiskLabeler:
     """Generates binary risk labels from caniuse feature data.
 
-    Labels are computed automatically based on:
-    1. Usage percentage (< 90% = high risk)
-    2. Major browser support (Chrome/Firefox/Safari/Edge)
-    3. Specification status (WD/unofficial = high risk)
-    4. Bug count and support variance
+    HIGH if any major factor is true: low usage, missing browser support,
+    unstable spec, too many bugs, or inconsistent support.
     """
 
     def __init__(self, thresholds: Optional[Dict[str, float]] = None):
-        """Initialize the risk labeler.
-
-        Args:
-            thresholds: Optional custom threshold overrides
-        """
         self.thresholds = {**THRESHOLDS, **(thresholds or {})}
 
     def compute_label(self, feature_data: Dict[str, Any]) -> Tuple[int, RiskFactors]:
-        """Compute binary risk label for a single feature.
-
-        Args:
-            feature_data: Dictionary containing caniuse feature data
-
-        Returns:
-            Tuple of (label, risk_factors) where:
-            - label is 0 (LOW) or 1 (HIGH)
-            - risk_factors contains detailed breakdown
-        """
+        """Compute binary risk label (0=LOW, 1=HIGH) with detailed factors."""
         factors = RiskFactors()
 
-        # Factor 1: Low usage
         usage_y = self._safe_float(feature_data.get('usage_perc_y', 0))
         usage_a = self._safe_float(feature_data.get('usage_perc_a', 0))
         usage_total = usage_y + usage_a
@@ -149,7 +100,6 @@ class RiskLabeler:
         if usage_y < self.thresholds['usage_perc_y_min']:
             factors.low_usage = True
 
-        # Factor 2: Browser support
         stats = feature_data.get('stats', {})
         browser_supports = self._get_browser_supports(stats)
 
@@ -164,26 +114,22 @@ class RiskLabeler:
         if browser_supports.get('edge', 0) < min_support:
             factors.poor_edge_support = True
 
-        # Factor 3: Unstable specification
         status = feature_data.get('status', 'other')
         if status in UNSTABLE_STATUSES:
             factors.unstable_spec = True
 
-        # Factor 4: Many bugs
         bugs = feature_data.get('bugs', [])
         bug_count = len(bugs) if isinstance(bugs, list) else 0
         if bug_count > self.thresholds['bug_count_max']:
             factors.many_bugs = True
 
-        # Factor 5: High variance in support
         support_values = list(browser_supports.values())
         if len(support_values) > 1:
             variance = np.var(support_values)
             if variance > self.thresholds['support_variance_max']:
                 factors.high_variance = True
 
-        # Determine final label
-        # HIGH RISK if ANY of the major factors are true
+        # HIGH if ANY major factor fires
         major_factors = [
             factors.low_usage,
             factors.poor_chrome_support,
@@ -201,14 +147,7 @@ class RiskLabeler:
         return int(label), factors
 
     def _get_browser_supports(self, stats: Dict[str, Dict[str, str]]) -> Dict[str, float]:
-        """Get support scores for major browsers.
-
-        Args:
-            stats: Browser stats from caniuse data
-
-        Returns:
-            Dict mapping browser names to support scores (0.0 - 1.0)
-        """
+        """Get 0-1 support scores for the four major browsers."""
         supports = {}
 
         for browser in ['chrome', 'firefox', 'safari', 'edge']:
@@ -219,7 +158,6 @@ class RiskLabeler:
             browser_stats = stats[browser]
             latest_version = LATEST_VERSIONS.get(browser, '')
 
-            # Find support for latest version
             support_str = browser_stats.get(latest_version, '')
 
             if not support_str:
@@ -230,15 +168,7 @@ class RiskLabeler:
         return supports
 
     def _find_closest_version(self, browser_stats: Dict[str, str], target: str) -> str:
-        """Find closest version support status.
-
-        Args:
-            browser_stats: Version -> status mapping
-            target: Target version string
-
-        Returns:
-            Support status string
-        """
+        """Find nearest version when exact match is missing."""
         try:
             target_num = float(target)
         except ValueError:
@@ -260,14 +190,7 @@ class RiskLabeler:
         return browser_stats.get(closest, '') if closest else ''
 
     def _parse_support(self, status: str) -> float:
-        """Parse support status to numerical score.
-
-        Args:
-            status: Raw status string
-
-        Returns:
-            Support score (0.0 - 1.0)
-        """
+        """Parse caniuse status char to a 0-1 score."""
         if not status:
             return 0.0
 
@@ -286,14 +209,6 @@ class RiskLabeler:
         return scores.get(primary, 0.0)
 
     def _safe_float(self, value: Any) -> float:
-        """Safely convert to float.
-
-        Args:
-            value: Value to convert
-
-        Returns:
-            Float value or 0.0
-        """
         try:
             return float(value) if value is not None else 0.0
         except (ValueError, TypeError):
@@ -301,14 +216,7 @@ class RiskLabeler:
 
 
 def compute_risk_label(feature_data: Dict[str, Any]) -> Tuple[int, List[str]]:
-    """Convenience function to compute risk label.
-
-    Args:
-        feature_data: Caniuse feature data dictionary
-
-    Returns:
-        Tuple of (label, reasons) where label is 0 or 1
-    """
+    """Quick way to get a risk label and reasons for a single feature."""
     labeler = RiskLabeler()
     label, factors = labeler.compute_label(feature_data)
     return label, factors.to_reasons()
@@ -318,20 +226,7 @@ def generate_all_labels(
     features_path: Optional[Path] = None,
     return_factors: bool = False,
 ) -> Tuple[np.ndarray, List[str], Optional[List[RiskFactors]]]:
-    """Generate risk labels for all caniuse features.
-
-    This is the main entry point for creating the training label set.
-
-    Args:
-        features_path: Path to features-json directory
-        return_factors: If True, also return RiskFactors for each
-
-    Returns:
-        Tuple of:
-        - Label array of shape (n_samples,) with 0/1 values
-        - List of feature IDs in same order
-        - Optional list of RiskFactors (if return_factors=True)
-    """
+    """Generate risk labels for all caniuse features. Main entry point for training labels."""
     if features_path is None:
         features_path = Path(CANIUSE_FEATURES_PATH)
 
@@ -364,7 +259,6 @@ def generate_all_labels(
 
     y = np.array(labels, dtype=np.int32)
 
-    # Log class distribution
     high_risk = np.sum(y == 1)
     low_risk = np.sum(y == 0)
     logger.info(f"Labels generated: {high_risk} HIGH RISK, {low_risk} LOW RISK")
@@ -376,17 +270,9 @@ def generate_all_labels(
 def get_label_statistics(
     features_path: Optional[Path] = None
 ) -> Dict[str, Any]:
-    """Get detailed statistics about label distribution.
-
-    Args:
-        features_path: Path to features-json directory
-
-    Returns:
-        Dict containing label statistics
-    """
+    """Get detailed stats about label distribution and which factors trigger most."""
     y, feature_ids, factors = generate_all_labels(features_path, return_factors=True)
 
-    # Count factor contributions
     factor_counts = {
         'low_usage': 0,
         'poor_chrome_support': 0,

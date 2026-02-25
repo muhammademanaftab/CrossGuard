@@ -1,15 +1,7 @@
-"""
-Feature Names Resolver - Convert technical feature IDs to human-readable names.
-
-Resolution order:
-1. Feature map description field
-2. Can I Use database title field
-3. Fallback: Convert ID to title case
-"""
+"""Maps Can I Use feature IDs to human-readable names and fix suggestions."""
 
 from typing import Dict, Optional
 
-# Common feature ID to human-readable name mappings
 FEATURE_NAMES = {
     # CSS Layout
     'css-grid': 'CSS Grid Layout',
@@ -202,7 +194,7 @@ FEATURE_NAMES = {
     'css-media-interaction': 'Media Query: hover/pointer',
     'css-media-scripting': 'Media Query: scripting',
 
-    # JavaScript ES6+ Features
+    # JavaScript ES6+
     'async-functions': 'JS Async/Await',
     'promises': 'JS Promises',
     'fetch': 'Fetch API',
@@ -266,7 +258,7 @@ FEATURE_NAMES = {
     'broadcastchannel': 'Broadcast Channel',
     'channel-messaging': 'Channel Messaging',
 
-    # HTML5 Features
+    # HTML5
     'audio': 'HTML5 Audio',
     'video': 'HTML5 Video',
     'canvas': 'HTML5 Canvas',
@@ -341,7 +333,6 @@ FEATURE_NAMES = {
     'touch': 'Touch Events',
     'pointer': 'Pointer Events',
     'focusin-focusout-events': 'focusin/focusout Events',
-    'hashchange': 'Hashchange Event',
     'page-transition-events': 'Page Transition Events',
     'beforeafterprint': 'beforeprint/afterprint Events',
     'input-event': 'Input Event',
@@ -360,7 +351,6 @@ FEATURE_NAMES = {
     'svg-css': 'SVG in CSS',
 }
 
-# Fix suggestions for common issues
 FIX_SUGGESTIONS = {
     'css-grid': 'Use @supports to provide flexbox fallback for older browsers',
     'flexbox-gap': 'Consider margin-based spacing as fallback for browsers without gap support',
@@ -392,21 +382,10 @@ def get_feature_name(
     feature_maps: Optional[Dict] = None,
     caniuse_data: Optional[Dict] = None
 ) -> str:
-    """Get human-readable name for a feature ID.
-
-    Args:
-        feature_id: Technical feature ID (e.g., 'css-grid')
-        feature_maps: Optional dict of feature maps with descriptions
-        caniuse_data: Optional Can I Use database data
-
-    Returns:
-        Human-readable feature name
-    """
-    # 1. Check our predefined mappings
+    """Resolve a feature ID to a readable name. Tries our map, then feature_maps, then Can I Use, then title-cases the ID."""
     if feature_id in FEATURE_NAMES:
         return FEATURE_NAMES[feature_id]
 
-    # 2. Check feature maps description
     if feature_maps:
         for category in feature_maps.values():
             if isinstance(category, dict) and feature_id in category:
@@ -414,25 +393,16 @@ def get_feature_name(
                 if desc:
                     return desc
 
-    # 3. Check Can I Use title
     if caniuse_data and feature_id in caniuse_data:
         title = caniuse_data[feature_id].get('title')
         if title:
             return title
 
-    # 4. Fallback: Convert ID to title case
     return _id_to_title(feature_id)
 
 
 def _id_to_title(feature_id: str) -> str:
-    """Convert feature ID to title case.
-
-    Examples:
-        'css-grid' -> 'CSS Grid'
-        'async-functions' -> 'Async Functions'
-        'intersectionobserver' -> 'Intersection Observer'
-    """
-    # Handle common prefixes
+    """Turn something like 'css-grid' into 'CSS Grid'."""
     prefixes = {
         'css-': 'CSS ',
         'js-': 'JavaScript ',
@@ -448,17 +418,15 @@ def _id_to_title(feature_id: str) -> str:
             result = replacement + result
             break
 
-    # Replace hyphens with spaces
     result = result.replace('-', ' ')
 
-    # Handle camelCase by inserting spaces
+    # Split camelCase into separate words
     import re
     result = re.sub(r'([a-z])([A-Z])', r'\1 \2', result)
 
-    # Title case
     result = result.title()
 
-    # Fix common acronyms that should be uppercase
+    # Keep well-known acronyms uppercase
     acronyms = ['Api', 'Css', 'Html', 'Js', 'Dom', 'Svg', 'Url', 'Uri', 'Xhr', 'Ajax', 'Json', 'Xml']
     for acronym in acronyms:
         result = result.replace(acronym, acronym.upper())
@@ -467,28 +435,14 @@ def _id_to_title(feature_id: str) -> str:
 
 
 def get_fix_suggestion(feature_id: str) -> Optional[str]:
-    """Get fix suggestion for a feature.
-
-    Args:
-        feature_id: Technical feature ID
-
-    Returns:
-        Fix suggestion text or None
-    """
+    """Return a fix suggestion for the given feature, or None."""
     return FIX_SUGGESTIONS.get(feature_id)
 
 
 def get_severity(support_status: str) -> str:
-    """Convert support status to severity level.
-
-    Args:
-        support_status: 'n' (no), 'a' (partial), 'y' (yes), etc.
-
-    Returns:
-        'critical' for unsupported, 'warning' for partial
-    """
-    if support_status in ('n', 'u'):  # no support or unknown
+    """Map a Can I Use support code to a severity level."""
+    if support_status in ('n', 'u'):
         return 'critical'
-    elif support_status in ('a', 'p', 'd'):  # partial, polyfill, disabled
+    elif support_status in ('a', 'p', 'd'):
         return 'warning'
     return 'info'

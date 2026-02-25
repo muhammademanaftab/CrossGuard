@@ -1,10 +1,4 @@
-"""CSV exporter for Cross Guard analysis reports.
-
-Outputs a flat table of feature/browser/status rows suitable for
-spreadsheets, data pipelines, or quick ``grep``/``awk`` processing.
-
-Uses only ``csv`` and ``io`` from the standard library.
-"""
+"""CSV export -- flat rows of feature/browser/status for easy processing."""
 
 import csv
 import io
@@ -18,21 +12,7 @@ def export_csv(
     report: Dict,
     output_path: Optional[str] = None,
 ) -> Union[str, None]:
-    """Export an analysis report as CSV.
-
-    Columns: feature_id, feature_name, browser, version, status, file_path
-
-    Args:
-        report: Analysis result dict (single-file or project).
-        output_path: If given, write CSV to this file and return the path.
-                     Otherwise return the CSV string.
-
-    Returns:
-        CSV string (when *output_path* is None) or the written file path.
-
-    Raises:
-        ValueError: If *report* is empty/None.
-    """
+    """Write CSV to file, or return CSV string if no path given."""
     if not report:
         raise ValueError("No analysis report to export")
 

@@ -1,8 +1,4 @@
-"""Compatibility Analysis Engine.
-
-This module analyzes detected features against target browsers and
-generates compatibility reports with severity classifications.
-"""
+"""Checks detected features against target browsers and classifies issues by severity."""
 
 from typing import Dict, List, Set, Tuple, Optional
 from dataclasses import dataclass
@@ -13,7 +9,6 @@ from ..utils.config import SUPPORT_STATUS, SEVERITY_LEVELS
 
 
 class Severity(Enum):
-    """Issue severity levels."""
     CRITICAL = "critical"
     HIGH = "high"
     MEDIUM = "medium"
@@ -23,7 +18,6 @@ class Severity(Enum):
 
 @dataclass
 class CompatibilityIssue:
-    """Represents a single compatibility issue."""
     feature_id: str
     feature_name: str
     severity: Severity
@@ -36,7 +30,6 @@ class CompatibilityIssue:
 
 @dataclass
 class BrowserScore:
-    """Compatibility score for a single browser."""
     browser: str
     version: str
     score: float  # 0-100
@@ -48,7 +41,6 @@ class BrowserScore:
 
 @dataclass
 class CompatibilityReport:
-    """Complete compatibility analysis report."""
     overall_score: float  # 0-100
     browser_scores: Dict[str, BrowserScore]
     issues: List[CompatibilityIssue]
@@ -60,35 +52,22 @@ class CompatibilityReport:
 
 
 class CompatibilityAnalyzer:
-    """Analyzes feature compatibility across browsers."""
-    
+    """Checks features against the caniuse DB and produces scored reports."""
+
     def __init__(self):
-        """Initialize the compatibility analyzer."""
         self.database = get_database()
     
     def analyze(self, features: Set[str], target_browsers: Dict[str, str]) -> CompatibilityReport:
-        """Analyze compatibility of features across target browsers.
-        
-        Args:
-            features: Set of feature IDs to check
-            target_browsers: Dict mapping browser names to versions
-                           e.g., {'chrome': '144', 'firefox': '146'}
-        
-        Returns:
-            CompatibilityReport with detailed analysis
-        """
+        """Run a full compatibility check and return a scored report."""
         issues = []
         browser_scores = {}
-        
-        # Analyze each browser
+
         for browser, version in target_browsers.items():
             score = self._analyze_browser(features, browser, version, issues)
             browser_scores[browser] = score
-        
-        # Calculate overall score
+
         overall_score = self._calculate_overall_score(browser_scores)
-        
-        # Count issues by severity
+
         critical_count = sum(1 for issue in issues if issue.severity == Severity.CRITICAL)
         high_count = sum(1 for issue in issues if issue.severity == Severity.HIGH)
         medium_count = sum(1 for issue in issues if issue.severity == Severity.MEDIUM)
@@ -105,19 +84,9 @@ class CompatibilityAnalyzer:
             low_issues=low_count
         )
     
-    def _analyze_browser(self, features: Set[str], browser: str, 
+    def _analyze_browser(self, features: Set[str], browser: str,
                         version: str, issues: List[CompatibilityIssue]) -> BrowserScore:
-        """Analyze compatibility for a single browser.
-        
-        Args:
-            features: Set of feature IDs
-            browser: Browser name
-            version: Browser version
-            issues: List to append issues to
-            
-        Returns:
-            BrowserScore for this browser
-        """
+        """Score one browser and collect any issues into the shared list."""
         supported = 0
         partial = 0
         unsupported = 0
@@ -125,14 +94,13 @@ class CompatibilityAnalyzer:
         for feature_id in features:
             status = self.database.check_support(feature_id, browser, version)
 
-            if status in ['y', 'a']:  # 'a' (almost) = full support per Can I Use
+            if status in ['y', 'a']:  # 'a' = almost supported, counts as full
                 supported += 1
             elif status in ['x', 'p']:
                 partial += 1
             elif status in ['n', 'u']:
                 unsupported += 1
         
-        # Calculate score
         total = len(features)
         if total == 0:
             score = 100.0
@@ -150,32 +118,16 @@ class CompatibilityAnalyzer:
         )
     
     def _calculate_overall_score(self, browser_scores: Dict[str, BrowserScore]) -> float:
-        """Calculate overall compatibility score across all browsers.
-        
-        Args:
-            browser_scores: Dict of browser scores
-            
-        Returns:
-            Overall score (0-100)
-        """
+        """Average of all per-browser scores."""
         if not browser_scores:
             return 0.0
         
         total_score = sum(score.score for score in browser_scores.values())
         return total_score / len(browser_scores)
     
-    def analyze_feature(self, feature_id: str, 
+    def analyze_feature(self, feature_id: str,
                        target_browsers: Dict[str, str]) -> CompatibilityIssue:
-        """Analyze a single feature across browsers.
-        
-        Args:
-            feature_id: Feature to analyze
-            target_browsers: Target browsers and versions
-            
-        Returns:
-            CompatibilityIssue for this feature
-        """
-        # Get support status for each browser
+        """Check one feature across all browsers and return its issue."""
         support_status = {}
         browsers_affected = []
         
@@ -186,10 +138,8 @@ class CompatibilityAnalyzer:
             if status in ['n', 'u']:
                 browsers_affected.append(browser)
         
-        # Determine severity
         severity = self._calculate_severity(support_status, len(target_browsers))
-        
-        # Get feature info
+
         feature_info = self.database.get_feature_info(feature_id)
         feature_name = feature_info['title'] if feature_info else feature_id
         description = feature_info['description'] if feature_info else "No description"
@@ -205,58 +155,32 @@ class CompatibilityAnalyzer:
             category=category
         )
     
-    def _calculate_severity(self, support_status: Dict[str, str], 
+    def _calculate_severity(self, support_status: Dict[str, str],
                            total_browsers: int) -> Severity:
-        """Calculate severity level based on support status.
-        
-        Args:
-            support_status: Dict of browser support statuses
-            total_browsers: Total number of target browsers
-            
-        Returns:
-            Severity level
-        """
+        """More unsupported browsers = higher severity."""
         unsupported_count = sum(1 for status in support_status.values() 
                                if status in ['n', 'u'])
         partial_count = sum(1 for status in support_status.values() 
                            if status in ['a', 'x', 'p'])
         
-        # Critical: Not supported in any browser
         if unsupported_count == total_browsers:
             return Severity.CRITICAL
-        
-        # High: Not supported in 50%+ of browsers
         if unsupported_count >= total_browsers / 2:
             return Severity.HIGH
-        
-        # Medium: Some browsers don't support or partial support
         if unsupported_count > 0 or partial_count > 0:
             return Severity.MEDIUM
-        
-        # Low: All browsers support
         return Severity.LOW
     
-    def get_detailed_issues(self, features: Set[str], 
+    def get_detailed_issues(self, features: Set[str],
                            target_browsers: Dict[str, str]) -> List[CompatibilityIssue]:
-        """Get detailed list of compatibility issues.
-        
-        Args:
-            features: Set of feature IDs
-            target_browsers: Target browsers and versions
-            
-        Returns:
-            List of CompatibilityIssue objects, sorted by severity
-        """
+        """Return only medium+ issues, sorted critical-first."""
         issues = []
-        
+
         for feature_id in features:
             issue = self.analyze_feature(feature_id, target_browsers)
-            
-            # Only include if there are actual issues
             if issue.severity in [Severity.CRITICAL, Severity.HIGH, Severity.MEDIUM]:
                 issues.append(issue)
-        
-        # Sort by severity (critical first)
+
         severity_order = {
             Severity.CRITICAL: 0,
             Severity.HIGH: 1,
@@ -269,17 +193,9 @@ class CompatibilityAnalyzer:
         
         return issues
     
-    def get_browser_comparison(self, features: Set[str], 
+    def get_browser_comparison(self, features: Set[str],
                               target_browsers: Dict[str, str]) -> Dict[str, Dict]:
-        """Get detailed browser-by-browser comparison.
-        
-        Args:
-            features: Set of feature IDs
-            target_browsers: Target browsers and versions
-            
-        Returns:
-            Dict with detailed comparison data
-        """
+        """Feature support matrix: browser -> feature -> status."""
         comparison = {}
         
         for browser, version in target_browsers.items():
@@ -303,25 +219,15 @@ class CompatibilityAnalyzer:
         return comparison
     
     def suggest_workarounds(self, issue: CompatibilityIssue) -> List[str]:
-        """Suggest workarounds for a compatibility issue.
-        
-        Args:
-            issue: CompatibilityIssue to find workarounds for
-            
-        Returns:
-            List of suggested workarounds
-        """
+        """Suggest polyfills, prefixes, or notes from the DB for an issue."""
         workarounds = []
-        
-        # Check if polyfill is available
+
         if 'p' in issue.support_status.values():
             workarounds.append("Polyfill available - consider using a polyfill library")
         
-        # Check if prefix is needed
         if 'x' in issue.support_status.values():
             workarounds.append("Vendor prefix required - use autoprefixer or add prefixes manually")
         
-        # Get feature-specific workarounds from database
         feature = self.database.get_feature(issue.feature_id)
         if feature and 'notes' in feature:
             workarounds.append(f"Note: {feature['notes']}")
@@ -329,14 +235,7 @@ class CompatibilityAnalyzer:
         return workarounds
     
     def get_summary_statistics(self, report: CompatibilityReport) -> Dict:
-        """Get summary statistics from a compatibility report.
-        
-        Args:
-            report: CompatibilityReport to summarize
-            
-        Returns:
-            Dict with summary statistics
-        """
+        """Distill a report into a flat summary dict."""
         return {
             'overall_score': round(report.overall_score, 2),
             'grade': self._score_to_grade(report.overall_score),
@@ -352,14 +251,6 @@ class CompatibilityAnalyzer:
         }
     
     def _score_to_grade(self, score: float) -> str:
-        """Convert numeric score to letter grade.
-        
-        Args:
-            score: Score (0-100)
-            
-        Returns:
-            Letter grade (A+ to F)
-        """
         if score >= 97:
             return 'A+'
         elif score >= 93:
@@ -388,14 +279,6 @@ class CompatibilityAnalyzer:
             return 'F'
     
     def _get_best_browser(self, browser_scores: Dict[str, BrowserScore]) -> str:
-        """Get browser with highest compatibility score.
-        
-        Args:
-            browser_scores: Dict of browser scores
-            
-        Returns:
-            Browser name
-        """
         if not browser_scores:
             return "None"
         
@@ -403,14 +286,6 @@ class CompatibilityAnalyzer:
         return f"{best.browser} ({best.score:.1f}%)"
     
     def _get_worst_browser(self, browser_scores: Dict[str, BrowserScore]) -> str:
-        """Get browser with lowest compatibility score.
-        
-        Args:
-            browser_scores: Dict of browser scores
-            
-        Returns:
-            Browser name
-        """
         if not browser_scores:
             return "None"
         

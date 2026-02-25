@@ -1,7 +1,4 @@
-"""
-Cross Guard Main Window - Professional UI Redesign
-VS Code-style layout with sidebar navigation, file table, and results view.
-"""
+"""Main window -- sidebar nav, file table, results, history, and settings."""
 
 from datetime import datetime
 from pathlib import Path
@@ -9,7 +6,6 @@ from typing import Dict, List, Optional
 
 import customtkinter as ctk
 
-# API Layer imports (all backend access goes through service)
 from src.api import get_analyzer_service, AnalysisResult
 from src.api.project_schemas import ScanConfig
 
@@ -30,53 +26,37 @@ from .widgets import (
     show_error,
     ask_question,
     ProgressDialog,
-    # New progressive disclosure widgets
     BuildBadge,
     CollapsibleSection,
     IssuesSummary,
     QuickStatsBar,
-    # ML Risk Assessment widgets
     MLRiskCard,
     MLFeatureImportanceCard,
-    # Browser Selection
     BrowserSelector,
     get_available_browsers,
-    # History and Statistics widgets
     HistoryCard,
     EmptyHistoryCard,
     StatisticsPanel,
     CompactStatsBar,
-    # Bookmark and Tag widgets
     BookmarkButton,
     TagManagerDialog,
-    # Project Scanner widgets
     ProjectTreeWidget,
     ScanConfigPanel,
     ProjectStatsCard,
     FrameworkHintCard,
     FrameworkHint,
-    # Polyfill Recommendations
     PolyfillCard,
     PolyfillEmptyCard,
 )
 from .widgets.rules_manager import show_rules_manager
 
-# GUI-only imports (all backend access goes through self.service)
 from .export_manager import ExportManager
 
 
 class MainWindow(ctk.CTkFrame):
-    """Main application window with VS Code-style layout.
-
-    Features:
-    - Sidebar navigation (Files, Results, Settings)
-    - File table with drag-and-drop
-    - Results view with scores and browser cards
-    - Settings view with database update and custom rules
-    """
+    """VS Code-style layout: sidebar + swappable content views."""
 
     def __init__(self, master):
-        """Initialize the main window."""
         super().__init__(master, fg_color=COLORS['bg_darkest'])
 
         self.master = master
@@ -84,41 +64,31 @@ class MainWindow(ctk.CTkFrame):
         self.export_manager = ExportManager(master)
         self._analyzer_service = get_analyzer_service()
         self._current_view = "files"
-
-        # Store last analyzed files for re-checking
         self._last_files: List[str] = []
-
-        # Store selected browsers for analysis (default: Chrome, Firefox, Safari, Edge)
-        self._selected_browsers: Dict[str, str] = None  # Will use widget defaults
-
-        # Build the layout
+        self._selected_browsers: Dict[str, str] = None  # None = use widget defaults
         self._init_layout()
         self._show_view("files")
 
     def _init_layout(self):
-        """Initialize the main layout structure."""
-        # Configure grid
-        self.grid_columnconfigure(0, weight=0)  # Sidebar
-        self.grid_columnconfigure(1, weight=1)  # Content
-        self.grid_rowconfigure(0, weight=0)     # Header
-        self.grid_rowconfigure(1, weight=1)     # Main content
-        self.grid_rowconfigure(2, weight=0)     # Status bar
+        """Set up the grid: sidebar (col 0), header/content/statusbar (col 1)."""
+        self.grid_columnconfigure(0, weight=0)
+        self.grid_columnconfigure(1, weight=1)
+        self.grid_rowconfigure(0, weight=0)
+        self.grid_rowconfigure(1, weight=1)
+        self.grid_rowconfigure(2, weight=0)
 
-        # Sidebar
         self.sidebar = Sidebar(
             self,
             on_navigate=self._on_navigate,
         )
         self.sidebar.grid(row=0, column=0, rowspan=3, sticky="nsew")
 
-        # Header bar
         self.header = HeaderBar(
             self,
             title="Browser Compatibility Checker",
         )
         self.header.grid(row=0, column=1, sticky="ew")
 
-        # Content area (will hold different views)
         self.content_frame = ctk.CTkFrame(
             self,
             fg_color=COLORS['bg_dark'],
@@ -126,33 +96,24 @@ class MainWindow(ctk.CTkFrame):
         )
         self.content_frame.grid(row=1, column=1, sticky="nsew")
 
-        # Status bar
         self.status_bar = StatusBar(self)
         self.status_bar.grid(row=2, column=1, sticky="ew")
 
-        # Initialize views (but don't show yet)
         self._views = {}
 
     def _on_navigate(self, view_id: str):
-        """Handle sidebar navigation."""
         if view_id == "help":
             self._show_help()
             return
         self._show_view(view_id)
 
     def _show_view(self, view_id: str):
-        """Show a specific view.
-
-        Args:
-            view_id: The view identifier ('files', 'results', 'settings')
-        """
-        # Clear current content
+        """Destroy current view and build the requested one."""
         for widget in self.content_frame.winfo_children():
             widget.destroy()
 
         self._current_view = view_id
 
-        # Build the requested view
         if view_id == "files":
             self._build_files_view()
         elif view_id == "project":
@@ -164,7 +125,6 @@ class MainWindow(ctk.CTkFrame):
         elif view_id == "settings":
             self._build_settings_view()
 
-        # Update header
         titles = {
             "files": "File Selection",
             "project": "Project Scanner",
@@ -175,8 +135,6 @@ class MainWindow(ctk.CTkFrame):
         self.header.set_title(titles.get(view_id, "Cross Guard"))
 
     def _build_files_view(self):
-        """Build the files view with drop zone and file table."""
-        # Scrollable container
         scroll_frame = ctk.CTkScrollableFrame(
             self.content_frame,
             fg_color="transparent",
@@ -186,27 +144,23 @@ class MainWindow(ctk.CTkFrame):
         scroll_frame.pack(fill="both", expand=True, padx=SPACING['xl'], pady=SPACING['xl'])
         enable_smooth_scrolling(scroll_frame)
 
-        # Title section
         title_frame = ctk.CTkFrame(scroll_frame, fg_color="transparent")
         title_frame.pack(fill="x", pady=(0, SPACING['lg']))
 
-        title_label = ctk.CTkLabel(
+        ctk.CTkLabel(
             title_frame,
             text="Select Files to Analyze",
             font=ctk.CTkFont(size=20, weight="bold"),
             text_color=COLORS['text_primary'],
-        )
-        title_label.pack(side="left")
+        ).pack(side="left")
 
-        subtitle_label = ctk.CTkLabel(
+        ctk.CTkLabel(
             title_frame,
             text="Drag and drop files or use the file browser",
             font=ctk.CTkFont(size=13),
             text_color=COLORS['text_muted'],
-        )
-        subtitle_label.pack(side="left", padx=(SPACING['lg'], 0))
+        ).pack(side="left", padx=(SPACING['lg'], 0))
 
-        # Drop zone
         self.drop_zone = DropZone(
             scroll_frame,
             allowed_extensions=['html', 'htm', 'css', 'js', 'jsx', 'ts', 'tsx', 'mjs'],
@@ -215,19 +169,16 @@ class MainWindow(ctk.CTkFrame):
         )
         self.drop_zone.pack(fill="x", pady=(0, SPACING['xl']))
 
-        # File table section
         table_header = ctk.CTkFrame(scroll_frame, fg_color="transparent")
         table_header.pack(fill="x", pady=(0, SPACING['sm']))
 
-        table_title = ctk.CTkLabel(
+        ctk.CTkLabel(
             table_header,
             text="Selected Files",
             font=ctk.CTkFont(size=16, weight="bold"),
             text_color=COLORS['text_primary'],
-        )
-        table_title.pack(side="left")
+        ).pack(side="left")
 
-        # Clear button
         clear_btn = ctk.CTkButton(
             table_header,
             text=f"{ICONS['delete']} Clear All",
@@ -241,55 +192,46 @@ class MainWindow(ctk.CTkFrame):
         )
         clear_btn.pack(side="right")
 
-        # File table
         self.file_table = FileTable(
             scroll_frame,
             on_files_changed=self._update_status,
         )
         self.file_table.pack(fill="both", expand=True, pady=(0, SPACING['xl']))
 
-        # Restore files if any were previously added
+        # Restore files from before view switch
         if self._last_files:
             existing_files = [f for f in self._last_files if Path(f).exists()]
             if existing_files:
                 self.file_table.add_files(existing_files)
 
-        # Browser Selector section
         browser_header = ctk.CTkFrame(scroll_frame, fg_color="transparent")
         browser_header.pack(fill="x", pady=(SPACING['lg'], SPACING['sm']))
 
-        browser_title = ctk.CTkLabel(
+        ctk.CTkLabel(
             browser_header,
             text="Target Browsers",
             font=ctk.CTkFont(size=16, weight="bold"),
             text_color=COLORS['text_primary'],
-        )
-        browser_title.pack(side="left")
+        ).pack(side="left")
 
-        browser_subtitle = ctk.CTkLabel(
+        ctk.CTkLabel(
             browser_header,
             text="Select which browsers to check compatibility for",
             font=ctk.CTkFont(size=12),
             text_color=COLORS['text_muted'],
-        )
-        browser_subtitle.pack(side="left", padx=(SPACING['md'], 0))
+        ).pack(side="left", padx=(SPACING['md'], 0))
 
-        # Browser selector widget
         self.browser_selector = BrowserSelector(
             scroll_frame,
             on_selection_change=self._on_browser_selection_change,
         )
         self.browser_selector.pack(fill="x", pady=(0, SPACING['xl']))
-
-        # Initialize selected browsers from widget
         self._selected_browsers = self.browser_selector.get_selected_browsers()
 
-        # Action buttons
         actions_frame = ctk.CTkFrame(scroll_frame, fg_color="transparent")
         actions_frame.pack(fill="x")
 
-        # Analyze button
-        analyze_btn = ctk.CTkButton(
+        ctk.CTkButton(
             actions_frame,
             text=f"{ICONS['check']} Analyze Compatibility",
             font=ctk.CTkFont(size=14, weight="bold"),
@@ -298,17 +240,12 @@ class MainWindow(ctk.CTkFrame):
             fg_color=COLORS['accent'],
             hover_color=COLORS['accent_dim'],
             command=self._analyze_files,
-        )
-        analyze_btn.pack(side="right")
+        ).pack(side="right")
 
         self._update_status()
 
     def _build_project_view(self):
-        """Build the project scanner view.
-
-        Allows users to scan entire project directories for compatibility analysis.
-        """
-        # Scrollable container
+        """Scan an entire project directory for compatibility."""
         scroll_frame = ctk.CTkScrollableFrame(
             self.content_frame,
             fg_color="transparent",
@@ -318,27 +255,23 @@ class MainWindow(ctk.CTkFrame):
         scroll_frame.pack(fill="both", expand=True, padx=SPACING['xl'], pady=SPACING['xl'])
         enable_smooth_scrolling(scroll_frame)
 
-        # Title section
         title_frame = ctk.CTkFrame(scroll_frame, fg_color="transparent")
         title_frame.pack(fill="x", pady=(0, SPACING['lg']))
 
-        title_label = ctk.CTkLabel(
+        ctk.CTkLabel(
             title_frame,
             text="Scan Project Directory",
             font=ctk.CTkFont(size=20, weight="bold"),
             text_color=COLORS['text_primary'],
-        )
-        title_label.pack(side="left")
+        ).pack(side="left")
 
-        subtitle_label = ctk.CTkLabel(
+        ctk.CTkLabel(
             title_frame,
             text="Analyze all HTML, CSS, and JavaScript files in a project",
             font=ctk.CTkFont(size=13),
             text_color=COLORS['text_muted'],
-        )
-        subtitle_label.pack(side="left", padx=(SPACING['lg'], 0))
+        ).pack(side="left", padx=(SPACING['lg'], 0))
 
-        # Project path selection
         path_frame = ctk.CTkFrame(
             scroll_frame,
             fg_color=COLORS['bg_medium'],
@@ -351,15 +284,13 @@ class MainWindow(ctk.CTkFrame):
         path_inner = ctk.CTkFrame(path_frame, fg_color="transparent")
         path_inner.pack(fill="x", padx=SPACING['md'], pady=SPACING['md'])
 
-        path_label = ctk.CTkLabel(
+        ctk.CTkLabel(
             path_inner,
             text="Project Path:",
             font=ctk.CTkFont(size=12, weight="bold"),
             text_color=COLORS['text_primary'],
-        )
-        path_label.pack(side="left")
+        ).pack(side="left")
 
-        # Path entry
         self._project_path_var = ctk.StringVar()
         self._project_path_entry = ctk.CTkEntry(
             path_inner,
@@ -373,7 +304,6 @@ class MainWindow(ctk.CTkFrame):
         )
         self._project_path_entry.pack(side="left", fill="x", expand=True, padx=(SPACING['md'], SPACING['sm']))
 
-        # Browse button
         folder_icon = ICONS.get('folder', '\U0001F4C1')
         browse_btn = ctk.CTkButton(
             path_inner,
@@ -386,41 +316,36 @@ class MainWindow(ctk.CTkFrame):
         )
         browse_btn.pack(side="right")
 
-        # Configuration panel
         self._scan_config_panel = ScanConfigPanel(
             scroll_frame,
             on_config_change=self._on_scan_config_change,
         )
         self._scan_config_panel.pack(fill="x", pady=(0, SPACING['md']))
 
-        # Project stats card (hidden until scan)
+        # Hidden until a scan runs
         self._project_stats_card = ProjectStatsCard(scroll_frame)
         self._project_stats_card.pack(fill="x", pady=(0, SPACING['md']))
-        self._project_stats_card.pack_forget()  # Hide initially
+        self._project_stats_card.pack_forget()
 
-        # Framework hint card (hidden until scan detects framework)
         self._framework_hint_card = FrameworkHintCard(
             scroll_frame,
             on_include_build=self._on_include_build_folder,
             on_dismiss=self._on_dismiss_hint,
         )
         self._framework_hint_card.pack(fill="x", pady=(0, SPACING['md']))
-        self._framework_hint_card.pack_forget()  # Hide initially
+        self._framework_hint_card.pack_forget()
 
-        # Project tree widget (hidden until scan)
         self._project_tree = ProjectTreeWidget(
             scroll_frame,
             on_selection_change=self._on_project_selection_change,
             max_height=350,
         )
         self._project_tree.pack(fill="x", pady=(0, SPACING['md']))
-        self._project_tree.pack_forget()  # Hide initially
+        self._project_tree.pack_forget()
 
-        # Actions frame
         self._project_actions_frame = ctk.CTkFrame(scroll_frame, fg_color="transparent")
         self._project_actions_frame.pack(fill="x", pady=(SPACING['md'], 0))
 
-        # Preview button
         search_icon = ICONS.get('search', '\U0001F50D')
         self._preview_btn = ctk.CTkButton(
             self._project_actions_frame,
@@ -436,7 +361,6 @@ class MainWindow(ctk.CTkFrame):
         )
         self._preview_btn.pack(side="left")
 
-        # Scan button
         self._scan_project_btn = ctk.CTkButton(
             self._project_actions_frame,
             text=f"{ICONS['check']} Scan Project",
@@ -449,7 +373,6 @@ class MainWindow(ctk.CTkFrame):
         )
         self._scan_project_btn.pack(side="right")
 
-        # Status label
         self._project_status_label = ctk.CTkLabel(
             self._project_actions_frame,
             text="Select a project directory to begin",
@@ -457,12 +380,9 @@ class MainWindow(ctk.CTkFrame):
             text_color=COLORS['text_muted'],
         )
         self._project_status_label.pack(side="right", padx=(0, SPACING['lg']))
-
-        # Store reference for scroll frame
         self._project_scroll_frame = scroll_frame
 
     def _browse_project_directory(self):
-        """Open directory browser to select project folder."""
         from tkinter import filedialog
 
         directory = filedialog.askdirectory(
@@ -478,12 +398,9 @@ class MainWindow(ctk.CTkFrame):
             )
 
     def _on_scan_config_change(self, config: ScanConfig):
-        """Handle scan configuration changes."""
-        # Could trigger re-scan if preview is already shown
-        pass
+        pass  # Could trigger re-scan if preview is already shown
 
     def _on_project_selection_change(self, count: int):
-        """Handle file selection changes in project tree."""
         if count > 0:
             self._scan_project_btn.configure(state="normal")
             self._project_status_label.configure(
@@ -498,22 +415,15 @@ class MainWindow(ctk.CTkFrame):
             )
 
     def _on_include_build_folder(self, folder_name: str):
-        """Handle 'Include build folder' button - unchecks exclusion and re-scans.
-
-        Args:
-            folder_name: The name of the build folder to include (e.g., 'build', 'dist')
-        """
-        # Uncheck the exclusion for this folder in the config panel
+        """Uncheck the exclusion for this folder and re-scan."""
         self._scan_config_panel.set_exclude(folder_name, False)
-        # Re-scan to show the build folder contents
         self._preview_project()
 
     def _on_dismiss_hint(self):
-        """Handle hint dismissal."""
         self._framework_hint_card.pack_forget()
 
     def _preview_project(self):
-        """Preview project files without analyzing."""
+        """Scan the directory and show the file tree (no analysis yet)."""
         path = self._project_path_var.get()
         if not path:
             show_warning(self, "No Directory", "Please select a project directory first.")
@@ -524,33 +434,25 @@ class MainWindow(ctk.CTkFrame):
             show_error(self, "Invalid Directory", f"The path does not exist or is not a directory:\n{path}")
             return
 
-        # Get scan config
         config = self._scan_config_panel.get_config()
 
-        # Create progress dialog
         progress = ProgressDialog(
             self,
             title="Scanning Project",
             message="Scanning directory...",
         )
         progress.show()
-
-        # Force UI to update before starting scan
         self.update_idletasks()
 
         try:
-            # Scan directory
             progress.set_message("Finding files...")
             result = self._analyzer_service.scan_project_directory(path, config)
 
-            # Detect framework
             progress.set_message("Detecting framework...")
             project_info = self._analyzer_service.detect_project_framework(path)
 
-            # Close progress dialog before updating UI
             progress.close()
 
-            # Update stats card
             self._project_stats_card.update_stats(
                 framework_name=project_info.framework.name if project_info.framework else None,
                 framework_version=project_info.framework.version if project_info.framework else None,
@@ -563,13 +465,10 @@ class MainWindow(ctk.CTkFrame):
                 has_typescript=project_info.has_typescript,
             )
             self._project_stats_card.pack(fill="x", pady=(0, SPACING['md']))
-
-            # Generate and display framework hint
             hint_data = detector.get_scanning_hint(project_info, path)
             build_folders = detector.check_build_folders(path)
 
             if hint_data and hint_data.get('hint_type') != 'ready':
-                # Create FrameworkHint from dictionary
                 hint = FrameworkHint(
                     hint_type=hint_data['hint_type'],
                     title=hint_data['title'],
@@ -579,7 +478,6 @@ class MainWindow(ctk.CTkFrame):
                     icon=hint_data.get('icon', 'info'),
                 )
 
-                # Check if the relevant build folder exists
                 build_exists = build_folders.get(hint.build_folder, False) if hint.build_folder else False
 
                 self._framework_hint_card.update_hint(hint, build_exists)
@@ -587,11 +485,9 @@ class MainWindow(ctk.CTkFrame):
             else:
                 self._framework_hint_card.pack_forget()
 
-            # Update tree widget
             self._project_tree.set_tree(result.file_tree)
             self._project_tree.pack(fill="x", pady=(0, SPACING['md']))
 
-            # Update status
             total = result.total_files
             if total > 0:
                 self._scan_project_btn.configure(state="normal")
@@ -606,7 +502,6 @@ class MainWindow(ctk.CTkFrame):
                     text_color=COLORS['warning'],
                 )
 
-            # Store scan result for later use
             self._last_scan_result = result
 
         except Exception as e:
@@ -614,12 +509,11 @@ class MainWindow(ctk.CTkFrame):
             show_error(self, "Scan Error", f"Failed to scan directory:\n{str(e)}")
 
     def _scan_project(self):
-        """Analyze all selected files in the project."""
+        """Run compatibility analysis on all selected project files."""
         if not hasattr(self, '_last_scan_result') or not self._last_scan_result:
             show_warning(self, "No Files", "Please preview the project first.")
             return
 
-        # Get selected files from tree
         selected_files = self._project_tree.get_selected_files()
         total_files = sum(len(files) for files in selected_files.values())
 
@@ -627,12 +521,7 @@ class MainWindow(ctk.CTkFrame):
             show_warning(self, "No Files Selected", "Please select at least one file to analyze.")
             return
 
-        # Create progress dialog
-        progress = ProgressDialog(
-            self,
-            title="Analyzing Project",
-            message=f"Analyzing {total_files} files...",
-        )
+        progress = ProgressDialog(self, title="Analyzing Project", message=f"Analyzing {total_files} files...")
         progress.show()
         self.update_idletasks()
 
@@ -642,7 +531,6 @@ class MainWindow(ctk.CTkFrame):
                 progress.set_message(f"Analyzing: {filename}")
                 self.update_idletasks()
 
-            # Analyze all selected files together
             from src.api.schemas import AnalysisRequest
 
             request = AnalysisRequest(
@@ -652,7 +540,6 @@ class MainWindow(ctk.CTkFrame):
                 target_browsers=self._selected_browsers or self._analyzer_service.DEFAULT_BROWSERS,
             )
 
-            # Run analysis
             progress.set_message(f"Analyzing {total_files} files...")
             combined_result = self._analyzer_service.analyze(request)
 
@@ -664,14 +551,11 @@ class MainWindow(ctk.CTkFrame):
                     selected_files.get('javascript', [])
                 )
 
-                # Close progress before switching views
                 progress.close()
 
-                # Show results
                 self.sidebar.set_active_view("results")
                 self._show_view("results")
 
-                # Update status
                 score = combined_result.scores.simple_score if combined_result.scores else 0
                 grade = combined_result.scores.grade if combined_result.scores else 'N/A'
                 self.status_bar.set_status(
@@ -688,18 +572,8 @@ class MainWindow(ctk.CTkFrame):
             progress.close()
 
     def _build_results_view(self):
-        """Build the results view with progressive disclosure design.
-
-        Layout:
-        1. Build Badge Hero (always visible)
-        2. Quick Stats Bar (always visible)
-        3. Issues Summary (if problems exist)
-        4. Browser Support (collapsed by default)
-        5. Technical Details (collapsed by default)
-        6. Export Actions (bottom)
-        """
+        """Results with progressive disclosure: badge hero, stats, issues, then collapsible details."""
         if not self.current_report:
-            # No results yet
             empty_frame = ctk.CTkFrame(self.content_frame, fg_color="transparent")
             empty_frame.place(relx=0.5, rely=0.5, anchor="center")
 
@@ -734,7 +608,6 @@ class MainWindow(ctk.CTkFrame):
 
         report = self.current_report
 
-        # Scrollable container
         scroll_frame = ctk.CTkScrollableFrame(
             self.content_frame,
             fg_color="transparent",
@@ -744,7 +617,6 @@ class MainWindow(ctk.CTkFrame):
         scroll_frame.pack(fill="both", expand=True, padx=SPACING['xl'], pady=SPACING['xl'])
         enable_smooth_scrolling(scroll_frame)
 
-        # Extract report data
         scores = report.get('scores', {})
         summary = report.get('summary', {})
         browsers = report.get('browsers', {})
@@ -755,10 +627,9 @@ class MainWindow(ctk.CTkFrame):
         total_features = summary.get('total_features', 0)
         browsers_count = len(browsers)
 
-        # Calculate issues count
         issues_count = self._count_issues(browsers)
 
-        # ===== SECTION 1: Build Badge Hero (Always Visible) =====
+        # Build badge hero (always visible)
         build_badge = BuildBadge(scroll_frame)
         build_badge.pack(fill="x", pady=(0, SPACING['lg']))
         build_badge.set_data(
@@ -769,7 +640,6 @@ class MainWindow(ctk.CTkFrame):
             animate=True
         )
 
-        # ===== SECTION 2: Quick Stats Bar (Always Visible) =====
         quick_stats = QuickStatsBar(scroll_frame)
         quick_stats.pack(fill="x", pady=(0, SPACING['lg']))
         quick_stats.set_data(
@@ -779,10 +649,8 @@ class MainWindow(ctk.CTkFrame):
             features_count=total_features
         )
 
-        # ===== SECTION 2.5: ML Risk Assessment (On-Demand) =====
-        # Only show ML section if ML is enabled
+        # ML risk assessment (only if ML module is available)
         if self._analyzer_service.is_ml_enabled():
-            # Store features for later ML analysis
             self._ml_features = features
             self._ml_total_features = total_features
 
@@ -797,11 +665,10 @@ class MainWindow(ctk.CTkFrame):
 
             ml_content = ml_section.get_content_frame()
 
-            # Container for ML content (will be updated when button clicked)
+            # Replaced with actual results when user clicks "Run ML Analysis"
             self._ml_content_frame = ctk.CTkFrame(ml_content, fg_color="transparent")
             self._ml_content_frame.pack(fill="x")
 
-            # Initial state: Show button to run ML analysis
             self._ml_button_frame = ctk.CTkFrame(self._ml_content_frame, fg_color=COLORS['bg_medium'], corner_radius=8)
             self._ml_button_frame.pack(fill="x", pady=SPACING['sm'])
 
@@ -835,13 +702,13 @@ class MainWindow(ctk.CTkFrame):
             )
             self._run_ml_button.pack(anchor="w")
 
-        # ===== SECTION 3: Issues Summary (If Problems Exist) =====
+        # Issues summary (if any)
         issues = self._extract_issues(browsers)
         if issues:
             issues_summary = IssuesSummary(scroll_frame, issues=issues)
             issues_summary.pack(fill="x", pady=(0, SPACING['lg']))
 
-        # ===== SECTION 3.5: Polyfill Recommendations (disabled for now) =====
+        # Polyfill recommendations (disabled for now)
         # polyfill_data = self._get_polyfill_recommendations(browsers)
         # if polyfill_data['has_recommendations']:
         #     polyfill_section = CollapsibleSection(
@@ -865,7 +732,7 @@ class MainWindow(ctk.CTkFrame):
         #     )
         #     polyfill_card.pack(fill="x")
 
-        # ===== SECTION 4: Browser Support (Collapsed by Default) =====
+        # Browser support (collapsed)
         if browsers:
             browser_section = CollapsibleSection(
                 scroll_frame,
@@ -876,10 +743,7 @@ class MainWindow(ctk.CTkFrame):
             )
             browser_section.pack(fill="x", pady=(0, SPACING['lg']))
 
-            # Add browser cards to collapsible content
             browser_content = browser_section.get_content_frame()
-
-            # Collect all detected features for version range display
             all_detected_features = []
             if features:
                 all_detected_features.extend(features.get('html', []))
@@ -902,9 +766,7 @@ class MainWindow(ctk.CTkFrame):
                 )
                 card.pack(fill="x", pady=(0, SPACING['sm']))
 
-        # ===== SECTION 5: Technical Details (Collapsed by Default) =====
-
-        # 5a. Detected Features (with property → feature mapping)
+        # Detected features
         feature_details = report.get('feature_details', {})
         if features and any([features.get('html'), features.get('css'), features.get('js')]):
             features_section = CollapsibleSection(
@@ -918,7 +780,6 @@ class MainWindow(ctk.CTkFrame):
 
             features_content = features_section.get_content_frame()
 
-            # Search box for filtering features
             search_frame = ctk.CTkFrame(features_content, fg_color="transparent")
             search_frame.pack(fill="x", pady=(0, SPACING['md']))
 
@@ -944,10 +805,7 @@ class MainWindow(ctk.CTkFrame):
             )
             search_entry.pack(side="left", fill="x", expand=True)
 
-            # Store all feature frames for filtering
-            all_feature_frames = []
-
-            # Build mapping from feature_id to details
+            all_feature_frames = []  # (frame, searchable_text) tuples for filtering
             html_details_map = {}
             for detail in feature_details.get('html', []):
                 fid = detail.get('feature')
@@ -991,7 +849,6 @@ class MainWindow(ctk.CTkFrame):
                     )
                     badge.pack(side="left")
 
-                    # Helper to create feature label
                     def create_feature_label(parent, feature_id, details_map, frame_list):
                         detail = details_map.get(feature_id, {})
                         matched_items = (
@@ -1019,14 +876,11 @@ class MainWindow(ctk.CTkFrame):
                             justify="left",
                         ).pack(anchor="w")
 
-                        # Store for filtering (frame, searchable text)
                         frame_list.append((item_frame, display_text.lower()))
 
-                    # Create all feature labels
                     for feature_id in feature_list:
                         create_feature_label(type_container, feature_id, details_map, all_feature_frames)
 
-            # Search filter function
             def filter_features(*args):
                 query = search_var.get().lower().strip()
                 for frame, text in all_feature_frames:
@@ -1035,10 +889,9 @@ class MainWindow(ctk.CTkFrame):
                     else:
                         frame.pack_forget()
 
-            # Bind search to filter
             search_var.trace_add("write", filter_features)
 
-        # 5b. Visualizations
+        # Visualizations
         if browsers:
             viz_section = CollapsibleSection(
                 scroll_frame,
@@ -1051,7 +904,6 @@ class MainWindow(ctk.CTkFrame):
 
             viz_content = viz_section.get_content_frame()
 
-            # Charts container
             charts_frame = ctk.CTkFrame(viz_content, fg_color="transparent")
             charts_frame.pack(fill="x", pady=(0, SPACING['sm']))
 
@@ -1068,12 +920,10 @@ class MainWindow(ctk.CTkFrame):
                 for name, d in browsers.items()
             }
 
-            # Radar chart (left side)
             radar_chart = BrowserRadarChart(charts_frame)
             radar_chart.grid(row=0, column=0, sticky="nsew", padx=(0, SPACING['sm']))
             radar_chart.set_data(chart_data)
 
-            # Feature distribution chart (right side)
             feature_chart = FeatureDistributionChart(charts_frame)
             feature_chart.grid(row=0, column=1, sticky="nsew", padx=(SPACING['sm'], 0))
             feature_chart.set_data(
@@ -1083,12 +933,11 @@ class MainWindow(ctk.CTkFrame):
                 summary.get('total_features', None)
             )
 
-            # Feature Support Breakdown (full width below)
             breakdown_chart = CompatibilityBarChart(viz_content)
             breakdown_chart.pack(fill="x", pady=(SPACING['sm'], 0))
             breakdown_chart.set_data(chart_data)
 
-        # 5c. Unrecognized Patterns
+        # Unrecognized patterns
         unrecognized = report.get('unrecognized', {})
         if unrecognized and unrecognized.get('total', 0) > 0:
             unrec_section = CollapsibleSection(
@@ -1102,7 +951,6 @@ class MainWindow(ctk.CTkFrame):
 
             unrec_content = unrec_section.get_content_frame()
 
-            # Info message
             ctk.CTkLabel(
                 unrec_content,
                 text="These patterns were found but have no detection rules. Consider adding custom rules.",
@@ -1131,7 +979,6 @@ class MainWindow(ctk.CTkFrame):
                     )
                     badge.pack(side="left")
 
-                    # Create expandable patterns display
                     patterns_container = ctk.CTkFrame(type_frame, fg_color="transparent")
                     patterns_container.pack(side="left", fill="x", expand=True, padx=(SPACING['sm'], 0))
 
@@ -1152,9 +999,8 @@ class MainWindow(ctk.CTkFrame):
                     )
                     patterns_label.pack(side="left")
 
-                    # Add "See All" button if truncated
                     if is_truncated:
-                        is_expanded = [False]  # Use list for mutable closure
+                        is_expanded = [False]  # mutable closure trick
 
                         def toggle_expand(lbl=patterns_label, short=short_text, full=full_text, expanded=is_expanded):
                             expanded[0] = not expanded[0]
@@ -1173,7 +1019,7 @@ class MainWindow(ctk.CTkFrame):
                         )
                         see_all_btn.pack(side="left", padx=(SPACING['sm'], 0))
 
-        # 5d. Recommendations
+        # Recommendations
         recommendations = report.get('recommendations', [])
         if recommendations:
             rec_section = CollapsibleSection(
@@ -1203,7 +1049,7 @@ class MainWindow(ctk.CTkFrame):
                     justify="left",
                 ).pack(anchor="w", padx=SPACING['sm'], pady=SPACING['sm'])
 
-        # ===== SECTION 6: Export Actions (Bottom) =====
+        # Export actions
         actions_frame = ctk.CTkFrame(
             scroll_frame,
             fg_color=COLORS['bg_medium'],
@@ -1253,8 +1099,6 @@ class MainWindow(ctk.CTkFrame):
         export_json_btn.pack(side="left")
 
     def _build_history_view(self):
-        """Build the history view showing past analyses and statistics."""
-        # Scrollable container
         scroll_frame = ctk.CTkScrollableFrame(
             self.content_frame,
             fg_color="transparent",
@@ -1264,7 +1108,6 @@ class MainWindow(ctk.CTkFrame):
         scroll_frame.pack(fill="both", expand=True, padx=SPACING['xl'], pady=SPACING['xl'])
         enable_smooth_scrolling(scroll_frame)
 
-        # Title section with Clear All button
         title_frame = ctk.CTkFrame(scroll_frame, fg_color="transparent")
         title_frame.pack(fill="x", pady=(0, SPACING['lg']))
 
@@ -1277,11 +1120,9 @@ class MainWindow(ctk.CTkFrame):
         )
         title_label.pack(side="left")
 
-        # Button row (right side)
         btn_frame = ctk.CTkFrame(title_frame, fg_color="transparent")
         btn_frame.pack(side="right")
 
-        # Manage Tags button
         tag_icon = ICONS.get('tag', '\u2302')
         tags_btn = ctk.CTkButton(
             btn_frame,
@@ -1296,7 +1137,6 @@ class MainWindow(ctk.CTkFrame):
         )
         tags_btn.pack(side="left", padx=(0, SPACING['sm']))
 
-        # Bookmarks filter button
         bookmark_icon = ICONS.get('bookmark', '\u2606')
         bookmarks_btn = ctk.CTkButton(
             btn_frame,
@@ -1311,7 +1151,6 @@ class MainWindow(ctk.CTkFrame):
         )
         bookmarks_btn.pack(side="left", padx=(0, SPACING['sm']))
 
-        # Clear All button
         clear_icon = ICONS.get('clear', '\u2718')
         clear_btn = ctk.CTkButton(
             btn_frame,
@@ -1326,14 +1165,12 @@ class MainWindow(ctk.CTkFrame):
         )
         clear_btn.pack(side="left")
 
-        # Statistics panel
         stats = self._analyzer_service.get_statistics()
         if stats.get('total_analyses', 0) > 0:
             stats_panel = StatisticsPanel(scroll_frame)
             stats_panel.pack(fill="x", pady=(0, SPACING['lg']))
             stats_panel.set_statistics(stats)
 
-        # History list header
         list_header = ctk.CTkFrame(scroll_frame, fg_color="transparent")
         list_header.pack(fill="x", pady=(0, SPACING['sm']))
 
@@ -1345,7 +1182,6 @@ class MainWindow(ctk.CTkFrame):
         )
         list_title.pack(side="left")
 
-        # History count
         history_count = self._analyzer_service.get_history_count()
         count_label = ctk.CTkLabel(
             list_header,
@@ -1355,36 +1191,24 @@ class MainWindow(ctk.CTkFrame):
         )
         count_label.pack(side="right")
 
-        # History list container
         self._history_list_frame = ctk.CTkFrame(scroll_frame, fg_color="transparent")
         self._history_list_frame.pack(fill="both", expand=True)
-
-        # Load history items
         self._load_history_items()
 
     def _load_history_items(self):
-        """Load and display history items."""
-        # Clear existing items
         for widget in self._history_list_frame.winfo_children():
             widget.destroy()
 
-        # Get history from service
         history = self._analyzer_service.get_analysis_history(limit=50)
 
         if not history:
-            # Show empty state
             empty_card = EmptyHistoryCard(self._history_list_frame)
             empty_card.pack(fill="x", pady=SPACING['md'])
             return
 
-        # Create history cards with bookmark and tag info
         for analysis in history:
             analysis_id = analysis.get('id')
-
-            # Check bookmark status
             is_bookmarked = self._analyzer_service.is_bookmarked(analysis_id) if analysis_id else False
-
-            # Get tags for this analysis
             tags = self._analyzer_service.get_tags_for_analysis(analysis_id) if analysis_id else []
 
             card = HistoryCard(
@@ -1399,12 +1223,6 @@ class MainWindow(ctk.CTkFrame):
             card.pack(fill="x", pady=(0, SPACING['sm']))
 
     def _on_bookmark_toggle(self, analysis_id: int, is_bookmarked: bool):
-        """Handle bookmark toggle on a history item.
-
-        Args:
-            analysis_id: ID of the analysis
-            is_bookmarked: New bookmark state
-        """
         if is_bookmarked:
             success = self._analyzer_service.add_bookmark(analysis_id)
             if success:
@@ -1415,23 +1233,18 @@ class MainWindow(ctk.CTkFrame):
                 self.status_bar.set_status("Bookmark removed", "info")
 
     def _show_tag_manager(self):
-        """Show the tag manager dialog."""
         from .widgets import TagManagerDialog
-
-        # Get all tags
         tags = self._analyzer_service.get_all_tags()
 
         def on_create(name: str, color: str):
             tag_id = self._analyzer_service.create_tag(name, color)
             if tag_id:
                 self.status_bar.set_status(f"Tag '{name}' created", "success")
-                # Refresh dialog tags
                 dialog.set_tags(self._analyzer_service.get_all_tags())
 
         def on_delete(tag_id: int):
             if self._analyzer_service.delete_tag(tag_id):
                 self.status_bar.set_status("Tag deleted", "info")
-                # Refresh dialog tags
                 dialog.set_tags(self._analyzer_service.get_all_tags())
 
         dialog = TagManagerDialog(
@@ -1442,16 +1255,12 @@ class MainWindow(ctk.CTkFrame):
         )
 
     def _show_bookmarks_only(self):
-        """Show only bookmarked analyses."""
-        # Clear existing items
         for widget in self._history_list_frame.winfo_children():
             widget.destroy()
 
-        # Get bookmarked analyses
         bookmarks = self._analyzer_service.get_all_bookmarks(limit=50)
 
         if not bookmarks:
-            # Show empty state
             empty_frame = ctk.CTkFrame(self._history_list_frame, fg_color=COLORS['bg_medium'], corner_radius=8)
             empty_frame.pack(fill="x", pady=SPACING['md'])
 
@@ -1463,7 +1272,6 @@ class MainWindow(ctk.CTkFrame):
             )
             empty_label.pack(pady=SPACING['xl'])
 
-            # Add "Show All" button
             show_all_btn = ctk.CTkButton(
                 empty_frame,
                 text="Show All History",
@@ -1475,7 +1283,6 @@ class MainWindow(ctk.CTkFrame):
             show_all_btn.pack(pady=(0, SPACING['xl']))
             return
 
-        # Show "Show All" link at top
         all_btn = ctk.CTkButton(
             self._history_list_frame,
             text="< Show All History",
@@ -1488,12 +1295,9 @@ class MainWindow(ctk.CTkFrame):
         )
         all_btn.pack(anchor="w", pady=(0, SPACING['sm']))
 
-        # Create cards for bookmarked items
         for bookmark in bookmarks:
             analysis_data = bookmark.get('analysis', {})
             analysis_data['id'] = bookmark.get('analysis_id')
-
-            # Get tags for this analysis
             analysis_id = bookmark.get('analysis_id')
             tags = self._analyzer_service.get_tags_for_analysis(analysis_id) if analysis_id else []
 
@@ -1509,19 +1313,12 @@ class MainWindow(ctk.CTkFrame):
             card.pack(fill="x", pady=(0, SPACING['sm']))
 
     def _on_history_item_click(self, analysis_id: int):
-        """Handle click on a history item.
-
-        Args:
-            analysis_id: ID of the clicked analysis
-        """
-        # Get the full analysis details
         analysis = self._analyzer_service.get_analysis_by_id(analysis_id)
         if not analysis:
             show_warning(self.master, "Not Found", "Analysis record not found.")
             return
 
-        # Show info about the analysis for now
-        # In the future, this could restore the full results view
+        # TODO: restore full results view instead of just showing info
         file_name = analysis.get('file_name', 'Unknown')
         score = analysis.get('overall_score', 0)
         grade = analysis.get('grade', 'N/A')
@@ -1535,22 +1332,15 @@ class MainWindow(ctk.CTkFrame):
         show_info(self.master, "Analysis Details", message)
 
     def _on_history_item_delete(self, analysis_id: int):
-        """Handle delete button click on a history item.
-
-        Args:
-            analysis_id: ID of the analysis to delete
-        """
         if ask_question(self.master, "Confirm Delete", "Delete this analysis from history?"):
             success = self._analyzer_service.delete_from_history(analysis_id)
             if success:
                 self.status_bar.set_status("Analysis deleted from history", "info")
-                # Refresh the history view
                 self._build_history_view()
             else:
                 show_error(self.master, "Error", "Failed to delete analysis.")
 
     def _clear_all_history(self):
-        """Clear all analysis history."""
         count = self._analyzer_service.get_history_count()
         if count == 0:
             show_info(self.master, "History Empty", "There is no history to clear.")
@@ -1560,13 +1350,12 @@ class MainWindow(ctk.CTkFrame):
             success = self._analyzer_service.clear_history()
             if success:
                 self.status_bar.set_status("All history cleared", "info")
-                # Refresh the history view
                 self._build_history_view()
             else:
                 show_error(self.master, "Error", "Failed to clear history.")
 
     def _count_issues(self, browsers: Dict) -> int:
-        """Count total issues (unsupported + partial) across all browsers."""
+        """Count unique unsupported/partial features across all browsers."""
         issues = set()
         for browser_data in browsers.values():
             for feature in browser_data.get('unsupported_features', []):
@@ -1576,18 +1365,9 @@ class MainWindow(ctk.CTkFrame):
         return len(issues)
 
     def _extract_issues(self, browsers: Dict) -> List[dict]:
-        """Extract issues from browser data for IssuesSummary.
-
-        Returns list of issue dicts with:
-        - feature_name: Human-readable name
-        - feature_id: Technical ID
-        - severity: 'critical' or 'warning'
-        - browsers: List of affected browsers
-        - fix_suggestion: Optional fix text
-        """
-        # Group issues by feature
-        unsupported_map = {}  # feature_id -> list of browsers
-        partial_map = {}  # feature_id -> list of browsers
+        """Group unsupported/partial features into issue dicts for IssuesSummary."""
+        unsupported_map = {}
+        partial_map = {}
 
         for browser_name, data in browsers.items():
             browser_display = f"{browser_name.title()} {data.get('version', '')}"
@@ -1604,7 +1384,6 @@ class MainWindow(ctk.CTkFrame):
 
         issues = []
 
-        # Add critical issues (unsupported)
         for feature_id, affected_browsers in unsupported_map.items():
             issues.append({
                 'feature_name': self._analyzer_service.get_feature_display_name(feature_id),
@@ -1614,7 +1393,7 @@ class MainWindow(ctk.CTkFrame):
                 'fix_suggestion': self._analyzer_service.get_fix_suggestion(feature_id),
             })
 
-        # Add warning issues (partial) - only if not already critical
+        # Only add partial issues if the feature isn't already listed as unsupported
         for feature_id, affected_browsers in partial_map.items():
             if feature_id not in unsupported_map:
                 issues.append({
@@ -1628,28 +1407,13 @@ class MainWindow(ctk.CTkFrame):
         return issues
 
     def _get_polyfill_recommendations(self, browsers: Dict) -> dict:
-        """Extract polyfill recommendations from browser compatibility data.
-
-        Args:
-            browsers: Dict of browser name to compatibility data
-
-        Returns:
-            Dict with:
-            - has_recommendations: bool
-            - count: int
-            - install_command: str
-            - imports: List[str]
-            - npm: List of npm PolyfillRecommendation objects
-            - css: List of CSS fallback PolyfillRecommendation objects
-            - total_size_kb: float
-        """
+        """Build polyfill recommendations from unsupported/partial features."""
         if not browsers:
             return {'has_recommendations': False}
 
         from src.polyfill import PolyfillService
         polyfill_svc = PolyfillService()
 
-        # Collect unsupported/partial features from all browsers
         unsupported = set()
         partial = set()
         browser_versions = {}
@@ -1679,11 +1443,7 @@ class MainWindow(ctk.CTkFrame):
         }
 
     def _generate_polyfills_file(self, filename: str):
-        """Generate a polyfills.js file with all necessary imports.
-
-        Args:
-            filename: Suggested filename (default: 'polyfills.js')
-        """
+        """Save a polyfills.js file with all necessary imports."""
         if not self.current_report:
             show_warning(self, "No Analysis", "Please run an analysis first.")
             return
@@ -1695,7 +1455,6 @@ class MainWindow(ctk.CTkFrame):
             show_info(self, "No Polyfills", "No polyfills are needed for your current analysis.")
             return
 
-        # Ask user where to save the file
         from tkinter import filedialog
         output_path = filedialog.asksaveasfilename(
             defaultextension=".js",
@@ -1705,10 +1464,9 @@ class MainWindow(ctk.CTkFrame):
         )
 
         if not output_path:
-            return  # User cancelled
+            return
 
         try:
-            # Get all npm recommendations
             all_recs = polyfill_data['npm']
             generated_path = self._analyzer_service.generate_polyfills_file(all_recs, output_path)
             show_info(
@@ -1721,19 +1479,10 @@ class MainWindow(ctk.CTkFrame):
             show_error(self, "Error", f"Failed to generate file: {e}")
 
     def _get_ml_risk_assessment(self, features: Dict) -> Optional[Dict]:
-        """Get ML-based risk assessment for detected features.
-
-        Args:
-            features: Dict with 'html', 'css', 'js' feature lists
-
-        Returns:
-            Dict with ML risk assessment data, or None if unavailable
-        """
+        """Run ML risk prediction on detected features. Returns None if unavailable."""
         try:
-            # Import ML module (lazy import to avoid startup delay)
             from src.ml.risk_predictor import get_risk_predictor, RiskCategory
 
-            # Collect all feature IDs (limit to first 50 for performance)
             all_features = []
             for key in ['html', 'css', 'js']:
                 all_features.extend(features.get(key, []))
@@ -1741,18 +1490,16 @@ class MainWindow(ctk.CTkFrame):
             if not all_features:
                 return None
 
-            # Limit features to prevent slow analysis
-            all_features = all_features[:50]
+            all_features = all_features[:50]  # cap for performance
 
             predictor = get_risk_predictor()
 
-            # Quick aggregate prediction instead of individual predictions
             high_risk_count = 0
             medium_risk_count = 0
             low_risk_count = 0
             sample_factors = []
 
-            # Only predict for a sample of features (faster)
+            # Sample for speed -- extrapolate results to full set later
             sample_size = min(10, len(all_features))
             sample_features = all_features[:sample_size]
 
@@ -1769,9 +1516,8 @@ class MainWindow(ctk.CTkFrame):
                     if len(sample_factors) < 5:
                         sample_factors.extend(pred.contributing_factors[:1])
                 except Exception:
-                    continue  # Skip features that fail
+                    continue
 
-            # Determine overall risk level from sample
             total = high_risk_count + medium_risk_count + low_risk_count
             if total == 0:
                 return None
@@ -1783,10 +1529,8 @@ class MainWindow(ctk.CTkFrame):
             else:
                 overall_risk = 'low'
 
-            # Deduplicate factors
             unique_factors = list(dict.fromkeys(sample_factors))[:5]
 
-            # Get feature importance (fast - just reads from model)
             feature_importance = predictor.get_feature_importance()
             if feature_importance:
                 sorted_importance = sorted(
@@ -1797,7 +1541,6 @@ class MainWindow(ctk.CTkFrame):
             else:
                 sorted_importance = None
 
-            # Extrapolate counts to full feature set
             scale = len(all_features) / sample_size if sample_size > 0 else 1
             return {
                 'risk_level': overall_risk,
@@ -1811,26 +1554,19 @@ class MainWindow(ctk.CTkFrame):
             }
 
         except ImportError:
-            # ML module not available
             return None
         except Exception as e:
-            # Log error but don't crash
             import traceback
             traceback.print_exc()
             return None
 
     def _run_ml_analysis(self):
-        """Run ML analysis when user clicks the button."""
-        # Disable button and show loading state
         self._run_ml_button.configure(state="disabled", text="Analyzing...")
-
-        # Schedule the actual analysis (allows UI to update)
+        # Defer so the button text updates before we block the main thread
         self.after(100, self._perform_ml_analysis)
 
     def _perform_ml_analysis(self):
-        """Perform the actual ML analysis."""
         try:
-            # Collect all feature IDs
             from src.ml.risk_predictor import get_all_models_aggregate, get_risk_predictor
 
             all_features = []
@@ -1842,8 +1578,7 @@ class MainWindow(ctk.CTkFrame):
                 self._show_ml_error("No features to analyze")
                 return
 
-            # === SINGLE SOURCE OF TRUTH ===
-            # Get all models data (full analysis) - this is the ONLY data source
+            # Single source of truth for all model predictions
             all_models_data = get_all_models_aggregate(all_features, full_analysis=True)
 
             if not all_models_data or not all_models_data.get('models'):
@@ -1851,17 +1586,14 @@ class MainWindow(ctk.CTkFrame):
                 self._show_ml_error("ML models not available. Make sure models are trained.")
                 return
 
-            # Extract Gradient Boosting data for main card (it's the best model)
+            # Gradient Boosting is the best model, use it for the main card
             gb_data = all_models_data['models'].get('gradient_boosting', {})
 
             if not gb_data:
-                # Fallback to any available model
                 gb_data = list(all_models_data['models'].values())[0] if all_models_data['models'] else {}
 
-            # Calculate flagged count from actual data
             flagged_count = gb_data.get('high_count', 0) + gb_data.get('medium_count', 0)
 
-            # Get feature importance from the predictor
             predictor = get_risk_predictor()
             feature_importance = predictor.get_feature_importance()
             sorted_importance = None
@@ -1872,7 +1604,6 @@ class MainWindow(ctk.CTkFrame):
                     reverse=True
                 )[:5]
 
-            # Generate contributing factors from flagged features
             factors = []
             flagged_features = gb_data.get('predictions', [])
             high_risk_features = [p for p in flagged_features if p.get('risk') == 'high']
@@ -1884,16 +1615,13 @@ class MainWindow(ctk.CTkFrame):
             if not factors:
                 factors.append("All features have LOW risk")
 
-            # Clear the button frame
             self._ml_button_frame.destroy()
 
-            # Show ML Risk Card (Best Model - Gradient Boosting)
             ml_risk_card = MLRiskCard(self._ml_content_frame, title="Compatibility Risk Prediction")
             ml_risk_card.pack(fill="x", pady=(0, SPACING['sm']))
 
-            # Use actual model confidence, not hardcoded value
             model_confidence = gb_data.get('avg_confidence', 0.5)
-            model_accuracy = gb_data.get('accuracy', 0.93)  # Gradient Boosting accuracy
+            model_accuracy = gb_data.get('accuracy', 0.93)
 
             ml_risk_card.set_risk_data(
                 risk_level=gb_data.get('overall_risk', 'low'),
@@ -1901,20 +1629,17 @@ class MainWindow(ctk.CTkFrame):
                 factors=factors,
                 high_risk_count=flagged_count,
                 total_features=self._ml_total_features,
-                model_accuracy=model_accuracy,  # Pass model accuracy for display
+                model_accuracy=model_accuracy,
             )
 
-            # Show Feature Importance Card (if available)
             if sorted_importance:
                 importance_card = MLFeatureImportanceCard(self._ml_content_frame)
                 importance_card.pack(fill="x", pady=(0, SPACING['sm']))
                 importance_card.set_importances(sorted_importance)
 
-            # Advanced Details Section (All 3 Models)
             self._create_advanced_section(all_models_data)
 
         except Exception as e:
-            # Show error
             import traceback
             traceback.print_exc()
 
@@ -1929,7 +1654,6 @@ class MainWindow(ctk.CTkFrame):
             self._show_ml_error(f"Error running ML analysis: {str(e)}")
 
     def _show_ml_error(self, message: str):
-        """Show an error message in the ML section."""
         error_frame = ctk.CTkFrame(self._ml_content_frame, fg_color=COLORS['bg_medium'], corner_radius=8)
         error_frame.pack(fill="x", pady=SPACING['sm'])
 
@@ -1941,8 +1665,7 @@ class MainWindow(ctk.CTkFrame):
         ).pack(padx=SPACING['lg'], pady=SPACING['lg'])
 
     def _create_advanced_section(self, all_models_data: dict):
-        """Create the Advanced Details section showing all 3 models."""
-        # Advanced section container
+        """Collapsible section comparing all 3 ML models side by side."""
         advanced_frame = ctk.CTkFrame(
             self._ml_content_frame,
             fg_color=COLORS['bg_medium'],
@@ -1952,7 +1675,6 @@ class MainWindow(ctk.CTkFrame):
         )
         advanced_frame.pack(fill="x", pady=(SPACING['sm'], 0))
 
-        # Header with toggle button
         header_frame = ctk.CTkFrame(advanced_frame, fg_color="transparent")
         header_frame.pack(fill="x", padx=SPACING['lg'], pady=SPACING['sm'])
 
@@ -1969,15 +1691,11 @@ class MainWindow(ctk.CTkFrame):
         )
         self._advanced_toggle_btn.pack(side="left", fill="x", expand=True)
 
-        # Content frame (initially hidden)
+        # Hidden until user expands
         self._advanced_content = ctk.CTkFrame(advanced_frame, fg_color="transparent")
-        # Don't pack yet - will be shown when expanded
-
-        # Populate content
         self._populate_advanced_content(all_models_data)
 
     def _toggle_advanced_section(self, all_models_data: dict):
-        """Toggle the advanced section visibility."""
         self._advanced_expanded = not self._advanced_expanded
 
         if self._advanced_expanded:
@@ -1988,17 +1706,14 @@ class MainWindow(ctk.CTkFrame):
             self._advanced_content.pack_forget()
 
     def _populate_advanced_content(self, all_models_data: dict):
-        """Populate the advanced content with all models comparison."""
         models = all_models_data.get('models', {})
 
-        # Risk colors
         risk_colors = {
             'low': COLORS['success'],
             'medium': COLORS['warning'],
             'high': COLORS['danger'],
         }
 
-        # Model order
         model_order = ['gradient_boosting', 'random_forest', 'logistic_regression']
 
         for model_name in model_order:
@@ -2007,15 +1722,12 @@ class MainWindow(ctk.CTkFrame):
 
             model_data = models[model_name]
 
-            # Model container
             model_frame = ctk.CTkFrame(self._advanced_content, fg_color=COLORS['bg_light'], corner_radius=6)
             model_frame.pack(fill="x", pady=(0, SPACING['sm']))
 
-            # Model header row
             header_row = ctk.CTkFrame(model_frame, fg_color="transparent")
             header_row.pack(fill="x", padx=SPACING['md'], pady=SPACING['sm'])
 
-            # Model name
             name_text = model_data.get('display_name', model_name)
             name_label = ctk.CTkLabel(
                 header_row,
@@ -2027,7 +1739,6 @@ class MainWindow(ctk.CTkFrame):
             )
             name_label.pack(side="left")
 
-            # Risk level badge
             risk = model_data.get('overall_risk', 'unknown')
             risk_color = risk_colors.get(risk, COLORS['text_muted'])
 
@@ -2041,7 +1752,6 @@ class MainWindow(ctk.CTkFrame):
             )
             risk_label.pack(side="left", padx=(SPACING['sm'], 0))
 
-            # Flagged count
             high_count = model_data.get('high_count', 0)
             medium_count = model_data.get('medium_count', 0)
             flagged = high_count + medium_count
@@ -2055,16 +1765,13 @@ class MainWindow(ctk.CTkFrame):
             )
             flagged_label.pack(side="right")
 
-            # Flagged features details (get from predictions)
             predictions = model_data.get('predictions', [])
             flagged_predictions = [p for p in predictions if p.get('risk') in ['high', 'medium']]
 
             if flagged_predictions:
-                # Divider line
                 divider = ctk.CTkFrame(model_frame, fg_color=COLORS['border'], height=1)
                 divider.pack(fill="x", padx=SPACING['md'], pady=(0, SPACING['xs']))
 
-                # Flagged features header with toggle
                 header_frame = ctk.CTkFrame(model_frame, fg_color="transparent")
                 header_frame.pack(fill="x", padx=SPACING['md'], pady=(0, SPACING['xs']))
 
@@ -2076,40 +1783,32 @@ class MainWindow(ctk.CTkFrame):
                 )
                 flagged_header.pack(side="left")
 
-                # Container for features list
                 features_container = ctk.CTkFrame(model_frame, fg_color="transparent")
                 features_container.pack(fill="x", padx=SPACING['md'], pady=(0, SPACING['sm']))
 
-                # Initially visible features (first 5)
                 initial_frame = ctk.CTkFrame(features_container, fg_color="transparent")
                 initial_frame.pack(fill="x")
 
-                # Hidden features (rest)
+                # Rest are hidden until toggled
                 hidden_frame = ctk.CTkFrame(features_container, fg_color="transparent")
-                # Don't pack yet - will show on toggle
 
-                # Create feature rows
                 for idx, pred in enumerate(flagged_predictions):
                     feature_id = pred.get('feature', 'unknown')
                     feature_risk = pred.get('risk', 'unknown')
                     feature_reason = pred.get('reason', 'Risk detected by ML model')
                     feature_color = risk_colors.get(feature_risk, COLORS['text_muted'])
 
-                    # Decide which frame to add to
                     parent_frame = initial_frame if idx < 5 else hidden_frame
 
-                    # Feature row container
                     feature_row = ctk.CTkFrame(parent_frame, fg_color=COLORS['bg_medium'], corner_radius=4)
                     feature_row.pack(fill="x", pady=(0, 4))
 
                     feature_inner = ctk.CTkFrame(feature_row, fg_color="transparent")
                     feature_inner.pack(fill="x", padx=SPACING['sm'], pady=SPACING['xs'])
 
-                    # Left side: bullet + feature name
                     left_frame = ctk.CTkFrame(feature_inner, fg_color="transparent")
                     left_frame.pack(side="left", fill="x", expand=True)
 
-                    # Bullet point
                     bullet = ctk.CTkLabel(
                         left_frame,
                         text="•",
@@ -2119,7 +1818,6 @@ class MainWindow(ctk.CTkFrame):
                     )
                     bullet.pack(side="left")
 
-                    # Feature name
                     feature_name_label = ctk.CTkLabel(
                         left_frame,
                         text=feature_id,
@@ -2129,7 +1827,6 @@ class MainWindow(ctk.CTkFrame):
                     )
                     feature_name_label.pack(side="left")
 
-                    # Risk badge
                     risk_badge = ctk.CTkLabel(
                         feature_inner,
                         text=f" {feature_risk.upper()} ",
@@ -2138,7 +1835,6 @@ class MainWindow(ctk.CTkFrame):
                     )
                     risk_badge.pack(side="right")
 
-                    # Reason row (below feature name)
                     reason_label = ctk.CTkLabel(
                         feature_row,
                         text=f"    {feature_reason}",
@@ -2148,13 +1844,11 @@ class MainWindow(ctk.CTkFrame):
                     )
                     reason_label.pack(fill="x", padx=SPACING['sm'], pady=(0, SPACING['xs']))
 
-                # Toggle button if more than 5 features
                 if len(flagged_predictions) > 5:
                     toggle_frame = ctk.CTkFrame(features_container, fg_color="transparent")
                     toggle_frame.pack(fill="x", pady=(SPACING['xs'], 0))
 
-                    # Store state for this model's toggle
-                    is_expanded = [False]  # Use list to allow mutation in closure
+                    is_expanded = [False]  # mutable closure trick
 
                     def make_toggle_callback(hf, tf, exp, count):
                         def toggle():
@@ -2180,27 +1874,22 @@ class MainWindow(ctk.CTkFrame):
                     )
                     toggle_btn.pack(side="left")
 
-                    # Update the callback to reference the button
+                    # Re-configure so the callback can update the button text
                     toggle_btn.configure(
                         command=make_toggle_callback(hidden_frame, toggle_btn, is_expanded, len(flagged_predictions))
                     )
 
     def _build_settings_view(self):
-        """Build the settings view."""
-        # Container
         container = ctk.CTkFrame(self.content_frame, fg_color="transparent")
         container.pack(fill="both", expand=True, padx=SPACING['xl'], pady=SPACING['xl'])
 
-        # Title
-        title_label = ctk.CTkLabel(
+        ctk.CTkLabel(
             container,
             text="Settings",
             font=ctk.CTkFont(size=20, weight="bold"),
             text_color=COLORS['text_primary'],
-        )
-        title_label.pack(anchor="w", pady=(0, SPACING['xl']))
+        ).pack(anchor="w", pady=(0, SPACING['xl']))
 
-        # Database section
         db_section = ctk.CTkFrame(
             container,
             fg_color=COLORS['bg_medium'],
@@ -2232,7 +1921,6 @@ class MainWindow(ctk.CTkFrame):
         )
         update_btn.pack(side="right")
 
-        # Database info
         try:
             db_info = self._analyzer_service.get_database_info()
             info_text = f"Features: {db_info.features_count}  |  Last updated: {db_info.last_updated}"
@@ -2246,7 +1934,6 @@ class MainWindow(ctk.CTkFrame):
             text_color=COLORS['text_muted'],
         ).pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['lg']))
 
-        # Custom rules section
         rules_section = ctk.CTkFrame(
             container,
             fg_color=COLORS['bg_medium'],
@@ -2285,7 +1972,6 @@ class MainWindow(ctk.CTkFrame):
             text_color=COLORS['text_muted'],
         ).pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['lg']))
 
-        # User Preferences section
         prefs_section = ctk.CTkFrame(
             container,
             fg_color=COLORS['bg_medium'],
@@ -2305,11 +1991,9 @@ class MainWindow(ctk.CTkFrame):
             text_color=COLORS['text_primary'],
         ).pack(side="left")
 
-        # Preferences content
         prefs_content = ctk.CTkFrame(prefs_section, fg_color="transparent")
         prefs_content.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['lg']))
 
-        # 1. Auto-save history toggle
         auto_save_row = ctk.CTkFrame(prefs_content, fg_color="transparent")
         auto_save_row.pack(fill="x", pady=(0, SPACING['md']))
 
@@ -2327,7 +2011,6 @@ class MainWindow(ctk.CTkFrame):
             text_color=COLORS['text_muted'],
         ).pack(side="left", padx=(SPACING['sm'], 0))
 
-        # Get current value
         auto_save_current = self._analyzer_service.get_setting_as_bool('auto_save_history', True)
         self._auto_save_var = ctk.BooleanVar(value=auto_save_current)
 
@@ -2343,7 +2026,6 @@ class MainWindow(ctk.CTkFrame):
         )
         auto_save_switch.pack(side="right")
 
-        # 2. History limit
         history_limit_row = ctk.CTkFrame(prefs_content, fg_color="transparent")
         history_limit_row.pack(fill="x", pady=(0, SPACING['md']))
 
@@ -2361,7 +2043,6 @@ class MainWindow(ctk.CTkFrame):
             text_color=COLORS['text_muted'],
         ).pack(side="left", padx=(SPACING['sm'], 0))
 
-        # Get current value
         history_limit_current = self._analyzer_service.get_setting('history_limit', '100')
 
         self._history_limit_var = ctk.StringVar(value=history_limit_current)
@@ -2380,7 +2061,6 @@ class MainWindow(ctk.CTkFrame):
         )
         history_limit_menu.pack(side="right")
 
-        # 3. Default browsers
         browsers_row = ctk.CTkFrame(prefs_content, fg_color="transparent")
         browsers_row.pack(fill="x", pady=(0, SPACING['sm']))
 
@@ -2398,11 +2078,9 @@ class MainWindow(ctk.CTkFrame):
             text_color=COLORS['text_muted'],
         ).pack(side="left", padx=(SPACING['sm'], 0))
 
-        # Browser checkboxes
         browsers_frame = ctk.CTkFrame(prefs_content, fg_color="transparent")
         browsers_frame.pack(fill="x", pady=(SPACING['xs'], 0))
 
-        # Get current default browsers
         default_browsers = self._analyzer_service.get_setting_as_list(
             'default_browsers',
             ['chrome', 'firefox', 'safari', 'edge']
@@ -2427,7 +2105,6 @@ class MainWindow(ctk.CTkFrame):
             )
             cb.pack(side="left", padx=(0, SPACING['lg']))
 
-        # About section
         about_section = ctk.CTkFrame(
             container,
             fg_color=COLORS['bg_medium'],
@@ -2462,20 +2139,17 @@ class MainWindow(ctk.CTkFrame):
         ).pack(anchor="w", pady=(SPACING['xs'], 0))
 
     def _on_files_dropped(self, file_paths: List[str]):
-        """Handle files dropped onto drop zone."""
         if hasattr(self, 'file_table'):
             self.file_table.add_files(file_paths)
             self._update_status()
 
     def _clear_all_files(self):
-        """Clear all selected files."""
         if hasattr(self, 'file_table'):
             self.file_table.clear_files()
             self._last_files = []
             self._update_status()
 
     def _update_status(self):
-        """Update status bar with file count."""
         if hasattr(self, 'file_table'):
             count = self.file_table.get_file_count()
             self._last_files = self.file_table.get_files()
@@ -2490,18 +2164,12 @@ class MainWindow(ctk.CTkFrame):
             self.status_bar.set_status("Ready", "normal")
 
     def _on_browser_selection_change(self, selected_browsers: Dict[str, str]):
-        """Handle browser selection changes.
-
-        Args:
-            selected_browsers: Dict mapping browser_id to latest_version
-        """
         self._selected_browsers = selected_browsers
         browser_count = len(selected_browsers)
         if browser_count > 0:
             self.status_bar.set_status(f"{browser_count} browser(s) selected for analysis", "info")
 
     def _analyze_files(self):
-        """Analyze selected files."""
         if not hasattr(self, 'file_table'):
             return
 
@@ -2510,7 +2178,6 @@ class MainWindow(ctk.CTkFrame):
             show_warning(self.master, "No Files", "Please select at least one file.")
             return
 
-        # Check if browsers are selected
         if not self._selected_browsers:
             show_warning(self.master, "No Browsers", "Please select at least one target browser.")
             return
@@ -2520,10 +2187,8 @@ class MainWindow(ctk.CTkFrame):
             self._run_analysis(files)
 
     def _run_analysis(self, files: List[str]):
-        """Run the analysis."""
         self._last_files = list(files)
 
-        # Separate files by type
         html_files = [f for f in files if Path(f).suffix.lower() in ['.html', '.htm']]
         css_files = [f for f in files if Path(f).suffix.lower() == '.css']
         js_files = [f for f in files if Path(f).suffix.lower() in ['.js', '.jsx', '.ts', '.tsx', '.mjs']]
@@ -2535,7 +2200,6 @@ class MainWindow(ctk.CTkFrame):
 
             progress.set_progress(30, message="Analyzing browser compatibility...")
 
-            # Use selected browsers or fall back to service defaults
             target_browsers = self._selected_browsers if self._selected_browsers else None
 
             result = self._analyzer_service.analyze_files(
@@ -2553,10 +2217,8 @@ class MainWindow(ctk.CTkFrame):
                 self.status_bar.set_last_analysis()
                 self.status_bar.set_status("Analysis complete", "success")
 
-                # Auto-save to history
                 self._save_to_history(result, files)
 
-                # Navigate to results
                 self.sidebar.set_active_view("results")
                 self._show_view("results")
             else:
@@ -2568,14 +2230,7 @@ class MainWindow(ctk.CTkFrame):
             traceback.print_exc()
 
     def _save_to_history(self, result, files: List[str]):
-        """Save analysis result to history database.
-
-        Args:
-            result: AnalysisResult from analysis
-            files: List of analyzed file paths
-        """
         try:
-            # Determine primary file info
             if len(files) == 1:
                 file_path = files[0]
                 file_name = Path(file_path).name
@@ -2583,13 +2238,11 @@ class MainWindow(ctk.CTkFrame):
                 if file_type == 'htm':
                     file_type = 'html'
             else:
-                # Multiple files - use "mixed" type
                 file_names = [Path(f).name for f in files]
                 file_name = f"{file_names[0]} (+{len(files)-1} more)" if len(files) > 1 else file_names[0]
                 file_path = str(Path(files[0]).parent)
                 file_type = 'mixed'
 
-            # Save to database
             self._analyzer_service.save_analysis_to_history(
                 result=result,
                 file_name=file_name,
@@ -2597,17 +2250,15 @@ class MainWindow(ctk.CTkFrame):
                 file_type=file_type,
             )
         except Exception as e:
-            # Don't fail the analysis if history save fails
+            # Non-fatal -- don't let a history save failure break the analysis
             import traceback
             traceback.print_exc()
 
     def _recheck_files(self):
-        """Re-analyze the previously selected files."""
         if not self._last_files:
             show_warning(self.master, "Warning", "No files to re-check.")
             return
 
-        # Verify files still exist
         missing = [f for f in self._last_files if not Path(f).exists()]
         if missing:
             missing_list = "\n".join(missing[:5])
@@ -2619,7 +2270,6 @@ class MainWindow(ctk.CTkFrame):
         self._run_analysis(self._last_files)
 
     def _update_database(self):
-        """Update the Can I Use database."""
         try:
             db_info = self._analyzer_service.get_database_info()
 
@@ -2644,7 +2294,6 @@ class MainWindow(ctk.CTkFrame):
 
             if result.success:
                 show_info(self.master, "Success", result.message or 'Database updated!')
-                # Refresh settings view
                 if self._current_view == "settings":
                     self._show_view("settings")
             else:
@@ -2653,48 +2302,36 @@ class MainWindow(ctk.CTkFrame):
         except Exception as e:
             show_error(self.master, "Error", str(e))
 
-    # =========================================================================
-    # Settings Callbacks
-    # =========================================================================
-
     def _on_auto_save_changed(self):
-        """Handle auto-save toggle change."""
         value = self._auto_save_var.get()
         self._analyzer_service.set_setting('auto_save_history', 'true' if value else 'false')
         status = "enabled" if value else "disabled"
         self.status_bar.set_status(f"Auto-save to history {status}", "info")
 
     def _on_history_limit_changed(self, value: str):
-        """Handle history limit change."""
         self._analyzer_service.set_setting('history_limit', value)
         self.status_bar.set_status(f"History limit set to {value}", "info")
 
     def _on_default_browsers_changed(self):
-        """Handle default browsers change."""
-        # Get selected browsers
         selected = [browser for browser, var in self._browser_vars.items() if var.get()]
 
         if not selected:
-            # Don't allow empty selection, reset to at least Chrome
+            # Always need at least one browser
             self._browser_vars['chrome'].set(True)
             selected = ['chrome']
             show_warning(self.master, "Warning", "At least one browser must be selected.")
 
-        # Save to settings
         browsers_str = ','.join(selected)
         self._analyzer_service.set_setting('default_browsers', browsers_str)
         self.status_bar.set_status(f"Default browsers: {', '.join(b.title() for b in selected)}", "info")
 
     def _open_rules_manager(self):
-        """Open the custom rules manager dialog."""
         def on_rules_changed():
-            # Reload custom rules AND reset the analyzer to pick them up
             self._analyzer_service.reload_custom_rules()
 
         show_rules_manager(self.master, on_rules_changed)
 
     def _show_help(self):
-        """Show help information."""
         help_text = """Cross Guard - Browser Compatibility Checker
 
 How to use:

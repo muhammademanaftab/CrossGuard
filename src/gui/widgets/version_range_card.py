@@ -1,8 +1,4 @@
-"""
-VersionRangeCard widget - Displays browser version ranges like Can I Use.
-
-Shows which versions support a feature with color-coded ranges.
-"""
+"""Can I Use-style browser version range cards with color-coded support status."""
 
 from typing import Dict, List, Optional
 import customtkinter as ctk
@@ -10,7 +6,6 @@ import customtkinter as ctk
 from ..theme import COLORS, SPACING, ICONS
 
 
-# Browser display names and icons
 BROWSER_INFO = {
     'chrome': {'name': 'Chrome', 'icon': '🌐'},
     'firefox': {'name': 'Firefox', 'icon': '🦊'},
@@ -23,20 +18,20 @@ BROWSER_INFO = {
     'samsung': {'name': 'Samsung', 'icon': '📱'},
 }
 
-# Status colors matching Can I Use
+# Matches Can I Use color conventions
 STATUS_COLORS = {
-    'y': COLORS['success'],      # Green - Supported
-    'n': COLORS['danger'],       # Red - Not supported
-    'a': COLORS['warning'],      # Yellow - Partial
-    'p': '#9B59B6',              # Purple - Polyfill
-    'x': '#E67E22',              # Orange - Prefix required
-    'u': COLORS['text_muted'],   # Gray - Unknown
-    'd': '#7F8C8D',              # Gray - Disabled by default
+    'y': COLORS['success'],      # Supported
+    'n': COLORS['danger'],       # Not supported
+    'a': COLORS['warning'],      # Partial
+    'p': '#9B59B6',              # Polyfill
+    'x': '#E67E22',              # Prefix required
+    'u': COLORS['text_muted'],   # Unknown
+    'd': '#7F8C8D',              # Disabled by default
 }
 
 
 class VersionRangeBar(ctk.CTkFrame):
-    """A single horizontal bar showing version ranges for one browser."""
+    """Horizontal bar of version range boxes for one browser."""
 
     def __init__(
         self,
@@ -45,13 +40,6 @@ class VersionRangeBar(ctk.CTkFrame):
         ranges: List[Dict],
         **kwargs
     ):
-        """Initialize the version range bar.
-
-        Args:
-            master: Parent widget
-            browser: Browser ID (e.g., 'chrome')
-            ranges: List of range dicts with start, end, status, status_text
-        """
         super().__init__(
             master,
             fg_color="transparent",
@@ -64,8 +52,6 @@ class VersionRangeBar(ctk.CTkFrame):
         self._init_ui()
 
     def _init_ui(self):
-        """Build the UI."""
-        # Browser name label
         browser_info = BROWSER_INFO.get(self._browser, {'name': self._browser.title(), 'icon': '🌐'})
 
         name_frame = ctk.CTkFrame(self, fg_color="transparent", width=100)
@@ -81,20 +67,16 @@ class VersionRangeBar(ctk.CTkFrame):
         )
         name_label.pack(side="left", fill="x")
 
-        # Version ranges container
         ranges_frame = ctk.CTkFrame(self, fg_color="transparent")
         ranges_frame.pack(side="left", fill="x", expand=True)
 
-        # Create range boxes
         for r in self._ranges:
             self._create_range_box(ranges_frame, r)
 
     def _create_range_box(self, parent, range_data: Dict):
-        """Create a single version range box."""
         status = range_data.get('status', 'u')
         color = STATUS_COLORS.get(status, COLORS['text_muted'])
 
-        # Format version text
         start = range_data.get('start', '?')
         end = range_data.get('end', '?')
 
@@ -103,7 +85,6 @@ class VersionRangeBar(ctk.CTkFrame):
         else:
             version_text = f"{start}-{end}"
 
-        # Create the box
         box = ctk.CTkFrame(
             parent,
             fg_color=color,
@@ -112,7 +93,6 @@ class VersionRangeBar(ctk.CTkFrame):
         )
         box.pack(side="left", padx=1, pady=2)
 
-        # Version label
         label = ctk.CTkLabel(
             box,
             text=version_text,
@@ -121,13 +101,11 @@ class VersionRangeBar(ctk.CTkFrame):
         )
         label.pack(padx=SPACING['xs'], pady=2)
 
-        # Tooltip on hover
         tooltip_text = f"{version_text}: {range_data.get('status_text', 'Unknown')}"
         self._add_tooltip(box, tooltip_text)
         self._add_tooltip(label, tooltip_text)
 
     def _add_tooltip(self, widget, text: str):
-        """Add hover tooltip to widget."""
         def show_tooltip(event):
             widget._tooltip = ctk.CTkToplevel(widget)
             widget._tooltip.wm_overrideredirect(True)
@@ -153,10 +131,7 @@ class VersionRangeBar(ctk.CTkFrame):
 
 
 class VersionRangeCard(ctk.CTkFrame):
-    """Card showing version ranges for a feature across all browsers.
-
-    Similar to Can I Use's browser support table.
-    """
+    """Feature support table across browsers, like Can I Use."""
 
     def __init__(
         self,
@@ -166,14 +141,6 @@ class VersionRangeCard(ctk.CTkFrame):
         browser_ranges: Dict[str, List[Dict]],
         **kwargs
     ):
-        """Initialize the version range card.
-
-        Args:
-            master: Parent widget
-            feature_id: Can I Use feature ID
-            feature_name: Human-readable feature name
-            browser_ranges: Dict mapping browser IDs to list of ranges
-        """
         super().__init__(
             master,
             fg_color=COLORS['bg_medium'],
@@ -189,8 +156,6 @@ class VersionRangeCard(ctk.CTkFrame):
         self._init_ui()
 
     def _init_ui(self):
-        """Build the UI."""
-        # Header
         header = ctk.CTkFrame(self, fg_color="transparent")
         header.pack(fill="x", padx=SPACING['md'], pady=SPACING['md'])
 
@@ -210,7 +175,6 @@ class VersionRangeCard(ctk.CTkFrame):
         )
         feature_id_label.pack(side="left", padx=(SPACING['xs'], 0))
 
-        # Legend
         legend = ctk.CTkFrame(self, fg_color="transparent")
         legend.pack(fill="x", padx=SPACING['md'], pady=(0, SPACING['sm']))
 
@@ -234,11 +198,10 @@ class VersionRangeCard(ctk.CTkFrame):
             )
             label.pack(side="left", padx=(0, SPACING['md']))
 
-        # Browser rows
         browsers_frame = ctk.CTkFrame(self, fg_color="transparent")
         browsers_frame.pack(fill="x", padx=SPACING['md'], pady=(0, SPACING['md']))
 
-        # Order browsers: desktop first, then mobile
+        # Desktop browsers first, then mobile
         browser_order = ['chrome', 'edge', 'safari', 'firefox', 'opera', 'ie']
 
         for browser in browser_order:
@@ -252,7 +215,7 @@ class VersionRangeCard(ctk.CTkFrame):
 
 
 class VersionRangePopup(ctk.CTkToplevel):
-    """Popup window showing detailed version ranges for a feature."""
+    """Modal popup with detailed version ranges for a single feature."""
 
     def __init__(
         self,
@@ -261,20 +224,12 @@ class VersionRangePopup(ctk.CTkToplevel):
         feature_name: str,
         **kwargs
     ):
-        """Initialize the popup.
-
-        Args:
-            master: Parent widget
-            feature_id: Can I Use feature ID
-            feature_name: Human-readable feature name
-        """
         super().__init__(master, **kwargs)
 
         self.title(f"Browser Support: {feature_name}")
         self.geometry("600x400")
         self.configure(fg_color=COLORS['bg_dark'])
 
-        # Make it modal
         self.transient(master)
         self.grab_set()
 
@@ -290,14 +245,11 @@ class VersionRangePopup(ctk.CTkToplevel):
         self.geometry(f"+{x}+{y}")
 
     def _init_ui(self):
-        """Build the UI."""
-        # Import here to avoid circular imports
+        # Deferred import to avoid circular dependency
         from ...analyzer.version_ranges import get_support_summary, BROWSER_NAMES
 
-        # Get version ranges
         summary = get_support_summary(self._feature_id)
 
-        # Header
         header = ctk.CTkFrame(self, fg_color="transparent")
         header.pack(fill="x", padx=SPACING['lg'], pady=SPACING['lg'])
 
@@ -321,25 +273,21 @@ class VersionRangePopup(ctk.CTkToplevel):
         )
         close_btn.pack(side="right")
 
-        # Scrollable content
         scroll_frame = ctk.CTkScrollableFrame(
             self,
             fg_color="transparent",
         )
         scroll_frame.pack(fill="both", expand=True, padx=SPACING['lg'], pady=(0, SPACING['lg']))
 
-        # Browser rows
         for browser, data in summary.items():
             self._create_browser_row(scroll_frame, browser, data)
 
     def _create_browser_row(self, parent, browser: str, data: Dict):
-        """Create a row for one browser."""
         from ...analyzer.version_ranges import BROWSER_NAMES
 
         row = ctk.CTkFrame(parent, fg_color=COLORS['bg_medium'], corner_radius=6)
         row.pack(fill="x", pady=SPACING['xs'])
 
-        # Browser name
         name_frame = ctk.CTkFrame(row, fg_color="transparent", width=140)
         name_frame.pack(side="left", padx=SPACING['sm'], pady=SPACING['sm'])
         name_frame.pack_propagate(False)
@@ -354,7 +302,6 @@ class VersionRangePopup(ctk.CTkToplevel):
         )
         name_label.pack(side="left")
 
-        # Current status
         status = data.get('current_status', 'u')
         status_text = data.get('current_status_text', 'Unknown')
         color = STATUS_COLORS.get(status, COLORS['text_muted'])
@@ -369,7 +316,6 @@ class VersionRangePopup(ctk.CTkToplevel):
         )
         status_badge.pack(side="left", padx=SPACING['xs'])
 
-        # Supported since
         if data.get('supported_since'):
             since_label = ctk.CTkLabel(
                 row,
@@ -379,7 +325,6 @@ class VersionRangePopup(ctk.CTkToplevel):
             )
             since_label.pack(side="left", padx=SPACING['sm'])
 
-        # Version ranges (compact)
         ranges_text = self._format_ranges(data.get('ranges', []))
         ranges_label = ctk.CTkLabel(
             row,
@@ -390,9 +335,9 @@ class VersionRangePopup(ctk.CTkToplevel):
         ranges_label.pack(side="right", padx=SPACING['sm'])
 
     def _format_ranges(self, ranges: List[Dict]) -> str:
-        """Format ranges as compact text."""
+        """Compact summary of the last 3 version ranges."""
         parts = []
-        for r in ranges[-3:]:  # Show last 3 ranges
+        for r in ranges[-3:]:
             start = r.get('start', '?')
             end = r.get('end', '?')
             status = r.get('status', 'u')

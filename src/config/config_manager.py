@@ -1,8 +1,4 @@
-"""Configuration manager for Cross Guard.
-
-Loads settings from a crossguard.config.json file (project-level)
-with fallback to sensible defaults. Designed for CLI and programmatic use.
-"""
+"""Loads settings from crossguard.config.json with fallback to defaults."""
 
 import json
 from pathlib import Path
@@ -10,7 +6,6 @@ from typing import Any, Dict, List, Optional
 
 from src.utils.config import LATEST_VERSIONS
 
-# Default configuration
 DEFAULT_CONFIG: Dict[str, Any] = {
     'browsers': {
         'chrome': LATEST_VERSIONS['chrome'],
@@ -23,52 +18,33 @@ DEFAULT_CONFIG: Dict[str, Any] = {
         'node_modules', 'dist', 'build', '.git',
         '__pycache__', '.next', '.nuxt', 'vendor',
     ],
-    'rules': None,  # Path to custom_rules.json (None = use built-in path)
+    'rules': None,  # None = use built-in rules
 }
 
 CONFIG_FILENAME = 'crossguard.config.json'
 
 
 class ConfigManager:
-    """Manages Cross Guard configuration from file and defaults."""
+    """Handles config loading, merging, and access."""
 
     def __init__(self, config_path: Optional[str] = None, overrides: Optional[Dict] = None):
-        """Initialize configuration manager.
-
-        Args:
-            config_path: Explicit path to config file. If None, searches
-                         current directory and parents for crossguard.config.json.
-            overrides: Dict of values to override file/default config.
-        """
         self._config: Dict[str, Any] = {}
         self._config_path: Optional[Path] = None
         self._load(config_path, overrides)
 
     def _load(self, config_path: Optional[str], overrides: Optional[Dict]):
-        """Load configuration with precedence: overrides > file > defaults."""
-        # Start with defaults
+        """Precedence: overrides > file > defaults."""
         self._config = _deep_copy(DEFAULT_CONFIG)
 
-        # Layer file config
         file_config = self._load_from_file(config_path)
         if file_config:
             _deep_merge(self._config, file_config)
 
-        # Layer overrides
         if overrides:
             _deep_merge(self._config, overrides)
 
     def _load_from_file(self, config_path: Optional[str]) -> Optional[Dict]:
-        """Load config from file.
-
-        Precedence: explicit path > crossguard.config.json > package.json "crossguard" key.
-
-        Args:
-            config_path: Explicit path, or None to search.
-
-        Returns:
-            Config dict from file, or None if not found.
-        """
+        """Try explicit path, then crossguard.config.json, then package.json fallback."""
         if config_path:
             path = Path(config_path)
             if path.is_file():
@@ -76,13 +52,12 @@ class ConfigManager:
                 return _read_json(path)
             return None
 
-        # Search current directory and parents for crossguard.config.json
         found = _find_config_file(Path.cwd())
         if found:
             self._config_path = found
             return _read_json(found)
 
-        # Fallback: check package.json for a "crossguard" key
+        # Last resort: "crossguard" key in package.json
         pkg_config = _load_from_package_json(Path.cwd())
         if pkg_config is not None:
             return pkg_config
@@ -91,84 +66,56 @@ class ConfigManager:
 
     @property
     def config_path(self) -> Optional[Path]:
-        """Path to the loaded config file, or None."""
         return self._config_path
 
     @property
     def browsers(self) -> Dict[str, str]:
-        """Target browsers configuration."""
         return dict(self._config.get('browsers', DEFAULT_CONFIG['browsers']))
 
     @property
     def output_format(self) -> str:
-        """Default output format."""
         return self._config.get('output', 'table')
 
     @property
     def ignore_patterns(self) -> List[str]:
-        """Directory/file patterns to ignore during scanning."""
         return list(self._config.get('ignore', DEFAULT_CONFIG['ignore']))
 
     @property
     def rules_path(self) -> Optional[str]:
-        """Path to custom rules file, or None for built-in."""
         return self._config.get('rules')
 
     def get(self, key: str, default: Any = None) -> Any:
-        """Get a config value by key."""
         return self._config.get(key, default)
 
     def to_dict(self) -> Dict[str, Any]:
-        """Return a copy of the full config."""
         return _deep_copy(self._config)
 
     @staticmethod
     def create_default_config(directory: str = '.') -> str:
-        """Create a default crossguard.config.json in the given directory.
-
-        Args:
-            directory: Directory to create the file in.
-
-        Returns:
-            Path to the created file.
-        """
+        """Write a fresh crossguard.config.json to the given directory."""
         path = Path(directory) / CONFIG_FILENAME
         with open(path, 'w', encoding='utf-8') as f:
             json.dump(DEFAULT_CONFIG, f, indent=2)
         return str(path)
 
 
-# ── Module-level convenience functions ────────────────────────────────
-
-
 def load_config(
     config_path: Optional[str] = None,
     overrides: Optional[Dict] = None,
 ) -> ConfigManager:
-    """Load configuration.
-
-    Args:
-        config_path: Explicit path to config file.
-        overrides: Dict of values to override.
-
-    Returns:
-        ConfigManager instance.
-    """
+    """Shortcut to create a ConfigManager."""
     return ConfigManager(config_path=config_path, overrides=overrides)
 
 
 def get_default_config() -> Dict[str, Any]:
-    """Get the default configuration as a dict."""
+    """Get the built-in defaults as a dict."""
     return _deep_copy(DEFAULT_CONFIG)
 
 
-# ── Helpers ───────────────────────────────────────────────────────────
-
-
 def _find_config_file(start: Path) -> Optional[Path]:
-    """Search start directory and parents for crossguard.config.json."""
+    """Walk up from start looking for crossguard.config.json."""
     current = start.resolve()
-    for _ in range(10):  # Limit depth to avoid infinite loop
+    for _ in range(10):  # cap depth so we don't crawl forever
         candidate = current / CONFIG_FILENAME
         if candidate.is_file():
             return candidate
@@ -180,7 +127,6 @@ def _find_config_file(start: Path) -> Optional[Path]:
 
 
 def _read_json(path: Path) -> Optional[Dict]:
-    """Read and parse a JSON file."""
     try:
         with open(path, 'r', encoding='utf-8') as f:
             return json.load(f)
@@ -189,13 +135,7 @@ def _read_json(path: Path) -> Optional[Dict]:
 
 
 def _load_from_package_json(start: Path) -> Optional[Dict]:
-    """Search for package.json with a ``"crossguard"`` key.
-
-    Walks up from *start* (same as config file search).
-
-    Returns:
-        Config dict from the ``"crossguard"`` section, or None.
-    """
+    """Walk up looking for a package.json with a "crossguard" key."""
     current = start.resolve()
     for _ in range(10):
         candidate = current / 'package.json'
@@ -211,12 +151,11 @@ def _load_from_package_json(start: Path) -> Optional[Dict]:
 
 
 def _deep_copy(d: Dict) -> Dict:
-    """Simple deep copy for JSON-serializable dicts."""
     return json.loads(json.dumps(d))
 
 
 def _deep_merge(base: Dict, override: Dict):
-    """Recursively merge override into base (in-place)."""
+    """Recursively merge override into base, mutating base."""
     for key, value in override.items():
         if key in base and isinstance(base[key], dict) and isinstance(value, dict):
             _deep_merge(base[key], value)

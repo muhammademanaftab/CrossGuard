@@ -1,9 +1,4 @@
-"""
-Project Scanner Module for Cross Guard.
-
-This module provides functionality to scan entire project directories
-for browser compatibility analysis.
-"""
+"""Project scanner and framework detector."""
 
 from .project_scanner import (
     ProjectScanner,
@@ -19,13 +14,10 @@ from .framework_detector import (
 )
 
 __all__ = [
-    # Scanner
     'ProjectScanner',
     'ScanConfig',
     'ScanResult',
     'FileTreeNode',
-
-    # Framework detection
     'FrameworkDetector',
     'FrameworkInfo',
     'BuildToolInfo',

@@ -1,9 +1,4 @@
-"""
-Repository classes for Cross Guard database operations.
-
-Provides CRUD (Create, Read, Update, Delete) operations for
-analysis data with proper transaction handling.
-"""
+"""CRUD repositories for analyses, settings, bookmarks, and tags."""
 
 import sqlite3
 import json
@@ -18,47 +13,23 @@ logger = get_logger('database.repositories')
 
 
 class AnalysisRepository:
-    """Repository for Analysis CRUD operations.
-
-    Provides methods to save, retrieve, and delete analysis records
-    along with their related features and browser results.
-    """
+    """CRUD for analysis records and their nested features/browser results."""
 
     def __init__(self, conn: Optional[sqlite3.Connection] = None):
-        """Initialize the repository.
-
-        Args:
-            conn: Optional database connection. If not provided,
-                  uses the shared connection.
-        """
         self._conn = conn
 
     @property
     def conn(self) -> sqlite3.Connection:
-        """Get the database connection."""
         if self._conn is None:
             return get_connection()
         return self._conn
 
     def save_analysis(self, analysis: Analysis) -> int:
-        """Save an analysis with all its features and browser results.
-
-        Uses a transaction to ensure data integrity.
-
-        Args:
-            analysis: Analysis object to save
-
-        Returns:
-            The ID of the saved analysis
-
-        Raises:
-            sqlite3.Error: If database operation fails
-        """
+        """Save an analysis with all features and browser results in one transaction."""
         conn = self.conn
         cursor = conn.cursor()
 
         try:
-            # Insert main analysis record
             cursor.execute("""
                 INSERT INTO analyses
                 (file_name, file_path, file_type, overall_score, grade,
@@ -78,7 +49,6 @@ class AnalysisRepository:
             analysis_id = cursor.lastrowid
             analysis.id = analysis_id
 
-            # Insert features
             for feature in analysis.features:
                 cursor.execute("""
                     INSERT INTO analysis_features
@@ -95,7 +65,6 @@ class AnalysisRepository:
                 feature.id = feature_id
                 feature.analysis_id = analysis_id
 
-                # Insert browser results for this feature
                 for browser_result in feature.browser_results:
                     cursor.execute("""
                         INSERT INTO browser_results
@@ -111,14 +80,12 @@ class AnalysisRepository:
                     browser_result.id = cursor.lastrowid
                     browser_result.analysis_feature_id = feature_id
 
-            # Commit the transaction
             conn.commit()
 
             logger.info(f"Saved analysis #{analysis_id} for {analysis.file_name}")
             return analysis_id
 
         except Exception as e:
-            # Rollback on error
             conn.rollback()
             logger.error(f"Error saving analysis: {e}")
             raise
@@ -129,16 +96,7 @@ class AnalysisRepository:
         offset: int = 0,
         file_type: Optional[str] = None
     ) -> List[Analysis]:
-        """Get all analyses with pagination.
-
-        Args:
-            limit: Maximum number of records to return
-            offset: Number of records to skip
-            file_type: Optional filter by file type
-
-        Returns:
-            List of Analysis objects (without features loaded)
-        """
+        """Paginated list of analyses, newest first. Features not loaded."""
         conn = self.conn
 
         if file_type:
@@ -163,15 +121,7 @@ class AnalysisRepository:
         analysis_id: int,
         include_features: bool = True
     ) -> Optional[Analysis]:
-        """Get a single analysis by ID.
-
-        Args:
-            analysis_id: The analysis ID
-            include_features: Whether to load features and browser results
-
-        Returns:
-            Analysis object or None if not found
-        """
+        """Fetch one analysis, optionally with all nested features."""
         conn = self.conn
 
         cursor = conn.execute(
@@ -191,14 +141,7 @@ class AnalysisRepository:
         return analysis
 
     def _load_features(self, analysis_id: int) -> List[AnalysisFeature]:
-        """Load features for an analysis.
-
-        Args:
-            analysis_id: The analysis ID
-
-        Returns:
-            List of AnalysisFeature objects with browser results
-        """
+        """Load all features (with browser results) for an analysis."""
         conn = self.conn
 
         cursor = conn.execute("""
@@ -215,14 +158,6 @@ class AnalysisRepository:
         return features
 
     def _load_browser_results(self, feature_id: int) -> List[BrowserResult]:
-        """Load browser results for a feature.
-
-        Args:
-            feature_id: The analysis feature ID
-
-        Returns:
-            List of BrowserResult objects
-        """
         conn = self.conn
 
         cursor = conn.execute("""
@@ -237,15 +172,7 @@ class AnalysisRepository:
         file_name: str,
         limit: int = 10
     ) -> List[Analysis]:
-        """Get analysis history for a specific file.
-
-        Args:
-            file_name: The file name to search for
-            limit: Maximum number of records to return
-
-        Returns:
-            List of Analysis objects for the file
-        """
+        """History for a specific file, newest first."""
         conn = self.conn
 
         cursor = conn.execute("""
@@ -258,16 +185,7 @@ class AnalysisRepository:
         return [Analysis.from_row(row) for row in cursor.fetchall()]
 
     def delete_analysis(self, analysis_id: int) -> bool:
-        """Delete an analysis and all related data.
-
-        Cascading delete will automatically remove features and browser results.
-
-        Args:
-            analysis_id: The analysis ID to delete
-
-        Returns:
-            True if deleted, False if not found
-        """
+        """Delete an analysis. Cascade handles features and browser results."""
         conn = self.conn
 
         cursor = conn.execute(
@@ -285,32 +203,19 @@ class AnalysisRepository:
         return deleted
 
     def clear_all(self) -> int:
-        """Delete all analysis history.
-
-        Returns:
-            Number of records deleted
-        """
+        """Delete all analysis history. Returns count of deleted records."""
         conn = self.conn
 
-        # Count before deletion
         cursor = conn.execute("SELECT COUNT(*) FROM analyses")
         count = cursor.fetchone()[0]
 
-        # Delete all (cascading delete handles related tables)
         conn.execute("DELETE FROM analyses")
 
         logger.info(f"Cleared all {count} analyses from history")
         return count
 
     def get_count(self, file_type: Optional[str] = None) -> int:
-        """Get total count of analyses.
-
-        Args:
-            file_type: Optional filter by file type
-
-        Returns:
-            Number of analyses in the database
-        """
+        """Total number of analyses, optionally filtered by type."""
         conn = self.conn
 
         if file_type:
@@ -328,15 +233,7 @@ class AnalysisRepository:
         query: str,
         limit: int = 20
     ) -> List[Analysis]:
-        """Search analyses by file name.
-
-        Args:
-            query: Search query (partial file name)
-            limit: Maximum results to return
-
-        Returns:
-            List of matching Analysis objects
-        """
+        """Search by partial file name match."""
         conn = self.conn
 
         cursor = conn.execute("""
@@ -350,18 +247,9 @@ class AnalysisRepository:
 
 
 def save_analysis_from_result(result: Dict[str, Any], file_info: Dict[str, str]) -> int:
-    """Helper function to save an analysis result from the analyzer.
-
-    Args:
-        result: Analysis result dictionary from the analyzer
-        file_info: Dictionary with 'file_name', 'file_path', 'file_type'
-
-    Returns:
-        The ID of the saved analysis
-    """
+    """Convert an analyzer result dict into model objects and save to DB."""
     from src.utils.feature_names import get_feature_name
 
-    # Create Analysis object
     scores = result.get('scores', {})
     summary = result.get('summary', {})
     browsers = result.get('browsers', {})
@@ -376,22 +264,18 @@ def save_analysis_from_result(result: Dict[str, Any], file_info: Dict[str, str])
         total_features=summary.get('total_features', 0),
     )
 
-    # Set browsers
     target_browsers = {}
     for browser_name, browser_data in browsers.items():
         target_browsers[browser_name] = browser_data.get('version', '')
     analysis.browsers = target_browsers
 
-    # Build features list
     features = []
     all_feature_ids = set()
 
-    # Collect all feature IDs from all categories
     for category in ['html', 'css', 'js']:
         for feature_id in features_dict.get(category, []):
             all_feature_ids.add((feature_id, category))
 
-    # Create AnalysisFeature objects
     for feature_id, category in all_feature_ids:
         feature = AnalysisFeature(
             feature_id=feature_id,
@@ -399,9 +283,7 @@ def save_analysis_from_result(result: Dict[str, Any], file_info: Dict[str, str])
             category=category,
         )
 
-        # Add browser results for this feature
         for browser_name, browser_data in browsers.items():
-            # Determine support status
             unsupported = browser_data.get('unsupported_features', [])
             partial = browser_data.get('partial_features', [])
             supported = browser_data.get('supported_features', [])
@@ -413,7 +295,7 @@ def save_analysis_from_result(result: Dict[str, Any], file_info: Dict[str, str])
             elif feature_id in supported:
                 status = 'y'
             else:
-                status = 'u'  # Unknown
+                status = 'u'
 
             browser_result = BrowserResult(
                 browser=browser_name,
@@ -426,17 +308,12 @@ def save_analysis_from_result(result: Dict[str, Any], file_info: Dict[str, str])
 
     analysis.features = features
 
-    # Save to database
     repo = AnalysisRepository()
     return repo.save_analysis(analysis)
 
 
-# =============================================================================
-# Settings Repository
-# =============================================================================
-
 class SettingsRepository:
-    """Repository for user settings CRUD operations."""
+    """Key-value store for user preferences."""
 
     def __init__(self, conn: Optional[sqlite3.Connection] = None):
         self._conn = conn
@@ -448,15 +325,7 @@ class SettingsRepository:
         return self._conn
 
     def get(self, key: str, default: str = '') -> str:
-        """Get a setting value by key.
-
-        Args:
-            key: Setting key
-            default: Default value if not found
-
-        Returns:
-            Setting value or default
-        """
+        """Get a setting value, or default if missing."""
         cursor = self.conn.execute(
             "SELECT value FROM settings WHERE key = ?",
             (key,)
@@ -465,12 +334,6 @@ class SettingsRepository:
         return row['value'] if row else default
 
     def set(self, key: str, value: str):
-        """Set a setting value.
-
-        Args:
-            key: Setting key
-            value: Setting value
-        """
         self.conn.execute("""
             INSERT OR REPLACE INTO settings (key, value, updated_at)
             VALUES (?, ?, CURRENT_TIMESTAMP)
@@ -478,23 +341,10 @@ class SettingsRepository:
         logger.debug(f"Setting '{key}' = '{value}'")
 
     def get_all(self) -> Dict[str, str]:
-        """Get all settings as a dictionary.
-
-        Returns:
-            Dictionary of all settings
-        """
         cursor = self.conn.execute("SELECT key, value FROM settings")
         return {row['key']: row['value'] for row in cursor.fetchall()}
 
     def delete(self, key: str) -> bool:
-        """Delete a setting.
-
-        Args:
-            key: Setting key to delete
-
-        Returns:
-            True if deleted, False if not found
-        """
         cursor = self.conn.execute(
             "DELETE FROM settings WHERE key = ?",
             (key,)
@@ -502,31 +352,25 @@ class SettingsRepository:
         return cursor.rowcount > 0
 
     def get_as_bool(self, key: str, default: bool = False) -> bool:
-        """Get setting as boolean."""
         value = self.get(key, str(default).lower())
         return value.lower() in ('true', '1', 'yes', 'on')
 
     def get_as_int(self, key: str, default: int = 0) -> int:
-        """Get setting as integer."""
         try:
             return int(self.get(key, str(default)))
         except (ValueError, TypeError):
             return default
 
     def get_as_list(self, key: str, default: List[str] = None) -> List[str]:
-        """Get setting as list (comma-separated)."""
+        """Get a comma-separated setting as a list."""
         value = self.get(key, '')
         if not value:
             return default or []
         return [v.strip() for v in value.split(',') if v.strip()]
 
 
-# =============================================================================
-# Bookmarks Repository
-# =============================================================================
-
 class BookmarksRepository:
-    """Repository for bookmarks CRUD operations."""
+    """CRUD for bookmarked analyses."""
 
     def __init__(self, conn: Optional[sqlite3.Connection] = None):
         self._conn = conn
@@ -538,15 +382,6 @@ class BookmarksRepository:
         return self._conn
 
     def add_bookmark(self, analysis_id: int, note: str = '') -> int:
-        """Add a bookmark for an analysis.
-
-        Args:
-            analysis_id: Analysis to bookmark
-            note: Optional note
-
-        Returns:
-            Bookmark ID
-        """
         from .models import Bookmark
 
         cursor = self.conn.execute("""
@@ -558,14 +393,6 @@ class BookmarksRepository:
         return cursor.lastrowid
 
     def remove_bookmark(self, analysis_id: int) -> bool:
-        """Remove bookmark from an analysis.
-
-        Args:
-            analysis_id: Analysis to unbookmark
-
-        Returns:
-            True if removed, False if not found
-        """
         cursor = self.conn.execute(
             "DELETE FROM bookmarks WHERE analysis_id = ?",
             (analysis_id,)
@@ -576,14 +403,6 @@ class BookmarksRepository:
         return removed
 
     def is_bookmarked(self, analysis_id: int) -> bool:
-        """Check if analysis is bookmarked.
-
-        Args:
-            analysis_id: Analysis to check
-
-        Returns:
-            True if bookmarked
-        """
         cursor = self.conn.execute(
             "SELECT 1 FROM bookmarks WHERE analysis_id = ?",
             (analysis_id,)
@@ -591,14 +410,6 @@ class BookmarksRepository:
         return cursor.fetchone() is not None
 
     def get_bookmark(self, analysis_id: int) -> Optional[Dict[str, Any]]:
-        """Get bookmark for an analysis.
-
-        Args:
-            analysis_id: Analysis ID
-
-        Returns:
-            Bookmark dict or None
-        """
         from .models import Bookmark
 
         cursor = self.conn.execute(
@@ -611,14 +422,7 @@ class BookmarksRepository:
         return None
 
     def get_all_bookmarks(self, limit: int = 50) -> List[Dict[str, Any]]:
-        """Get all bookmarks with their analyses.
-
-        Args:
-            limit: Maximum number to return
-
-        Returns:
-            List of bookmark dicts with analysis data
-        """
+        """All bookmarks joined with their analysis data."""
         from .models import Bookmark, Analysis
 
         cursor = self.conn.execute("""
@@ -651,15 +455,6 @@ class BookmarksRepository:
         return results
 
     def update_note(self, analysis_id: int, note: str) -> bool:
-        """Update bookmark note.
-
-        Args:
-            analysis_id: Analysis ID
-            note: New note text
-
-        Returns:
-            True if updated
-        """
         cursor = self.conn.execute(
             "UPDATE bookmarks SET note = ? WHERE analysis_id = ?",
             (note, analysis_id)
@@ -667,17 +462,12 @@ class BookmarksRepository:
         return cursor.rowcount > 0
 
     def get_count(self) -> int:
-        """Get total number of bookmarks."""
         cursor = self.conn.execute("SELECT COUNT(*) FROM bookmarks")
         return cursor.fetchone()[0]
 
 
-# =============================================================================
-# Tags Repository
-# =============================================================================
-
 class TagsRepository:
-    """Repository for tags CRUD operations (many-to-many with analyses)."""
+    """CRUD for tags and many-to-many analysis-tag relationships."""
 
     def __init__(self, conn: Optional[sqlite3.Connection] = None):
         self._conn = conn
@@ -689,15 +479,6 @@ class TagsRepository:
         return self._conn
 
     def create_tag(self, name: str, color: str = '#58a6ff') -> int:
-        """Create a new tag.
-
-        Args:
-            name: Tag name (must be unique)
-            color: Hex color code
-
-        Returns:
-            Tag ID
-        """
         cursor = self.conn.execute("""
             INSERT INTO tags (name, color, created_at)
             VALUES (?, ?, CURRENT_TIMESTAMP)
@@ -707,14 +488,6 @@ class TagsRepository:
         return cursor.lastrowid
 
     def get_tag_by_name(self, name: str) -> Optional[Dict[str, Any]]:
-        """Get tag by name.
-
-        Args:
-            name: Tag name
-
-        Returns:
-            Tag dict or None
-        """
         from .models import Tag
 
         cursor = self.conn.execute(
@@ -727,14 +500,6 @@ class TagsRepository:
         return None
 
     def get_tag_by_id(self, tag_id: int) -> Optional[Dict[str, Any]]:
-        """Get tag by ID.
-
-        Args:
-            tag_id: Tag ID
-
-        Returns:
-            Tag dict or None
-        """
         from .models import Tag
 
         cursor = self.conn.execute(
@@ -747,11 +512,6 @@ class TagsRepository:
         return None
 
     def get_all_tags(self) -> List[Dict[str, Any]]:
-        """Get all tags.
-
-        Returns:
-            List of tag dicts
-        """
         from .models import Tag
 
         cursor = self.conn.execute(
@@ -760,14 +520,6 @@ class TagsRepository:
         return [Tag.from_row(row).to_dict() for row in cursor.fetchall()]
 
     def delete_tag(self, tag_id: int) -> bool:
-        """Delete a tag.
-
-        Args:
-            tag_id: Tag ID to delete
-
-        Returns:
-            True if deleted
-        """
         cursor = self.conn.execute(
             "DELETE FROM tags WHERE id = ?",
             (tag_id,)
@@ -778,16 +530,7 @@ class TagsRepository:
         return deleted
 
     def update_tag(self, tag_id: int, name: str = None, color: str = None) -> bool:
-        """Update tag properties.
-
-        Args:
-            tag_id: Tag ID
-            name: New name (optional)
-            color: New color (optional)
-
-        Returns:
-            True if updated
-        """
+        """Update name and/or color. Only touches fields that are provided."""
         updates = []
         params = []
 
@@ -808,20 +551,9 @@ class TagsRepository:
         )
         return cursor.rowcount > 0
 
-    # =========================================================================
-    # Analysis-Tag relationships (many-to-many)
-    # =========================================================================
+    # --- Analysis-tag relationships ---
 
     def add_tag_to_analysis(self, analysis_id: int, tag_id: int) -> bool:
-        """Add a tag to an analysis.
-
-        Args:
-            analysis_id: Analysis ID
-            tag_id: Tag ID
-
-        Returns:
-            True if added
-        """
         try:
             self.conn.execute("""
                 INSERT OR IGNORE INTO analysis_tags (analysis_id, tag_id, created_at)
@@ -834,15 +566,6 @@ class TagsRepository:
             return False
 
     def remove_tag_from_analysis(self, analysis_id: int, tag_id: int) -> bool:
-        """Remove a tag from an analysis.
-
-        Args:
-            analysis_id: Analysis ID
-            tag_id: Tag ID
-
-        Returns:
-            True if removed
-        """
         cursor = self.conn.execute(
             "DELETE FROM analysis_tags WHERE analysis_id = ? AND tag_id = ?",
             (analysis_id, tag_id)
@@ -850,14 +573,6 @@ class TagsRepository:
         return cursor.rowcount > 0
 
     def get_tags_for_analysis(self, analysis_id: int) -> List[Dict[str, Any]]:
-        """Get all tags for an analysis.
-
-        Args:
-            analysis_id: Analysis ID
-
-        Returns:
-            List of tag dicts
-        """
         from .models import Tag
 
         cursor = self.conn.execute("""
@@ -870,15 +585,6 @@ class TagsRepository:
         return [Tag.from_row(row).to_dict() for row in cursor.fetchall()]
 
     def get_analyses_by_tag(self, tag_id: int, limit: int = 50) -> List[Dict[str, Any]]:
-        """Get all analyses with a specific tag.
-
-        Args:
-            tag_id: Tag ID
-            limit: Maximum results
-
-        Returns:
-            List of analysis dicts
-        """
         cursor = self.conn.execute("""
             SELECT a.* FROM analyses a
             JOIN analysis_tags at ON a.id = at.analysis_id
@@ -890,11 +596,7 @@ class TagsRepository:
         return [Analysis.from_row(row).to_dict() for row in cursor.fetchall()]
 
     def get_tag_counts(self) -> Dict[str, int]:
-        """Get usage count for each tag.
-
-        Returns:
-            Dict mapping tag name to usage count
-        """
+        """How many analyses each tag is applied to."""
         cursor = self.conn.execute("""
             SELECT t.name, COUNT(at.analysis_id) as count
             FROM tags t

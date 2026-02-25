@@ -1,10 +1,4 @@
-"""
-Data schemas/contracts for frontend-backend communication.
-
-These dataclasses define the structure of data exchanged between
-the GUI and the analyzer backend. Both layers should only depend
-on these schemas, not on each other's implementation details.
-"""
+"""Data contracts shared between the frontend and backend."""
 
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional
@@ -12,14 +6,12 @@ from enum import Enum
 
 
 class AnalysisStatus(Enum):
-    """Status of an analysis operation."""
     SUCCESS = "success"
     FAILED = "failed"
     NO_FILES = "no_files"
 
 
 class RiskLevel(Enum):
-    """Risk level for compatibility."""
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -28,31 +20,26 @@ class RiskLevel(Enum):
 
 @dataclass
 class BrowserTarget:
-    """Target browser specification."""
     name: str
     version: str
 
 
 @dataclass
 class AnalysisRequest:
-    """Request to analyze files for browser compatibility."""
     html_files: List[str] = field(default_factory=list)
     css_files: List[str] = field(default_factory=list)
     js_files: List[str] = field(default_factory=list)
     target_browsers: Dict[str, str] = field(default_factory=dict)
 
     def has_files(self) -> bool:
-        """Check if any files are specified."""
         return bool(self.html_files or self.css_files or self.js_files)
 
     def total_files(self) -> int:
-        """Get total number of files."""
         return len(self.html_files) + len(self.css_files) + len(self.js_files)
 
 
 @dataclass
 class FeatureSummary:
-    """Summary of analyzed features."""
     total_features: int = 0
     html_features: int = 0
     css_features: int = 0
@@ -62,7 +49,6 @@ class FeatureSummary:
 
 @dataclass
 class DetectedFeatures:
-    """List of detected features by type."""
     html: List[str] = field(default_factory=list)
     css: List[str] = field(default_factory=list)
     js: List[str] = field(default_factory=list)
@@ -71,7 +57,7 @@ class DetectedFeatures:
 
 @dataclass
 class FeatureDetails:
-    """Details about which properties matched which features."""
+    """Which properties/patterns matched which Can I Use features."""
     css: List[Dict] = field(default_factory=list)  # [{feature, description, matched_properties}]
     js: List[Dict] = field(default_factory=list)
     html: List[Dict] = field(default_factory=list)
@@ -79,7 +65,7 @@ class FeatureDetails:
 
 @dataclass
 class UnrecognizedPatterns:
-    """List of unrecognized patterns by type (not matched by any rule)."""
+    """Patterns not matched by any detection rule."""
     html: List[str] = field(default_factory=list)
     css: List[str] = field(default_factory=list)
     js: List[str] = field(default_factory=list)
@@ -88,7 +74,6 @@ class UnrecognizedPatterns:
 
 @dataclass
 class CompatibilityScore:
-    """Compatibility score details."""
     grade: str = "N/A"
     risk_level: str = "unknown"
     simple_score: float = 0.0
@@ -97,7 +82,6 @@ class CompatibilityScore:
 
 @dataclass
 class BrowserCompatibility:
-    """Compatibility details for a specific browser."""
     name: str
     version: str
     supported: int = 0
@@ -110,7 +94,6 @@ class BrowserCompatibility:
 
 @dataclass
 class AnalysisResult:
-    """Result of a compatibility analysis."""
     success: bool
     summary: Optional[FeatureSummary] = None
     scores: Optional[CompatibilityScore] = None
@@ -123,7 +106,7 @@ class AnalysisResult:
 
     @classmethod
     def from_dict(cls, data: Dict) -> 'AnalysisResult':
-        """Create AnalysisResult from a dictionary (backend report)."""
+        """Build an AnalysisResult from a raw backend report dict."""
         if not data.get('success', False):
             return cls(
                 success=False,
@@ -160,7 +143,6 @@ class AnalysisResult:
                 partial_features=browser_data.get('partial_features', []),
             )
 
-        # Parse detected features
         features_data = data.get('features', {})
         detected_features = DetectedFeatures(
             html=features_data.get('html', []),
@@ -169,7 +151,6 @@ class AnalysisResult:
             all=features_data.get('all', []),
         )
 
-        # Parse feature details (property → feature mapping)
         details_data = data.get('feature_details', {})
         feature_details = FeatureDetails(
             css=details_data.get('css', []),
@@ -177,7 +158,6 @@ class AnalysisResult:
             html=details_data.get('html', []),
         )
 
-        # Parse unrecognized patterns
         unrecognized_data = data.get('unrecognized', {})
         unrecognized_patterns = UnrecognizedPatterns(
             html=unrecognized_data.get('html', []),
@@ -198,7 +178,7 @@ class AnalysisResult:
         )
 
     def to_dict(self) -> Dict:
-        """Convert to dictionary for export."""
+        """Serialize to a plain dict for export."""
         if not self.success:
             return {'success': False, 'error': self.error}
 
@@ -252,7 +232,6 @@ class AnalysisResult:
 
 @dataclass
 class DatabaseInfo:
-    """Information about the Can I Use database."""
     features_count: int = 0
     last_updated: str = "Unknown"
     is_git_repo: bool = False
@@ -260,20 +239,17 @@ class DatabaseInfo:
 
 @dataclass
 class DatabaseUpdateResult:
-    """Result of a database update operation."""
     success: bool
     message: str = ""
     no_changes: bool = False
     error: Optional[str] = None
 
 
-# Type alias for progress callback
 ProgressCallback = Optional[callable]
 
 
 @dataclass
 class ExportRequest:
-    """Request to export an analysis report."""
     format: str  # "json" or "pdf"
     analysis_id: Optional[int] = None
     result: Optional[AnalysisResult] = None
@@ -288,7 +264,6 @@ class ExportRequest:
 
 @dataclass
 class PolyfillPackageInfo:
-    """Information about a single polyfill package option."""
     name: str
     npm_package: str
     import_statement: str
@@ -299,7 +274,7 @@ class PolyfillPackageInfo:
 
 @dataclass
 class PolyfillRecommendationSchema:
-    """A polyfill recommendation for a feature (API schema version)."""
+    """API-layer version of a polyfill recommendation."""
     feature_id: str
     feature_name: str
     polyfill_type: str  # 'npm' or 'fallback'

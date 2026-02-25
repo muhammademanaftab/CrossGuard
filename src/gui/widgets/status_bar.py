@@ -1,6 +1,4 @@
-"""
-Status bar widget for Cross Guard - Bottom status bar with file count and messages.
-"""
+"""Bottom status bar -- file count, status message, last analysis time."""
 
 from typing import Optional
 from datetime import datetime
@@ -10,18 +8,13 @@ from ..theme import COLORS, SPACING, ICONS
 
 
 class StatusBar(ctk.CTkFrame):
-    """Bottom status bar with file count, status messages, and timestamps."""
+    """Thin bar at the bottom with status dot, file count, and timestamps."""
 
     def __init__(
         self,
         master,
         **kwargs
     ):
-        """Initialize status bar.
-
-        Args:
-            master: Parent widget
-        """
         super().__init__(
             master,
             height=28,
@@ -34,22 +27,18 @@ class StatusBar(ctk.CTkFrame):
         self._status_message = "Ready"
         self._last_analysis: Optional[datetime] = None
 
-        # Prevent resize
         self.pack_propagate(False)
 
         self._init_ui()
 
     def _init_ui(self):
-        """Initialize the user interface."""
-        # Inner container
         container = ctk.CTkFrame(self, fg_color="transparent")
         container.pack(fill="both", expand=True, padx=SPACING['md'])
 
-        # Left side - Status message
+        # Left: status dot + message
         left_frame = ctk.CTkFrame(container, fg_color="transparent")
         left_frame.pack(side="left", fill="y")
 
-        # Status indicator dot
         self.status_dot = ctk.CTkLabel(
             left_frame,
             text=ICONS['dot'],
@@ -58,7 +47,6 @@ class StatusBar(ctk.CTkFrame):
         )
         self.status_dot.pack(side="left", padx=(0, SPACING['xs']))
 
-        # Status message
         self.status_label = ctk.CTkLabel(
             left_frame,
             text=self._status_message,
@@ -67,7 +55,7 @@ class StatusBar(ctk.CTkFrame):
         )
         self.status_label.pack(side="left")
 
-        # Center - File count
+        # Center: file count
         center_frame = ctk.CTkFrame(container, fg_color="transparent")
         center_frame.pack(side="left", fill="y", padx=SPACING['xl'])
 
@@ -79,7 +67,7 @@ class StatusBar(ctk.CTkFrame):
         )
         self.file_count_label.pack(side="left")
 
-        # Right side - Last analysis time
+        # Right: last analysis timestamp
         right_frame = ctk.CTkFrame(container, fg_color="transparent")
         right_frame.pack(side="right", fill="y")
 
@@ -92,7 +80,6 @@ class StatusBar(ctk.CTkFrame):
         self.analysis_label.pack(side="right")
 
     def _format_file_count(self) -> str:
-        """Format the file count display."""
         if self._file_count == 0:
             return "No files selected"
         elif self._file_count == 1:
@@ -101,7 +88,6 @@ class StatusBar(ctk.CTkFrame):
             return f"{self._file_count} files selected"
 
     def _format_last_analysis(self) -> str:
-        """Format the last analysis timestamp."""
         if self._last_analysis is None:
             return "Last analysis: Never"
         else:
@@ -109,16 +95,10 @@ class StatusBar(ctk.CTkFrame):
             return f"Last analysis: {time_str}"
 
     def set_status(self, message: str, status_type: str = "normal"):
-        """Set the status message.
-
-        Args:
-            message: Status message to display
-            status_type: Type of status ('normal', 'success', 'warning', 'error')
-        """
+        """Update the status message and dot color (normal/success/warning/error/info)."""
         self._status_message = message
         self.status_label.configure(text=message)
 
-        # Update status dot color
         dot_colors = {
             "normal": COLORS['text_muted'],
             "success": COLORS['success'],
@@ -129,26 +109,16 @@ class StatusBar(ctk.CTkFrame):
         self.status_dot.configure(text_color=dot_colors.get(status_type, COLORS['text_muted']))
 
     def set_file_count(self, count: int):
-        """Set the file count.
-
-        Args:
-            count: Number of files selected
-        """
         self._file_count = count
         self.file_count_label.configure(text=self._format_file_count())
 
     def set_last_analysis(self, timestamp: Optional[datetime] = None):
-        """Set the last analysis timestamp.
-
-        Args:
-            timestamp: Timestamp of last analysis (None for never)
-        """
+        """Set timestamp; defaults to now if None."""
         if timestamp is None:
             timestamp = datetime.now()
         self._last_analysis = timestamp
         self.analysis_label.configure(text=self._format_last_analysis())
 
     def clear_last_analysis(self):
-        """Clear the last analysis timestamp."""
         self._last_analysis = None
         self.analysis_label.configure(text=self._format_last_analysis())

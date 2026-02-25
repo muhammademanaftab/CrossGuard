@@ -1,9 +1,4 @@
-"""
-Export Manager for Cross Guard GUI.
-
-Thin GUI shell that delegates to src.export for actual report generation.
-Only handles file dialogs, progress indication, and error toasts.
-"""
+"""Thin GUI shell around src.export -- just file dialogs and error toasts."""
 
 import traceback
 from tkinter import filedialog
@@ -13,22 +8,13 @@ from .widgets.messagebox import show_info, show_warning, show_error
 
 
 class ExportManager:
-    """GUI wrapper for export functionality — file dialogs + error handling."""
+    """Wraps export with file dialogs and error handling."""
 
     def __init__(self, parent):
-        """Initialize export manager.
-
-        Args:
-            parent: Parent widget for dialogs
-        """
         self.parent = parent
 
     def export_json(self, report: Dict) -> None:
-        """Export analysis report as JSON file via file dialog.
-
-        Args:
-            report: Analysis report dictionary
-        """
+        """Show save dialog and export report as JSON."""
         if not report:
             show_warning(self.parent, "No Report", "No analysis report to export.")
             return
@@ -58,11 +44,7 @@ class ExportManager:
                 )
 
     def export_pdf(self, report: Dict) -> None:
-        """Export analysis report as PDF via file dialog.
-
-        Args:
-            report: Analysis report dictionary
-        """
+        """Show save dialog and export report as PDF."""
         if not report:
             show_warning(self.parent, "No Report", "No analysis report to export.")
             return

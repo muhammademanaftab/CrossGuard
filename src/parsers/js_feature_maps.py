@@ -1,10 +1,7 @@
-"""JavaScript Feature mapping dictionaries.
+"""JavaScript pattern to Can I Use feature ID mappings."""
 
-Maps detected JavaScript patterns to Can I Use feature IDs.
-All feature IDs are verified against the Can I Use database.
-"""
+# --- Syntax ---
 
-# JavaScript Syntax Features
 JS_SYNTAX_FEATURES = {
     'arrow-functions': {
         'patterns': [r'=>', r'\(.*?\)\s*=>', r'\w+\s*=>'],
@@ -33,11 +30,8 @@ JS_SYNTAX_FEATURES = {
     },
     'es6': {
         'patterns': [
-            # Destructuring
             r'\bconst\s*\{', r'\blet\s*\{', r'\bconst\s*\[', r'\blet\s*\[',
-            # Spread/rest
             r'\.\.\.',
-            # ES6 built-ins (Map, Set, WeakMap, WeakSet, Symbol, Reflect)
             r'\bnew\s+Map', r'\bnew\s+Set', r'\bnew\s+WeakMap', r'\bnew\s+WeakSet',
             r'\bSymbol\s*\(', r'\bReflect\.'
         ],
@@ -61,7 +55,8 @@ JS_SYNTAX_FEATURES = {
     },
 }
 
-# JavaScript API Features
+# --- APIs ---
+
 JS_API_FEATURES = {
     'promises': {
         'patterns': [r'\bnew\s+Promise', r'\.then\(', r'\.catch\(', r'Promise\.'],
@@ -104,13 +99,13 @@ JS_API_FEATURES = {
         'description': 'JSON parsing and stringifying'
     },
     'dragndrop': {
-        'patterns': [r'\.draggable\s*=', r'addEventListener\s*\(\s*["\']drag', 
+        'patterns': [r'\.draggable\s*=', r'addEventListener\s*\(\s*["\']drag',
                      r'addEventListener\s*\(\s*["\']drop', r'dataTransfer'],
         'keywords': ['draggable', 'dragstart', 'drop', 'dataTransfer'],
         'description': 'Drag and Drop API'
     },
     'es5': {
-        'patterns': [r'\.forEach\s*\(', r'\.map\s*\(', r'\.filter\s*\(', 
+        'patterns': [r'\.forEach\s*\(', r'\.map\s*\(', r'\.filter\s*\(',
                      r'\.reduce\s*\(', r'\.some\s*\(', r'\.every\s*\('],
         'keywords': ['forEach', 'map', 'filter', 'reduce'],
         'description': 'ES5 Array methods'
@@ -977,7 +972,8 @@ JS_API_FEATURES = {
     },
 }
 
-# JavaScript Array Methods
+# --- Array Methods ---
+
 JS_ARRAY_METHODS = {
     'array-flat': {
         'patterns': [r'\.flat\s*\(', r'\.flatMap\s*\('],
@@ -996,7 +992,8 @@ JS_ARRAY_METHODS = {
     },
 }
 
-# JavaScript String Methods
+# --- String Methods ---
+
 JS_STRING_METHODS = {
     'es6-string-includes': {
         'patterns': [r'\.includes\s*\('],
@@ -1010,7 +1007,8 @@ JS_STRING_METHODS = {
     },
 }
 
-# JavaScript Object Methods
+# --- Object Methods ---
+
 JS_OBJECT_METHODS = {
     'object-entries': {
         'patterns': [r'Object\.entries\s*\('],
@@ -1029,7 +1027,8 @@ JS_OBJECT_METHODS = {
     },
 }
 
-# Web Storage APIs
+# --- Storage ---
+
 JS_STORAGE_APIS = {
     'namevalue-storage': {
         'patterns': [r'\blocalStorage', r'\bsessionStorage'],
@@ -1043,7 +1042,8 @@ JS_STORAGE_APIS = {
     },
 }
 
-# DOM APIs
+# --- DOM ---
+
 JS_DOM_APIS = {
     'queryselector': {
         'patterns': [r'\.querySelector\s*\(', r'\.querySelectorAll\s*\('],
@@ -1260,7 +1260,6 @@ JS_DOM_APIS = {
         'keywords': ['shadowrootmode'],
         'description': 'Declarative Shadow DOM'
     },
-    # Additional HTML/DOM features accessible via JavaScript
     'dialog': {
         'patterns': [r'\.showModal\s*\(', r'\.close\s*\(', r'HTMLDialogElement'],
         'keywords': ['showModal', 'HTMLDialogElement'],
@@ -1361,7 +1360,6 @@ JS_DOM_APIS = {
         'keywords': ['webkitdirectory'],
         'description': 'Directory selection from file input (JS access)'
     },
-    # WebAssembly features
     'wasm': {
         'patterns': [r'WebAssembly\.', r'WebAssembly\.instantiate', r'WebAssembly\.compile', r'\.wasm'],
         'keywords': ['WebAssembly', 'wasm'],
@@ -1412,13 +1410,11 @@ JS_DOM_APIS = {
         'keywords': ['trunc_sat'],
         'description': 'WebAssembly Non-trapping float-to-int Conversion'
     },
-    # Data URIs
     'datauri': {
         'patterns': [r'data:image/', r'data:text/', r'data:application/'],
         'keywords': ['data:'],
         'description': 'Data URIs'
     },
-    # URL Scroll-To-Text Fragment
     'url-scroll-to-text-fragment': {
         'patterns': [r':~:text='],
         'keywords': ['scroll-to-text'],
@@ -1426,7 +1422,7 @@ JS_DOM_APIS = {
     },
 }
 
-# All JavaScript features combined
+# Combined
 ALL_JS_FEATURES = {
     **JS_SYNTAX_FEATURES,
     **JS_API_FEATURES,
@@ -1438,12 +1434,9 @@ ALL_JS_FEATURES = {
 }
 
 
-# ============================================================
-# AST-based detection maps (used by tree-sitter integration)
-# ============================================================
+# --- AST detection maps (used by tree-sitter) ---
 
-# Tier 1: AST node types → feature IDs
-# These are detected purely by tree-sitter node type (zero false positives)
+# Tier 1: node type -> feature ID (zero false positives)
 AST_SYNTAX_NODE_MAP = {
     'arrow_function': 'arrow-functions',
     'template_string': 'template-literals',
@@ -1457,7 +1450,7 @@ AST_SYNTAX_NODE_MAP = {
     'rest_pattern': 'rest-parameters',
 }
 
-# Tier 2a: new Expression constructor names → feature IDs
+# Tier 2a: new Expression constructors
 AST_NEW_EXPRESSION_MAP = {
     'Promise': 'promises',
     'IntersectionObserver': 'intersectionobserver',
@@ -1502,7 +1495,7 @@ AST_NEW_EXPRESSION_MAP = {
     'Magnetometer': 'magnetometer',
 }
 
-# Tier 2b: call expression function names → feature IDs
+# Tier 2b: call expression function names
 AST_CALL_EXPRESSION_MAP = {
     'fetch': 'fetch',
     'requestAnimationFrame': 'requestanimationframe',
@@ -1519,7 +1512,7 @@ AST_CALL_EXPRESSION_MAP = {
     'postMessage': 'x-doc-messaging',
 }
 
-# Tier 2c: member expression 'obj.prop' → feature IDs
+# Tier 2c: member expression 'obj.prop'
 AST_MEMBER_EXPRESSION_MAP = {
     'navigator.geolocation': 'geolocation',
     'navigator.serviceWorker': 'serviceworkers',
@@ -1605,7 +1598,7 @@ AST_MEMBER_EXPRESSION_MAP = {
     'Atomics.notify': 'wasm-threads',
 }
 
-# Tier 2d: standalone identifiers (global names) → feature IDs
+# Tier 2d: standalone identifiers (global names)
 AST_IDENTIFIER_MAP = {
     'SharedArrayBuffer': 'sharedarraybuffer',
     'ReadableStream': 'stream',
@@ -1643,7 +1636,7 @@ AST_IDENTIFIER_MAP = {
     'XMLSerializer': 'xml-serializer',
 }
 
-# Tier 2e: operator tokens → feature IDs (binary/ternary expressions)
+# Tier 2e: operators
 AST_OPERATOR_MAP = {
     '??': 'mdn-javascript_operators_nullish_coalescing',
     '?.': 'mdn-javascript_operators_optional_chaining',

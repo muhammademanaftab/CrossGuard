@@ -1,7 +1,4 @@
-"""CI configuration generators for Cross Guard.
-
-Prints ready-to-use workflow/config snippets for popular CI systems.
-"""
+"""Ready-to-use CI config snippets (GitHub Actions, GitLab CI, pre-commit)."""
 
 _GITHUB_ACTIONS = """\
 # .github/workflows/crossguard.yml
@@ -73,17 +70,7 @@ TEMPLATES = {
 
 
 def generate_ci_config(provider: str) -> str:
-    """Return a CI config snippet for the given provider.
-
-    Args:
-        provider: One of 'github', 'gitlab'.
-
-    Returns:
-        YAML string.
-
-    Raises:
-        ValueError: If *provider* is not supported.
-    """
+    """Return a YAML config snippet for github or gitlab."""
     if provider not in ('github', 'gitlab'):
         raise ValueError(f"Unsupported CI provider: {provider}. "
                          f"Supported: github, gitlab")
@@ -91,17 +78,7 @@ def generate_ci_config(provider: str) -> str:
 
 
 def generate_hooks_config(hook_type: str) -> str:
-    """Return a hooks config snippet.
-
-    Args:
-        hook_type: Currently only 'pre-commit' is supported.
-
-    Returns:
-        YAML string.
-
-    Raises:
-        ValueError: If *hook_type* is not supported.
-    """
+    """Return a YAML hooks snippet (only pre-commit for now)."""
     if hook_type != 'pre-commit':
         raise ValueError(f"Unsupported hook type: {hook_type}. "
                          f"Supported: pre-commit")

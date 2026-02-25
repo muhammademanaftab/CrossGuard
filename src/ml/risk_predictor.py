@@ -1,15 +1,4 @@
-"""Risk Predictor for ML-based Compatibility Risk Prediction.
-
-This module provides the inference API for predicting compatibility
-risk using trained ML models. It can predict risk for both known
-features (in Can I Use) and unknown/new features.
-
-Key Features:
-- Load pretrained models
-- Predict risk with confidence scores
-- Identify contributing factors
-- Fallback to heuristics when model unavailable
-"""
+"""Inference API for predicting compatibility risk using trained ML models."""
 
 import json
 from pathlib import Path
@@ -28,19 +17,16 @@ from .risk_labels import RiskLabeler, compute_risk_label
 
 logger = get_logger('ml.risk_predictor')
 
-# Import joblib for model loading
 try:
     import joblib
     JOBLIB_AVAILABLE = True
 except ImportError:
     JOBLIB_AVAILABLE = False
 
-# Pretrained model directory
 PRETRAINED_DIR = Path(__file__).parent / 'pretrained'
 
 
 class RiskCategory(Enum):
-    """Risk category classifications."""
     LOW = "low"
     MEDIUM = "medium"
     HIGH = "high"
@@ -48,17 +34,7 @@ class RiskCategory(Enum):
 
 @dataclass
 class RiskPrediction:
-    """Result of a risk prediction.
-
-    Attributes:
-        feature_id: Feature identifier
-        risk_level: Predicted risk category (LOW/MEDIUM/HIGH)
-        confidence: Prediction confidence (0.0 - 1.0)
-        probability_high_risk: Raw probability of HIGH risk
-        contributing_factors: List of factors influencing the prediction
-        model_used: Name of model used for prediction
-        is_known_feature: Whether feature exists in Can I Use
-    """
+    """Result of a risk prediction with explanations."""
     feature_id: str
     risk_level: RiskCategory
     confidence: float
@@ -68,7 +44,6 @@ class RiskPrediction:
     is_known_feature: bool
 
     def to_dict(self) -> Dict[str, Any]:
-        """Convert to dictionary for serialization."""
         return {
             'feature_id': self.feature_id,
             'risk_level': self.risk_level.value,
@@ -81,23 +56,14 @@ class RiskPrediction:
 
 
 class RiskPredictor:
-    """ML-based risk predictor for browser compatibility.
-
-    This class provides the main inference API for the ML module.
-    It loads pretrained models and provides predictions with explanations.
-    """
+    """Loads pretrained models and predicts risk with explanations.
+    Falls back to rule-based heuristics when no model is available."""
 
     def __init__(
         self,
         model_name: str = 'random_forest',
         pretrained_dir: Optional[Path] = None,
     ):
-        """Initialize the risk predictor.
-
-        Args:
-            model_name: Name of model to use ('random_forest', 'logistic_regression', 'gradient_boosting')
-            pretrained_dir: Directory containing pretrained models
-        """
         self.model_name = model_name
         self.pretrained_dir = pretrained_dir or PRETRAINED_DIR
 
@@ -109,15 +75,10 @@ class RiskPredictor:
         self._feature_data_cache: Dict[str, Dict] = {}
         self._model_loaded = False
 
-        # Try to load model
         self._load_model()
 
     def _load_model(self) -> bool:
-        """Load pretrained model and scaler.
-
-        Returns:
-            True if model loaded successfully
-        """
+        """Try to load pretrained model and scaler from disk."""
         if not JOBLIB_AVAILABLE:
             logger.warning("joblib not available, using rule-based fallback")
             return False
@@ -142,14 +103,7 @@ class RiskPredictor:
             return False
 
     def _load_feature_data(self, feature_id: str) -> Optional[Dict]:
-        """Load feature data from Can I Use database.
-
-        Args:
-            feature_id: Feature identifier
-
-        Returns:
-            Feature data dict or None if not found
-        """
+        """Load caniuse JSON for a feature, with caching."""
         if feature_id in self._feature_data_cache:
             return self._feature_data_cache[feature_id]
 
@@ -168,24 +122,14 @@ class RiskPredictor:
             return None
 
     def predict(self, feature_id: str) -> RiskPrediction:
-        """Predict risk for a known feature.
-
-        Args:
-            feature_id: Feature identifier (e.g., 'css-grid', 'flexbox')
-
-        Returns:
-            RiskPrediction with risk level and explanations
-        """
-        # Load feature data
+        """Predict risk for a known caniuse feature."""
         feature_data = self._load_feature_data(feature_id)
 
         if feature_data is None:
             return self._predict_unknown_feature(feature_id)
 
-        # Extract features
         features = self.feature_extractor.extract_features(feature_data)
 
-        # Use ML model if available
         if self._model_loaded:
             return self._predict_with_model(feature_id, features, feature_data)
         else:
@@ -200,23 +144,7 @@ class RiskPredictor:
         has_polyfill: bool = False,
         complexity: str = 'medium',
     ) -> RiskPrediction:
-        """Predict risk for an unknown/new feature.
-
-        This is the key thesis contribution: predicting risk for features
-        NOT in the Can I Use database.
-
-        Args:
-            feature_id: Identifier for the new feature
-            spec_status: Specification status ('rec', 'cr', 'wd', 'unoff')
-            category: Feature category ('CSS', 'JS', 'HTML5')
-            browsers_implementing: Number of browsers implementing
-            has_polyfill: Whether a polyfill is available
-            complexity: Complexity level ('low', 'medium', 'high')
-
-        Returns:
-            RiskPrediction with risk level and explanations
-        """
-        # Generate features for unknown feature
+        """Predict risk for a feature NOT in caniuse -- the key thesis contribution."""
         features = extract_features_for_unknown(
             spec_status=spec_status,
             category=category,
@@ -226,19 +154,15 @@ class RiskPredictor:
         )
 
         if self._model_loaded:
-            # Scale features
             if self.scaler is not None:
                 features_scaled = self.scaler.transform(features.reshape(1, -1))
             else:
                 features_scaled = features.reshape(1, -1)
 
-            # Predict
             prob = self.model.predict_proba(features_scaled)[0, 1]
 
-            # Determine risk level and confidence
             risk_level, confidence = self._probability_to_risk_level(prob)
 
-            # Generate contributing factors
             contributing_factors = self._explain_unknown_prediction(
                 spec_status, browsers_implementing, has_polyfill, complexity
             )
@@ -254,20 +178,12 @@ class RiskPredictor:
             )
 
         else:
-            # Heuristic prediction for unknown features
             return self._predict_unknown_heuristic(
                 feature_id, spec_status, browsers_implementing, has_polyfill
             )
 
     def _predict_unknown_feature(self, feature_id: str) -> RiskPrediction:
-        """Handle prediction request for feature not in database.
-
-        Args:
-            feature_id: Feature identifier
-
-        Returns:
-            RiskPrediction with unknown feature warning
-        """
+        """Default to HIGH risk when we can't find the feature at all."""
         return RiskPrediction(
             feature_id=feature_id,
             risk_level=RiskCategory.HIGH,
@@ -288,29 +204,16 @@ class RiskPredictor:
         features: np.ndarray,
         feature_data: Dict,
     ) -> RiskPrediction:
-        """Predict using trained ML model.
-
-        Args:
-            feature_id: Feature identifier
-            features: Extracted feature vector
-            feature_data: Raw feature data for explanations
-
-        Returns:
-            RiskPrediction
-        """
-        # Scale features
+        """Run prediction through the trained ML model."""
         if self.scaler is not None:
             features_scaled = self.scaler.transform(features.reshape(1, -1))
         else:
             features_scaled = features.reshape(1, -1)
 
-        # Get prediction probability
         prob = self.model.predict_proba(features_scaled)[0, 1]
 
-        # Convert to risk level with confidence
         risk_level, confidence = self._probability_to_risk_level(prob)
 
-        # Get feature importances for explanation
         contributing_factors = self._explain_prediction(features, feature_data)
 
         return RiskPrediction(
@@ -328,15 +231,7 @@ class RiskPredictor:
         feature_id: str,
         feature_data: Dict,
     ) -> RiskPrediction:
-        """Predict using rule-based system (fallback).
-
-        Args:
-            feature_id: Feature identifier
-            feature_data: Raw feature data
-
-        Returns:
-            RiskPrediction
-        """
+        """Fallback to rule-based prediction when no model is available."""
         label, factors = self.rule_labeler.compute_label(feature_data)
         reasons = factors.to_reasons()
 
@@ -356,14 +251,7 @@ class RiskPredictor:
     def _probability_to_risk_level(
         self, prob: float
     ) -> Tuple[RiskCategory, float]:
-        """Convert probability to risk level and confidence.
-
-        Args:
-            prob: Probability of HIGH risk (0.0 - 1.0)
-
-        Returns:
-            Tuple of (RiskCategory, confidence)
-        """
+        """Map a 0-1 probability to a risk category and confidence score."""
         if prob >= 0.7:
             return RiskCategory.HIGH, min(prob, 0.95)
         elif prob >= 0.4:
@@ -376,25 +264,13 @@ class RiskPredictor:
         features: np.ndarray,
         feature_data: Dict,
     ) -> List[str]:
-        """Generate human-readable explanation of prediction.
-
-        Only shows RISK FACTORS (negative things), not positive factors.
-
-        Args:
-            features: Feature vector
-            feature_data: Raw feature data
-
-        Returns:
-            List of contributing factor explanations (risk factors only)
-        """
+        """Build a list of human-readable risk factors explaining the prediction."""
         risk_factors = []
 
-        # RISK: Low global usage
         usage_y = feature_data.get('usage_perc_y', 0)
         if usage_y < 90:
             risk_factors.append(f"Low global usage: {usage_y:.1f}% (below 90% threshold)")
 
-        # RISK: Unstable specification status
         status = feature_data.get('status', 'unknown')
         status_risk_names = {
             'wd': 'Working Draft - specification may change',
@@ -404,28 +280,23 @@ class RiskPredictor:
         if status in ['wd', 'unoff', 'other']:
             risk_factors.append(f"Unstable spec: {status_risk_names.get(status, status)}")
 
-        # RISK: Many browser bugs
         bugs = feature_data.get('bugs', [])
         if len(bugs) > 0:
             risk_factors.append(f"{len(bugs)} known browser bug{'s' if len(bugs) > 1 else ''}")
 
-        # RISK: Inconsistent browser support
         if features[16] > 0.1:  # support_variance
             risk_factors.append("Inconsistent behavior across browsers")
 
-        # RISK: Not fully supported in all browsers
-        browsers_full = features[13] if len(features) > 13 else 0  # browsers_full_support
+        browsers_full = features[13] if len(features) > 13 else 0
         if browsers_full < 4:
             risk_factors.append(f"Only {int(browsers_full)} browsers have full support")
 
-        # RISK: Has partial support issues
-        browsers_partial = features[14] if len(features) > 14 else 0  # browsers_partial_support
+        browsers_partial = features[14] if len(features) > 14 else 0
         if browsers_partial > 2:
             risk_factors.append(f"{int(browsers_partial)} browsers have only partial support")
 
-        # If no risk factors found, the model found patterns we didn't explicitly check
+        # Model saw something we didn't explicitly check for
         if not risk_factors:
-            # Check if this is actually high risk based on probability
             risk_factors.append("ML model detected risk patterns in feature characteristics")
 
         return risk_factors
@@ -437,17 +308,7 @@ class RiskPredictor:
         has_polyfill: bool,
         complexity: str,
     ) -> List[str]:
-        """Generate explanation for unknown feature prediction.
-
-        Args:
-            spec_status: Specification status
-            browsers_implementing: Number of browsers implementing
-            has_polyfill: Whether polyfill exists
-            complexity: Complexity level
-
-        Returns:
-            List of explanations
-        """
+        """Generate explanation for an unknown feature prediction."""
         explanations = []
 
         if spec_status in ['wd', 'unoff']:
@@ -474,18 +335,7 @@ class RiskPredictor:
         browsers_implementing: int,
         has_polyfill: bool,
     ) -> RiskPrediction:
-        """Heuristic prediction when model not available.
-
-        Args:
-            feature_id: Feature identifier
-            spec_status: Specification status
-            browsers_implementing: Number of browsers
-            has_polyfill: Whether polyfill exists
-
-        Returns:
-            RiskPrediction
-        """
-        # Simple scoring heuristic
+        """Simple scoring heuristic when no ML model is available."""
         risk_score = 0
 
         if spec_status in ['wd', 'unoff']:
@@ -523,14 +373,7 @@ class RiskPredictor:
         self,
         feature_ids: List[str],
     ) -> Dict[str, RiskPrediction]:
-        """Predict risk for multiple features.
-
-        Args:
-            feature_ids: List of feature identifiers
-
-        Returns:
-            Dict mapping feature_id to RiskPrediction
-        """
+        """Predict risk for multiple features at once."""
         predictions = {}
 
         for feature_id in feature_ids:
@@ -539,12 +382,7 @@ class RiskPredictor:
         return predictions
 
     def get_feature_importance(self) -> Optional[Dict[str, float]]:
-        """Get feature importance scores from model.
-
-        Returns:
-            Dict mapping feature names to importance scores,
-            or None if not available
-        """
+        """Get feature importance scores from the loaded model, if available."""
         if not self._model_loaded:
             return None
 
@@ -562,27 +400,14 @@ class RiskPredictor:
         return None
 
     def is_model_loaded(self) -> bool:
-        """Check if ML model is loaded.
-
-        Returns:
-            True if model is available
-        """
         return self._model_loaded
 
 
-# Singleton instance
 _predictor_instance: Optional[RiskPredictor] = None
 
 
 def get_risk_predictor(model_name: str = 'gradient_boosting') -> RiskPredictor:
-    """Get or create the singleton risk predictor instance.
-
-    Args:
-        model_name: Name of model to use
-
-    Returns:
-        RiskPredictor instance
-    """
+    """Get or create the singleton predictor. Reuses instance if same model."""
     global _predictor_instance
 
     if _predictor_instance is None or _predictor_instance.model_name != model_name:
@@ -592,32 +417,17 @@ def get_risk_predictor(model_name: str = 'gradient_boosting') -> RiskPredictor:
 
 
 def predict_feature_risk(feature_id: str) -> RiskPrediction:
-    """Convenience function to predict risk for a single feature.
-
-    Args:
-        feature_id: Feature identifier
-
-    Returns:
-        RiskPrediction
-    """
+    """Quick way to predict risk for a single feature."""
     predictor = get_risk_predictor()
     return predictor.predict(feature_id)
 
 
 def predict_features_risk(feature_ids: Set[str]) -> Dict[str, RiskPrediction]:
-    """Predict risk for multiple features.
-
-    Args:
-        feature_ids: Set of feature identifiers
-
-    Returns:
-        Dict mapping feature_id to RiskPrediction
-    """
+    """Predict risk for a set of features."""
     predictor = get_risk_predictor()
     return predictor.predict_batch(list(feature_ids))
 
 
-# Model display names for UI
 MODEL_DISPLAY_NAMES = {
     'gradient_boosting': 'Gradient Boosting',
     'random_forest': 'Random Forest',
@@ -632,14 +442,7 @@ MODEL_ACCURACIES = {
 
 
 def get_all_models_prediction(feature_id: str) -> Dict[str, Dict]:
-    """Get predictions from all 3 models for comparison.
-
-    Args:
-        feature_id: Feature identifier
-
-    Returns:
-        Dict with predictions from each model
-    """
+    """Get predictions from all 3 models for side-by-side comparison."""
     results = {}
 
     for model_name in ['gradient_boosting', 'random_forest', 'logistic_regression']:
@@ -661,22 +464,13 @@ def get_all_models_prediction(feature_id: str) -> Dict[str, Dict]:
 
 
 def get_all_models_aggregate(feature_ids: List[str], full_analysis: bool = True) -> Dict[str, Any]:
-    """Get aggregate predictions from all 3 models.
-
-    Args:
-        feature_ids: List of feature identifiers
-        full_analysis: If True, analyze all features (slower but accurate)
-
-    Returns:
-        Dict with aggregate results from each model and consensus info
-    """
+    """Get aggregate predictions from all 3 models with consensus voting."""
     all_results = {
         'gradient_boosting': {'high': 0, 'medium': 0, 'low': 0, 'predictions': []},
         'random_forest': {'high': 0, 'medium': 0, 'low': 0, 'predictions': []},
         'logistic_regression': {'high': 0, 'medium': 0, 'low': 0, 'predictions': []},
     }
 
-    # Analyze all features for accurate results in advanced view
     features_to_analyze = feature_ids if full_analysis else feature_ids[:10]
 
     for model_name in all_results.keys():
@@ -701,14 +495,12 @@ def get_all_models_aggregate(feature_ids: List[str], full_analysis: bool = True)
         except Exception:
             continue
 
-    # Calculate overall risk for each model
     model_summaries = {}
     for model_name, counts in all_results.items():
         total = counts['high'] + counts['medium'] + counts['low']
         if total == 0:
             continue
 
-        # Determine overall risk
         if counts['high'] > total * 0.3:
             overall_risk = 'high'
         elif counts['high'] > 0 or counts['medium'] > total * 0.3:
@@ -716,10 +508,8 @@ def get_all_models_aggregate(feature_ids: List[str], full_analysis: bool = True)
         else:
             overall_risk = 'low'
 
-        # Get actual flagged features (HIGH and MEDIUM risk)
         flagged_predictions = [p for p in counts['predictions'] if p['risk'] in ['high', 'medium']]
 
-        # Calculate average confidence from all predictions
         all_confidences = [p['confidence'] for p in counts['predictions'] if 'confidence' in p]
         avg_confidence = sum(all_confidences) / len(all_confidences) if all_confidences else 0.5
 
@@ -729,12 +519,12 @@ def get_all_models_aggregate(feature_ids: List[str], full_analysis: bool = True)
             'medium_count': counts['medium'],
             'low_count': counts['low'],
             'display_name': MODEL_DISPLAY_NAMES[model_name],
-            'predictions': flagged_predictions,  # Only include flagged features
-            'avg_confidence': avg_confidence,  # Real confidence from model
-            'accuracy': MODEL_ACCURACIES.get(model_name, 0.0),  # Model's test accuracy
+            'predictions': flagged_predictions,
+            'avg_confidence': avg_confidence,
+            'accuracy': MODEL_ACCURACIES.get(model_name, 0.0),
         }
 
-    # Calculate consensus
+    # Majority vote across models
     risk_votes = [s['overall_risk'] for s in model_summaries.values()]
     if risk_votes:
         from collections import Counter

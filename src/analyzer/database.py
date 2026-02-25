@@ -1,8 +1,4 @@
-"""Can I Use Database Loader and Query Engine.
-
-This module provides efficient loading and querying of the Can I Use database.
-It handles feature lookups, browser compatibility checks, and data caching.
-"""
+"""Loads and queries the Can I Use database for feature support lookups."""
 
 import json
 import os
@@ -12,36 +8,26 @@ from functools import lru_cache
 
 from ..utils.config import CANIUSE_DB_PATH, CANIUSE_FEATURES_PATH, SUPPORT_STATUS, get_logger
 
-# Module logger
 logger = get_logger('analyzer.database')
 
 
 class CanIUseDatabase:
-    """Main database loader and query interface for Can I Use data."""
-    
+    """Loads caniuse JSON data into memory and provides fast lookups."""
+
     def __init__(self):
-        """Initialize the database loader."""
         self.data = None
         self.features = {}
-        self.feature_index = {}  # Fast lookup by keyword
+        self.feature_index = {}  # keyword -> feature ID(s)
         self.loaded = False
         
     def load(self) -> bool:
-        """Load the Can I Use database into memory.
-
-        Returns:
-            bool: True if loaded successfully, False otherwise.
-        """
+        """Load data.json and individual feature files, then build the search index."""
         try:
-            # Load main data.json file
             logger.info(f"Loading Can I Use database from {CANIUSE_DB_PATH}...")
             with open(CANIUSE_DB_PATH, 'r', encoding='utf-8') as f:
                 self.data = json.load(f)
 
-            # Load individual feature files for detailed information
             self._load_feature_files()
-
-            # Build search index
             self._build_index()
 
             self.loaded = True
@@ -59,14 +45,13 @@ class CanIUseDatabase:
             return False
     
     def _load_feature_files(self):
-        """Load individual feature JSON files from features-json directory."""
+        """Load per-feature JSON files from the features-json directory."""
         features_path = Path(CANIUSE_FEATURES_PATH)
 
         if not features_path.exists():
             logger.warning(f"Features directory not found at {features_path}")
             return
 
-        # Load each feature file
         feature_files = list(features_path.glob('*.json'))
         logger.debug(f"Loading {len(feature_files)} feature files...")
 
@@ -80,14 +65,12 @@ class CanIUseDatabase:
                 logger.warning(f"Could not load {feature_file.name}: {e}")
     
     def _build_index(self):
-        """Build search index for fast keyword lookups."""
+        """Build a keyword index mapping words/IDs to feature IDs for fast search."""
         logger.debug("Building search index...")
-        
+
         for feature_id, feature_data in self.features.items():
-            # Index by feature ID
             self.feature_index[feature_id] = feature_id
-            
-            # Index by keywords if available
+
             if 'keywords' in feature_data:
                 keywords = feature_data['keywords'].split(',')
                 for keyword in keywords:
@@ -99,11 +82,9 @@ class CanIUseDatabase:
                     else:
                         self.feature_index[keyword] = [self.feature_index[keyword], feature_id]
             
-            # Index by title words
             if 'title' in feature_data:
                 title_words = feature_data['title'].lower().split()
                 for word in title_words:
-                    # Remove common words
                     if word not in ['the', 'a', 'an', 'and', 'or', 'for', 'of', 'in']:
                         if word not in self.feature_index:
                             self.feature_index[word] = []
@@ -114,45 +95,21 @@ class CanIUseDatabase:
         logger.debug(f"Index built with {len(self.feature_index)} entries")
     
     def _ensure_loaded(self):
-        """Auto-load the database if not already loaded."""
         if not self.loaded:
             self.load()
 
     def get_feature(self, feature_id: str) -> Optional[Dict]:
-        """Get detailed information about a specific feature.
-
-        Args:
-            feature_id: The feature identifier (e.g., 'flexbox', 'css-grid')
-
-        Returns:
-            Dict containing feature data, or None if not found.
-        """
+        """Return raw feature data dict, or None if not found."""
         self._ensure_loaded()
         
         return self.features.get(feature_id)
     
     def check_support(self, feature_id: str, browser: str, version: str) -> str:
-        """Check if a feature is supported in a specific browser version.
-        
-        Args:
-            feature_id: The feature identifier
-            browser: Browser name (e.g., 'chrome', 'firefox')
-            version: Browser version (e.g., '144', '146')
-            
-        Returns:
-            Support status: 'y', 'a', 'n', 'p', 'u', 'x', 'd'
-            - y: Fully supported
-            - a: Partially supported
-            - n: Not supported
-            - p: Polyfill available
-            - u: Unknown
-            - x: Requires prefix
-            - d: Disabled by default
-        """
+        """Return support status char: y/a/n/p/u/x/d."""
         feature = self.get_feature(feature_id)
         
         if not feature or 'stats' not in feature:
-            return 'u'  # Unknown
+            return 'u'
         
         stats = feature['stats']
         
@@ -161,50 +118,26 @@ class CanIUseDatabase:
         
         browser_stats = stats[browser]
         
-        # Try exact version match
         if version in browser_stats:
             return self._parse_support_status(browser_stats[version])
-        
-        # Try to find closest version
+
+        # Fall back to closest available version
         return self._find_closest_version_support(browser_stats, version)
     
     def _parse_support_status(self, status: str) -> str:
-        """Parse support status string and return primary status.
-
-        Can I Use uses compound statuses like 'a x #2' meaning:
-        - a: almost supported (treated as full support per Can I Use website)
-        - x: requires prefix
-        - #2: see note 2
-
-        Args:
-            status: Raw status string from database
-
-        Returns:
-            Primary support status character
-        """
+        """Extract the primary status char from compound strings like 'a x #2'."""
         if not status:
             return 'u'
         
-        # Take first character as primary status
         return status.strip()[0]
     
     def _find_closest_version_support(self, browser_stats: Dict, target_version: str) -> str:
-        """Find support status for closest available version.
-        
-        Args:
-            browser_stats: Browser version support data
-            target_version: Target version to check
-            
-        Returns:
-            Support status for closest version
-        """
+        """When exact version isn't in the DB, find the nearest one."""
         try:
             target_num = float(target_version)
         except ValueError:
-            # If version is not numeric, return unknown
             return 'u'
-        
-        # Find closest version
+
         closest_version = None
         min_diff = float('inf')
         
@@ -225,16 +158,7 @@ class CanIUseDatabase:
         return 'u'
     
     def check_multiple_browsers(self, feature_id: str, browsers: Dict[str, str]) -> Dict[str, str]:
-        """Check feature support across multiple browsers.
-        
-        Args:
-            feature_id: The feature identifier
-            browsers: Dict mapping browser names to versions
-                     e.g., {'chrome': '144', 'firefox': '146'}
-        
-        Returns:
-            Dict mapping browser names to support status
-        """
+        """Check one feature across several browsers at once."""
         results = {}
         
         for browser, version in browsers.items():
@@ -243,24 +167,15 @@ class CanIUseDatabase:
         return results
     
     def search_features(self, query: str) -> List[str]:
-        """Search for features by keyword or title.
-        
-        Args:
-            query: Search query string
-            
-        Returns:
-            List of matching feature IDs
-        """
+        """Search features by keyword, title, or partial ID match."""
         self._ensure_loaded()
 
         query = query.lower().strip()
         results = set()
         
-        # Direct feature ID match
         if query in self.features:
             results.add(query)
         
-        # Search in index
         if query in self.feature_index:
             indexed = self.feature_index[query]
             if isinstance(indexed, str):
@@ -268,12 +183,10 @@ class CanIUseDatabase:
             elif isinstance(indexed, list):
                 results.update(indexed)
         
-        # Partial match in feature IDs
         for feature_id in self.features.keys():
             if query in feature_id.lower():
                 results.add(feature_id)
         
-        # Search in titles and descriptions
         for feature_id, feature_data in self.features.items():
             if 'title' in feature_data and query in feature_data['title'].lower():
                 results.add(feature_id)
@@ -283,21 +196,12 @@ class CanIUseDatabase:
         return list(results)
     
     def get_all_features(self) -> List[str]:
-        """Get list of all available feature IDs.
-        
-        Returns:
-            List of feature IDs
-        """
         self._ensure_loaded()
 
         return list(self.features.keys())
     
     def get_feature_categories(self) -> Dict[str, List[str]]:
-        """Get features grouped by category.
-        
-        Returns:
-            Dict mapping category names to lists of feature IDs
-        """
+        """Group all features by their caniuse category."""
         categories = {}
         
         for feature_id, feature_data in self.features.items():
@@ -310,14 +214,7 @@ class CanIUseDatabase:
         return categories
     
     def get_feature_info(self, feature_id: str) -> Optional[Dict]:
-        """Get human-readable information about a feature.
-        
-        Args:
-            feature_id: The feature identifier
-            
-        Returns:
-            Dict with title, description, spec URL, and status
-        """
+        """Return a cleaned-up dict with title, description, spec URL, etc."""
         feature = self.get_feature(feature_id)
         
         if not feature:
@@ -336,18 +233,11 @@ class CanIUseDatabase:
     
     @lru_cache(maxsize=1000)
     def get_browser_versions(self, browser: str) -> List[str]:
-        """Get all available versions for a browser.
-        
-        Args:
-            browser: Browser name
-            
-        Returns:
-            List of version strings
-        """
+        """All known versions for a browser (pulled from the first feature's stats)."""
         if not self.features:
             return []
         
-        # Get versions from first feature (all features have same browser versions)
+        # All features share the same browser version list
         first_feature = next(iter(self.features.values()))
         
         if 'stats' not in first_feature or browser not in first_feature['stats']:
@@ -356,11 +246,6 @@ class CanIUseDatabase:
         return list(first_feature['stats'][browser].keys())
     
     def get_statistics(self) -> Dict:
-        """Get database statistics.
-        
-        Returns:
-            Dict with database statistics
-        """
         if not self.loaded:
             return {'loaded': False}
         
@@ -375,16 +260,11 @@ class CanIUseDatabase:
         }
 
 
-# Singleton instance
 _database_instance = None
 
 
 def get_database() -> CanIUseDatabase:
-    """Get or create the singleton database instance.
-    
-    Returns:
-        CanIUseDatabase instance
-    """
+    """Return the singleton DB instance, loading it on first call."""
     global _database_instance
     
     if _database_instance is None:
@@ -395,13 +275,7 @@ def get_database() -> CanIUseDatabase:
 
 
 def reload_database() -> CanIUseDatabase:
-    """Force reload the database from disk.
-    
-    This is useful after updating the database files.
-    
-    Returns:
-        CanIUseDatabase instance with fresh data
-    """
+    """Discard the cached instance and reload from disk (e.g. after an update)."""
     global _database_instance
     
     logger.info("Reloading database from disk...")

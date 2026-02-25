@@ -1,9 +1,4 @@
-"""
-Project Scanner - Recursive directory scanning for Cross Guard.
-
-This module provides functionality to scan entire project directories
-for HTML, CSS, and JavaScript files, with smart filtering and framework detection.
-"""
+"""Walks a project directory and collects analyzable web files."""
 
 import os
 import fnmatch
@@ -14,9 +9,8 @@ from typing import Dict, List, Optional, Set, Tuple
 
 @dataclass
 class ScanConfig:
-    """Configuration for project scanning."""
+    """Scan filters: what to include/exclude."""
 
-    # Directories to exclude (glob patterns)
     exclude_patterns: List[str] = field(default_factory=lambda: [
         'node_modules',
         'dist',
@@ -30,18 +24,15 @@ class ScanConfig:
         'vendor',
     ])
 
-    # File types to include (HTML, CSS, JS only)
     include_html: bool = True
     include_css: bool = True
     include_javascript: bool = True
 
-    # Additional options
     skip_minified: bool = False
-    max_depth: Optional[int] = None  # None = unlimited
-    max_files: int = 1000  # Safety limit
+    max_depth: Optional[int] = None
+    max_files: int = 1000  # prevent runaway scans
 
     def should_include_extension(self, ext: str) -> bool:
-        """Check if a file extension should be included."""
         ext = ext.lower()
 
         if ext in ('.html', '.htm'):
@@ -56,27 +47,25 @@ class ScanConfig:
 
 @dataclass
 class FileTreeNode:
-    """Represents a node in the file tree structure."""
+    """Single node in the file tree (file or directory)."""
     name: str
     path: str
     is_directory: bool
-    file_type: Optional[str] = None  # 'html', 'css', 'javascript', None for dirs
+    file_type: Optional[str] = None  # None for directories
     is_excluded: bool = False
     is_minified: bool = False
     children: List['FileTreeNode'] = field(default_factory=list)
     is_expanded: bool = False
-    is_selected: bool = True  # Default selected for scanning
+    is_selected: bool = True
 
     @property
     def file_count(self) -> int:
-        """Get total file count in this node (recursive)."""
         if not self.is_directory:
             return 1 if not self.is_excluded else 0
         return sum(child.file_count for child in self.children)
 
     @property
     def selected_count(self) -> int:
-        """Get count of selected files (recursive)."""
         if not self.is_directory:
             return 1 if self.is_selected and not self.is_excluded else 0
         return sum(child.selected_count for child in self.children)
@@ -84,24 +73,20 @@ class FileTreeNode:
 
 @dataclass
 class ScanResult:
-    """Result of a project scan."""
+    """Results from a directory scan."""
 
-    # Files by type
     files: Dict[str, List[str]] = field(default_factory=lambda: {
         'html': [],
         'css': [],
         'javascript': [],
     })
 
-    # File tree for UI display
     file_tree: Optional[FileTreeNode] = None
 
-    # Statistics
     total_files: int = 0
     minified_files: int = 0
     excluded_directories: List[str] = field(default_factory=list)
 
-    # Scan metadata
     project_path: str = ''
     scan_depth: int = 0
 
@@ -118,7 +103,7 @@ class ScanResult:
         return len(self.files.get('javascript', []))
 
     def get_all_files(self) -> List[str]:
-        """Get flat list of all files."""
+        """All discovered file paths as a flat list."""
         all_files = []
         for file_list in self.files.values():
             all_files.extend(file_list)
@@ -126,9 +111,8 @@ class ScanResult:
 
 
 class ProjectScanner:
-    """Scans project directories for analyzable files."""
+    """Recursively scans a project and collects HTML/CSS/JS files."""
 
-    # Extension to file type mapping (HTML, CSS, JS only)
     EXTENSION_MAP = {
         '.html': 'html',
         '.htm': 'html',
@@ -136,7 +120,6 @@ class ProjectScanner:
         '.js': 'javascript',
     }
 
-    # Common minified file patterns
     MINIFIED_PATTERNS = [
         '*.min.js',
         '*.min.css',
@@ -147,7 +130,6 @@ class ProjectScanner:
     ]
 
     def __init__(self):
-        """Initialize the project scanner."""
         pass
 
     def scan_directory(
@@ -156,17 +138,7 @@ class ProjectScanner:
         config: Optional[ScanConfig] = None,
         progress_callback: Optional[callable] = None
     ) -> ScanResult:
-        """
-        Scan a directory recursively for analyzable files.
-
-        Args:
-            path: Root directory path to scan
-            config: Scan configuration options
-            progress_callback: Optional callback(current, total, message)
-
-        Returns:
-            ScanResult with found files and tree structure
-        """
+        """Scan a directory and build the file tree."""
         config = config or ScanConfig()
         path = os.path.abspath(path)
 
@@ -176,7 +148,6 @@ class ProjectScanner:
         result = ScanResult(project_path=path)
         excluded_dirs: Set[str] = set()
 
-        # Build file tree and collect files
         root_node = self._scan_node(
             path=path,
             root_path=path,
@@ -204,12 +175,7 @@ class ProjectScanner:
         files_dict: Dict[str, List[str]],
         progress_callback: Optional[callable] = None,
     ) -> FileTreeNode:
-        """
-        Recursively scan a directory node.
-
-        Returns:
-            FileTreeNode representing this directory/file
-        """
+        """Build the tree recursively, skipping excluded dirs."""
         name = os.path.basename(path) or path
         is_excluded = self._is_excluded(name, config.exclude_patterns)
 
@@ -224,7 +190,6 @@ class ProjectScanner:
             excluded_dirs.add(path)
             return node
 
-        # Check depth limit
         if config.max_depth is not None and current_depth >= config.max_depth:
             return node
 
@@ -233,7 +198,6 @@ class ProjectScanner:
         except PermissionError:
             return node
 
-        # Process entries
         dirs_first = []
         files_list = []
 
@@ -245,7 +209,7 @@ class ProjectScanner:
             else:
                 files_list.append(entry)
 
-        # Process directories first
+        # dirs first so the tree looks cleaner
         for entry in dirs_first:
             entry_path = os.path.join(path, entry)
             child_node = self._scan_node(
@@ -259,32 +223,26 @@ class ProjectScanner:
             )
             node.children.append(child_node)
 
-        # Process files
         total_files = sum(len(files) for files in files_dict.values())
 
         for entry in files_list:
             entry_path = os.path.join(path, entry)
             ext = os.path.splitext(entry)[1].lower()
 
-            # Check if extension is relevant
             file_type = self.EXTENSION_MAP.get(ext)
             if file_type is None:
                 continue
 
-            # Check if extension is enabled in config
             if not config.should_include_extension(ext):
                 continue
 
-            # Check file limit
             if total_files >= config.max_files:
                 break
 
-            # Check if minified
             is_minified = self._is_minified(entry)
             if config.skip_minified and is_minified:
                 continue
 
-            # Create file node
             file_node = FileTreeNode(
                 name=entry,
                 path=entry_path,
@@ -295,7 +253,6 @@ class ProjectScanner:
             )
             node.children.append(file_node)
 
-            # Add to files dict
             files_dict[file_type].append(entry_path)
             total_files += 1
 
@@ -305,17 +262,14 @@ class ProjectScanner:
         return node
 
     def _is_excluded(self, name: str, patterns: List[str]) -> bool:
-        """Check if a directory name matches exclusion patterns."""
         for pattern in patterns:
             if fnmatch.fnmatch(name, pattern):
                 return True
-            # Also check exact match
             if name == pattern:
                 return True
         return False
 
     def _is_minified(self, filename: str) -> bool:
-        """Check if a file appears to be minified."""
         filename_lower = filename.lower()
         for pattern in self.MINIFIED_PATTERNS:
             if fnmatch.fnmatch(filename_lower, pattern):
@@ -323,7 +277,6 @@ class ProjectScanner:
         return False
 
     def _count_minified(self, files: Dict[str, List[str]]) -> int:
-        """Count minified files in the result."""
         count = 0
         for file_list in files.values():
             for filepath in file_list:
@@ -332,16 +285,7 @@ class ProjectScanner:
         return count
 
     def get_file_preview(self, node: FileTreeNode, max_depth: int = 3) -> str:
-        """
-        Get a text preview of the file tree.
-
-        Args:
-            node: Root node to preview
-            max_depth: Maximum depth to show
-
-        Returns:
-            String representation of the tree
-        """
+        """Render the file tree as a printable string."""
         lines = []
         self._build_preview(node, lines, prefix="", max_depth=max_depth, current_depth=0)
         return "\n".join(lines)
@@ -354,11 +298,9 @@ class ProjectScanner:
         max_depth: int,
         current_depth: int
     ):
-        """Recursively build tree preview."""
         if current_depth > max_depth:
             return
 
-        # Format node name
         icon = self._get_node_icon(node)
         status = ""
         if node.is_excluded:
@@ -374,7 +316,6 @@ class ProjectScanner:
                 child_prefix = prefix + ("    " if is_last else "\u2502   ")
                 connector = "\u2514\u2500\u2500 " if is_last else "\u251C\u2500\u2500 "
 
-                # Build child with connector
                 child_icon = self._get_node_icon(child)
                 child_status = ""
                 if child.is_excluded:
@@ -390,33 +331,23 @@ class ProjectScanner:
                     )
 
     def _get_node_icon(self, node: FileTreeNode) -> str:
-        """Get icon for a tree node."""
         if node.is_directory:
             return "\U0001F4C1" if not node.is_excluded else "\U0001F4C1"
 
         icons = {
-            'html': "\U0001F310",  # Globe
-            'css': "\U0001F3A8",   # Palette
-            'javascript': "\u2605",  # Star
+            'html': "\U0001F310",
+            'css': "\U0001F3A8",
+            'javascript': "\u2605",
         }
-        return icons.get(node.file_type, "\U0001F4C4")  # Document
+        return icons.get(node.file_type, "\U0001F4C4")
 
     def get_selected_files(self, node: FileTreeNode) -> Dict[str, List[str]]:
-        """
-        Get all selected files from the tree.
-
-        Args:
-            node: Root node to traverse
-
-        Returns:
-            Dict with file lists by type
-        """
+        """Collect only user-selected files from the tree."""
         files = {'html': [], 'css': [], 'javascript': []}
         self._collect_selected(node, files)
         return files
 
     def _collect_selected(self, node: FileTreeNode, files: Dict[str, List[str]]):
-        """Recursively collect selected files."""
         if node.is_excluded:
             return
 

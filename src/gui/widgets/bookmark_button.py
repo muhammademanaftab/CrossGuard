@@ -1,8 +1,4 @@
-"""
-Bookmark button widget for toggling bookmark status on analyses.
-
-Provides visual feedback and toggle functionality for bookmarking.
-"""
+"""Toggleable bookmark button widget."""
 
 from typing import Callable, Optional
 import customtkinter as ctk
@@ -11,11 +7,7 @@ from ..theme import COLORS, ICONS
 
 
 class BookmarkButton(ctk.CTkButton):
-    """Button widget for toggling bookmark status.
-
-    Shows a star icon that toggles between filled (bookmarked)
-    and outline (not bookmarked) states.
-    """
+    """Star icon button that toggles between bookmarked/unbookmarked states."""
 
     def __init__(
         self,
@@ -25,14 +17,6 @@ class BookmarkButton(ctk.CTkButton):
         size: int = 28,
         **kwargs
     ):
-        """Initialize the bookmark button.
-
-        Args:
-            master: Parent widget
-            is_bookmarked: Initial bookmark state
-            on_toggle: Callback when bookmark is toggled (receives new state)
-            size: Button size in pixels
-        """
         self._is_bookmarked = is_bookmarked
         self._on_toggle = on_toggle
 
@@ -55,17 +39,14 @@ class BookmarkButton(ctk.CTkButton):
 
     @property
     def is_bookmarked(self) -> bool:
-        """Get current bookmark state."""
         return self._is_bookmarked
 
     @is_bookmarked.setter
     def is_bookmarked(self, value: bool):
-        """Set bookmark state and update appearance."""
         self._is_bookmarked = value
         self._update_appearance()
 
     def _handle_click(self):
-        """Handle button click - toggle state."""
         self._is_bookmarked = not self._is_bookmarked
         self._update_appearance()
 
@@ -73,7 +54,6 @@ class BookmarkButton(ctk.CTkButton):
             self._on_toggle(self._is_bookmarked)
 
     def _update_appearance(self):
-        """Update button appearance based on state."""
         if self._is_bookmarked:
             self.configure(
                 text=ICONS.get('bookmark_filled', '\u2605'),
@@ -87,26 +67,17 @@ class BookmarkButton(ctk.CTkButton):
         self._update_tooltip()
 
     def _update_tooltip(self):
-        """Update tooltip text based on state."""
-        # Note: CustomTkinter doesn't have built-in tooltips,
-        # so this is a placeholder for potential tooltip implementation
+        # CustomTkinter has no built-in tooltips, placeholder for future
         pass
 
     def set_state(self, is_bookmarked: bool):
-        """Set bookmark state without triggering callback.
-
-        Args:
-            is_bookmarked: New bookmark state
-        """
+        """Update state without triggering the callback."""
         self._is_bookmarked = is_bookmarked
         self._update_appearance()
 
 
 class BookmarkIndicator(ctk.CTkLabel):
-    """Small indicator showing bookmark status (read-only).
-
-    Used in cards/lists where clicking the whole card is the action.
-    """
+    """Read-only bookmark icon for use in cards/lists."""
 
     def __init__(
         self,
@@ -115,13 +86,6 @@ class BookmarkIndicator(ctk.CTkLabel):
         size: int = 12,
         **kwargs
     ):
-        """Initialize the bookmark indicator.
-
-        Args:
-            master: Parent widget
-            is_bookmarked: Whether item is bookmarked
-            size: Font size
-        """
         icon = ICONS.get('bookmark_filled', '\u2605') if is_bookmarked else ''
         color = COLORS['warning'] if is_bookmarked else COLORS['text_muted']
 
@@ -136,7 +100,6 @@ class BookmarkIndicator(ctk.CTkLabel):
         self._is_bookmarked = is_bookmarked
 
     def set_bookmarked(self, is_bookmarked: bool):
-        """Update bookmark state."""
         self._is_bookmarked = is_bookmarked
         if is_bookmarked:
             self.configure(

@@ -1,13 +1,9 @@
-"""PDF export for Cross Guard analysis reports.
-
-Creates a professionally designed PDF report using ReportLab.
-All rendering logic lives here, independent of any GUI framework.
-"""
+"""PDF export using ReportLab."""
 
 from datetime import datetime
 from typing import Dict, List
 
-# Color scheme matching the app theme
+# Matches the app's dark theme
 COLORS = {
     'primary': '#58a6ff',
     'primary_dark': '#1a3a5c',
@@ -30,19 +26,7 @@ COLORS = {
 
 
 def export_pdf(report: Dict, output_path: str) -> str:
-    """Export an analysis report as a professionally designed PDF.
-
-    Args:
-        report: Analysis report dictionary (from AnalysisResult.to_dict()).
-        output_path: Path where the PDF will be written.
-
-    Returns:
-        The output file path.
-
-    Raises:
-        ValueError: If report is empty or None.
-        ImportError: If reportlab is not installed.
-    """
+    """Write report as a styled PDF. Requires reportlab."""
     if not report:
         raise ValueError("No analysis report to export")
 
@@ -50,11 +34,8 @@ def export_pdf(report: Dict, output_path: str) -> str:
     return output_path
 
 
-# ── Internal PDF builder ──────────────────────────────────────────────
-
-
 def _create_professional_pdf(report: Dict, file_path: str):
-    """Create a professionally designed PDF report."""
+    """Build the full PDF document with all sections."""
     from reportlab.lib.pagesizes import letter
     from reportlab.lib import colors
     from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
@@ -65,13 +46,11 @@ def _create_professional_pdf(report: Dict, file_path: str):
     )
     from reportlab.lib.units import inch
 
-    # Extract data
     summary = report.get('summary', {})
     scores = report.get('scores', {})
     browsers = report.get('browsers', {})
     recommendations = report.get('recommendations', [])
 
-    # Create document
     doc = SimpleDocTemplate(
         file_path,
         pagesize=letter,
@@ -81,7 +60,6 @@ def _create_professional_pdf(report: Dict, file_path: str):
         bottomMargin=0.75 * inch,
     )
 
-    # Custom styles
     styles = getSampleStyleSheet()
 
     title_style = ParagraphStyle(
@@ -128,11 +106,9 @@ def _create_professional_pdf(report: Dict, file_path: str):
 
     story = []
 
-    # ── Header ────────────────────────────────────────────────────────
     story.append(_create_header_section(title_style, subtitle_style))
     story.append(Spacer(1, 0.3 * inch))
 
-    # ── Score overview ────────────────────────────────────────────────
     story.append(Paragraph("COMPATIBILITY SCORE", section_style))
     story.append(Spacer(1, 0.2 * inch))
 
@@ -146,7 +122,6 @@ def _create_professional_pdf(report: Dict, file_path: str):
     story.append(_create_score_table(scores))
     story.append(Spacer(1, 0.4 * inch))
 
-    # ── Feature summary ──────────────────────────────────────────────
     story.append(Paragraph("FEATURE ANALYSIS", section_style))
     story.append(Spacer(1, 0.2 * inch))
     story.append(_create_feature_pie_chart(summary))
@@ -154,7 +129,6 @@ def _create_professional_pdf(report: Dict, file_path: str):
     story.append(_create_summary_table(summary))
     story.append(Spacer(1, 0.4 * inch))
 
-    # ── Browser compatibility ────────────────────────────────────────
     story.append(Paragraph("BROWSER COMPATIBILITY", section_style))
     story.append(Spacer(1, 0.2 * inch))
     if browsers:
@@ -163,7 +137,6 @@ def _create_professional_pdf(report: Dict, file_path: str):
         story.append(_create_browser_table(browsers))
     story.append(Spacer(1, 0.4 * inch))
 
-    # ── Detailed browser analysis ────────────────────────────────────
     if browsers:
         story.append(PageBreak())
         story.append(Paragraph("DETAILED BROWSER ANALYSIS", section_style))
@@ -172,13 +145,11 @@ def _create_professional_pdf(report: Dict, file_path: str):
             story.append(_create_browser_detail_section(browser_name, details, styles))
             story.append(Spacer(1, 0.3 * inch))
 
-    # ── Recommendations ──────────────────────────────────────────────
     if recommendations:
         story.append(Paragraph("RECOMMENDATIONS", section_style))
         story.append(Spacer(1, 0.2 * inch))
         story.append(_create_recommendations_section(recommendations, body_style))
 
-    # ── Footer ────────────────────────────────────────────────────────
     story.append(Spacer(1, 0.5 * inch))
     story.append(HRFlowable(width="100%", thickness=1, color=colors.HexColor(COLORS['border'])))
     story.append(Spacer(1, 0.1 * inch))
@@ -196,9 +167,6 @@ def _create_professional_pdf(report: Dict, file_path: str):
     ))
 
     doc.build(story)
-
-
-# ── Section builders ─────────────────────────────────────────────────
 
 
 def _create_header_section(title_style, subtitle_style):

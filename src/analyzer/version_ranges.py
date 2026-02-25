@@ -1,8 +1,4 @@
-"""
-Version Range Generator for Browser Support.
-
-Generates version ranges like Can I Use displays (e.g., "37-143: Supported").
-"""
+"""Generates version ranges like caniuse shows (e.g. '37-143: Supported')."""
 
 import json
 from pathlib import Path
@@ -10,40 +6,26 @@ from typing import Dict, List, Tuple
 
 
 def get_version_ranges(feature_id: str, browser: str) -> List[Dict]:
-    """
-    Get version ranges for a feature in a specific browser.
-
-    Returns a list of ranges like:
-    [
-        {"start": "4", "end": "31", "status": "n", "status_text": "Not Supported"},
-        {"start": "37", "end": "143", "status": "y", "status_text": "Supported"},
-    ]
-    """
-    # Load Can I Use database
+    """Collapse per-version support data into contiguous status ranges."""
     db_path = Path(__file__).parent.parent.parent / "caniuse" / "data.json"
 
     with open(db_path, 'r', encoding='utf-8') as f:
         data = json.load(f)
 
-    # Get feature data
     feature_data = data.get('data', {}).get(feature_id)
     if not feature_data:
         return []
 
-    # Get browser stats
     browser_stats = feature_data.get('stats', {}).get(browser, {})
     if not browser_stats:
         return []
 
-    # Sort versions numerically
     versions = []
     for version, status in browser_stats.items():
         try:
-            # Handle versions like "4", "4.4", "TP" (Technology Preview)
-            if version == "TP":
+            if version == "TP":  # Safari Technology Preview
                 sort_key = 9999
             elif "-" in version:
-                # Handle ranges like "3.5-3.6"
                 sort_key = float(version.split("-")[0])
             else:
                 sort_key = float(version)
@@ -53,15 +35,14 @@ def get_version_ranges(feature_id: str, browser: str) -> List[Dict]:
 
     versions.sort(key=lambda x: x[0])
 
-    # Group into ranges
+    # Merge consecutive versions with the same status into ranges
     ranges = []
     current_status = None
     start_version = None
     prev_version = None
 
     for _, version, status in versions:
-        # Normalize status (remove notes like "#1", "x #2", etc.)
-        base_status = status.split()[0] if status else 'u'
+        base_status = status.split()[0] if status else 'u'  # strip notes like "#1"
 
         if base_status != current_status:
             if current_status is not None:
@@ -75,7 +56,6 @@ def get_version_ranges(feature_id: str, browser: str) -> List[Dict]:
             current_status = base_status
         prev_version = version
 
-    # Add last range
     if current_status is not None:
         ranges.append({
             "start": start_version,
@@ -88,11 +68,10 @@ def get_version_ranges(feature_id: str, browser: str) -> List[Dict]:
 
 
 def _get_status_text(status: str) -> str:
-    """Convert status code to human-readable text."""
     status_map = {
         'y': 'Supported',
         'n': 'Not Supported',
-        'a': 'Supported',  # Almost supported = treated as full per Can I Use
+        'a': 'Supported',  # "almost" = full per caniuse
         'p': 'Partial Support',
         'x': 'Requires Prefix',
         'u': 'Unknown',
@@ -102,16 +81,7 @@ def _get_status_text(status: str) -> str:
 
 
 def get_all_browser_ranges(feature_id: str) -> Dict[str, List[Dict]]:
-    """
-    Get version ranges for all browsers for a feature.
-
-    Returns:
-    {
-        "chrome": [{"start": "4", "end": "31", "status": "n", ...}, ...],
-        "firefox": [...],
-        ...
-    }
-    """
+    """Version ranges for every browser we track."""
     browsers = [
         'chrome', 'firefox', 'safari', 'edge', 'opera', 'ie',
         'android', 'ios_saf', 'samsung', 'op_mini', 'op_mob'
@@ -127,12 +97,7 @@ def get_all_browser_ranges(feature_id: str) -> Dict[str, List[Dict]]:
 
 
 def format_ranges_for_display(feature_id: str, browser: str) -> str:
-    """
-    Format version ranges as a display string.
-
-    Returns something like:
-    "4-31: Not Supported | 37-143: Supported"
-    """
+    """e.g. '4-31: Not Supported | 37-143: Supported'"""
     ranges = get_version_ranges(feature_id, browser)
 
     if not ranges:
@@ -150,30 +115,15 @@ def format_ranges_for_display(feature_id: str, browser: str) -> str:
 
 
 def get_support_summary(feature_id: str) -> Dict[str, Dict]:
-    """
-    Get a summary of browser support with version ranges.
-
-    Returns:
-    {
-        "chrome": {
-            "current_status": "y",
-            "current_status_text": "Supported",
-            "supported_since": "37",
-            "ranges": [...]
-        },
-        ...
-    }
-    """
+    """Per-browser summary: current status, supported-since version, and full ranges."""
     browsers = ['chrome', 'firefox', 'safari', 'edge', 'opera', 'ie']
 
     result = {}
     for browser in browsers:
         ranges = get_version_ranges(feature_id, browser)
         if ranges:
-            # Get current status (last range)
             current = ranges[-1]
 
-            # Find when it became supported
             supported_since = None
             for r in ranges:
                 if r["status"] == "y":
@@ -190,7 +140,6 @@ def get_support_summary(feature_id: str) -> Dict[str, Dict]:
     return result
 
 
-# Browser display names
 BROWSER_NAMES = {
     'chrome': 'Chrome',
     'firefox': 'Firefox',
@@ -207,7 +156,6 @@ BROWSER_NAMES = {
 
 
 if __name__ == "__main__":
-    # Demo
     print("=" * 60)
     print("VERSION RANGES DEMO - Dialog Element")
     print("=" * 60)

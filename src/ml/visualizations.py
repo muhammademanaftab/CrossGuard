@@ -1,14 +1,4 @@
-"""Visualizations for ML-based Compatibility Risk Prediction.
-
-This module generates publication-quality charts for the thesis including:
-- Feature importance bar chart
-- ROC curves
-- Confusion matrix heatmap
-- ML vs Rule-based comparison chart
-- Temporal split results visualization
-
-All charts are styled for academic papers with clear legends and labels.
-"""
+"""Publication-quality charts for the thesis (feature importance, ROC, confusion matrix, etc.)."""
 
 from pathlib import Path
 from typing import Dict, List, Optional, Tuple, Any
@@ -18,7 +8,6 @@ from ..utils.config import get_logger, PROJECT_ROOT
 
 logger = get_logger('ml.visualizations')
 
-# Import matplotlib
 try:
     import matplotlib.pyplot as plt
     import matplotlib.patches as mpatches
@@ -28,10 +17,9 @@ except ImportError:
     MATPLOTLIB_AVAILABLE = False
     logger.warning("matplotlib not installed. Visualizations unavailable.")
 
-# Output directory for figures
 FIGURES_DIR = PROJECT_ROOT / 'results' / 'figures'
 
-# Academic paper styling
+# Tuned for academic paper readability
 PAPER_STYLE = {
     'font.family': 'serif',
     'font.size': 10,
@@ -48,21 +36,20 @@ PAPER_STYLE = {
     'grid.alpha': 0.3,
 }
 
-# Color scheme
 COLORS = {
-    'primary': '#2563eb',      # Blue
-    'secondary': '#7c3aed',    # Purple
-    'success': '#16a34a',      # Green
-    'warning': '#ea580c',      # Orange
-    'danger': '#dc2626',       # Red
-    'muted': '#6b7280',        # Gray
-    'high_risk': '#ef4444',    # Red for high risk
-    'low_risk': '#22c55e',     # Green for low risk
+    'primary': '#2563eb',
+    'secondary': '#7c3aed',
+    'success': '#16a34a',
+    'warning': '#ea580c',
+    'danger': '#dc2626',
+    'muted': '#6b7280',
+    'high_risk': '#ef4444',
+    'low_risk': '#22c55e',
 }
 
 
 def setup_style():
-    """Set up matplotlib style for academic papers."""
+    """Apply academic paper matplotlib style."""
     if not MATPLOTLIB_AVAILABLE:
         return
     plt.rcParams.update(PAPER_STYLE)
@@ -75,51 +62,34 @@ def plot_feature_importance(
     save_path: Optional[Path] = None,
     show: bool = False,
 ) -> Optional[Figure]:
-    """Create feature importance bar chart.
-
-    Args:
-        importances: List of (feature_name, importance) tuples
-        top_n: Number of top features to show
-        title: Chart title
-        save_path: Path to save figure (uses default if None)
-        show: Whether to display the figure
-
-    Returns:
-        matplotlib Figure or None if matplotlib unavailable
-    """
+    """Horizontal bar chart of top feature importances."""
     if not MATPLOTLIB_AVAILABLE:
         logger.warning("matplotlib not available")
         return None
 
     setup_style()
 
-    # Take top N features
     top_features = importances[:top_n]
     names = [name.replace('_', ' ').title() for name, _ in top_features]
     values = [imp for _, imp in top_features]
 
-    # Create figure
     fig, ax = plt.subplots(figsize=(8, 6))
 
-    # Create horizontal bar chart
     y_pos = np.arange(len(names))
     bars = ax.barh(y_pos, values, color=COLORS['primary'], alpha=0.8)
 
-    # Customize
     ax.set_yticks(y_pos)
     ax.set_yticklabels(names)
-    ax.invert_yaxis()  # Top feature at top
+    ax.invert_yaxis()
     ax.set_xlabel('Importance Score')
     ax.set_title(title, fontweight='bold', pad=15)
 
-    # Add value labels
     for bar, value in zip(bars, values):
         ax.text(value + 0.002, bar.get_y() + bar.get_height()/2,
                 f'{value:.3f}', va='center', fontsize=8)
 
     plt.tight_layout()
 
-    # Save figure
     if save_path is None:
         FIGURES_DIR.mkdir(parents=True, exist_ok=True)
         save_path = FIGURES_DIR / 'feature_importance.png'
@@ -143,19 +113,7 @@ def plot_roc_curve(
     save_path: Optional[Path] = None,
     show: bool = False,
 ) -> Optional[Figure]:
-    """Create ROC curve plot.
-
-    Args:
-        fpr: False positive rates
-        tpr: True positive rates
-        auc_score: Area under curve value
-        title: Chart title
-        save_path: Path to save figure
-        show: Whether to display
-
-    Returns:
-        matplotlib Figure or None
-    """
+    """ROC curve with AUC shading and random-classifier baseline."""
     if not MATPLOTLIB_AVAILABLE:
         return None
 
@@ -163,18 +121,14 @@ def plot_roc_curve(
 
     fig, ax = plt.subplots(figsize=(6, 6))
 
-    # Plot ROC curve
     ax.plot(fpr, tpr, color=COLORS['primary'], lw=2,
             label=f'ROC curve (AUC = {auc_score:.3f})')
 
-    # Plot diagonal reference line
     ax.plot([0, 1], [0, 1], color=COLORS['muted'], lw=1.5, linestyle='--',
             label='Random classifier')
 
-    # Fill area under curve
     ax.fill_between(fpr, tpr, alpha=0.2, color=COLORS['primary'])
 
-    # Customize
     ax.set_xlim([0.0, 1.0])
     ax.set_ylim([0.0, 1.05])
     ax.set_xlabel('False Positive Rate')
@@ -185,7 +139,6 @@ def plot_roc_curve(
 
     plt.tight_layout()
 
-    # Save
     if save_path is None:
         FIGURES_DIR.mkdir(parents=True, exist_ok=True)
         save_path = FIGURES_DIR / 'roc_curve.png'
@@ -208,18 +161,7 @@ def plot_confusion_matrix(
     save_path: Optional[Path] = None,
     show: bool = False,
 ) -> Optional[Figure]:
-    """Create confusion matrix heatmap.
-
-    Args:
-        cm: 2x2 confusion matrix array
-        title: Chart title
-        labels: Class labels
-        save_path: Path to save figure
-        show: Whether to display
-
-    Returns:
-        matplotlib Figure or None
-    """
+    """Annotated confusion matrix heatmap."""
     if not MATPLOTLIB_AVAILABLE:
         return None
 
@@ -227,23 +169,18 @@ def plot_confusion_matrix(
 
     fig, ax = plt.subplots(figsize=(6, 5))
 
-    # Create heatmap
     im = ax.imshow(cm, interpolation='nearest', cmap='Blues')
 
-    # Add colorbar
     cbar = ax.figure.colorbar(im, ax=ax)
     cbar.ax.set_ylabel('Count', rotation=-90, va='bottom')
 
-    # Set ticks and labels
     ax.set_xticks(np.arange(len(labels)))
     ax.set_yticks(np.arange(len(labels)))
     ax.set_xticklabels(labels)
     ax.set_yticklabels(labels)
 
-    # Rotate x labels
     plt.setp(ax.get_xticklabels(), rotation=45, ha='right', rotation_mode='anchor')
 
-    # Add text annotations
     thresh = cm.max() / 2.
     for i in range(len(labels)):
         for j in range(len(labels)):
@@ -258,7 +195,6 @@ def plot_confusion_matrix(
 
     plt.tight_layout()
 
-    # Save
     if save_path is None:
         FIGURES_DIR.mkdir(parents=True, exist_ok=True)
         save_path = FIGURES_DIR / 'confusion_matrix.png'
@@ -280,23 +216,12 @@ def plot_ml_vs_rules_comparison(
     save_path: Optional[Path] = None,
     show: bool = False,
 ) -> Optional[Figure]:
-    """Create ML vs rule-based comparison chart.
-
-    Args:
-        comparison_data: Dict with comparison results
-        title: Chart title
-        save_path: Path to save figure
-        show: Whether to display
-
-    Returns:
-        matplotlib Figure or None
-    """
+    """Side-by-side pie chart and bar chart showing ML/rules agreement."""
     if not MATPLOTLIB_AVAILABLE:
         return None
 
     setup_style()
 
-    # Extract data
     both_high = comparison_data.get('both_high_count', 0)
     both_low = comparison_data.get('both_low_count', 0)
     ml_only = comparison_data.get('ml_only_high_count', 0)
@@ -304,17 +229,15 @@ def plot_ml_vs_rules_comparison(
 
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 4))
 
-    # Pie chart for agreement breakdown
     sizes = [both_high, both_low, ml_only, rules_only]
     labels = ['Both HIGH', 'Both LOW', 'ML-only HIGH', 'Rules-only HIGH']
     colors = [COLORS['danger'], COLORS['success'], COLORS['warning'], COLORS['secondary']]
-    explode = (0, 0, 0.05, 0.05)  # Emphasize disagreements
+    explode = (0, 0, 0.05, 0.05)  # pop out the disagreements
 
     ax1.pie(sizes, explode=explode, labels=labels, colors=colors,
             autopct='%1.1f%%', shadow=False, startangle=90)
     ax1.set_title('Classification Agreement', fontweight='bold')
 
-    # Bar chart for detailed comparison
     categories = ['Agree HIGH', 'Agree LOW', 'ML only', 'Rules only']
     values = [both_high, both_low, ml_only, rules_only]
 
@@ -327,12 +250,10 @@ def plot_ml_vs_rules_comparison(
     ax2.set_ylabel('Number of Features')
     ax2.set_title('Classification Breakdown', fontweight='bold')
 
-    # Add value labels on bars
     for bar, val in zip(bars, values):
         ax2.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 1,
                  str(val), ha='center', va='bottom', fontsize=9)
 
-    # Add agreement rate annotation
     agreement = comparison_data.get('agreement_rate', 0)
     fig.text(0.5, 0.02, f'Overall Agreement: {agreement:.1%}',
              ha='center', fontsize=10, fontweight='bold')
@@ -340,7 +261,6 @@ def plot_ml_vs_rules_comparison(
     plt.suptitle(title, fontweight='bold', y=1.02)
     plt.tight_layout()
 
-    # Save
     if save_path is None:
         FIGURES_DIR.mkdir(parents=True, exist_ok=True)
         save_path = FIGURES_DIR / 'ml_vs_rules.png'
@@ -363,20 +283,7 @@ def plot_temporal_split_results(
     save_path: Optional[Path] = None,
     show: bool = False,
 ) -> Optional[Figure]:
-    """Create comparison of standard vs temporal split performance.
-
-    This is the key thesis visualization showing generalization.
-
-    Args:
-        standard_metrics: Metrics from random split
-        temporal_metrics: Metrics from temporal split
-        title: Chart title
-        save_path: Path to save figure
-        show: Whether to display
-
-    Returns:
-        matplotlib Figure or None
-    """
+    """Grouped bar chart comparing standard vs temporal split -- shows generalization."""
     if not MATPLOTLIB_AVAILABLE:
         return None
 
@@ -405,7 +312,6 @@ def plot_temporal_split_results(
     ax.legend()
     ax.set_ylim(0, 1.1)
 
-    # Add value labels
     for bar in bars1:
         height = bar.get_height()
         ax.text(bar.get_x() + bar.get_width()/2, height + 0.02,
@@ -418,7 +324,6 @@ def plot_temporal_split_results(
 
     plt.tight_layout()
 
-    # Save
     if save_path is None:
         FIGURES_DIR.mkdir(parents=True, exist_ok=True)
         save_path = FIGURES_DIR / 'temporal_split_comparison.png'
@@ -440,17 +345,7 @@ def plot_model_comparison(
     save_path: Optional[Path] = None,
     show: bool = False,
 ) -> Optional[Figure]:
-    """Create comparison chart for multiple models.
-
-    Args:
-        results: Dict mapping model names to metrics dicts
-        title: Chart title
-        save_path: Path to save figure
-        show: Whether to display
-
-    Returns:
-        matplotlib Figure or None
-    """
+    """Grouped bar chart comparing all three models across metrics."""
     if not MATPLOTLIB_AVAILABLE:
         return None
 
@@ -482,7 +377,6 @@ def plot_model_comparison(
 
     plt.tight_layout()
 
-    # Save
     if save_path is None:
         FIGURES_DIR.mkdir(parents=True, exist_ok=True)
         save_path = FIGURES_DIR / 'model_comparison.png'
@@ -502,12 +396,7 @@ def generate_all_thesis_figures(
     evaluation_results: Dict[str, Any],
     show: bool = False,
 ):
-    """Generate all figures for the thesis.
-
-    Args:
-        evaluation_results: Complete evaluation results dict
-        show: Whether to display figures
-    """
+    """Generate all thesis figures from evaluation results."""
     if not MATPLOTLIB_AVAILABLE:
         logger.error("matplotlib required for visualizations")
         return
@@ -515,7 +404,6 @@ def generate_all_thesis_figures(
     FIGURES_DIR.mkdir(parents=True, exist_ok=True)
     logger.info(f"Generating thesis figures in {FIGURES_DIR}")
 
-    # 1. Feature importance
     if 'feature_importance' in evaluation_results:
         plot_feature_importance(
             evaluation_results['feature_importance'],
@@ -523,7 +411,6 @@ def generate_all_thesis_figures(
             show=show,
         )
 
-    # 2. ROC curve
     if 'roc_data' in evaluation_results and evaluation_results['roc_data']['fpr']:
         auc = evaluation_results.get('standard_metrics', {}).get('auc_roc', 0)
         plot_roc_curve(
@@ -533,7 +420,6 @@ def generate_all_thesis_figures(
             show=show,
         )
 
-    # 3. Confusion matrix
     if 'standard_metrics' in evaluation_results:
         cm = evaluation_results['standard_metrics'].get('confusion_matrix')
         if cm is not None:
@@ -542,14 +428,12 @@ def generate_all_thesis_figures(
                 show=show,
             )
 
-    # 4. ML vs Rules comparison
     if 'comparison_with_rules' in evaluation_results:
         plot_ml_vs_rules_comparison(
             evaluation_results['comparison_with_rules'],
             show=show,
         )
 
-    # 5. Temporal split comparison
     if 'temporal_split' in evaluation_results and 'standard_metrics' in evaluation_results:
         plot_temporal_split_results(
             evaluation_results['standard_metrics'],
@@ -560,11 +444,9 @@ def generate_all_thesis_figures(
     logger.info("All thesis figures generated successfully")
 
 
-# Allow running as script
 if __name__ == '__main__':
     import json
 
-    # Try to load evaluation results
     results_path = PROJECT_ROOT / 'results' / 'ml_evaluation' / 'evaluation_report.json'
 
     if results_path.exists():

@@ -1,8 +1,4 @@
-"""Generate polyfills.js file for user's project.
-
-This module creates a ready-to-use polyfills.js file that users can
-import at the top of their entry point to add all necessary polyfills.
-"""
+"""Generates a ready-to-use polyfills.js file for the user's project."""
 
 from pathlib import Path
 from typing import List
@@ -15,16 +11,7 @@ def generate_polyfills_file(
     recommendations: List[PolyfillRecommendation],
     output_path: str
 ) -> str:
-    """
-    Generate a polyfills.js file with all necessary imports.
-
-    Args:
-        recommendations: List of polyfill recommendations
-        output_path: Path where to create the file
-
-    Returns:
-        Path to the created file
-    """
+    """Write a polyfills.js file with all necessary imports. Returns the output path."""
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     lines = [
@@ -42,7 +29,6 @@ def generate_polyfills_file(
         "",
     ]
 
-    # Collect npm packages for the comment
     npm_packages = []
     for rec in recommendations:
         if rec.polyfill_type == 'npm' and rec.packages:
@@ -53,14 +39,12 @@ def generate_polyfills_file(
         lines.append(f"// npm install {' '.join(sorted(npm_packages))}")
         lines.append("")
 
-    # Add imports for each polyfill
     for rec in recommendations:
         if rec.polyfill_type == 'npm' and rec.packages:
             lines.append(f"// {rec.feature_name}")
             lines.append(rec.packages[0].import_statement)
             lines.append("")
 
-    # If no npm polyfills, add a note
     if not any(rec.polyfill_type == 'npm' for rec in recommendations):
         lines.append("// No npm polyfills needed.")
         lines.append("// See CSS fallbacks in Cross Guard report for other recommendations.")
@@ -77,15 +61,7 @@ def generate_polyfills_file(
 def generate_polyfills_content(
     recommendations: List[PolyfillRecommendation]
 ) -> str:
-    """
-    Generate polyfills.js content without writing to file.
-
-    Args:
-        recommendations: List of polyfill recommendations
-
-    Returns:
-        Content string for polyfills.js
-    """
+    """Same as generate_polyfills_file but returns the content string instead of writing."""
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     lines = [

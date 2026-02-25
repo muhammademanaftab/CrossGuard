@@ -1,8 +1,4 @@
-"""
-Database migrations for Cross Guard.
-
-Provides functions to create, update, and reset database tables.
-"""
+"""Schema migrations for the SQLite database (versioned)."""
 
 import sqlite3
 from typing import Optional
@@ -11,12 +7,9 @@ from src.utils.config import get_logger
 
 logger = get_logger('database.migrations')
 
-# Current schema version
 SCHEMA_VERSION = 2
 
-# =============================================================================
-# Table Creation SQL - Version 1 (Original)
-# =============================================================================
+# --- V1 tables (core analysis data) ---
 
 CREATE_ANALYSES_TABLE = """
 CREATE TABLE IF NOT EXISTS analyses (
@@ -54,11 +47,8 @@ CREATE TABLE IF NOT EXISTS browser_results (
 );
 """
 
-# =============================================================================
-# Table Creation SQL - Version 2 (New Features)
-# =============================================================================
+# --- V2 tables (settings, bookmarks, tags) ---
 
-# Settings table - Key-value store for user preferences
 CREATE_SETTINGS_TABLE = """
 CREATE TABLE IF NOT EXISTS settings (
     key TEXT PRIMARY KEY,
@@ -67,7 +57,6 @@ CREATE TABLE IF NOT EXISTS settings (
 );
 """
 
-# Bookmarks table - Mark important analyses with notes
 CREATE_BOOKMARKS_TABLE = """
 CREATE TABLE IF NOT EXISTS bookmarks (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -78,7 +67,6 @@ CREATE TABLE IF NOT EXISTS bookmarks (
 );
 """
 
-# Tags table - For categorizing analyses
 CREATE_TAGS_TABLE = """
 CREATE TABLE IF NOT EXISTS tags (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -88,7 +76,6 @@ CREATE TABLE IF NOT EXISTS tags (
 );
 """
 
-# Junction table for many-to-many relationship between analyses and tags
 CREATE_ANALYSIS_TAGS_TABLE = """
 CREATE TABLE IF NOT EXISTS analysis_tags (
     analysis_id INTEGER NOT NULL,
@@ -100,9 +87,7 @@ CREATE TABLE IF NOT EXISTS analysis_tags (
 );
 """
 
-# =============================================================================
-# Indexes
-# =============================================================================
+# --- Indexes ---
 
 CREATE_INDEXES_V1 = [
     "CREATE INDEX IF NOT EXISTS idx_analyses_date ON analyses(analyzed_at DESC);",
@@ -121,7 +106,6 @@ CREATE_INDEXES_V2 = [
     "CREATE INDEX IF NOT EXISTS idx_analysis_tags_tag ON analysis_tags(tag_id);",
 ]
 
-# Schema version table
 CREATE_SCHEMA_VERSION_TABLE = """
 CREATE TABLE IF NOT EXISTS schema_version (
     version INTEGER PRIMARY KEY,
@@ -131,21 +115,15 @@ CREATE TABLE IF NOT EXISTS schema_version (
 
 
 def create_tables(conn: Optional[sqlite3.Connection] = None):
-    """Create all database tables and indexes.
-
-    Args:
-        conn: Optional database connection. If not provided, gets a new connection.
-    """
+    """Create all tables and run any pending migrations."""
     if conn is None:
         from .connection import get_connection
         conn = get_connection()
 
     logger.info("Creating database tables...")
 
-    # Create schema version table first
     conn.execute(CREATE_SCHEMA_VERSION_TABLE)
 
-    # Check current schema version
     cursor = conn.execute("SELECT MAX(version) FROM schema_version")
     row = cursor.fetchone()
     current_version = row[0] if row and row[0] else 0
@@ -154,14 +132,12 @@ def create_tables(conn: Optional[sqlite3.Connection] = None):
         logger.debug(f"Database schema is up to date (version {current_version})")
         return
 
-    # Apply migrations based on current version
     if current_version < 1:
         _migrate_to_v1(conn)
 
     if current_version < 2:
         _migrate_to_v2(conn)
 
-    # Update schema version
     conn.execute(
         "INSERT OR REPLACE INTO schema_version (version) VALUES (?)",
         (SCHEMA_VERSION,)
@@ -171,10 +147,9 @@ def create_tables(conn: Optional[sqlite3.Connection] = None):
 
 
 def _migrate_to_v1(conn: sqlite3.Connection):
-    """Apply version 1 migrations (original tables)."""
+    """V1: core analysis tables."""
     logger.info("Applying migration: version 1")
 
-    # Create main tables
     conn.execute(CREATE_ANALYSES_TABLE)
     logger.debug("Created analyses table")
 
@@ -184,17 +159,15 @@ def _migrate_to_v1(conn: sqlite3.Connection):
     conn.execute(CREATE_BROWSER_RESULTS_TABLE)
     logger.debug("Created browser_results table")
 
-    # Create indexes
     for index_sql in CREATE_INDEXES_V1:
         conn.execute(index_sql)
     logger.debug("Created v1 indexes")
 
 
 def _migrate_to_v2(conn: sqlite3.Connection):
-    """Apply version 2 migrations (settings, bookmarks, tags)."""
+    """V2: settings, bookmarks, tags."""
     logger.info("Applying migration: version 2")
 
-    # Create new tables
     conn.execute(CREATE_SETTINGS_TABLE)
     logger.debug("Created settings table")
 
@@ -207,12 +180,10 @@ def _migrate_to_v2(conn: sqlite3.Connection):
     conn.execute(CREATE_ANALYSIS_TAGS_TABLE)
     logger.debug("Created analysis_tags junction table")
 
-    # Create indexes
     for index_sql in CREATE_INDEXES_V2:
         conn.execute(index_sql)
     logger.debug("Created v2 indexes")
 
-    # Insert default settings
     default_settings = [
         ('default_browsers', 'chrome,firefox,safari,edge'),
         ('history_limit', '100'),
@@ -227,23 +198,16 @@ def _migrate_to_v2(conn: sqlite3.Connection):
 
 
 def drop_tables(conn: Optional[sqlite3.Connection] = None):
-    """Drop all database tables.
-
-    Warning: This will delete all data!
-
-    Args:
-        conn: Optional database connection. If not provided, gets a new connection.
-    """
+    """Drop all tables. Destroys all data!"""
     if conn is None:
         from .connection import get_connection
         conn = get_connection()
 
     logger.warning("Dropping all database tables...")
 
-    # Disable foreign keys temporarily
     conn.execute("PRAGMA foreign_keys = OFF")
 
-    # Drop tables in reverse order of dependencies
+    # reverse dependency order
     conn.execute("DROP TABLE IF EXISTS analysis_tags")
     conn.execute("DROP TABLE IF EXISTS tags")
     conn.execute("DROP TABLE IF EXISTS bookmarks")
@@ -253,20 +217,13 @@ def drop_tables(conn: Optional[sqlite3.Connection] = None):
     conn.execute("DROP TABLE IF EXISTS analyses")
     conn.execute("DROP TABLE IF EXISTS schema_version")
 
-    # Re-enable foreign keys
     conn.execute("PRAGMA foreign_keys = ON")
 
     logger.info("All tables dropped")
 
 
 def reset_database(conn: Optional[sqlite3.Connection] = None):
-    """Reset the database by dropping and recreating all tables.
-
-    Warning: This will delete all data!
-
-    Args:
-        conn: Optional database connection. If not provided, gets a new connection.
-    """
+    """Drop and recreate everything. Destroys all data!"""
     if conn is None:
         from .connection import get_connection
         conn = get_connection()
@@ -278,14 +235,7 @@ def reset_database(conn: Optional[sqlite3.Connection] = None):
 
 
 def get_schema_version(conn: Optional[sqlite3.Connection] = None) -> int:
-    """Get the current schema version.
-
-    Args:
-        conn: Optional database connection.
-
-    Returns:
-        Current schema version number, or 0 if not initialized.
-    """
+    """Current schema version, or 0 if not initialized."""
     if conn is None:
         from .connection import get_connection
         conn = get_connection()
@@ -299,14 +249,7 @@ def get_schema_version(conn: Optional[sqlite3.Connection] = None) -> int:
 
 
 def get_table_info(conn: Optional[sqlite3.Connection] = None) -> dict:
-    """Get information about database tables.
-
-    Args:
-        conn: Optional database connection.
-
-    Returns:
-        Dictionary with table names and their row counts.
-    """
+    """Row counts per table. Returns -1 for tables that don't exist."""
     if conn is None:
         from .connection import get_connection
         conn = get_connection()
@@ -323,6 +266,6 @@ def get_table_info(conn: Optional[sqlite3.Connection] = None) -> dict:
             row = cursor.fetchone()
             info[table] = row[0] if row else 0
         except sqlite3.OperationalError:
-            info[table] = -1  # Table doesn't exist
+            info[table] = -1
 
     return info

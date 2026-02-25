@@ -1,7 +1,4 @@
-"""
-Browser Selector Widget - Allows users to select which browsers to check compatibility for.
-Shows all browsers available in the Can I Use database.
-"""
+"""Browser selector for picking target browsers to check compatibility against."""
 
 import json
 from pathlib import Path
@@ -12,7 +9,6 @@ import customtkinter as ctk
 from ..theme import COLORS, SPACING
 
 
-# Browser metadata with display names and icons
 BROWSER_INFO = {
     'chrome': {'name': 'Chrome', 'icon': '🌐', 'category': 'desktop'},
     'firefox': {'name': 'Firefox', 'icon': '🦊', 'category': 'desktop'},
@@ -35,16 +31,11 @@ BROWSER_INFO = {
     'ie_mob': {'name': 'IE Mobile', 'icon': '📱', 'category': 'mobile'},
 }
 
-# Default selected browsers (most common)
 DEFAULT_SELECTED = {'chrome', 'firefox', 'safari', 'edge'}
 
 
 def get_available_browsers() -> Dict[str, Dict]:
-    """Get all browsers available in the Can I Use database with their latest versions.
-
-    Returns:
-        Dict mapping browser_id to browser info including latest version
-    """
+    """Load all browsers from the Can I Use database with their latest versions."""
     try:
         from src.utils.config import CANIUSE_DB_PATH
 
@@ -56,11 +47,9 @@ def get_available_browsers() -> Dict[str, Dict]:
 
         for browser_id, browser_data in agents.items():
             versions = browser_data.get('versions', [])
-            # Get latest non-null version
             valid_versions = [v for v in versions if v]
             latest_version = valid_versions[-1] if valid_versions else 'latest'
 
-            # Get display info from our metadata or use database info
             info = BROWSER_INFO.get(browser_id, {
                 'name': browser_data.get('browser', browser_id),
                 'icon': '🌐',
@@ -73,14 +62,14 @@ def get_available_browsers() -> Dict[str, Dict]:
                 'icon': info['icon'],
                 'category': info['category'],
                 'latest_version': latest_version,
-                'all_versions': valid_versions[-10:] if valid_versions else [],  # Last 10 versions
+                'all_versions': valid_versions[-10:] if valid_versions else [],
             }
 
         return browsers
 
     except Exception as e:
         print(f"Error loading browsers: {e}")
-        # Return default browsers if database can't be loaded
+        # Fallback defaults if DB is unavailable
         return {
             'chrome': {'id': 'chrome', 'name': 'Chrome', 'icon': '🌐', 'category': 'desktop', 'latest_version': '120'},
             'firefox': {'id': 'firefox', 'name': 'Firefox', 'icon': '🦊', 'category': 'desktop', 'latest_version': '120'},
@@ -90,11 +79,7 @@ def get_available_browsers() -> Dict[str, Dict]:
 
 
 class BrowserSelector(ctk.CTkFrame):
-    """Widget for selecting target browsers for compatibility checking.
-
-    Shows all available browsers organized by category (Desktop, Mobile, Other).
-    Users can select/deselect browsers and the selection is used for analysis.
-    """
+    """Lets users pick which browsers to check, organized by category."""
 
     def __init__(
         self,
@@ -102,12 +87,6 @@ class BrowserSelector(ctk.CTkFrame):
         on_selection_change: Optional[Callable[[Dict[str, str]], None]] = None,
         **kwargs
     ):
-        """Initialize the browser selector.
-
-        Args:
-            master: Parent widget
-            on_selection_change: Callback when selection changes, receives dict of {browser_id: version}
-        """
         super().__init__(
             master,
             fg_color=COLORS.get('bg_medium', '#1e293b'),
@@ -124,12 +103,9 @@ class BrowserSelector(ctk.CTkFrame):
         self._init_ui()
 
     def _init_ui(self):
-        """Initialize the user interface."""
-        # Header
         header_frame = ctk.CTkFrame(self, fg_color="transparent")
         header_frame.pack(fill="x", padx=SPACING['md'], pady=SPACING['md'])
 
-        # Title
         title_label = ctk.CTkLabel(
             header_frame,
             text="Target Browsers",
@@ -138,7 +114,6 @@ class BrowserSelector(ctk.CTkFrame):
         )
         title_label.pack(side="left")
 
-        # Selected count badge
         self._count_label = ctk.CTkLabel(
             header_frame,
             text=f"{len(self._selected)} selected",
@@ -147,7 +122,6 @@ class BrowserSelector(ctk.CTkFrame):
         )
         self._count_label.pack(side="left", padx=(SPACING['sm'], 0))
 
-        # Expand/Collapse button
         self._toggle_btn = ctk.CTkButton(
             header_frame,
             text="▼ Show All",
@@ -161,7 +135,6 @@ class BrowserSelector(ctk.CTkFrame):
         )
         self._toggle_btn.pack(side="right")
 
-        # Quick selection buttons
         quick_frame = ctk.CTkFrame(self, fg_color="transparent")
         quick_frame.pack(fill="x", padx=SPACING['md'], pady=(0, SPACING['sm']))
 
@@ -213,19 +186,17 @@ class BrowserSelector(ctk.CTkFrame):
             command=self._clear_selection,
         ).pack(side="left")
 
-        # Browser selection area (compact view - just shows selected)
+        # Compact view shows selected browsers as badges
         self._compact_frame = ctk.CTkFrame(self, fg_color="transparent")
         self._compact_frame.pack(fill="x", padx=SPACING['md'], pady=(0, SPACING['md']))
         self._update_compact_view()
 
-        # Expanded browser list (hidden by default)
+        # Full browser list, hidden until expanded
         self._expanded_frame = ctk.CTkFrame(self, fg_color="transparent")
-        # Don't pack yet
 
         self._create_browser_list()
 
     def _update_compact_view(self):
-        """Update the compact view showing selected browsers."""
         for widget in self._compact_frame.winfo_children():
             widget.destroy()
 
@@ -238,7 +209,6 @@ class BrowserSelector(ctk.CTkFrame):
             ).pack(anchor="w")
             return
 
-        # Show selected browsers as badges
         row_frame = ctk.CTkFrame(self._compact_frame, fg_color="transparent")
         row_frame.pack(fill="x")
 
@@ -260,8 +230,6 @@ class BrowserSelector(ctk.CTkFrame):
             badge.pack(side="left", padx=(0, SPACING['xs']), pady=2)
 
     def _create_browser_list(self):
-        """Create the full browser selection list."""
-        # Organize by category
         categories = {
             'desktop': [],
             'mobile': [],
@@ -274,7 +242,6 @@ class BrowserSelector(ctk.CTkFrame):
                 category = 'other'
             categories[category].append((browser_id, browser))
 
-        # Create sections for each category
         category_names = {
             'desktop': 'Desktop Browsers',
             'mobile': 'Mobile Browsers',
@@ -285,7 +252,6 @@ class BrowserSelector(ctk.CTkFrame):
             if not browsers:
                 continue
 
-            # Category header
             cat_label = ctk.CTkLabel(
                 self._expanded_frame,
                 text=category_names.get(category, category.title()),
@@ -294,14 +260,12 @@ class BrowserSelector(ctk.CTkFrame):
             )
             cat_label.pack(anchor="w", padx=SPACING['md'], pady=(SPACING['sm'], SPACING['xs']))
 
-            # Browser grid
             grid_frame = ctk.CTkFrame(self._expanded_frame, fg_color="transparent")
             grid_frame.pack(fill="x", padx=SPACING['md'], pady=(0, SPACING['sm']))
 
-            # Create checkboxes in a grid (3 columns)
+            # 3-column grid layout
             for idx, (browser_id, browser) in enumerate(sorted(browsers, key=lambda x: x[1]['name'])):
                 col = idx % 3
-                row_frame = grid_frame
 
                 if col == 0:
                     row_frame = ctk.CTkFrame(grid_frame, fg_color="transparent")
@@ -329,7 +293,6 @@ class BrowserSelector(ctk.CTkFrame):
                 self._checkboxes[browser_id] = checkbox
 
     def _toggle_expand(self):
-        """Toggle between compact and expanded view."""
         self._expanded = not self._expanded
 
         if self._expanded:
@@ -343,7 +306,6 @@ class BrowserSelector(ctk.CTkFrame):
             self._update_compact_view()
 
     def _on_browser_toggle(self, browser_id: str):
-        """Handle browser checkbox toggle."""
         if browser_id in self._selected:
             self._selected.discard(browser_id)
         else:
@@ -353,16 +315,13 @@ class BrowserSelector(ctk.CTkFrame):
         self._notify_change()
 
     def _update_count(self):
-        """Update the selected count label."""
         self._count_label.configure(text=f"{len(self._selected)} selected")
 
     def _notify_change(self):
-        """Notify listeners of selection change."""
         if self._on_selection_change:
             self._on_selection_change(self.get_selected_browsers())
 
     def _select_desktop(self):
-        """Select all desktop browsers."""
         self._selected.clear()
         for browser_id, browser in self._browsers.items():
             if browser.get('category') == 'desktop':
@@ -378,7 +337,6 @@ class BrowserSelector(ctk.CTkFrame):
         self._notify_change()
 
     def _select_mobile(self):
-        """Select all mobile browsers."""
         self._selected.clear()
         for browser_id, browser in self._browsers.items():
             if browser.get('category') == 'mobile':
@@ -394,7 +352,6 @@ class BrowserSelector(ctk.CTkFrame):
         self._notify_change()
 
     def _select_all(self):
-        """Select all browsers."""
         self._selected = set(self._browsers.keys())
         for checkbox in self._checkboxes.values():
             checkbox.select()
@@ -404,7 +361,6 @@ class BrowserSelector(ctk.CTkFrame):
         self._notify_change()
 
     def _clear_selection(self):
-        """Clear all selections."""
         self._selected.clear()
         for checkbox in self._checkboxes.values():
             checkbox.deselect()
@@ -414,11 +370,7 @@ class BrowserSelector(ctk.CTkFrame):
         self._notify_change()
 
     def get_selected_browsers(self) -> Dict[str, str]:
-        """Get the currently selected browsers with their latest versions.
-
-        Returns:
-            Dict mapping browser_id to latest_version
-        """
+        """Returns {browser_id: latest_version} for all selected browsers."""
         result = {}
         for browser_id in self._selected:
             browser = self._browsers.get(browser_id, {})
@@ -426,11 +378,6 @@ class BrowserSelector(ctk.CTkFrame):
         return result
 
     def set_selected_browsers(self, browser_ids: List[str]):
-        """Set the selected browsers.
-
-        Args:
-            browser_ids: List of browser IDs to select
-        """
         self._selected = set(browser_ids) & set(self._browsers.keys())
 
         for browser_id, checkbox in self._checkboxes.items():
