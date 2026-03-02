@@ -29,6 +29,7 @@ from ...parsers.html_feature_maps import (
 from ...parsers.custom_rules_loader import (
     is_user_rule, save_custom_rules, load_raw_custom_rules, reload_custom_rules
 )
+from ...polyfill.polyfill_loader import load_polyfill_map, save_polyfill_map
 
 
 CSS_CATEGORIES = {
@@ -66,6 +67,8 @@ JS_CATEGORIES = {
 
 HTML_TYPES = ['Elements', 'Attributes', 'Input Types', 'Attribute Values']
 
+POLYFILL_TYPES = ['JavaScript', 'CSS', 'HTML']
+
 
 def get_css_category(feature_id: str) -> str:
     for cat_name, cat_features in CSS_CATEGORIES.items():
@@ -95,6 +98,8 @@ class RulesManagerDialog(ctk.CTkToplevel):
         self._search_var = ctk.StringVar()
         self._category_filter_var = ctk.StringVar(value="All")
         self._html_type_filter_var = ctk.StringVar(value="All")
+        self._polyfill_type_filter_var = ctk.StringVar(value="All")
+        self._polyfill_data = load_polyfill_map()
 
         self.title("Feature Detection Rules")
         self.configure(fg_color=COLORS['bg_dark'])
@@ -169,7 +174,7 @@ class RulesManagerDialog(ctk.CTkToplevel):
         tab_frame.pack(fill="x", pady=(0, 10))
 
         self._tab_buttons = {}
-        for category in ["css", "javascript", "html"]:
+        for category in ["css", "javascript", "html", "polyfills"]:
             btn = ctk.CTkButton(
                 tab_frame,
                 text=category.upper(),
@@ -252,6 +257,20 @@ class RulesManagerDialog(ctk.CTkToplevel):
             command=lambda _: self._refresh_rules_list(),
         )
 
+        # Hidden by default, shown on Polyfills tab
+        self._polyfill_type_dropdown = ctk.CTkOptionMenu(
+            filter_right,
+            variable=self._polyfill_type_filter_var,
+            values=["All"] + POLYFILL_TYPES,
+            width=160,
+            height=32,
+            fg_color=COLORS['input_bg'],
+            button_color=COLORS['accent'],
+            button_hover_color=COLORS['accent_dim'],
+            dropdown_fg_color=COLORS['bg_medium'],
+            command=lambda _: self._refresh_rules_list(),
+        )
+
     def _build_rules_list_panel(self, parent):
         left_panel = ctk.CTkFrame(parent, fg_color=COLORS['bg_medium'], corner_radius=8, width=350)
         left_panel.pack(side="left", fill="y", padx=(0, 10))
@@ -314,21 +333,26 @@ class RulesManagerDialog(ctk.CTkToplevel):
             btn.configure(fg_color=COLORS['accent'] if cat == category else COLORS['bg_medium'])
 
         # Swap the filter dropdown to match the tab
+        self._category_dropdown.pack_forget()
+        self._html_type_dropdown.pack_forget()
+        self._polyfill_type_dropdown.pack_forget()
+
         if category == "css":
             self._filter_label.configure(text="Category:")
             self._category_dropdown.configure(values=["All"] + list(CSS_CATEGORIES.keys()))
             self._category_filter_var.set("All")
             self._category_dropdown.pack(side="left")
-            self._html_type_dropdown.pack_forget()
         elif category == "javascript":
             self._filter_label.configure(text="Category:")
             self._category_dropdown.configure(values=["All"] + list(JS_CATEGORIES.keys()))
             self._category_filter_var.set("All")
             self._category_dropdown.pack(side="left")
-            self._html_type_dropdown.pack_forget()
+        elif category == "polyfills":
+            self._filter_label.configure(text="Type:")
+            self._polyfill_type_filter_var.set("All")
+            self._polyfill_type_dropdown.pack(side="left")
         else:
             self._filter_label.configure(text="Type:")
-            self._category_dropdown.pack_forget()
             self._html_type_filter_var.set("All")
             self._html_type_dropdown.pack(side="left")
 
@@ -374,6 +398,8 @@ class RulesManagerDialog(ctk.CTkToplevel):
                     continue
                 rules.append((feature_id, rule_data, True, 'Custom'))
 
+        elif self._selected_category == "polyfills":
+            return self._get_polyfill_rules()
         else:
             rules = self._get_html_rules(search, html_type_filter)
 
@@ -453,7 +479,9 @@ class RulesManagerDialog(ctk.CTkToplevel):
             ).pack(pady=30)
             return
 
-        if self._selected_category == "html":
+        if self._selected_category == "polyfills":
+            self._render_polyfill_rules_list(rules)
+        elif self._selected_category == "html":
             self._render_html_rules_list(rules)
         else:
             self._render_css_js_rules_list(rules)
@@ -754,7 +782,9 @@ class RulesManagerDialog(ctk.CTkToplevel):
             ).pack(side="left")
 
     def _show_add_form(self):
-        if self._selected_category == "html":
+        if self._selected_category == "polyfills":
+            self._show_polyfill_add_form()
+        elif self._selected_category == "html":
             self._show_html_add_form()
         else:
             self._show_css_js_add_form()
@@ -1194,6 +1224,517 @@ class RulesManagerDialog(ctk.CTkToplevel):
                 show_info(self, "Deleted", f"Rule '{name}' deleted")
                 if self.on_rules_changed:
                     self.on_rules_changed()
+                self._refresh_rules_list()
+                self._show_details_placeholder()
+
+    # --- Polyfills tab ---
+
+    def _get_polyfill_rules(self) -> List[Tuple[str, dict, bool, str]]:
+        """Get filtered polyfill entries. Returns (feature_id, data, False, type_key) tuples."""
+        rules = []
+        search = self._search_var.get().lower().strip()
+        type_filter = self._polyfill_type_filter_var.get()
+
+        type_map = {'JavaScript': 'javascript', 'CSS': 'css', 'HTML': 'html'}
+
+        for type_label, type_key in type_map.items():
+            if type_filter != "All" and type_filter != type_label:
+                continue
+            for feature_id, data in self._polyfill_data.get(type_key, {}).items():
+                if search:
+                    name = data.get('name', '').lower()
+                    if search not in feature_id.lower() and search not in name:
+                        continue
+                rules.append((feature_id, data, False, type_key))
+
+        return rules
+
+    def _render_polyfill_rules_list(self, rules: List[Tuple[str, dict, bool, str]]):
+        """Render polyfill entries grouped by type."""
+        by_type = {}
+        for fid, data, _, type_key in rules:
+            if type_key not in by_type:
+                by_type[type_key] = []
+            by_type[type_key].append((fid, data, type_key))
+
+        label_map = {'javascript': 'JavaScript', 'css': 'CSS', 'html': 'HTML'}
+
+        for type_key in ['javascript', 'css', 'html']:
+            if type_key not in by_type:
+                continue
+
+            items = by_type[type_key]
+            items.sort(key=lambda r: r[0].lower())
+
+            ctk.CTkLabel(
+                self._rules_list_frame,
+                text=label_map[type_key],
+                font=ctk.CTkFont(size=11, weight="bold"),
+                text_color=COLORS['accent_bright'],
+            ).pack(anchor="w", padx=10, pady=(10, 5))
+
+            for fid, data, tk in items:
+                self._create_polyfill_list_item(fid, data, tk)
+
+    def _create_polyfill_list_item(self, feature_id: str, data: dict, type_key: str):
+        item_frame = ctk.CTkFrame(self._rules_list_frame, fg_color="transparent", height=32)
+        item_frame.pack(fill="x", pady=1, padx=5)
+
+        btn = ctk.CTkButton(
+            item_frame,
+            text=feature_id,
+            font=ctk.CTkFont(size=11),
+            height=26,
+            anchor="w",
+            fg_color="transparent",
+            hover_color=COLORS['hover_bg'],
+            text_color=COLORS['text_primary'],
+            command=lambda fid=feature_id, d=data, tk=type_key: self._show_polyfill_details(fid, d, tk),
+        )
+        btn.pack(side="left", fill="x", expand=True)
+
+        is_poly = data.get('polyfillable', False)
+        has_fallback = 'fallback' in data
+        if is_poly and has_fallback:
+            badge_text, badge_color = "Both", COLORS['info']
+        elif is_poly:
+            badge_text, badge_color = "NPM", COLORS['success']
+        else:
+            badge_text, badge_color = "Fallback", COLORS['warning']
+
+        ctk.CTkLabel(
+            item_frame,
+            text=badge_text,
+            font=ctk.CTkFont(size=9, weight="bold"),
+            text_color=COLORS['text_primary'],
+            fg_color=badge_color,
+            corner_radius=4,
+            width=55,
+            height=20,
+        ).pack(side="right", padx=5)
+
+    def _show_polyfill_details(self, feature_id: str, data: dict, type_key: str):
+        for widget in self._details_frame.winfo_children():
+            widget.destroy()
+
+        self._selected_rule_id = feature_id
+        label_map = {'javascript': 'JavaScript', 'css': 'CSS', 'html': 'HTML'}
+
+        # Title
+        ctk.CTkLabel(
+            self._details_frame,
+            text=data.get('name', feature_id),
+            font=ctk.CTkFont(size=18, weight="bold"),
+            text_color=COLORS['text_primary'],
+        ).pack(anchor="w", pady=(0, 10))
+
+        # Info
+        ctk.CTkLabel(
+            self._details_frame,
+            text=f"Feature ID: {feature_id}",
+            font=ctk.CTkFont(size=12),
+            text_color=COLORS['text_muted'],
+        ).pack(anchor="w", pady=(0, 5))
+
+        ctk.CTkLabel(
+            self._details_frame,
+            text=f"Type: {label_map.get(type_key, type_key)}",
+            font=ctk.CTkFont(size=12),
+            text_color=COLORS['text_muted'],
+        ).pack(anchor="w", pady=(0, 5))
+
+        is_poly = data.get('polyfillable', False)
+        status_text = "Yes — NPM package available" if is_poly else "No — CSS fallback only"
+        status_color = COLORS['success'] if is_poly else COLORS['warning']
+        ctk.CTkLabel(
+            self._details_frame,
+            text=f"Polyfillable: {status_text}",
+            font=ctk.CTkFont(size=12),
+            text_color=status_color,
+        ).pack(anchor="w", pady=(0, 15))
+
+        # Packages
+        packages = data.get('packages', [])
+        if packages:
+            ctk.CTkLabel(
+                self._details_frame,
+                text=f"Packages ({len(packages)}):",
+                font=ctk.CTkFont(size=13, weight="bold"),
+                text_color=COLORS['text_secondary'],
+            ).pack(anchor="w", pady=(0, 8))
+
+            for pkg in packages:
+                pkg_frame = ctk.CTkFrame(self._details_frame, fg_color=COLORS['bg_dark'], corner_radius=6)
+                pkg_frame.pack(fill="x", pady=(0, 8))
+
+                inner = ctk.CTkFrame(pkg_frame, fg_color="transparent")
+                inner.pack(fill="x", padx=12, pady=10)
+
+                ctk.CTkLabel(
+                    inner,
+                    text=pkg.get('name', pkg.get('npm', '')),
+                    font=ctk.CTkFont(size=12, weight="bold"),
+                    text_color=COLORS['text_primary'],
+                ).pack(anchor="w")
+
+                if pkg.get('npm'):
+                    ctk.CTkLabel(
+                        inner,
+                        text=f"npm: {pkg['npm']}",
+                        font=ctk.CTkFont(size=11, family="Courier"),
+                        text_color=COLORS['text_muted'],
+                    ).pack(anchor="w", pady=(4, 0))
+
+                if pkg.get('import'):
+                    ctk.CTkLabel(
+                        inner, text="Import:",
+                        font=ctk.CTkFont(size=11), text_color=COLORS['text_muted'],
+                    ).pack(anchor="w", pady=(6, 2))
+
+                    import_lines = pkg['import'].split('\n')
+                    import_box = ctk.CTkTextbox(
+                        inner,
+                        font=ctk.CTkFont(size=10, family="Courier"),
+                        height=min(60, 16 * len(import_lines)),
+                        fg_color=COLORS['input_bg'],
+                        text_color=COLORS['text_secondary'],
+                        wrap="none",
+                    )
+                    import_box.pack(fill="x", pady=(0, 4))
+                    import_box.insert("1.0", pkg['import'])
+                    import_box.configure(state="disabled")
+
+                info_parts = []
+                if pkg.get('size_kb'):
+                    info_parts.append(f"{pkg['size_kb']} KB")
+                if pkg.get('cdn'):
+                    info_parts.append("CDN available")
+                if pkg.get('note'):
+                    info_parts.append(pkg['note'])
+
+                if info_parts:
+                    ctk.CTkLabel(
+                        inner,
+                        text=" · ".join(info_parts),
+                        font=ctk.CTkFont(size=10),
+                        text_color=COLORS['text_disabled'],
+                    ).pack(anchor="w", pady=(4, 0))
+
+        # Fallback
+        fallback = data.get('fallback')
+        if fallback:
+            ctk.CTkLabel(
+                self._details_frame,
+                text="CSS Fallback:",
+                font=ctk.CTkFont(size=13, weight="bold"),
+                text_color=COLORS['text_secondary'],
+            ).pack(anchor="w", pady=(10, 8))
+
+            if fallback.get('description'):
+                ctk.CTkLabel(
+                    self._details_frame,
+                    text=fallback['description'],
+                    font=ctk.CTkFont(size=12),
+                    text_color=COLORS['text_muted'],
+                    wraplength=400, justify="left",
+                ).pack(anchor="w", pady=(0, 8))
+
+            if fallback.get('code'):
+                code_lines = fallback['code'].split('\n')
+                code_box = ctk.CTkTextbox(
+                    self._details_frame,
+                    font=ctk.CTkFont(size=10, family="Courier"),
+                    height=min(150, 14 * len(code_lines)),
+                    fg_color=COLORS['input_bg'],
+                    text_color=COLORS['text_secondary'],
+                    wrap="none",
+                )
+                code_box.pack(fill="x", pady=(0, 8))
+                code_box.insert("1.0", fallback['code'])
+                code_box.configure(state="disabled")
+
+        # Edit / Delete
+        btn_frame = ctk.CTkFrame(self._details_frame, fg_color="transparent")
+        btn_frame.pack(fill="x", pady=(20, 0))
+
+        ctk.CTkButton(
+            btn_frame, text="Edit",
+            font=ctk.CTkFont(size=12, weight="bold"), width=100, height=35,
+            fg_color=COLORS['accent'], hover_color=COLORS['accent_dim'],
+            command=lambda: self._show_polyfill_add_form(feature_id, data, type_key),
+        ).pack(side="left", padx=(0, 10))
+
+        ctk.CTkButton(
+            btn_frame, text="Delete",
+            font=ctk.CTkFont(size=12, weight="bold"), width=100, height=35,
+            fg_color=COLORS['danger'], hover_color=COLORS['danger_dark'],
+            command=lambda: self._delete_polyfill_rule(feature_id, type_key),
+        ).pack(side="left")
+
+    def _show_polyfill_add_form(self, edit_id: str = None, edit_data: dict = None, edit_type_key: str = None):
+        for widget in self._details_frame.winfo_children():
+            widget.destroy()
+
+        is_edit = edit_id is not None
+
+        ctk.CTkLabel(
+            self._details_frame,
+            text=f"{'Edit' if is_edit else 'Add New'} Polyfill",
+            font=ctk.CTkFont(size=16, weight="bold"),
+            text_color=COLORS['text_primary'],
+        ).pack(anchor="w", pady=(0, 20))
+
+        # Feature ID
+        ctk.CTkLabel(
+            self._details_frame, text="Feature ID (Can I Use)*:",
+            font=ctk.CTkFont(size=12), text_color=COLORS['text_secondary'],
+        ).pack(anchor="w", pady=(0, 5))
+
+        id_entry = ctk.CTkEntry(
+            self._details_frame, placeholder_text="e.g., fetch",
+            font=ctk.CTkFont(size=12), height=36,
+            fg_color=COLORS['input_bg'], border_color=COLORS['border'],
+        )
+        id_entry.pack(fill="x", pady=(0, 12))
+        if edit_id:
+            id_entry.insert(0, edit_id)
+
+        # Display Name
+        ctk.CTkLabel(
+            self._details_frame, text="Display Name*:",
+            font=ctk.CTkFont(size=12), text_color=COLORS['text_secondary'],
+        ).pack(anchor="w", pady=(0, 5))
+
+        name_entry = ctk.CTkEntry(
+            self._details_frame, placeholder_text="e.g., Fetch API",
+            font=ctk.CTkFont(size=12), height=36,
+            fg_color=COLORS['input_bg'], border_color=COLORS['border'],
+        )
+        name_entry.pack(fill="x", pady=(0, 12))
+        if edit_data:
+            name_entry.insert(0, edit_data.get('name', ''))
+
+        # Type
+        ctk.CTkLabel(
+            self._details_frame, text="Type*:",
+            font=ctk.CTkFont(size=12), text_color=COLORS['text_secondary'],
+        ).pack(anchor="w", pady=(0, 5))
+
+        type_var = ctk.StringVar(value=edit_type_key or "javascript")
+        ctk.CTkOptionMenu(
+            self._details_frame, variable=type_var,
+            values=["javascript", "css", "html"],
+            width=200, height=36,
+            fg_color=COLORS['input_bg'], button_color=COLORS['accent'],
+            button_hover_color=COLORS['accent_dim'], dropdown_fg_color=COLORS['bg_medium'],
+        ).pack(anchor="w", pady=(0, 12))
+
+        # Polyfillable
+        poly_var = ctk.BooleanVar(value=edit_data.get('polyfillable', True) if edit_data else True)
+        ctk.CTkCheckBox(
+            self._details_frame, text="Polyfillable (NPM package available)",
+            variable=poly_var, font=ctk.CTkFont(size=12),
+            fg_color=COLORS['accent'], hover_color=COLORS['accent_dim'],
+        ).pack(anchor="w", pady=(0, 15))
+
+        # --- Package fields ---
+        ctk.CTkLabel(
+            self._details_frame, text="Package Info",
+            font=ctk.CTkFont(size=12, weight="bold"), text_color=COLORS['text_muted'],
+        ).pack(anchor="w", pady=(0, 8))
+
+        ctk.CTkLabel(
+            self._details_frame, text="NPM Package:",
+            font=ctk.CTkFont(size=12), text_color=COLORS['text_secondary'],
+        ).pack(anchor="w", pady=(0, 5))
+
+        npm_entry = ctk.CTkEntry(
+            self._details_frame, placeholder_text="e.g., whatwg-fetch",
+            font=ctk.CTkFont(size=12), height=36,
+            fg_color=COLORS['input_bg'], border_color=COLORS['border'],
+        )
+        npm_entry.pack(fill="x", pady=(0, 10))
+
+        ctk.CTkLabel(
+            self._details_frame, text="Import Statement:",
+            font=ctk.CTkFont(size=12), text_color=COLORS['text_secondary'],
+        ).pack(anchor="w", pady=(0, 5))
+
+        import_text = ctk.CTkTextbox(
+            self._details_frame, font=ctk.CTkFont(size=11, family="Courier"),
+            height=60, fg_color=COLORS['input_bg'],
+            border_color=COLORS['border'], border_width=1,
+        )
+        import_text.pack(fill="x", pady=(0, 10))
+
+        size_note_frame = ctk.CTkFrame(self._details_frame, fg_color="transparent")
+        size_note_frame.pack(fill="x", pady=(0, 10))
+
+        size_col = ctk.CTkFrame(size_note_frame, fg_color="transparent")
+        size_col.pack(side="left", fill="x", expand=True, padx=(0, 5))
+        ctk.CTkLabel(
+            size_col, text="Size (KB):",
+            font=ctk.CTkFont(size=11), text_color=COLORS['text_secondary'],
+        ).pack(anchor="w")
+        size_entry = ctk.CTkEntry(
+            size_col, placeholder_text="3.2",
+            font=ctk.CTkFont(size=12), height=32,
+            fg_color=COLORS['input_bg'], border_color=COLORS['border'],
+        )
+        size_entry.pack(fill="x")
+
+        note_col = ctk.CTkFrame(size_note_frame, fg_color="transparent")
+        note_col.pack(side="left", fill="x", expand=True, padx=(5, 0))
+        ctk.CTkLabel(
+            note_col, text="Note:",
+            font=ctk.CTkFont(size=11), text_color=COLORS['text_secondary'],
+        ).pack(anchor="w")
+        note_entry = ctk.CTkEntry(
+            note_col, placeholder_text="Optional note",
+            font=ctk.CTkFont(size=12), height=32,
+            fg_color=COLORS['input_bg'], border_color=COLORS['border'],
+        )
+        note_entry.pack(fill="x")
+
+        # --- Fallback fields ---
+        ctk.CTkLabel(
+            self._details_frame, text="CSS Fallback (optional)",
+            font=ctk.CTkFont(size=12, weight="bold"), text_color=COLORS['text_muted'],
+        ).pack(anchor="w", pady=(10, 8))
+
+        ctk.CTkLabel(
+            self._details_frame, text="Fallback Description:",
+            font=ctk.CTkFont(size=12), text_color=COLORS['text_secondary'],
+        ).pack(anchor="w", pady=(0, 5))
+
+        fb_desc_entry = ctk.CTkEntry(
+            self._details_frame, placeholder_text="e.g., Use Flexbox as fallback",
+            font=ctk.CTkFont(size=12), height=36,
+            fg_color=COLORS['input_bg'], border_color=COLORS['border'],
+        )
+        fb_desc_entry.pack(fill="x", pady=(0, 10))
+
+        ctk.CTkLabel(
+            self._details_frame, text="Fallback CSS Code:",
+            font=ctk.CTkFont(size=12), text_color=COLORS['text_secondary'],
+        ).pack(anchor="w", pady=(0, 5))
+
+        fb_code_text = ctk.CTkTextbox(
+            self._details_frame, font=ctk.CTkFont(size=11, family="Courier"),
+            height=80, fg_color=COLORS['input_bg'],
+            border_color=COLORS['border'], border_width=1,
+        )
+        fb_code_text.pack(fill="x", pady=(0, 15))
+
+        # Pre-fill edit data
+        if edit_data:
+            packages = edit_data.get('packages', [])
+            if packages:
+                pkg = packages[0]
+                npm_entry.insert(0, pkg.get('npm', ''))
+                import_text.insert("1.0", pkg.get('import', ''))
+                if pkg.get('size_kb'):
+                    size_entry.insert(0, str(pkg['size_kb']))
+                if pkg.get('note'):
+                    note_entry.insert(0, pkg['note'])
+
+            fallback = edit_data.get('fallback', {})
+            if fallback:
+                fb_desc_entry.insert(0, fallback.get('description', ''))
+                fb_code_text.insert("1.0", fallback.get('code', ''))
+
+        # Buttons
+        btn_frame = ctk.CTkFrame(self._details_frame, fg_color="transparent")
+        btn_frame.pack(fill="x", pady=(5, 0))
+
+        ctk.CTkButton(
+            btn_frame, text="Cancel", font=ctk.CTkFont(size=12),
+            width=100, height=35,
+            fg_color=COLORS['bg_light'], hover_color=COLORS['hover_bg'],
+            text_color=COLORS['text_primary'],
+            command=self._show_details_placeholder,
+        ).pack(side="left", padx=(0, 10))
+
+        ctk.CTkButton(
+            btn_frame, text="Save", font=ctk.CTkFont(size=12, weight="bold"),
+            width=120, height=35,
+            fg_color=COLORS['success'], hover_color=COLORS['success_dark'],
+            command=lambda: self._save_polyfill_rule(
+                id_entry.get(), name_entry.get(), type_var.get(), poly_var.get(),
+                npm_entry.get(), import_text.get("1.0", "end"), size_entry.get(),
+                note_entry.get(), fb_desc_entry.get(), fb_code_text.get("1.0", "end"),
+                edit_id, edit_type_key,
+            ),
+        ).pack(side="left")
+
+    def _save_polyfill_rule(self, feature_id, name, type_key, polyfillable,
+                            npm_pkg, import_stmt, size_kb_str, note,
+                            fb_desc, fb_code, old_id=None, old_type_key=None):
+        feature_id = feature_id.strip()
+        name = name.strip()
+        npm_pkg = npm_pkg.strip()
+        import_stmt = import_stmt.strip()
+        size_kb_str = size_kb_str.strip()
+        note = note.strip()
+        fb_desc = fb_desc.strip()
+        fb_code = fb_code.strip()
+
+        if not feature_id:
+            show_warning(self, "Validation", "Feature ID is required")
+            return
+        if not name:
+            show_warning(self, "Validation", "Display name is required")
+            return
+
+        entry = {"name": name, "polyfillable": polyfillable}
+
+        # Build packages list
+        if npm_pkg:
+            pkg = {"name": npm_pkg, "npm": npm_pkg}
+            if import_stmt:
+                pkg["import"] = import_stmt
+            if size_kb_str:
+                try:
+                    pkg["size_kb"] = float(size_kb_str)
+                except ValueError:
+                    pass
+            if note:
+                pkg["note"] = note
+            entry["packages"] = [pkg]
+
+        # Build fallback
+        if fb_desc or fb_code:
+            entry["fallback"] = {"type": "css"}
+            if fb_desc:
+                entry["fallback"]["description"] = fb_desc
+            if fb_code:
+                entry["fallback"]["code"] = fb_code
+
+        # Remove old entry if type or ID changed
+        if old_id and old_type_key:
+            if old_id != feature_id or old_type_key != type_key:
+                if old_id in self._polyfill_data.get(old_type_key, {}):
+                    del self._polyfill_data[old_type_key][old_id]
+
+        if type_key not in self._polyfill_data:
+            self._polyfill_data[type_key] = {}
+
+        self._polyfill_data[type_key][feature_id] = entry
+
+        if save_polyfill_map(self._polyfill_data):
+            show_info(self, "Success", f"Polyfill '{feature_id}' saved!")
+            self._refresh_rules_list()
+            self._show_polyfill_details(feature_id, entry, type_key)
+
+    def _delete_polyfill_rule(self, feature_id: str, type_key: str):
+        if not ask_question(self, "Confirm Delete", f"Delete polyfill '{feature_id}'?"):
+            return
+
+        if feature_id in self._polyfill_data.get(type_key, {}):
+            del self._polyfill_data[type_key][feature_id]
+
+            if save_polyfill_map(self._polyfill_data):
+                show_info(self, "Deleted", f"Polyfill '{feature_id}' deleted")
                 self._refresh_rules_list()
                 self._show_details_placeholder()
 

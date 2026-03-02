@@ -1,0 +1,39 @@
+/* Test file to trigger CSS polyfill/fallback recommendations */
+
+.container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+}
+
+.sidebar {
+    position: sticky;
+    top: 0;
+}
+
+.hero {
+    backdrop-filter: blur(10px);
+}
+
+.card img {
+    object-fit: cover;
+}
+
+:root {
+    --primary: #3b82f6;
+    --bg: #0f172a;
+}
+
+.scroll-container {
+    scroll-snap-type: x mandatory;
+    scroll-behavior: smooth;
+}
+
+.filtered {
+    filter: blur(5px);
+}
+
+.flex-layout {
+    display: flex;
+    flex-wrap: wrap;
+}

@@ -1,13 +1,68 @@
-"""Polyfill recommendation card with copy-to-clipboard and file generation."""
+"""Polyfill recommendation card with collapsible sections."""
 
 from typing import List, Callable, Optional
 import customtkinter as ctk
 
-from ..theme import COLORS, SPACING, FONTS
+from ..theme import COLORS, SPACING, FONTS, ICONS
+
+
+class _ToggleSection(ctk.CTkFrame):
+    """Lightweight collapsible section used inside the polyfill card."""
+
+    def __init__(self, master, title: str, badge_text: str = "", expanded: bool = False, **kwargs):
+        super().__init__(master, fg_color="transparent", **kwargs)
+
+        self._expanded = expanded
+
+        # Header row
+        self._header = ctk.CTkFrame(self, fg_color=COLORS['bg_dark'], corner_radius=6, cursor="hand2")
+        self._header.pack(fill="x")
+
+        self._chevron = ctk.CTkLabel(
+            self._header, text=ICONS['chevron_down'] if expanded else ICONS['chevron_right'],
+            font=ctk.CTkFont(size=12), text_color=COLORS['text_muted'], width=20,
+        )
+        self._chevron.pack(side="left", padx=(SPACING['sm'], 0), pady=SPACING['sm'])
+
+        self._title_lbl = ctk.CTkLabel(
+            self._header, text=title,
+            font=ctk.CTkFont(size=12, weight="bold"), text_color=COLORS['text_primary'],
+        )
+        self._title_lbl.pack(side="left", padx=(SPACING['xs'], 0), pady=SPACING['sm'])
+
+        if badge_text:
+            badge = ctk.CTkLabel(
+                self._header, text=f" {badge_text} ",
+                font=ctk.CTkFont(size=10), text_color=COLORS['text_primary'],
+                fg_color=COLORS['info'], corner_radius=8,
+            )
+            badge.pack(side="left", padx=(SPACING['sm'], 0))
+            badge.bind("<Button-1>", lambda e=None: self._toggle())
+
+        # Bind clicks on all header children
+        for w in (self._header, self._chevron, self._title_lbl):
+            w.bind("<Button-1>", lambda e=None: self._toggle())
+
+        # Content area
+        self._content = ctk.CTkFrame(self, fg_color="transparent")
+        if expanded:
+            self._content.pack(fill="x", pady=(SPACING['xs'], 0))
+
+    def _toggle(self):
+        self._expanded = not self._expanded
+        if self._expanded:
+            self._chevron.configure(text=ICONS['chevron_down'])
+            self._content.pack(fill="x", pady=(SPACING['xs'], 0))
+        else:
+            self._chevron.configure(text=ICONS['chevron_right'])
+            self._content.pack_forget()
+
+    def get_content(self) -> ctk.CTkFrame:
+        return self._content
 
 
 class PolyfillCard(ctk.CTkFrame):
-    """Shows polyfill recommendations: npm commands, imports, CSS fallbacks."""
+    """Organized polyfill recommendations with collapsible sub-sections."""
 
     def __init__(
         self,
@@ -21,12 +76,8 @@ class PolyfillCard(ctk.CTkFrame):
         **kwargs
     ):
         super().__init__(
-            master,
-            fg_color=COLORS['bg_medium'],
-            corner_radius=8,
-            border_width=1,
-            border_color=COLORS['info'],
-            **kwargs
+            master, fg_color=COLORS['bg_medium'], corner_radius=8,
+            border_width=1, border_color=COLORS['info'], **kwargs
         )
 
         self._install_command = install_command
@@ -39,282 +90,193 @@ class PolyfillCard(ctk.CTkFrame):
         self._init_ui()
 
     def _init_ui(self):
+        npm_count = len(self._npm_recommendations)
+        css_count = len(self._css_fallbacks)
+
+        # --- Summary header ---
         header = ctk.CTkFrame(self, fg_color="transparent")
-        header.pack(fill="x", padx=SPACING['md'], pady=(SPACING['md'], SPACING['sm']))
+        header.pack(fill="x", padx=SPACING['md'], pady=SPACING['md'])
 
-        icon = ctk.CTkLabel(
-            header,
-            text="\U0001F4E6",
-            font=ctk.CTkFont(size=16)
-        )
-        icon.pack(side="left")
+        ctk.CTkLabel(
+            header, text="\U0001F4E6", font=ctk.CTkFont(size=16)
+        ).pack(side="left")
 
-        title = ctk.CTkLabel(
-            header,
-            text="Polyfill Recommendations",
-            font=ctk.CTkFont(size=14, weight="bold"),
-            text_color=COLORS['text_primary']
-        )
-        title.pack(side="left", padx=(SPACING['xs'], 0))
+        ctk.CTkLabel(
+            header, text="Polyfill Recommendations",
+            font=ctk.CTkFont(size=14, weight="bold"), text_color=COLORS['text_primary'],
+        ).pack(side="left", padx=(SPACING['xs'], 0))
 
-        count = len(self._npm_recommendations) + len(self._css_fallbacks)
-        badge = ctk.CTkLabel(
-            header,
-            text=f" {count} ",
-            font=ctk.CTkFont(size=11),
-            fg_color=COLORS['info'],
-            corner_radius=10,
-            text_color=COLORS['text_primary'],
-        )
-        badge.pack(side="left", padx=(SPACING['sm'], 0))
+        # Summary chips on the right
+        chips_frame = ctk.CTkFrame(header, fg_color="transparent")
+        chips_frame.pack(side="right")
 
         if self._total_size_kb > 0:
-            size_label = ctk.CTkLabel(
-                header,
-                text=f"~{self._total_size_kb:.1f} KB",
-                font=ctk.CTkFont(size=11),
-                text_color=COLORS['text_muted']
-            )
-            size_label.pack(side="right")
+            ctk.CTkLabel(
+                chips_frame, text=f"~{self._total_size_kb:.1f} KB total",
+                font=ctk.CTkFont(size=10), text_color=COLORS['text_muted'],
+            ).pack(side="right", padx=(SPACING['sm'], 0))
 
-        sep = ctk.CTkFrame(self, fg_color=COLORS['border'], height=1)
-        sep.pack(fill="x", padx=SPACING['md'])
+        if css_count > 0:
+            ctk.CTkLabel(
+                chips_frame, text=f" {css_count} fallback{'s' if css_count != 1 else ''} ",
+                font=ctk.CTkFont(size=10), text_color=COLORS['text_primary'],
+                fg_color=COLORS['warning'], corner_radius=8,
+            ).pack(side="right", padx=(SPACING['xs'], 0))
 
-        content = ctk.CTkFrame(self, fg_color="transparent")
-        content.pack(fill="x", padx=SPACING['md'], pady=SPACING['md'])
+        if npm_count > 0:
+            ctk.CTkLabel(
+                chips_frame, text=f" {npm_count} package{'s' if npm_count != 1 else ''} ",
+                font=ctk.CTkFont(size=10), text_color=COLORS['text_primary'],
+                fg_color=COLORS['success'], corner_radius=8,
+            ).pack(side="right", padx=(SPACING['xs'], 0))
+
+        # Separator
+        ctk.CTkFrame(self, fg_color=COLORS['border'], height=1).pack(fill="x", padx=SPACING['md'])
+
+        # --- Action buttons row ---
+        actions = ctk.CTkFrame(self, fg_color="transparent")
+        actions.pack(fill="x", padx=SPACING['md'], pady=SPACING['sm'])
 
         if self._install_command:
-            self._build_command_section(
-                content,
-                "Install packages:",
-                self._install_command,
-                is_multiline=False
+            install_btn = ctk.CTkButton(
+                actions, text="Copy Install Command", width=160, height=30,
+                fg_color=COLORS['accent'], hover_color=COLORS['accent_dim'],
+                font=ctk.CTkFont(size=11),
             )
+            install_btn.configure(command=lambda b=install_btn: self._copy_to_clipboard(self._install_command, b))
+            install_btn.pack(side="left", padx=(0, SPACING['sm']))
 
         if self._import_statements:
-            imports_text = "\n".join(self._import_statements)
-            self._build_command_section(
-                content,
-                "Add to your entry file:",
-                imports_text,
-                is_multiline=True
+            imports_btn = ctk.CTkButton(
+                actions, text="Copy Imports", width=120, height=30,
+                fg_color=COLORS['bg_light'], hover_color=COLORS['hover_bg'],
+                text_color=COLORS['text_secondary'], font=ctk.CTkFont(size=11),
             )
-
-        if self._npm_recommendations:
-            self._build_polyfill_list(content)
-
-        if self._css_fallbacks:
-            self._build_fallbacks_section(content)
+            imports_btn.configure(command=lambda b=imports_btn: self._copy_to_clipboard("\n".join(self._import_statements), b))
+            imports_btn.pack(side="left", padx=(0, SPACING['sm']))
 
         if self._on_generate_file and self._npm_recommendations:
-            btn_frame = ctk.CTkFrame(self, fg_color="transparent")
-            btn_frame.pack(fill="x", padx=SPACING['md'], pady=(0, SPACING['md']))
+            ctk.CTkButton(
+                actions, text="Generate polyfills.js", width=150, height=30,
+                fg_color=COLORS['bg_light'], hover_color=COLORS['hover_bg'],
+                text_color=COLORS['text_secondary'], font=ctk.CTkFont(size=11),
+                command=self._on_generate_click,
+            ).pack(side="left")
 
-            gen_btn = ctk.CTkButton(
-                btn_frame,
-                text="\U0001F4C4  Generate polyfills.js",
-                fg_color=COLORS['accent'],
-                hover_color=COLORS['accent_dim'],
-                font=ctk.CTkFont(size=12),
-                height=32,
-                command=self._on_generate_click
+        # --- NPM Packages section (collapsible) ---
+        if self._npm_recommendations:
+            npm_section = _ToggleSection(
+                self, title="NPM Packages",
+                badge_text=str(npm_count), expanded=False,
             )
-            gen_btn.pack(side="left")
+            npm_section.pack(fill="x", padx=SPACING['md'], pady=(SPACING['sm'], 0))
+            self._build_npm_list(npm_section.get_content())
 
-            hint = ctk.CTkLabel(
-                btn_frame,
-                text="Creates a ready-to-import file",
-                font=ctk.CTkFont(size=11),
-                text_color=COLORS['text_muted']
+        # --- CSS Fallbacks section (collapsible) ---
+        if self._css_fallbacks:
+            css_section = _ToggleSection(
+                self, title="CSS Fallbacks",
+                badge_text=str(css_count), expanded=False,
             )
-            hint.pack(side="left", padx=(SPACING['sm'], 0))
+            css_section.pack(fill="x", padx=SPACING['md'], pady=(SPACING['sm'], 0))
+            self._build_fallbacks_list(css_section.get_content())
 
-    def _build_command_section(
-        self,
-        parent,
-        label: str,
-        command: str,
-        is_multiline: bool = False
-    ):
-        """Build a copyable command block."""
-        frame = ctk.CTkFrame(parent, fg_color="transparent")
-        frame.pack(fill="x", pady=(0, SPACING['md']))
+        # Bottom padding
+        ctk.CTkFrame(self, fg_color="transparent", height=SPACING['sm']).pack(fill="x")
 
-        lbl = ctk.CTkLabel(
-            frame,
-            text=label,
-            font=ctk.CTkFont(size=12),
-            text_color=COLORS['text_secondary']
-        )
-        lbl.pack(anchor="w")
-
-        cmd_frame = ctk.CTkFrame(frame, fg_color=COLORS['bg_dark'], corner_radius=4)
-        cmd_frame.pack(fill="x", pady=(SPACING['xs'], 0))
-
-        if is_multiline:
-            cmd_text = ctk.CTkTextbox(
-                cmd_frame,
-                font=ctk.CTkFont(family=FONTS['family_mono'], size=11),
-                text_color=COLORS['text_muted'],
-                fg_color=COLORS['bg_dark'],
-                height=min(100, 20 * len(command.split('\n'))),
-                wrap="none",
-                activate_scrollbars=False
-            )
-            cmd_text.pack(side="left", padx=SPACING['sm'], pady=SPACING['sm'], fill="x", expand=True)
-            cmd_text.insert("1.0", command)
-            cmd_text.configure(state="disabled")
-        else:
-            cmd_text = ctk.CTkLabel(
-                cmd_frame,
-                text=command,
-                font=ctk.CTkFont(family=FONTS['family_mono'], size=11),
-                text_color=COLORS['text_muted'],
-                justify="left",
-                anchor="w"
-            )
-            cmd_text.pack(side="left", padx=SPACING['sm'], pady=SPACING['sm'], fill="x", expand=True)
-
-        copy_btn = ctk.CTkButton(
-            cmd_frame,
-            text="Copy",
-            width=60,
-            height=28,
-            fg_color=COLORS['bg_light'],
-            hover_color=COLORS['hover_bg'],
-            text_color=COLORS['text_secondary'],
-            font=ctk.CTkFont(size=11),
-            command=lambda: self._copy_to_clipboard(command)
-        )
-        copy_btn.pack(side="right", padx=SPACING['xs'], pady=SPACING['xs'])
-
-    def _build_polyfill_list(self, parent):
-        """Build the list of individual polyfill packages."""
-        frame = ctk.CTkFrame(parent, fg_color="transparent")
-        frame.pack(fill="x", pady=(0, SPACING['sm']))
-
-        lbl = ctk.CTkLabel(
-            frame,
-            text="Polyfills needed:",
-            font=ctk.CTkFont(size=12),
-            text_color=COLORS['text_secondary']
-        )
-        lbl.pack(anchor="w")
-
-        list_frame = ctk.CTkFrame(frame, fg_color=COLORS['bg_dark'], corner_radius=4)
-        list_frame.pack(fill="x", pady=(SPACING['xs'], 0))
-
+    def _build_npm_list(self, parent):
+        """Compact npm package list — one row per polyfill."""
         for rec in self._npm_recommendations:
-            item = ctk.CTkFrame(list_frame, fg_color="transparent")
-            item.pack(fill="x", padx=SPACING['sm'], pady=SPACING['xs'])
+            row = ctk.CTkFrame(parent, fg_color="transparent")
+            row.pack(fill="x", pady=1)
 
-            bullet = ctk.CTkLabel(
-                item,
-                text="\u2022",
-                font=ctk.CTkFont(size=12),
-                text_color=COLORS['success'],
-                width=16
-            )
-            bullet.pack(side="left")
+            inner = ctk.CTkFrame(row, fg_color=COLORS['bg_dark'], corner_radius=4)
+            inner.pack(fill="x", pady=1)
 
-            name_lbl = ctk.CTkLabel(
-                item,
-                text=rec.feature_name,
-                font=ctk.CTkFont(size=12),
-                text_color=COLORS['text_primary']
-            )
-            name_lbl.pack(side="left")
+            # Left side: bullet + name + package
+            ctk.CTkLabel(
+                inner, text="\u2022", font=ctk.CTkFont(size=11),
+                text_color=COLORS['success'], width=14,
+            ).pack(side="left", padx=(SPACING['sm'], 0), pady=4)
+
+            ctk.CTkLabel(
+                inner, text=rec.feature_name,
+                font=ctk.CTkFont(size=11, weight="bold"), text_color=COLORS['text_primary'],
+            ).pack(side="left", pady=4)
 
             if rec.packages:
-                pkg_name = rec.packages[0].npm_package
-                pkg_lbl = ctk.CTkLabel(
-                    item,
-                    text=f"({pkg_name})",
-                    font=ctk.CTkFont(size=11),
-                    text_color=COLORS['text_muted']
+                pkg = rec.packages[0]
+                ctk.CTkLabel(
+                    inner, text=pkg.npm_package,
+                    font=ctk.CTkFont(family=FONTS['family_mono'], size=10),
+                    text_color=COLORS['text_muted'],
+                ).pack(side="left", padx=(SPACING['sm'], 0), pady=4)
+
+                # Right side: size + copy button
+                if pkg.size_kb:
+                    ctk.CTkLabel(
+                        inner, text=f"{pkg.size_kb} KB",
+                        font=ctk.CTkFont(size=9), text_color=COLORS['text_disabled'],
+                    ).pack(side="right", padx=(0, SPACING['sm']), pady=4)
+
+                copy_btn = ctk.CTkButton(
+                    inner, text="Copy", width=50, height=22,
+                    fg_color=COLORS['bg_light'], hover_color=COLORS['hover_bg'],
+                    text_color=COLORS['text_secondary'], font=ctk.CTkFont(size=9),
                 )
-                pkg_lbl.pack(side="left", padx=(SPACING['xs'], 0))
+                copy_btn.configure(command=lambda p=pkg, b=copy_btn: self._copy_to_clipboard(p.import_statement, b))
+                copy_btn.pack(side="right", padx=2, pady=2)
 
-                if rec.packages[0].size_kb:
-                    size_lbl = ctk.CTkLabel(
-                        item,
-                        text=f"{rec.packages[0].size_kb} KB",
-                        font=ctk.CTkFont(size=10),
-                        text_color=COLORS['text_disabled']
-                    )
-                    size_lbl.pack(side="right")
-
-    def _build_fallbacks_section(self, parent):
-        """Build CSS fallback code blocks."""
-        frame = ctk.CTkFrame(parent, fg_color="transparent")
-        frame.pack(fill="x", pady=(SPACING['sm'], 0))
-
-        lbl = ctk.CTkLabel(
-            frame,
-            text="CSS Fallback Strategies:",
-            font=ctk.CTkFont(size=12),
-            text_color=COLORS['text_secondary']
-        )
-        lbl.pack(anchor="w")
-
+    def _build_fallbacks_list(self, parent):
+        """CSS fallback items — each one expandable to show code."""
         for rec in self._css_fallbacks:
-            fallback_frame = ctk.CTkFrame(frame, fg_color=COLORS['bg_dark'], corner_radius=4)
-            fallback_frame.pack(fill="x", pady=(SPACING['xs'], 0))
-
-            header = ctk.CTkFrame(fallback_frame, fg_color="transparent")
-            header.pack(fill="x", padx=SPACING['sm'], pady=(SPACING['sm'], 0))
-
-            name_lbl = ctk.CTkLabel(
-                header,
-                text=f"\u26A0  {rec.feature_name}",
-                font=ctk.CTkFont(size=12, weight="bold"),
-                text_color=COLORS['warning']
+            item_section = _ToggleSection(
+                parent, title=rec.feature_name, expanded=False,
             )
-            name_lbl.pack(side="left")
+            item_section.pack(fill="x", pady=2)
+
+            content = item_section.get_content()
 
             if rec.fallback_description:
-                desc_lbl = ctk.CTkLabel(
-                    fallback_frame,
-                    text=rec.fallback_description,
-                    font=ctk.CTkFont(size=11),
-                    text_color=COLORS['text_muted'],
-                    wraplength=500,
-                    justify="left"
-                )
-                desc_lbl.pack(anchor="w", padx=SPACING['sm'], pady=(SPACING['xs'], 0))
+                ctk.CTkLabel(
+                    content, text=rec.fallback_description,
+                    font=ctk.CTkFont(size=11), text_color=COLORS['text_muted'],
+                    wraplength=500, justify="left", anchor="w",
+                ).pack(anchor="w", pady=(0, SPACING['xs']))
 
             if rec.fallback_code:
-                code_frame = ctk.CTkFrame(fallback_frame, fg_color=COLORS['bg_darkest'], corner_radius=4)
-                code_frame.pack(fill="x", padx=SPACING['sm'], pady=SPACING['sm'])
+                code_frame = ctk.CTkFrame(content, fg_color=COLORS['bg_darkest'], corner_radius=4)
+                code_frame.pack(fill="x")
 
+                lines = rec.fallback_code.split('\n')
                 code_text = ctk.CTkTextbox(
                     code_frame,
                     font=ctk.CTkFont(family=FONTS['family_mono'], size=10),
-                    text_color=COLORS['text_muted'],
-                    fg_color=COLORS['bg_darkest'],
-                    height=min(150, 15 * len(rec.fallback_code.split('\n'))),
-                    wrap="none"
+                    text_color=COLORS['text_muted'], fg_color=COLORS['bg_darkest'],
+                    height=min(120, 14 * len(lines)), wrap="none",
                 )
                 code_text.pack(fill="x", padx=SPACING['xs'], pady=SPACING['xs'])
                 code_text.insert("1.0", rec.fallback_code)
                 code_text.configure(state="disabled")
 
-                copy_code_btn = ctk.CTkButton(
-                    code_frame,
-                    text="Copy CSS",
-                    width=80,
-                    height=24,
-                    fg_color=COLORS['bg_light'],
-                    hover_color=COLORS['hover_bg'],
-                    text_color=COLORS['text_secondary'],
-                    font=ctk.CTkFont(size=10),
-                    command=lambda code=rec.fallback_code: self._copy_to_clipboard(code)
+                css_btn = ctk.CTkButton(
+                    code_frame, text="Copy CSS", width=70, height=22,
+                    fg_color=COLORS['bg_light'], hover_color=COLORS['hover_bg'],
+                    text_color=COLORS['text_secondary'], font=ctk.CTkFont(size=9),
                 )
-                copy_code_btn.pack(anchor="e", padx=SPACING['xs'], pady=(0, SPACING['xs']))
+                css_btn.configure(command=lambda code=rec.fallback_code, b=css_btn: self._copy_to_clipboard(code, b))
+                css_btn.pack(anchor="e", padx=SPACING['xs'], pady=(0, SPACING['xs']))
 
-    def _copy_to_clipboard(self, text: str):
+    def _copy_to_clipboard(self, text: str, button: ctk.CTkButton = None):
+        """Copy text and show brief 'Copied!' feedback on the button."""
         self.clipboard_clear()
         self.clipboard_append(text)
+
+        if button:
+            original_text = button.cget("text")
+            original_fg = button.cget("fg_color")
+            button.configure(text="\u2713 Copied!", fg_color=COLORS['success'])
+            button.after(1500, lambda: button.configure(text=original_text, fg_color=original_fg))
 
     def _on_generate_click(self):
         if self._on_generate_file:
@@ -326,42 +288,28 @@ class PolyfillEmptyCard(ctk.CTkFrame):
 
     def __init__(self, master, **kwargs):
         super().__init__(
-            master,
-            fg_color=COLORS['bg_medium'],
-            corner_radius=8,
-            border_width=1,
-            border_color=COLORS['border'],
-            **kwargs
+            master, fg_color=COLORS['bg_medium'], corner_radius=8,
+            border_width=1, border_color=COLORS['border'], **kwargs
         )
-
         self._init_ui()
 
     def _init_ui(self):
         content = ctk.CTkFrame(self, fg_color="transparent")
         content.pack(fill="x", padx=SPACING['lg'], pady=SPACING['lg'])
 
-        icon = ctk.CTkLabel(
-            content,
-            text="\u2713",
-            font=ctk.CTkFont(size=24),
-            text_color=COLORS['success']
-        )
-        icon.pack()
+        ctk.CTkLabel(
+            content, text="\u2713", font=ctk.CTkFont(size=24),
+            text_color=COLORS['success'],
+        ).pack()
 
-        text = ctk.CTkLabel(
-            content,
-            text="No polyfills needed",
-            font=ctk.CTkFont(size=14, weight="bold"),
-            text_color=COLORS['text_primary']
-        )
-        text.pack(pady=(SPACING['xs'], 0))
+        ctk.CTkLabel(
+            content, text="No polyfills needed",
+            font=ctk.CTkFont(size=14, weight="bold"), text_color=COLORS['text_primary'],
+        ).pack(pady=(SPACING['xs'], 0))
 
-        subtext = ctk.CTkLabel(
+        ctk.CTkLabel(
             content,
             text="All detected features are fully supported in your target browsers,\nor no polyfills are available for the unsupported features.",
-            font=ctk.CTkFont(size=12),
-            text_color=COLORS['text_muted'],
-            wraplength=400,
-            justify="center"
-        )
-        subtext.pack(pady=(SPACING['xs'], 0))
+            font=ctk.CTkFont(size=12), text_color=COLORS['text_muted'],
+            wraplength=400, justify="center",
+        ).pack(pady=(SPACING['xs'], 0))
