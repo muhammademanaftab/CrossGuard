@@ -708,29 +708,29 @@ class MainWindow(ctk.CTkFrame):
             issues_summary = IssuesSummary(scroll_frame, issues=issues)
             issues_summary.pack(fill="x", pady=(0, SPACING['lg']))
 
-        # Polyfill recommendations (disabled for now)
-        # polyfill_data = self._get_polyfill_recommendations(browsers)
-        # if polyfill_data['has_recommendations']:
-        #     polyfill_section = CollapsibleSection(
-        #         scroll_frame,
-        #         title="Polyfill Recommendations",
-        #         badge_text=str(polyfill_data['count']),
-        #         badge_color=COLORS['info'],
-        #         expanded=True,  # Expanded by default - actionable info
-        #     )
-        #     polyfill_section.pack(fill="x", pady=(0, SPACING['lg']))
-        #
-        #     polyfill_content = polyfill_section.get_content_frame()
-        #     polyfill_card = PolyfillCard(
-        #         polyfill_content,
-        #         install_command=polyfill_data['install_command'],
-        #         import_statements=polyfill_data['imports'],
-        #         npm_recommendations=polyfill_data['npm'],
-        #         css_fallbacks=polyfill_data['css'],
-        #         total_size_kb=polyfill_data['total_size_kb'],
-        #         on_generate_file=self._generate_polyfills_file,
-        #     )
-        #     polyfill_card.pack(fill="x")
+        # Polyfill recommendations
+        polyfill_data = self._get_polyfill_recommendations(browsers)
+        if polyfill_data['has_recommendations']:
+            polyfill_section = CollapsibleSection(
+                scroll_frame,
+                title="Polyfill Recommendations",
+                badge_text=str(polyfill_data['count']),
+                badge_color=COLORS['info'],
+                expanded=True,
+            )
+            polyfill_section.pack(fill="x", pady=(0, SPACING['lg']))
+
+            polyfill_content = polyfill_section.get_content_frame()
+            polyfill_card = PolyfillCard(
+                polyfill_content,
+                install_command=polyfill_data['install_command'],
+                import_statements=polyfill_data['imports'],
+                npm_recommendations=polyfill_data['npm'],
+                css_fallbacks=polyfill_data['css'],
+                total_size_kb=polyfill_data['total_size_kb'],
+                on_generate_file=self._generate_polyfills_file,
+            )
+            polyfill_card.pack(fill="x")
 
         # Browser support (collapsed)
         if browsers:

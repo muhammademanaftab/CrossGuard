@@ -105,3 +105,25 @@ def get_polyfill_loader() -> PolyfillLoader:
     if _loader is None:
         _loader = PolyfillLoader()
     return _loader
+
+
+def load_polyfill_map() -> Dict:
+    """Load the raw polyfill map data for editing."""
+    try:
+        with open(POLYFILL_MAP_PATH, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except Exception:
+        return {'metadata': {}, 'javascript': {}, 'css': {}, 'html': {}}
+
+
+def save_polyfill_map(data: Dict) -> bool:
+    """Write updated polyfill data back to polyfill_map.json and reload cache."""
+    try:
+        with open(POLYFILL_MAP_PATH, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=2, ensure_ascii=False)
+            f.write('\n')
+        get_polyfill_loader().reload()
+        return True
+    except Exception as e:
+        logger.error(f"Error saving polyfill map: {e}")
+        return False
