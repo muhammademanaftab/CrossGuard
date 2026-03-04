@@ -483,9 +483,21 @@ def config_cmd(do_init, config_path):
 
 
 @cli.command('update-db')
-def update_db():
-    """Update the Can I Use database."""
+@click.option('--check', 'check_only', is_flag=True,
+              help='Check for updates without downloading.')
+def update_db(check_only):
+    """Update the Can I Use database (npm preferred, git fallback)."""
     service = AnalyzerService()
+
+    if check_only:
+        info = service.get_database_info()
+        click.echo(f"Local version:  {info.npm_version or 'unknown'}")
+        click.echo(f"Latest version: {info.npm_latest or 'unknown'}")
+        if info.update_available:
+            click.echo("Update available! Run 'crossguard update-db' to download.")
+        else:
+            click.echo("Database is up to date.")
+        return
 
     click.echo("Updating Can I Use database...")
     result = service.update_database(

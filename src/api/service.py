@@ -7,6 +7,7 @@ from datetime import datetime
 from .schemas import (
     AnalysisRequest,
     AnalysisResult,
+    BaselineSummary,
     DatabaseInfo,
     DatabaseUpdateResult,
     ProgressCallback,
@@ -36,6 +37,7 @@ class AnalyzerService:
     def __init__(self, config: Optional[Dict] = None):
         self._analyzer = None
         self._database_updater = None
+        self._web_features = None
         self._config = config
 
     def _get_analyzer(self):
@@ -51,6 +53,12 @@ class AnalyzerService:
             from src.utils.config import CANIUSE_DIR
             self._database_updater = DatabaseUpdater(Path(CANIUSE_DIR))
         return self._database_updater
+
+    def _get_web_features(self):
+        if self._web_features is None:
+            from src.analyzer.web_features import WebFeaturesManager
+            self._web_features = WebFeaturesManager()
+        return self._web_features
 
     def analyze(self, request: AnalysisRequest) -> AnalysisResult:
         """Run a compatibility analysis from an AnalysisRequest."""
@@ -71,13 +79,37 @@ class AnalyzerService:
                 target_browsers=target_browsers
             )
 
-            return AnalysisResult.from_dict(report)
+            result = AnalysisResult.from_dict(report)
+
+            # Enrich with Baseline status if web-features data is available
+            result.baseline_summary = self._get_baseline_summary(result)
+
+            return result
 
         except Exception as e:
             return AnalysisResult(
                 success=False,
                 error=str(e)
             )
+
+    def _get_baseline_summary(self, result: AnalysisResult) -> Optional[BaselineSummary]:
+        """Compute Baseline summary for detected features."""
+        try:
+            wf = self._get_web_features()
+            if not wf.has_data():
+                return None
+
+            feature_ids = []
+            if result.detected_features:
+                feature_ids = result.detected_features.all or []
+
+            if not feature_ids:
+                return None
+
+            summary = wf.get_baseline_summary(feature_ids)
+            return BaselineSummary(**summary)
+        except Exception:
+            return None
 
     def analyze_files(
         self,
@@ -104,10 +136,26 @@ class AnalyzerService:
             if last_updated != 'Unknown' and isinstance(last_updated, (int, float)):
                 last_updated = datetime.fromtimestamp(last_updated).strftime('%Y-%m-%d %H:%M')
 
+            npm_version = info.get('npm_version')
+
+            # Check for npm updates (non-blocking, best-effort)
+            npm_latest = None
+            update_available = False
+            try:
+                npm_check = updater.check_npm_update()
+                if npm_check.get('success'):
+                    npm_latest = npm_check.get('latest_version')
+                    update_available = npm_check.get('update_available', False)
+            except Exception:
+                pass
+
             return DatabaseInfo(
                 features_count=info.get('features_count', 0),
                 last_updated=str(last_updated),
-                is_git_repo=info.get('is_git_repo', False)
+                is_git_repo=info.get('is_git_repo', False),
+                npm_version=npm_version,
+                npm_latest=npm_latest,
+                update_available=update_available,
             )
         except Exception as e:
             return DatabaseInfo(
@@ -502,6 +550,32 @@ class AnalyzerService:
         except Exception as e:
             logger.error(f"Failed to get tag counts: {e}")
             return {}
+
+    # -- Web Features (Baseline) -----------------------------------------------
+
+    def update_web_features(self) -> bool:
+        """Download fresh web-features data."""
+        try:
+            wf = self._get_web_features()
+            return wf.download()
+        except Exception as e:
+            logger.error(f"Failed to update web features: {e}")
+            return False
+
+    def get_baseline_status(self, feature_id: str) -> Optional[Dict]:
+        """Look up Baseline status for a single feature."""
+        try:
+            wf = self._get_web_features()
+            info = wf.get_baseline_status(feature_id)
+            return info.to_dict() if info else None
+        except Exception:
+            return None
+
+    def has_web_features_data(self) -> bool:
+        try:
+            return self._get_web_features().has_data()
+        except Exception:
+            return False
 
     # -- Configuration ---------------------------------------------------------
 

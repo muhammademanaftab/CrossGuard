@@ -93,6 +93,21 @@ class BrowserCompatibility:
 
 
 @dataclass
+class BaselineInfo:
+    status: str  # "high", "low", "limited"
+    low_date: Optional[str] = None
+    high_date: Optional[str] = None
+
+
+@dataclass
+class BaselineSummary:
+    widely_available: int = 0   # baseline "high"
+    newly_available: int = 0    # baseline "low"
+    limited: int = 0            # baseline False
+    unknown: int = 0            # no web-features mapping
+
+
+@dataclass
 class AnalysisResult:
     success: bool
     summary: Optional[FeatureSummary] = None
@@ -102,6 +117,7 @@ class AnalysisResult:
     feature_details: Optional[FeatureDetails] = None
     unrecognized_patterns: Optional[UnrecognizedPatterns] = None
     recommendations: List[str] = field(default_factory=list)
+    baseline_summary: Optional[BaselineSummary] = None
     error: Optional[str] = None
 
     @classmethod
@@ -166,6 +182,16 @@ class AnalysisResult:
             total=unrecognized_data.get('total', 0),
         )
 
+        baseline_summary = None
+        baseline_data = data.get('baseline_summary')
+        if baseline_data:
+            baseline_summary = BaselineSummary(
+                widely_available=baseline_data.get('widely_available', 0),
+                newly_available=baseline_data.get('newly_available', 0),
+                limited=baseline_data.get('limited', 0),
+                unknown=baseline_data.get('unknown', 0),
+            )
+
         return cls(
             success=True,
             summary=summary,
@@ -175,6 +201,7 @@ class AnalysisResult:
             feature_details=feature_details,
             unrecognized_patterns=unrecognized_patterns,
             recommendations=data.get('recommendations', []),
+            baseline_summary=baseline_summary,
         )
 
     def to_dict(self) -> Dict:
@@ -227,6 +254,12 @@ class AnalysisResult:
                 'total': self.unrecognized_patterns.total if self.unrecognized_patterns else 0,
             },
             'recommendations': self.recommendations,
+            'baseline_summary': {
+                'widely_available': self.baseline_summary.widely_available,
+                'newly_available': self.baseline_summary.newly_available,
+                'limited': self.baseline_summary.limited,
+                'unknown': self.baseline_summary.unknown,
+            } if self.baseline_summary else None,
         }
 
 
@@ -235,6 +268,9 @@ class DatabaseInfo:
     features_count: int = 0
     last_updated: str = "Unknown"
     is_git_repo: bool = False
+    npm_version: Optional[str] = None
+    npm_latest: Optional[str] = None
+    update_available: bool = False
 
 
 @dataclass

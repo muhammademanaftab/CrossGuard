@@ -60,6 +60,14 @@ def _risk_color(risk: str, color: bool) -> str:
     return click.style(risk, fg=mapping.get(risk.lower(), None), bold=risk.lower() == 'critical')
 
 
+def _baseline_color(text: str, status: str, color: bool) -> str:
+    """Colorize Baseline status labels."""
+    if not color:
+        return text
+    mapping = {'high': 'green', 'low': 'cyan', 'limited': 'yellow'}
+    return click.style(text, fg=mapping.get(status, None))
+
+
 def format_result(result: Dict, fmt: str = 'table', *, color: bool = False) -> str:
     """Route to the right formatter (table/json/summary)."""
     if fmt == 'json':
@@ -127,6 +135,23 @@ def format_table(result: Dict, *, color: bool = False) -> str:
     lines.append(f"    CSS:   {summary.get('css_features', 0)}")
     lines.append(f"    JS:    {summary.get('js_features', 0)}")
     lines.append(f"    Critical Issues: {summary.get('critical_issues', 0)}")
+
+    # Baseline status (if web-features data available)
+    baseline = result.get('baseline_summary')
+    if baseline:
+        lines.append("")
+        lines.append("  Baseline Status:")
+        widely = baseline.get('widely_available', 0)
+        newly = baseline.get('newly_available', 0)
+        limited = baseline.get('limited', 0)
+        unknown = baseline.get('unknown', 0)
+
+        widely_text = _baseline_color(f"{widely} Widely Available", 'high', color)
+        newly_text = _baseline_color(f"{newly} Newly Available", 'low', color)
+        limited_text = _baseline_color(f"{limited} Limited", 'limited', color)
+        lines.append(f"    {widely_text}  |  {newly_text}  |  {limited_text}")
+        if unknown > 0:
+            lines.append(f"    {unknown} features not in Web Features dataset")
 
     browsers = result.get('browsers', {})
     if browsers:
