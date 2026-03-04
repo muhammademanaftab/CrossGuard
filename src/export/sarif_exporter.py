@@ -31,6 +31,10 @@ def export_sarif(
         properties['score'] = report['overall_score']
         properties['grade'] = report.get('overall_grade', 'N/A')
 
+    baseline = report.get('baseline_summary')
+    if baseline:
+        properties['baseline'] = baseline
+
     sarif: Dict = {
         "$schema": _SARIF_SCHEMA,
         "version": _SARIF_VERSION,

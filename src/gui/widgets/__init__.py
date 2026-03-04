@@ -46,6 +46,7 @@ from .project_stats_card import ProjectStatsCard, ProjectSummaryBadge
 from .framework_hint_card import FrameworkHintCard, FrameworkHint
 
 from .polyfill_card import PolyfillCard, PolyfillEmptyCard
+from .baseline_bar import BaselineBar
 
 __all__ = [
     'DropZone',
@@ -103,4 +104,5 @@ __all__ = [
     'FrameworkHint',
     'PolyfillCard',
     'PolyfillEmptyCard',
+    'BaselineBar',
 ]

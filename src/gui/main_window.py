@@ -47,6 +47,7 @@ from .widgets import (
     FrameworkHint,
     PolyfillCard,
     PolyfillEmptyCard,
+    BaselineBar,
 )
 from .widgets.rules_manager import show_rules_manager
 
@@ -648,6 +649,17 @@ class MainWindow(ctk.CTkFrame):
             browsers_count=browsers_count,
             features_count=total_features
         )
+
+        # Baseline status bar (if web-features data available)
+        baseline_data = report.get('baseline_summary')
+        if baseline_data:
+            baseline_bar = BaselineBar(scroll_frame)
+            baseline_bar.pack(fill="x", pady=(0, SPACING['lg']))
+            baseline_bar.set_data(
+                widely_available=baseline_data.get('widely_available', 0),
+                newly_available=baseline_data.get('newly_available', 0),
+                limited=baseline_data.get('limited', 0),
+            )
 
         # ML risk assessment (only if ML module is available)
         if self._analyzer_service.is_ml_enabled():

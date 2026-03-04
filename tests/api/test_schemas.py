@@ -256,7 +256,8 @@ class TestAnalysisResultToDict:
     def test_success_contains_all_keys(self, sample_success_result):
         d = sample_success_result.to_dict()
         expected_keys = {'success', 'summary', 'scores', 'browsers',
-                         'features', 'feature_details', 'unrecognized', 'recommendations'}
+                         'features', 'feature_details', 'unrecognized', 'recommendations',
+                         'baseline_summary'}
         assert expected_keys == set(d.keys())
 
     def test_roundtrip_preserves_data(self, sample_success_report):

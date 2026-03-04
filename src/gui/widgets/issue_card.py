@@ -9,6 +9,12 @@ from ..theme import COLORS, SPACING, ICONS
 class IssueCard(ctk.CTkFrame):
     """Single compatibility issue with severity, affected browsers, and fix suggestion."""
 
+    BASELINE_BADGE_COLORS = {
+        'high': ('#4CAF50', 'Widely Available'),
+        'low': ('#58a6ff', 'Newly Available'),
+        'limited': ('#FFA726', 'Limited'),
+    }
+
     def __init__(
         self,
         master,
@@ -17,6 +23,7 @@ class IssueCard(ctk.CTkFrame):
         severity: str,  # 'critical' or 'warning'
         browsers: List[str],
         fix_suggestion: Optional[str] = None,
+        baseline_status: Optional[str] = None,
         **kwargs
     ):
         if severity == 'critical':
@@ -46,6 +53,7 @@ class IssueCard(ctk.CTkFrame):
         self._severity = severity
         self._browsers = browsers
         self._fix_suggestion = fix_suggestion
+        self._baseline_status = baseline_status
         self._icon = icon
         self._icon_color = icon_color
         self._status_text = status_text
@@ -80,6 +88,19 @@ class IssueCard(ctk.CTkFrame):
             justify="left",
         )
         message_label.pack(side="left", fill="x", expand=True)
+
+        # Baseline badge (if available)
+        if self._baseline_status and self._baseline_status in self.BASELINE_BADGE_COLORS:
+            badge_color, badge_text = self.BASELINE_BADGE_COLORS[self._baseline_status]
+            baseline_badge = ctk.CTkLabel(
+                top_row,
+                text=f" {badge_text} ",
+                font=ctk.CTkFont(size=10),
+                text_color="#FFFFFF",
+                fg_color=badge_color,
+                corner_radius=4,
+            )
+            baseline_badge.pack(side="right", padx=(SPACING['sm'], 0))
 
         if self._fix_suggestion:
             suggestion_row = ctk.CTkFrame(container, fg_color="transparent")

@@ -13,6 +13,15 @@ CANIUSE_FEATURES_PATH = CANIUSE_DIR / "features-json"
 DATABASE_PATH = PROJECT_ROOT / 'crossguard.db'
 DATABASE_HISTORY_LIMIT = 100
 
+# --- npm-based Can I Use updates ---
+NPM_REGISTRY_URL = "https://registry.npmjs.org/caniuse-db/latest"
+CANIUSE_PACKAGE_JSON = CANIUSE_DIR / "package.json"
+
+# --- Web Features (Baseline status) ---
+WEB_FEATURES_URL = "https://unpkg.com/web-features/data.json"
+WEB_FEATURES_CACHE_DIR = Path.home() / ".crossguard"
+WEB_FEATURES_CACHE_PATH = WEB_FEATURES_CACHE_DIR / "web_features.json"
+
 DEFAULT_BROWSERS = {
     'chrome': 'Chrome',
     'firefox': 'Firefox',
