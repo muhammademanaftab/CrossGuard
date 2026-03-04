@@ -70,8 +70,10 @@ class WebFeaturesManager:
 
         reverse_map: Dict[str, BaselineInfo] = {}
 
-        # web-features structure: top-level keys are feature names, each has caniuse + status
-        for _feature_name, feature_data in data.items():
+        # web-features wraps features under a "features" key
+        features = data.get('features', data) if isinstance(data, dict) else data
+
+        for _feature_name, feature_data in features.items():
             if not isinstance(feature_data, dict):
                 continue
 
