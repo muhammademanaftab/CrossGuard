@@ -234,6 +234,7 @@ class IssuesSummary(ctk.CTkFrame):
                 severity=issue.get('severity', 'warning'),
                 browsers=issue.get('browsers', []),
                 fix_suggestion=issue.get('fix_suggestion'),
+                baseline_status=issue.get('baseline_status'),
             )
             card.pack(fill="x", pady=(0, SPACING['sm']))
 
