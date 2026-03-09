@@ -310,21 +310,15 @@ class TestAnalysisFormattedDate:
 
 
 class TestAnalysisFileTypeIcon:
-    def test_html_icon(self):
-        a = Analysis(file_name="x.html", file_type="html", overall_score=0, grade="F", total_features=0)
-        assert a.get_file_type_icon() == "\u25B6"
-
-    def test_css_icon(self):
-        a = Analysis(file_name="x.css", file_type="css", overall_score=0, grade="F", total_features=0)
-        assert a.get_file_type_icon() == "\u25C6"
-
-    def test_js_icon(self):
-        a = Analysis(file_name="x.js", file_type="js", overall_score=0, grade="F", total_features=0)
-        assert a.get_file_type_icon() == "\u2605"
-
-    def test_unknown_icon(self):
-        a = Analysis(file_name="x.txt", file_type="txt", overall_score=0, grade="F", total_features=0)
-        assert a.get_file_type_icon() == "\u25A0"
+    @pytest.mark.parametrize("file_type,expected_icon", [
+        ("html", "\u25B6"),
+        ("css", "\u25C6"),
+        ("js", "\u2605"),
+        ("txt", "\u25A0"),
+    ])
+    def test_file_type_icon(self, file_type, expected_icon):
+        a = Analysis(file_name=f"x.{file_type}", file_type=file_type, overall_score=0, grade="F", total_features=0)
+        assert a.get_file_type_icon() == expected_icon
 
 
 # =============================================================================
@@ -362,15 +356,13 @@ class TestSetting:
         s = Setting.from_row(row)
         assert s.updated_at is None
 
-    def test_get_as_bool_true_values(self):
-        for val in ("true", "1", "yes", "on"):
-            s = Setting(key="k", value=val)
-            assert s.get_as_bool() is True, f"Expected True for '{val}'"
-
-    def test_get_as_bool_false_values(self):
-        for val in ("false", "0", "no", "off", "random"):
-            s = Setting(key="k", value=val)
-            assert s.get_as_bool() is False, f"Expected False for '{val}'"
+    @pytest.mark.parametrize("val,expected", [
+        ("true", True), ("1", True), ("yes", True), ("on", True),
+        ("false", False), ("0", False), ("no", False), ("off", False), ("random", False),
+    ])
+    def test_get_as_bool(self, val, expected):
+        s = Setting(key="k", value=val)
+        assert s.get_as_bool() is expected
 
     def test_get_as_int(self):
         s = Setting(key="limit", value="100")

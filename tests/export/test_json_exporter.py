@@ -20,54 +20,33 @@ def sample_report():
 class TestExportJsonDict:
     """export_json() without output_path returns enriched dict."""
 
-    def test_returns_dict(self, sample_report):
+    def test_returns_enriched_dict(self, sample_report):
         result = export_json(sample_report)
         assert isinstance(result, dict)
-
-    def test_adds_generated_by(self, sample_report):
-        result = export_json(sample_report)
         assert result['generated_by'] == 'Cross Guard'
-
-    def test_adds_generated_at(self, sample_report):
-        result = export_json(sample_report)
         assert 'generated_at' in result
-
-    def test_preserves_original_data(self, sample_report):
-        result = export_json(sample_report)
         assert result['success'] is True
         assert result['scores']['grade'] == 'B'
 
-    def test_empty_report_raises(self):
+    @pytest.mark.parametrize("bad_input", [{}, None])
+    def test_invalid_report_raises(self, bad_input):
         with pytest.raises(ValueError, match="No analysis report"):
-            export_json({})
-
-    def test_none_report_raises(self):
-        with pytest.raises(ValueError, match="No analysis report"):
-            export_json(None)
+            export_json(bad_input)
 
 
 class TestExportJsonFile:
     """export_json() with output_path writes file."""
 
-    def test_writes_file(self, sample_report, tmp_path):
+    def test_writes_valid_enriched_json(self, sample_report, tmp_path):
         out = str(tmp_path / "report.json")
         result = export_json(sample_report, output_path=out)
         assert result == out
         assert os.path.isfile(out)
 
-    def test_file_is_valid_json(self, sample_report, tmp_path):
-        out = str(tmp_path / "report.json")
-        export_json(sample_report, output_path=out)
         with open(out) as f:
             data = json.load(f)
         assert data['success'] is True
         assert data['generated_by'] == 'Cross Guard'
-
-    def test_file_has_enriched_data(self, sample_report, tmp_path):
-        out = str(tmp_path / "report.json")
-        export_json(sample_report, output_path=out)
-        with open(out) as f:
-            data = json.load(f)
         assert 'generated_at' in data
 
     def test_pretty_printed(self, sample_report, tmp_path):
@@ -75,6 +54,5 @@ class TestExportJsonFile:
         export_json(sample_report, output_path=out)
         with open(out) as f:
             text = f.read()
-        # indent=2 means newlines and spaces
         assert '\n' in text
         assert '  ' in text

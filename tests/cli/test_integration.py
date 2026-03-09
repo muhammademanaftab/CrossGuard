@@ -1,8 +1,7 @@
 """Integration tests for CLI commands via CliRunner.
 
-Tests the complete analyze pipeline including new flags:
---format sarif/junit, --fail-on-*, --timing, --no-color,
-init-ci, init-hooks.
+Tests the complete analyze pipeline including format outputs,
+quality gates, flags, init-ci, init-hooks, and multi-output.
 """
 
 import json
@@ -32,13 +31,13 @@ def css_file(tmp_path):
     return f
 
 
-# ── Format integration ────────────────────────────────────────────────
+# --- Format integration ---
 
 
-class TestFormatSarif:
+class TestOutputFormats:
     def test_sarif_format_produces_valid_json(self, runner, js_file):
         result = runner.invoke(cli, ['analyze', str(js_file), '--format', 'sarif'])
-        assert result.exit_code in (0, 1)
+        assert result.exit_code == 0, f"CLI failed: {result.output}"
         data = json.loads(result.output)
         assert data['version'] == '2.1.0'
         assert 'runs' in data
@@ -48,36 +47,30 @@ class TestFormatSarif:
         result = runner.invoke(cli, [
             'analyze', str(js_file), '--format', 'sarif', '-o', str(out)
         ])
-        assert result.exit_code in (0, 1)
+        assert result.exit_code == 0, f"CLI failed: {result.output}"
         assert out.exists()
         data = json.loads(out.read_text())
         assert data['version'] == '2.1.0'
 
-
-class TestFormatJunit:
     def test_junit_format_produces_valid_xml(self, runner, js_file):
         result = runner.invoke(cli, ['analyze', str(js_file), '--format', 'junit'])
-        assert result.exit_code in (0, 1)
+        assert result.exit_code == 0, f"CLI failed: {result.output}"
         root = ET.fromstring(result.output)
         assert root.tag == 'testsuites'
 
-
-class TestFormatCheckstyle:
     def test_checkstyle_format(self, runner, css_file):
         result = runner.invoke(cli, ['analyze', str(css_file), '--format', 'checkstyle'])
-        assert result.exit_code in (0, 1)
+        assert result.exit_code == 0, f"CLI failed: {result.output}"
         root = ET.fromstring(result.output)
         assert root.tag == 'checkstyle'
 
-
-class TestFormatCsv:
     def test_csv_format(self, runner, js_file):
         result = runner.invoke(cli, ['analyze', str(js_file), '--format', 'csv'])
-        assert result.exit_code in (0, 1)
+        assert result.exit_code == 0, f"CLI failed: {result.output}"
         assert 'feature_id' in result.output
 
 
-# ── Quality gates integration ─────────────────────────────────────────
+# --- Quality gates integration ---
 
 
 class TestQualityGates:
@@ -85,14 +78,12 @@ class TestQualityGates:
         result = runner.invoke(cli, [
             'analyze', str(js_file), '--format', 'summary', '--fail-on-score', '0'
         ])
-        # Score of 0 threshold should always pass
         assert result.exit_code == 0
 
     def test_fail_on_score_fails_when_below(self, runner, js_file):
         result = runner.invoke(cli, [
             'analyze', str(js_file), '--format', 'summary', '--fail-on-score', '100.1'
         ])
-        # No score can reach 100.1, so gate must fail
         assert result.exit_code == 1
 
     def test_fail_on_errors_with_high_threshold_passes(self, runner, css_file):
@@ -102,80 +93,68 @@ class TestQualityGates:
         ])
         assert result.exit_code == 0
 
-    def test_no_gates_uses_default_behavior(self, runner, js_file):
-        """Without gates, exit 1 if any issues found."""
+    def test_no_gates_default_behavior(self, runner, js_file):
+        """Without gates, exit 0 for successful analysis."""
         result = runner.invoke(cli, [
             'analyze', str(js_file), '--format', 'summary'
         ])
-        # Should be 0 or 1 based on whether issues exist
-        assert result.exit_code in (0, 1)
+        assert result.exit_code == 0, f"CLI failed: {result.output}"
 
 
-# ── Timing flag ───────────────────────────────────────────────────────
+# --- Flags ---
 
 
-class TestTimingFlag:
-    def test_timing_produces_elapsed(self, runner, js_file):
+class TestFlags:
+    def test_timing_shows_elapsed(self, runner, js_file):
         result = runner.invoke(cli, [
             '--timing', 'analyze', str(js_file), '--format', 'summary'
         ])
-        assert result.exit_code in (0, 1)
-        # Elapsed output goes to stderr — in mix_stderr=False mode
-        # CliRunner default mixes them, so check output
-        assert 'Elapsed' in result.output or result.exit_code in (0, 1)
+        assert result.exit_code == 0, f"CLI failed: {result.output}"
+        assert 'Elapsed' in result.output
 
-
-# ── Color flags ───────────────────────────────────────────────────────
-
-
-class TestColorFlags:
-    def test_no_color_flag(self, runner, js_file):
+    def test_no_color_flag_strips_ansi(self, runner, js_file):
         result = runner.invoke(cli, [
             '--no-color', 'analyze', str(js_file), '--format', 'table'
         ])
-        assert result.exit_code in (0, 1)
-        # Should NOT contain ANSI codes
+        assert result.exit_code == 0, f"CLI failed: {result.output}"
         assert '\x1b[' not in result.output
 
     def test_quiet_flag(self, runner, js_file):
         result = runner.invoke(cli, [
             '-q', 'analyze', str(js_file), '--format', 'summary'
         ])
-        assert result.exit_code in (0, 1)
+        assert result.exit_code == 0, f"CLI failed: {result.output}"
 
 
-# ── init-ci / init-hooks integration ──────────────────────────────────
+# --- init-ci / init-hooks integration ---
 
 
-class TestInitCiCommand:
-    def test_github(self, runner):
-        result = runner.invoke(cli, ['init-ci', '-p', 'github'])
+class TestInitCommands:
+    @pytest.mark.parametrize("provider, expected_content", [
+        ('github', 'sarif'),
+        ('gitlab', 'junit'),
+    ])
+    def test_init_ci(self, runner, provider, expected_content):
+        result = runner.invoke(cli, ['init-ci', '-p', provider])
         assert result.exit_code == 0
         assert 'crossguard analyze' in result.output
-        assert 'sarif' in result.output
+        assert expected_content in result.output
 
-    def test_gitlab(self, runner):
-        result = runner.invoke(cli, ['init-ci', '-p', 'gitlab'])
-        assert result.exit_code == 0
-        assert 'junit' in result.output
-
-    def test_missing_provider_errors(self, runner):
+    def test_init_ci_missing_provider(self, runner):
         result = runner.invoke(cli, ['init-ci'])
         assert result.exit_code != 0
 
-
-class TestInitHooksCommand:
-    def test_pre_commit(self, runner):
+    def test_init_hooks_pre_commit(self, runner):
         result = runner.invoke(cli, ['init-hooks', '-t', 'pre-commit'])
         assert result.exit_code == 0
         assert 'crossguard' in result.output.lower()
 
-    def test_missing_type_errors(self, runner):
+    def test_init_hooks_missing_type(self, runner):
         result = runner.invoke(cli, ['init-hooks'])
         assert result.exit_code != 0
 
 
-# ── Multi-output integration ──────────────────────────────────────────
+# --- Multi-output integration ---
 
 
 class TestMultiOutput:
@@ -185,11 +164,10 @@ class TestMultiOutput:
             'analyze', str(js_file), '--format', 'table',
             '--output-sarif', str(sarif_out)
         ])
-        assert result.exit_code in (0, 1)
+        assert result.exit_code == 0, f"CLI failed: {result.output}"
         assert sarif_out.exists()
         data = json.loads(sarif_out.read_text())
         assert data['version'] == '2.1.0'
-        # Stdout should have the table format
         assert 'CROSS GUARD' in result.output
 
     def test_multiple_file_outputs(self, runner, js_file, tmp_path):
@@ -200,6 +178,6 @@ class TestMultiOutput:
             '--output-sarif', str(sarif_out),
             '--output-junit', str(junit_out),
         ])
-        assert result.exit_code in (0, 1)
+        assert result.exit_code == 0, f"CLI failed: {result.output}"
         assert sarif_out.exists()
         assert junit_out.exists()

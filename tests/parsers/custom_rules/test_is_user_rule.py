@@ -11,34 +11,22 @@ from src.parsers.custom_rules_loader import (
 
 class TestIsUserRule:
 
-    def test_known_custom_rule_returns_true(self, tmp_rules_file):
-        """Rule defined in custom_rules.json returns True."""
-        # Initialize loader
+    def test_identifies_custom_rules_across_sections(self, tmp_rules_file):
+        """Custom rules return True, built-in/unknown return False."""
         CustomRulesLoader()
-        assert is_user_rule('css', 'test-css-feature') is True
-
-    def test_builtin_rule_returns_false(self, tmp_rules_file):
-        """Built-in feature ID returns False."""
-        CustomRulesLoader()
-        assert is_user_rule('css', 'flexbox') is False
-
-    def test_unknown_rule_returns_false(self, tmp_rules_file):
-        """Random string returns False."""
-        CustomRulesLoader()
-        assert is_user_rule('css', 'nonexistent-random-feature') is False
-
-    def test_checks_all_sections(self, tmp_rules_file):
-        """Works for CSS, JS, and HTML rules."""
-        CustomRulesLoader()
+        # CSS and JS custom rules
         assert is_user_rule('css', 'test-css-feature') is True
         assert is_user_rule('javascript', 'test-js-feature') is True
+        # HTML subsections
         assert is_user_rule('html', 'test-element', subtype='elements') is True
         assert is_user_rule('html', 'test-attr', subtype='attributes') is True
         assert is_user_rule('html', 'test-type', subtype='input_types') is True
+        # Built-in and unknown return False
+        assert is_user_rule('css', 'flexbox') is False
+        assert is_user_rule('css', 'nonexistent-random-feature') is False
 
     def test_after_adding_new_rule(self, mock_custom_rules_path):
         """Newly saved rule is recognized."""
-        # Start with empty rules
         rules = {
             "css": {
                 "dynamic-feature": {

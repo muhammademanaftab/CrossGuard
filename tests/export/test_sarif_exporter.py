@@ -1,7 +1,6 @@
 """Tests for SARIF 2.1.0 exporter."""
 
 import json
-import os
 import pytest
 
 from src.export.sarif_exporter import export_sarif
@@ -57,54 +56,38 @@ class TestSarifSchema:
         sarif = export_sarif(_SAMPLE_REPORT)
         assert sarif['version'] == '2.1.0'
         assert '$schema' in sarif
-        assert 'runs' in sarif
         assert len(sarif['runs']) == 1
 
-    def test_tool_driver(self):
+    def test_tool_driver_and_rules(self):
         sarif = export_sarif(_SAMPLE_REPORT)
         driver = sarif['runs'][0]['tool']['driver']
         assert driver['name'] == 'CrossGuard'
-        assert 'rules' in driver
-
-    def test_rules_populated(self):
-        sarif = export_sarif(_SAMPLE_REPORT)
-        rules = sarif['runs'][0]['tool']['driver']['rules']
-        rule_ids = {r['id'] for r in rules}
+        rule_ids = {r['id'] for r in driver['rules']}
         assert 'css-grid' in rule_ids
         assert 'flexbox-gap' in rule_ids
 
 
 class TestSarifResults:
-    def test_unsupported_is_error(self):
+    def test_error_and_warning_levels(self):
         sarif = export_sarif(_SAMPLE_REPORT)
         results = sarif['runs'][0]['results']
         errors = [r for r in results if r['level'] == 'error']
-        assert len(errors) >= 1
-
-    def test_partial_is_warning(self):
-        sarif = export_sarif(_SAMPLE_REPORT)
-        results = sarif['runs'][0]['results']
         warnings = [r for r in results if r['level'] == 'warning']
+        assert len(errors) >= 1
         assert len(warnings) >= 1
 
-    def test_result_has_location(self):
-        sarif = export_sarif(_SAMPLE_REPORT)
-        for result in sarif['runs'][0]['results']:
-            assert 'locations' in result
-            loc = result['locations'][0]
-            assert 'physicalLocation' in loc
-
-    def test_result_has_rule_id(self):
+    def test_result_has_location_and_rule_id(self):
         sarif = export_sarif(_SAMPLE_REPORT)
         for result in sarif['runs'][0]['results']:
             assert 'ruleId' in result
+            assert 'locations' in result
+            assert 'physicalLocation' in result['locations'][0]
 
 
 class TestSarifProperties:
     def test_score_in_properties(self):
         sarif = export_sarif(_SAMPLE_REPORT)
-        props = sarif['runs'][0]['properties']
-        assert props['score'] == 78.5
+        assert sarif['runs'][0]['properties']['score'] == 78.5
 
     def test_project_score_in_properties(self):
         sarif = export_sarif(_PROJECT_REPORT)
@@ -122,29 +105,17 @@ class TestSarifFileOutput:
         data = json.loads(out.read_text())
         assert data['version'] == '2.1.0'
 
-    def test_empty_report_raises(self):
+    @pytest.mark.parametrize("bad_input", [{}, None])
+    def test_invalid_report_raises(self, bad_input):
         with pytest.raises(ValueError):
-            export_sarif({})
-
-    def test_none_report_raises(self):
-        with pytest.raises(ValueError):
-            export_sarif(None)
+            export_sarif(bad_input)
 
 
 class TestSarifProjectResults:
-    def test_project_results_extracted(self):
-        sarif = export_sarif(_PROJECT_REPORT)
-        results = sarif['runs'][0]['results']
-        assert len(results) > 0
-
-    def test_project_unsupported_features(self):
+    def test_project_unsupported_and_partial(self):
         sarif = export_sarif(_PROJECT_REPORT)
         results = sarif['runs'][0]['results']
         errors = [r for r in results if r['level'] == 'error']
-        assert len(errors) == 2  # css-grid + css-subgrid
-
-    def test_project_partial_features(self):
-        sarif = export_sarif(_PROJECT_REPORT)
-        results = sarif['runs'][0]['results']
         warnings = [r for r in results if r['level'] == 'warning']
+        assert len(errors) == 2   # css-grid + css-subgrid
         assert len(warnings) == 2  # flexbox-gap + backdrop-filter

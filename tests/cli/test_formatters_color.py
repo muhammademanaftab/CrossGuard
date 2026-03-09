@@ -8,85 +8,61 @@ from src.cli.formatters import (
     _status_text,
     _risk_color,
     format_result,
-    format_summary,
-    format_table,
     format_history,
     format_stats,
     format_project_result,
 )
 
 
-# ── Color helper tests ────────────────────────────────────────────────
+ANSI_ESC = '\x1b['
 
 
-class TestGradeColor:
-    def test_no_color_returns_plain(self):
-        assert _grade_color('A', False) == 'A'
-
-    def test_color_a_green(self):
-        result = _grade_color('A', True)
-        assert 'A' in result
-        # ANSI escape codes present
-        assert '\x1b[' in result
-
-    def test_color_f_red(self):
-        result = _grade_color('F', True)
-        assert '\x1b[' in result
-
-    def test_unknown_grade_no_crash(self):
-        result = _grade_color('Z', True)
-        assert 'Z' in result
+# --- Color helper tests (parametrized) ---
 
 
-class TestScoreColor:
-    def test_no_color(self):
+class TestColorHelpers:
+    @pytest.mark.parametrize("grade", ['A', 'B', 'C', 'F', 'Z'])
+    def test_grade_color_with_color(self, grade):
+        result = _grade_color(grade, True)
+        assert grade in result
+        assert ANSI_ESC in result
+
+    @pytest.mark.parametrize("grade", ['A', 'F'])
+    def test_grade_color_no_color(self, grade):
+        assert _grade_color(grade, False) == grade
+
+    @pytest.mark.parametrize("score, expected_str", [
+        (95.0, '95.0%'),
+        (80.0, '80.0%'),
+        (65.0, '65.0%'),
+        (40.0, '40.0%'),
+    ])
+    def test_score_color_with_color(self, score, expected_str):
+        result = _score_color(score, True)
+        assert expected_str in result
+        assert ANSI_ESC in result
+
+    def test_score_color_no_color(self):
         assert _score_color(95.0, False) == '95.0%'
 
-    def test_high_score_green(self):
-        result = _score_color(95.0, True)
-        assert '95.0%' in result
-        assert '\x1b[' in result
+    @pytest.mark.parametrize("status", ['supported', 'unsupported', 'partial'])
+    def test_status_text_with_color(self, status):
+        result = _status_text(status, True)
+        assert ANSI_ESC in result
 
-    def test_medium_score_cyan(self):
-        result = _score_color(80.0, True)
-        assert '80.0%' in result
-
-    def test_low_score_yellow(self):
-        result = _score_color(65.0, True)
-        assert '65.0%' in result
-
-    def test_very_low_score_red(self):
-        result = _score_color(40.0, True)
-        assert '40.0%' in result
-
-
-class TestStatusText:
-    def test_no_color(self):
+    def test_status_text_no_color(self):
         assert _status_text('unsupported', False) == 'unsupported'
 
-    def test_supported_green(self):
-        result = _status_text('supported', True)
-        assert '\x1b[' in result
+    @pytest.mark.parametrize("risk", ['low', 'medium', 'high', 'critical'])
+    def test_risk_color_with_color(self, risk):
+        result = _risk_color(risk, True)
+        assert ANSI_ESC in result
 
-    def test_unsupported_red(self):
-        result = _status_text('unsupported', True)
-        assert '\x1b[' in result
-
-
-class TestRiskColor:
-    def test_no_color(self):
+    def test_risk_color_no_color(self):
         assert _risk_color('low', False) == 'low'
 
-    def test_low_green(self):
-        result = _risk_color('low', True)
-        assert '\x1b[' in result
 
-    def test_critical_bold(self):
-        result = _risk_color('critical', True)
-        assert '\x1b[' in result
-
-
-# ── Format function color integration ─────────────────────────────────
+# --- Format function color integration ---
 
 
 _SAMPLE_RESULT = {
@@ -120,56 +96,34 @@ _SAMPLE_RESULT = {
 
 
 class TestFormatResultColor:
-    def test_table_no_color(self):
-        out = format_result(_SAMPLE_RESULT, 'table', color=False)
-        assert 'Grade: B' in out
-        assert '\x1b[' not in out
+    @pytest.mark.parametrize("fmt", ['table', 'summary'])
+    def test_format_with_color_has_ansi(self, fmt):
+        out = format_result(_SAMPLE_RESULT, fmt, color=True)
+        assert ANSI_ESC in out
 
-    def test_table_with_color(self):
-        out = format_result(_SAMPLE_RESULT, 'table', color=True)
-        assert '\x1b[' in out
-
-    def test_summary_no_color(self):
-        out = format_result(_SAMPLE_RESULT, 'summary', color=False)
-        assert '\x1b[' not in out
-
-    def test_summary_with_color(self):
-        out = format_result(_SAMPLE_RESULT, 'summary', color=True)
-        assert '\x1b[' in out
+    @pytest.mark.parametrize("fmt", ['table', 'summary'])
+    def test_format_no_color_clean(self, fmt):
+        out = format_result(_SAMPLE_RESULT, fmt, color=False)
+        assert ANSI_ESC not in out
 
     def test_json_ignores_color(self):
         out = format_result(_SAMPLE_RESULT, 'json', color=True)
-        assert '\x1b[' not in out  # JSON is never colored
+        assert ANSI_ESC not in out
 
 
-class TestFormatHistoryColor:
-    def test_no_color(self):
+class TestFormatCollectionColor:
+    def test_history_color_toggle(self):
         analyses = [{'id': 1, 'analyzed_at': '2026-01-01', 'file_name': 'test.js',
                      'grade': 'A', 'overall_score': 95.0}]
-        out = format_history(analyses, color=False)
-        assert '\x1b[' not in out
+        assert ANSI_ESC in format_history(analyses, color=True)
+        assert ANSI_ESC not in format_history(analyses, color=False)
 
-    def test_with_color(self):
-        analyses = [{'id': 1, 'analyzed_at': '2026-01-01', 'file_name': 'test.js',
-                     'grade': 'A', 'overall_score': 95.0}]
-        out = format_history(analyses, color=True)
-        assert '\x1b[' in out
-
-
-class TestFormatStatsColor:
-    def test_no_color(self):
+    def test_stats_color_toggle(self):
         stats = {'total_analyses': 5, 'average_score': 80, 'best_score': 95, 'worst_score': 60}
-        out = format_stats(stats, color=False)
-        assert '\x1b[' not in out
+        assert ANSI_ESC in format_stats(stats, color=True)
+        assert ANSI_ESC not in format_stats(stats, color=False)
 
-    def test_with_color(self):
-        stats = {'total_analyses': 5, 'average_score': 80, 'best_score': 95, 'worst_score': 60}
-        out = format_stats(stats, color=True)
-        assert '\x1b[' in out
-
-
-class TestFormatProjectColor:
-    def test_no_color(self):
+    def test_project_result_no_color(self):
         result = {
             'success': True,
             'project_name': 'test',
@@ -181,4 +135,4 @@ class TestFormatProjectColor:
             'unsupported_count': 2, 'partial_count': 3,
         }
         out = format_project_result(result, color=False)
-        assert '\x1b[' not in out
+        assert ANSI_ESC not in out

@@ -119,31 +119,21 @@ class TestScoringEndToEnd:
 class TestReportStructure:
     """Tests that reports contain all required fields with valid values."""
 
-    def test_all_dataclass_fields_present(self, analyzer, modern_browsers):
-        """Report has all 8 CompatibilityReport fields."""
+    def test_report_fields_and_score_ranges(self, analyzer, modern_browsers):
+        """Report has all fields with valid value ranges."""
         report = analyzer.analyze({'flexbox', 'css-grid'}, modern_browsers)
-        assert hasattr(report, 'overall_score')
-        assert hasattr(report, 'browser_scores')
-        assert hasattr(report, 'issues')
-        assert hasattr(report, 'features_analyzed')
-        assert hasattr(report, 'critical_issues')
-        assert hasattr(report, 'high_issues')
-        assert hasattr(report, 'medium_issues')
-        assert hasattr(report, 'low_issues')
-
-    def test_browser_scores_valid_range(self, analyzer, modern_browsers):
-        """Each browser score is a float in [0, 100] with non-negative counts."""
-        report = analyzer.analyze({'flexbox'}, modern_browsers)
+        # All dataclass fields present
+        for field in ('overall_score', 'browser_scores', 'issues', 'features_analyzed',
+                      'critical_issues', 'high_issues', 'medium_issues', 'low_issues'):
+            assert hasattr(report, field)
+        # Overall score in range
+        assert 0 <= report.overall_score <= 100
+        # Browser scores valid
         for browser, bs in report.browser_scores.items():
             assert 0 <= bs.score <= 100
             assert bs.supported_count >= 0
             assert bs.partial_count >= 0
             assert bs.unsupported_count >= 0
-
-    def test_overall_score_in_range(self, analyzer, modern_browsers):
-        """Overall score is between 0 and 100."""
-        report = analyzer.analyze({'flexbox', 'arrow-functions'}, modern_browsers)
-        assert 0 <= report.overall_score <= 100
 
 
 # ═══════════════════════════════════════════════════════════════════════════

@@ -8,53 +8,23 @@ from src.cli.main import _count_issues, _format_ci_output
 
 
 class TestCountIssues:
-    def test_empty_report(self):
-        assert _count_issues({}) == (0, 0)
-
-    def test_empty_browsers(self):
-        assert _count_issues({'browsers': {}}) == (0, 0)
-
-    def test_single_browser(self):
-        report = {
-            'browsers': {
-                'chrome': {'unsupported': 3, 'partial': 2},
-            }
-        }
-        assert _count_issues(report) == (3, 2)
-
-    def test_multiple_browsers_aggregated(self):
-        report = {
-            'browsers': {
-                'chrome': {'unsupported': 3, 'partial': 2},
-                'firefox': {'unsupported': 1, 'partial': 4},
-            }
-        }
-        assert _count_issues(report) == (4, 6)
-
-    def test_non_dict_browser_value_skipped(self):
-        report = {
-            'browsers': {
-                'chrome': {'unsupported': 2, 'partial': 1},
-                'invalid': 'not a dict',
-            }
-        }
-        assert _count_issues(report) == (2, 1)
-
-    def test_missing_keys_default_to_zero(self):
-        report = {
-            'browsers': {
-                'chrome': {'supported': 10},
-            }
-        }
-        assert _count_issues(report) == (0, 0)
-
-    def test_zero_issues(self):
-        report = {
-            'browsers': {
-                'chrome': {'unsupported': 0, 'partial': 0},
-            }
-        }
-        assert _count_issues(report) == (0, 0)
+    @pytest.mark.parametrize("report, expected", [
+        ({}, (0, 0)),
+        ({'browsers': {}}, (0, 0)),
+        ({'browsers': {'chrome': {'unsupported': 3, 'partial': 2}}}, (3, 2)),
+        ({'browsers': {
+            'chrome': {'unsupported': 3, 'partial': 2},
+            'firefox': {'unsupported': 1, 'partial': 4},
+        }}, (4, 6)),
+        ({'browsers': {
+            'chrome': {'unsupported': 2, 'partial': 1},
+            'invalid': 'not a dict',
+        }}, (2, 1)),
+        ({'browsers': {'chrome': {'supported': 10}}}, (0, 0)),
+        ({'browsers': {'chrome': {'unsupported': 0, 'partial': 0}}}, (0, 0)),
+    ])
+    def test_count_issues(self, report, expected):
+        assert _count_issues(report) == expected
 
 
 _CI_REPORT = {
@@ -76,24 +46,19 @@ _CI_REPORT = {
 
 class TestFormatCiOutput:
     def test_sarif_returns_valid_json(self):
-        result = _format_ci_output(_CI_REPORT, 'sarif')
-        data = json.loads(result)
+        data = json.loads(_format_ci_output(_CI_REPORT, 'sarif'))
         assert data['version'] == '2.1.0'
 
     def test_junit_returns_valid_xml(self):
-        result = _format_ci_output(_CI_REPORT, 'junit')
-        root = ET.fromstring(result)
+        root = ET.fromstring(_format_ci_output(_CI_REPORT, 'junit'))
         assert root.tag == 'testsuites'
 
     def test_checkstyle_returns_valid_xml(self):
-        result = _format_ci_output(_CI_REPORT, 'checkstyle')
-        root = ET.fromstring(result)
+        root = ET.fromstring(_format_ci_output(_CI_REPORT, 'checkstyle'))
         assert root.tag == 'checkstyle'
 
     def test_csv_returns_header(self):
-        result = _format_ci_output(_CI_REPORT, 'csv')
-        assert 'feature_id' in result
+        assert 'feature_id' in _format_ci_output(_CI_REPORT, 'csv')
 
     def test_unknown_format_returns_empty(self):
-        result = _format_ci_output(_CI_REPORT, 'unknown')
-        assert result == ''
+        assert _format_ci_output(_CI_REPORT, 'unknown') == ''

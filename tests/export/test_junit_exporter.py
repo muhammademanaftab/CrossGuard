@@ -30,68 +30,39 @@ _SAMPLE_REPORT = {
 
 
 class TestJunitStructure:
-    def test_valid_xml(self):
+    def test_valid_xml_with_browser_suites(self):
         xml_str = export_junit(_SAMPLE_REPORT)
         root = ET.fromstring(xml_str)
         assert root.tag == 'testsuites'
         assert root.attrib['name'] == 'CrossGuard'
-
-    def test_one_testsuite_per_browser(self):
-        xml_str = export_junit(_SAMPLE_REPORT)
-        root = ET.fromstring(xml_str)
         suites = root.findall('testsuite')
         assert len(suites) == 2
-
-    def test_testsuite_names(self):
-        xml_str = export_junit(_SAMPLE_REPORT)
-        root = ET.fromstring(xml_str)
-        names = {s.attrib['name'] for s in root.findall('testsuite')}
+        names = {s.attrib['name'] for s in suites}
         assert 'chrome 120' in names
         assert 'firefox 121' in names
 
 
 class TestJunitTestcases:
-    def test_unsupported_has_failure(self):
+    def test_failure_types_and_counts(self):
         xml_str = export_junit(_SAMPLE_REPORT)
         root = ET.fromstring(xml_str)
         chrome = [s for s in root.findall('testsuite')
                   if 'chrome' in s.attrib['name']][0]
-        failures = chrome.findall('.//failure[@type="unsupported"]')
-        assert len(failures) == 2
-
-    def test_partial_has_failure_type(self):
-        xml_str = export_junit(_SAMPLE_REPORT)
-        root = ET.fromstring(xml_str)
-        chrome = [s for s in root.findall('testsuite')
-                  if 'chrome' in s.attrib['name']][0]
-        partials = chrome.findall('.//failure[@type="partial"]')
-        assert len(partials) == 1
-
-    def test_testcase_classname(self):
-        xml_str = export_junit(_SAMPLE_REPORT)
-        root = ET.fromstring(xml_str)
-        cases = root.findall('.//testcase')
-        for tc in cases:
-            assert 'classname' in tc.attrib
-
-    def test_failure_counts_match(self):
-        xml_str = export_junit(_SAMPLE_REPORT)
-        root = ET.fromstring(xml_str)
-        chrome = [s for s in root.findall('testsuite')
-                  if 'chrome' in s.attrib['name']][0]
+        assert len(chrome.findall('.//failure[@type="unsupported"]')) == 2
+        assert len(chrome.findall('.//failure[@type="partial"]')) == 1
         assert chrome.attrib['failures'] == '2'
 
+    def test_testcase_classname_present(self):
+        xml_str = export_junit(_SAMPLE_REPORT)
+        root = ET.fromstring(xml_str)
+        for tc in root.findall('.//testcase'):
+            assert 'classname' in tc.attrib
+
     def test_tests_attribute_matches_testcase_count(self):
-        """tests attribute must equal actual number of testcase elements."""
         xml_str = export_junit(_SAMPLE_REPORT)
         root = ET.fromstring(xml_str)
         for suite in root.findall('testsuite'):
-            tests_attr = int(suite.attrib['tests'])
-            actual_cases = len(suite.findall('testcase'))
-            assert tests_attr == actual_cases, (
-                f"Suite '{suite.attrib['name']}': tests={tests_attr} "
-                f"but has {actual_cases} testcase elements"
-            )
+            assert int(suite.attrib['tests']) == len(suite.findall('testcase'))
 
 
 class TestJunitFileOutput:
@@ -103,13 +74,10 @@ class TestJunitFileOutput:
         root = ET.parse(str(out)).getroot()
         assert root.tag == 'testsuites'
 
-    def test_empty_report_raises(self):
+    @pytest.mark.parametrize("bad_input", [{}, None])
+    def test_invalid_report_raises(self, bad_input):
         with pytest.raises(ValueError):
-            export_junit({})
-
-    def test_none_report_raises(self):
-        with pytest.raises(ValueError):
-            export_junit(None)
+            export_junit(bad_input)
 
 
 class TestJunitEdgeCases:
@@ -117,22 +85,16 @@ class TestJunitEdgeCases:
         report = {
             'browsers': {
                 'chrome': {
-                    'version': '120',
-                    'supported': 10,
-                    'partial': 0,
-                    'unsupported': 0,
-                    'unsupported_features': [],
-                    'partial_features': [],
+                    'version': '120', 'supported': 10, 'partial': 0, 'unsupported': 0,
+                    'unsupported_features': [], 'partial_features': [],
                 },
             },
         }
         xml_str = export_junit(report)
         root = ET.fromstring(xml_str)
-        suite = root.find('testsuite')
-        assert suite.attrib['failures'] == '0'
+        assert root.find('testsuite').attrib['failures'] == '0'
 
     def test_empty_browsers(self):
-        report = {'browsers': {}}
-        xml_str = export_junit(report)
+        xml_str = export_junit({'browsers': {}})
         root = ET.fromstring(xml_str)
         assert len(root.findall('testsuite')) == 0
