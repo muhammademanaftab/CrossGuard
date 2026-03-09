@@ -7,7 +7,7 @@ from typing import Dict, List, Tuple
 
 def get_version_ranges(feature_id: str, browser: str) -> List[Dict]:
     """Collapse per-version support data into contiguous status ranges."""
-    db_path = Path(__file__).parent.parent.parent / "caniuse" / "data.json"
+    db_path = Path(__file__).parent.parent.parent / "data" / "caniuse" / "data.json"
 
     with open(db_path, 'r', encoding='utf-8') as f:
         data = json.load(f)

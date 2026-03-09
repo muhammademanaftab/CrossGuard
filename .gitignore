@@ -32,5 +32,8 @@ crossguard.db
 # Results (generated output)
 results/
 
+# Logs (generated at runtime)
+logs/
+
 # Claude Code
 .claude/

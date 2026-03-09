@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Optional
 
 PROJECT_ROOT = Path(__file__).parent.parent.parent
-CANIUSE_DIR = PROJECT_ROOT / "caniuse"
+CANIUSE_DIR = PROJECT_ROOT / "data" / "caniuse"
 CANIUSE_DB_PATH = CANIUSE_DIR / "data.json"
 CANIUSE_FEATURES_PATH = CANIUSE_DIR / "features-json"
 
