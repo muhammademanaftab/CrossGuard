@@ -28,7 +28,6 @@ dependencies = [
     "tree-sitter-languages==1.10.2",
     "lxml>=5.0",
     "requests>=2.31",
-    "regex>=2023.12",
     "typing_extensions>=4.0",
 ]
 
@@ -67,3 +66,8 @@ testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
+markers = [
+    "unit: Pure unit tests (no I/O)",
+    "component: Component tests with real dependencies",
+    "integration: End-to-end pipeline tests",
+]

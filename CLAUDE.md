@@ -230,70 +230,66 @@ src/
     ├── feature_names.py    # Human-readable feature names
     └── types.py            # Type definitions
 
-tests/
-├── conftest.py             # Shared pytest fixtures
-├── analyzer/               # Compatibility engine tests (282 tests)
-├── api/                    # API service layer tests (226 tests)
-├── cli/                    # CLI tests (165 tests)
-│   ├── test_cli.py         # Core CLI command tests
-│   ├── test_context.py     # CliContext tests
-│   ├── test_browser_validation.py  # Browser parsing + suggestions
-│   ├── test_formatters_color.py    # Color output tests
-│   ├── test_gates.py       # Quality gate evaluation tests
-│   ├── test_ignore.py      # .crossguardignore tests
-│   ├── test_stdin.py       # Stdin support tests
-│   ├── test_generators.py  # CI config generator tests
-│   ├── test_helpers.py     # _count_issues, _format_ci_output tests
-│   ├── test_multi_output.py # Multiple output file tests
-│   └── test_integration.py # End-to-end CLI integration tests
-├── config/                 # Config module tests (27 tests)
-│   ├── test_config_manager.py  # Config loading, merging, defaults
-│   └── test_package_json.py    # package.json fallback tests
-├── database/               # Database layer tests (168 tests)
-│   ├── conftest.py         # In-memory DB fixtures
-│   ├── test_models.py      # Dataclass unit tests (44 tests)
-│   ├── test_migrations.py  # Schema versioning tests (16 tests)
-│   ├── test_repositories.py # All 4 repos CRUD tests (83 tests)
-│   └── test_statistics.py  # Aggregation query tests (25 tests)
-├── export/                 # Export module tests (61 tests)
-│   ├── test_json_exporter.py
-│   ├── test_pdf_exporter.py
-│   ├── test_sarif_exporter.py
-│   ├── test_junit_exporter.py
-│   ├── test_checkstyle_exporter.py
-│   └── test_csv_exporter.py
-├── parsers/
-│   ├── css/                # CSS parser tests (17 test files, 532 tests)
-│   ├── html/               # HTML parser tests (25 test files)
-│   └── js/                 # JS parser tests (12 test files, 332 tests)
-└── validation/
-    └── js/                 # Manual JS validation tests
-        ├── 01_syntax/
-        ├── 02_promises_async/
-        ├── 03_dom_apis/
-        ├── ...
-        ├── 13_edge_cases/
-        ├── 14_real_world/
-        ├── comprehensive_test.js
-        ├── CHECKLIST.md
-        └── README.md
+data/
+└── caniuse/                # Can I Use database (local copy, updatable via CLI)
+    ├── data.json           # Main compatibility database
+    ├── features-json/      # Per-feature JSON files
+    └── region-usage-json/  # Browser usage stats by region
 
-crossguard.db               # SQLite database (auto-created)
-run_gui.py                  # GUI entry point
+tests/
+├── conftest.py             # Shared fixtures + test markers (unit/component/integration)
+├── analyzer/               # Compatibility engine tests (287 tests)
+├── api/                    # API service layer tests (200 tests)
+├── cli/                    # CLI tests (162 tests)
+├── config/                 # Config module tests (27 tests)
+├── database/               # Database layer tests (175 tests)
+├── export/                 # Export module tests (43 tests)
+├── polyfill/               # Polyfill tests (158 tests)
+├── parsers/
+│   ├── css/                # CSS parser tests (520 tests, 8 files)
+│   │   ├── test_css_detection.py       # Property/value detection (217)
+│   │   ├── test_css_pipeline.py        # Parser API + tinycss2 pipeline (137)
+│   │   ├── test_css_selectors.py       # Selector detection (43)
+│   │   ├── test_css_at_rules.py        # At-rules + media queries (38)
+│   │   ├── test_css_modern.py          # Modern CSS features (36)
+│   │   ├── test_css_edge_cases.py      # Edge cases (20)
+│   │   ├── test_css_bug_hunt.py        # Documented real bugs (17)
+│   │   └── test_css_custom_rules.py    # Custom rules (12)
+│   ├── html/               # HTML parser tests (496 tests, 7 files)
+│   │   ├── test_html_attributes.py     # ARIA, form, event, loading (102)
+│   │   ├── test_html_api.py            # Parser API + integration (83)
+│   │   ├── test_html_edge_cases.py     # False positives, malformed HTML (78)
+│   │   ├── test_html_special_patterns.py # SVG, responsive, custom elements (70)
+│   │   ├── test_html_elements.py       # Semantic, form, media elements (70)
+│   │   ├── test_html_attribute_values.py # rel, CSP, crossorigin (50)
+│   │   └── test_html_input_types.py    # Input type detection (43)
+│   ├── js/                 # JS parser tests (284 tests, 5 files)
+│   │   ├── test_js_detection.py        # Feature detection (154)
+│   │   ├── test_js_ast.py              # tree-sitter AST tests (87)
+│   │   ├── test_js_edge_cases.py       # Edge cases (17)
+│   │   ├── test_js_integration.py      # End-to-end (14)
+│   │   └── test_js_custom_rules.py     # Custom rules (12)
+│   └── custom_rules/       # Custom rules loader tests (42 tests)
+└── validation/             # Manual validation sample files
+    ├── css/                # CSS validation samples + checklist
+    ├── html/               # HTML validation samples + checklist
+    ├── js/                 # JS validation samples + checklist
+    └── custom_rules/       # Custom rules validation samples
+
+examples/                   # Sample files for demos
+├── sample.css
+├── sample.html
+├── sample.js
+└── test_project/           # Sample multi-file project
 
 docs/
 ├── thesis/
 │   ├── thesis_documentation.md
-│   └── chapters/
-│       ├── chapter1.md
-│       ├── how_crossguard_works.md
-│       ├── why_parser_tools_explained.md
-│       ├── html_parser_explained.md
-│       ├── css_parser_explained.md
-│       ├── js_parser_explained.md
-│       ├── cli_explained.md
-│       └── custom_rules_explained.md
-└── samples/                # Sample files for testing
+│   └── chapters/           # Thesis chapter drafts
+└── samples/                # Sample output files
+
+crossguard.db               # SQLite database (auto-created, gitignored)
+run_gui.py                  # GUI entry point
 ```
 
 ## Architecture
@@ -400,42 +396,48 @@ Edit `src/parsers/custom_rules.json`:
 
 ## Testing
 
-**Total: 3108 tests** across all modules.
+**Total: 2,394 tests** across all modules (pytest). All tests use `@pytest.mark.parametrize` for data-driven testing and return sets/dicts for diagnosable failures.
 
 ### Run All Tests
 ```bash
-pytest tests/
+pytest tests/                       # Full suite (2,394 tests)
+pytest tests/ -m unit               # Unit tests only (864)
+pytest tests/ -m integration        # Integration tests only (103)
 ```
 
 ### Run by Module
 ```bash
-pytest tests/parsers/css/ -v    # CSS parser tests (532)
-pytest tests/parsers/html/ -v   # HTML parser tests
-pytest tests/parsers/js/ -v     # JS parser tests (332 incl. 87 AST)
-pytest tests/database/ -v       # Database layer tests (168)
-pytest tests/analyzer/ -v       # Compatibility engine tests (282)
-pytest tests/api/ -v            # API service layer tests (226)
-pytest tests/export/ -v         # Export module tests (61)
-pytest tests/config/ -v         # Config module tests (27)
-pytest tests/cli/ -v            # CLI tests (165)
+pytest tests/parsers/css/ -v        # CSS parser tests (520)
+pytest tests/parsers/html/ -v       # HTML parser tests (496)
+pytest tests/parsers/js/ -v         # JS parser tests (284)
+pytest tests/parsers/custom_rules/  # Custom rules loader tests (42)
+pytest tests/analyzer/ -v           # Compatibility engine tests (287)
+pytest tests/api/ -v                # API service layer tests (200)
+pytest tests/database/ -v           # Database layer tests (175)
+pytest tests/cli/ -v                # CLI tests (162)
+pytest tests/polyfill/ -v           # Polyfill tests (158)
+pytest tests/export/ -v             # Export module tests (43)
+pytest tests/config/ -v             # Config module tests (27)
 ```
 
 ### Test Coverage Summary
 
-| Module | Tests | What's Covered |
-|--------|-------|----------------|
-| `src/parsers/css_parser.py` | 532 | Properties, selectors, at-rules, tinycss2 AST |
-| `src/parsers/html_parser.py` | ~1373 | Elements, attributes, input types |
-| `src/parsers/js_parser.py` | 332 | APIs, syntax, tree-sitter AST, custom rules |
-| `src/database/` | 168 | Models, migrations, all 4 repos, statistics |
-| `src/analyzer/` | 282 | Compatibility checking engine |
-| `src/api/` | 226 | Service facade layer (incl. export, config, custom rules) |
-| `src/export/` | 61 | JSON, PDF, SARIF, JUnit, Checkstyle, CSV export |
-| `src/config/` | 27 | Config loading, merging, defaults, package.json fallback |
-| `src/cli/` | 165 | Commands, gates, context, ignore, formatters, integration |
+| Module | Tests | Coverage | What's Covered |
+|--------|-------|----------|----------------|
+| CSS parser | 520 | 90% | Properties, selectors, at-rules, tinycss2 AST |
+| HTML parser | 496 | 95% | Elements, attributes, input types, edge cases |
+| JS parser | 284 | 84% | APIs, syntax, tree-sitter AST, custom rules |
+| Custom rules | 42 | 89% | Loader, singleton, save/reload, edge cases |
+| Analyzer | 287 | 83-100% | Scorer (100%), compatibility (100%), versions |
+| API service | 200 | 82% | Service facade (59 methods) |
+| Database | 175 | 83-95% | Models, migrations, repositories, statistics |
+| CLI | 162 | 79-100% | Commands, gates, formatters, ignore, stdin |
+| Polyfill | 158 | 89-100% | Loader, service, generator, integration |
+| Export | 43 | 94-100% | JSON, PDF, SARIF, JUnit, Checkstyle, CSV |
+| Config | 27 | 99% | Config loading, merging, defaults, pkg.json |
 
-### Manual JS Validation
-See `tests/validation/js/README.md` and `CHECKLIST.md` for manual testing procedures.
+### Manual Validation
+See `tests/validation/` for manual validation samples and checklists (CSS, HTML, JS, custom rules).
 
 ## Parser Feature Coverage
 

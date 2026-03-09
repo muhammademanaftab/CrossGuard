@@ -1,33 +1,29 @@
-# GUI Framework
-customtkinter>=5.2.0
-tkinterdnd2>=0.3.0
-
-# Parsing Libraries
+# Core dependencies
 beautifulsoup4>=4.12.0
 tinycss2>=1.2.1
-esprima>=4.0.1
 lxml>=5.0.0
 tree-sitter==0.21.3
 tree-sitter-languages==1.10.2
+requests>=2.31.0
+typing_extensions>=4.0.0
 
-# Data Processing
-regex>=2023.12.0
+# CLI
+click>=8.1.0
 
-# Visualization
-matplotlib>=3.8.0
-numpy>=1.26.0
-
-# PDF Generation
+# GUI
+customtkinter>=5.2.0
+tkinterdnd2>=0.3.0
 reportlab>=4.0.0
 Pillow>=10.1.0
 
-# Utilities
-python-dateutil>=2.8.2
-typing_extensions>=4.0.0
+# Visualization (GUI + ML)
+matplotlib>=3.8.0
+numpy>=1.26.0
 
-# Machine Learning
+# Machine Learning (optional)
 scikit-learn>=1.0.0
 joblib>=1.2.0
 
-# macOS dock icon (optional, macOS only)
-pyobjc-framework-Cocoa>=10.0; sys_platform == 'darwin'
+# Development
+pytest>=7.0.0
+pytest-cov>=4.0.0
