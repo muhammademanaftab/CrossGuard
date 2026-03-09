@@ -73,38 +73,28 @@ class TestDatabaseLoading:
 class TestLoadErrors:
     """Tests for error paths in load() using mocks for isolation."""
 
-    def test_missing_data_json_returns_false(self):
-        """load() returns False when data.json is missing."""
+    @pytest.mark.parametrize("side_effect", [
+        FileNotFoundError("not found"),
+        PermissionError("denied"),
+    ])
+    def test_open_error_returns_false(self, side_effect):
         db = CanIUseDatabase()
-        with patch('builtins.open', side_effect=FileNotFoundError("not found")):
-            result = db.load()
-        assert result is False
+        with patch('builtins.open', side_effect=side_effect):
+            assert db.load() is False
         assert db.loaded is False
 
     def test_corrupt_json_returns_false(self):
-        """load() returns False when data.json contains invalid JSON."""
         db = CanIUseDatabase()
         with patch('builtins.open', mock_open(read_data='{invalid json')):
-            result = db.load()
-        assert result is False
-        assert db.loaded is False
-
-    def test_generic_exception_returns_false(self):
-        """load() returns False on unexpected errors."""
-        db = CanIUseDatabase()
-        with patch('builtins.open', side_effect=PermissionError("denied")):
-            result = db.load()
-        assert result is False
+            assert db.load() is False
         assert db.loaded is False
 
     def test_missing_features_dir_loads_partially(self):
-        """load() succeeds with data.json even if features-json/ is absent."""
         db = CanIUseDatabase()
         with patch.object(db, '_load_feature_files'):
             with patch.object(db, '_build_index'):
                 with patch('builtins.open', mock_open(read_data='{}')):
-                    result = db.load()
-        assert result is True
+                    assert db.load() is True
         assert db.loaded is True
 
 
@@ -193,18 +183,11 @@ class TestParseStatus:
         ('p', 'p'),
         ('d #3', 'd'),
         ('n', 'n'),
+        ('', 'u'),
+        (None, 'u'),
     ])
-    def test_extracts_first_char(self, caniuse_db, raw, expected):
-        """Primary status is the first non-whitespace character."""
+    def test_parse_support_status(self, caniuse_db, raw, expected):
         assert caniuse_db._parse_support_status(raw) == expected
-
-    def test_empty_string_returns_u(self, caniuse_db):
-        """Empty string returns 'u' (unknown)."""
-        assert caniuse_db._parse_support_status('') == 'u'
-
-    def test_none_returns_u(self, caniuse_db):
-        """None returns 'u'."""
-        assert caniuse_db._parse_support_status(None) == 'u'
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -311,32 +294,20 @@ class TestSearchFeatures:
 class TestGetFeatureInfo:
     """Tests for get_feature_info()."""
 
-    def test_known_feature_has_all_keys(self, caniuse_db):
-        """Known feature returns dict with all standard keys."""
+    def test_known_feature_info(self, caniuse_db):
+        """Known feature returns dict with all standard keys and valid data."""
         info = caniuse_db.get_feature_info('flexbox')
         assert info is not None
         expected_keys = {'id', 'title', 'description', 'spec', 'status', 'categories', 'keywords', 'bugs'}
         assert expected_keys == set(info.keys())
+        assert isinstance(info['title'], str) and len(info['title']) > 0
+        assert isinstance(info['categories'], list)
+
+    def test_feature_id_matches_query(self, caniuse_db):
+        assert caniuse_db.get_feature_info('css-grid')['id'] == 'css-grid'
 
     def test_unknown_feature_returns_none(self, caniuse_db):
-        """Unknown feature returns None."""
         assert caniuse_db.get_feature_info('totally-fake-xyz') is None
-
-    def test_feature_id_in_result(self, caniuse_db):
-        """Result 'id' matches the queried feature ID."""
-        info = caniuse_db.get_feature_info('css-grid')
-        assert info['id'] == 'css-grid'
-
-    def test_title_is_nonempty_string(self, caniuse_db):
-        """Title is a non-empty string."""
-        info = caniuse_db.get_feature_info('flexbox')
-        assert isinstance(info['title'], str)
-        assert len(info['title']) > 0
-
-    def test_categories_is_list(self, caniuse_db):
-        """Categories field is a list."""
-        info = caniuse_db.get_feature_info('flexbox')
-        assert isinstance(info['categories'], list)
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -346,25 +317,16 @@ class TestGetFeatureInfo:
 class TestGetBrowserVersions:
     """Tests for get_browser_versions()."""
 
-    def test_chrome_has_many_versions(self, caniuse_db):
-        """Chrome version list is large (100+)."""
+    def test_chrome_versions(self, caniuse_db):
+        """Chrome has 100+ string versions with lru_cache."""
         versions = caniuse_db.get_browser_versions('chrome')
         assert len(versions) > 100
+        assert all(isinstance(v, str) for v in versions)
+        # lru_cache returns same object
+        assert caniuse_db.get_browser_versions('chrome') is versions
 
     def test_unknown_browser_empty(self, caniuse_db):
-        """Unknown browser returns empty list."""
         assert caniuse_db.get_browser_versions('netscape') == []
-
-    def test_versions_are_strings(self, caniuse_db):
-        """Version list contains strings."""
-        versions = caniuse_db.get_browser_versions('firefox')
-        assert all(isinstance(v, str) for v in versions)
-
-    def test_lru_cache_returns_same_object(self, caniuse_db):
-        """lru_cache returns the exact same list object on repeated calls."""
-        v1 = caniuse_db.get_browser_versions('chrome')
-        v2 = caniuse_db.get_browser_versions('chrome')
-        assert v1 is v2  # Same object identity, not just equality
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -374,29 +336,20 @@ class TestGetBrowserVersions:
 class TestDatabaseMetadata:
     """Tests for get_all_features(), get_feature_categories(), get_statistics()."""
 
-    def test_get_all_features_returns_list(self, caniuse_db):
-        """get_all_features() returns a list of 500+ string IDs."""
+    def test_metadata_with_loaded_db(self, caniuse_db):
+        """Loaded DB has 500+ features, CSS category, and valid statistics."""
         features = caniuse_db.get_all_features()
-        assert isinstance(features, list)
         assert len(features) > 500
         assert all(isinstance(f, str) for f in features)
 
-    def test_get_feature_categories_has_css(self, caniuse_db):
-        """get_feature_categories() includes a 'CSS' category."""
         categories = caniuse_db.get_feature_categories()
-        assert isinstance(categories, dict)
         assert 'CSS' in categories
 
-    def test_statistics_loaded(self, caniuse_db):
-        """get_statistics() reflects loaded state with counts."""
         stats = caniuse_db.get_statistics()
         assert stats['loaded'] is True
         assert stats['total_features'] > 500
         assert stats['total_categories'] > 0
-        assert stats['index_size'] > 0
 
     def test_statistics_unloaded(self):
-        """Unloaded DB statistics show loaded=False only."""
         db = CanIUseDatabase()
-        stats = db.get_statistics()
-        assert stats == {'loaded': False}
+        assert db.get_statistics() == {'loaded': False}

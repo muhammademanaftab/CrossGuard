@@ -11,25 +11,16 @@ def html_parser():
 
 
 @pytest.fixture
-def parse_html(html_parser):
-    """Helper fixture to parse HTML and return features set."""
+def parse_features(html_parser):
+    """Parse HTML and return detected feature IDs as a set."""
     def _parse(html: str) -> set:
         return html_parser.parse_string(html)
     return _parse
 
 
 @pytest.fixture
-def parse_and_check(html_parser):
-    """Helper fixture to parse HTML and check for specific feature."""
-    def _check(html: str, expected_feature: str) -> bool:
-        features = html_parser.parse_string(html)
-        return expected_feature in features
-    return _check
-
-
-@pytest.fixture
 def get_detailed_report(html_parser):
-    """Helper fixture to parse HTML and return detailed report."""
+    """Parse HTML and return detailed report."""
     def _report(html: str) -> dict:
         html_parser.parse_string(html)
         return html_parser.get_detailed_report()

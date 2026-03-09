@@ -110,36 +110,22 @@ class TestStatusText:
 class TestFormatRanges:
     """Tests for format_ranges_for_display()."""
 
-    def test_returns_nonempty_string(self):
-        """Returns a non-empty human-readable string."""
+    def test_flexbox_chrome_format(self):
+        """Returns non-empty string with 'Supported' text, pipe-separated ranges with colons."""
         result = format_ranges_for_display('flexbox', 'chrome')
         assert isinstance(result, str)
-        assert len(result) > 0
-
-    def test_contains_supported_text(self):
-        """Output contains 'Supported' for flexbox in Chrome."""
-        result = format_ranges_for_display('flexbox', 'chrome')
         assert 'Supported' in result
-
-    def test_multiple_ranges_separated_by_pipe(self):
-        """Multiple ranges separated by ' | '."""
-        result = format_ranges_for_display('flexbox', 'chrome')
         parts = result.split(' | ')
-        assert len(parts) >= 2  # Flexbox has at least unsupported → supported
-
-    def test_unknown_feature_returns_no_data(self):
-        """Unknown feature returns 'No data available'."""
-        assert format_ranges_for_display('totally-fake-xyz', 'chrome') == "No data available"
-
-    def test_unknown_browser_returns_no_data(self):
-        """Unknown browser returns 'No data available'."""
-        assert format_ranges_for_display('flexbox', 'netscape') == "No data available"
-
-    def test_range_format_contains_colon(self):
-        """Each part has 'version: StatusText' format."""
-        result = format_ranges_for_display('flexbox', 'chrome')
-        for part in result.split(' | '):
+        assert len(parts) >= 2
+        for part in parts:
             assert ':' in part
+
+    @pytest.mark.parametrize("feature,browser", [
+        ('totally-fake-xyz', 'chrome'),
+        ('flexbox', 'netscape'),
+    ])
+    def test_unknown_returns_no_data(self, feature, browser):
+        assert format_ranges_for_display(feature, browser) == "No data available"
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -149,39 +135,21 @@ class TestFormatRanges:
 class TestSupportSummary:
     """Tests for get_support_summary()."""
 
-    def test_returns_dict_with_major_browsers(self):
-        """Returns dict keyed by major browser names."""
+    def test_flexbox_summary_structure(self):
+        """Returns dict with major browsers, correct keys, and current status."""
         summary = get_support_summary('flexbox')
         assert isinstance(summary, dict)
         assert 'chrome' in summary
         assert 'firefox' in summary
-
-    def test_browser_entry_has_all_keys(self):
-        """Each browser entry has required keys."""
-        summary = get_support_summary('flexbox')
         for browser, data in summary.items():
             assert set(data.keys()) == {'current_status', 'current_status_text', 'supported_since', 'ranges'}
-
-    def test_flexbox_currently_supported_in_chrome(self):
-        """Flexbox current_status in Chrome is 'y'."""
-        summary = get_support_summary('flexbox')
+            # current_status matches last range
+            assert data['current_status'] == data['ranges'][-1]['status']
         assert summary['chrome']['current_status'] == 'y'
-
-    def test_supported_since_populated_for_flexbox(self):
-        """supported_since has a value for flexbox in Chrome."""
-        summary = get_support_summary('flexbox')
         assert summary['chrome']['supported_since'] is not None
 
     def test_unknown_feature_returns_empty(self):
-        """Unknown feature returns empty dict."""
         assert get_support_summary('totally-fake-feature-xyz') == {}
-
-    def test_current_status_matches_last_range(self):
-        """current_status equals the last range's status."""
-        summary = get_support_summary('flexbox')
-        for browser, data in summary.items():
-            last_range = data['ranges'][-1]
-            assert data['current_status'] == last_range['status']
 
 
 # ═══════════════════════════════════════════════════════════════════════════
@@ -191,21 +159,15 @@ class TestSupportSummary:
 class TestAllBrowserRanges:
     """Tests for get_all_browser_ranges()."""
 
-    def test_returns_multiple_browsers(self):
-        """Returns ranges for multiple browsers (chrome, firefox, safari, etc.)."""
+    def test_flexbox_returns_multiple_browsers_with_ranges(self):
         result = get_all_browser_ranges('flexbox')
         assert len(result) > 3
         assert 'chrome' in result
-
-    def test_each_browser_has_range_list(self):
-        """Each browser value is a non-empty list of ranges."""
-        result = get_all_browser_ranges('flexbox')
         for browser, ranges in result.items():
             assert isinstance(ranges, list)
             assert len(ranges) > 0
 
     def test_unknown_feature_returns_empty(self):
-        """Unknown feature returns empty dict."""
         assert get_all_browser_ranges('totally-fake-feature-xyz') == {}
 
 

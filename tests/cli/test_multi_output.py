@@ -4,7 +4,6 @@ import json
 import os
 import xml.etree.ElementTree as ET
 import pytest
-from click.testing import CliRunner
 
 from src.cli.main import _write_secondary_outputs
 

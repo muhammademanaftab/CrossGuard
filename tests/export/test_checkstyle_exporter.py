@@ -23,36 +23,23 @@ _SAMPLE_REPORT = {
 
 
 class TestCheckstyleStructure:
-    def test_valid_xml(self):
+    def test_valid_xml_structure(self):
         xml_str = export_checkstyle(_SAMPLE_REPORT)
         root = ET.fromstring(xml_str)
         assert root.tag == 'checkstyle'
-
-    def test_file_element(self):
-        xml_str = export_checkstyle(_SAMPLE_REPORT)
-        root = ET.fromstring(xml_str)
         files = root.findall('file')
         assert len(files) == 1
         assert files[0].attrib['name'] == 'src/style.css'
 
-    def test_error_elements(self):
+    def test_error_and_warning_elements(self):
         xml_str = export_checkstyle(_SAMPLE_REPORT)
         root = ET.fromstring(xml_str)
         errors = root.findall('.//error[@severity="error"]')
         assert len(errors) == 2
-
-    def test_warning_elements(self):
-        xml_str = export_checkstyle(_SAMPLE_REPORT)
-        root = ET.fromstring(xml_str)
         warnings = root.findall('.//error[@severity="warning"]')
         assert len(warnings) == 1
-
-    def test_error_source_attribute(self):
-        xml_str = export_checkstyle(_SAMPLE_REPORT)
-        root = ET.fromstring(xml_str)
-        error = root.find('.//error[@severity="error"]')
-        assert 'source' in error.attrib
-        assert 'crossguard' in error.attrib['source']
+        # Verify source attribute
+        assert 'crossguard' in errors[0].attrib['source']
 
 
 class TestCheckstyleFileOutput:
@@ -62,13 +49,10 @@ class TestCheckstyleFileOutput:
         assert result == str(out)
         assert out.exists()
 
-    def test_empty_report_raises(self):
+    @pytest.mark.parametrize("bad_input", [{}, None])
+    def test_invalid_report_raises(self, bad_input):
         with pytest.raises(ValueError):
-            export_checkstyle({})
-
-    def test_none_report_raises(self):
-        with pytest.raises(ValueError):
-            export_checkstyle(None)
+            export_checkstyle(bad_input)
 
 
 class TestCheckstyleEdgeCases:
@@ -78,18 +62,14 @@ class TestCheckstyleEdgeCases:
             'browsers': {
                 'chrome': {
                     'version': '120',
-                    'supported': 10,
-                    'partial': 0,
-                    'unsupported': 0,
-                    'unsupported_features': [],
-                    'partial_features': [],
+                    'supported': 10, 'partial': 0, 'unsupported': 0,
+                    'unsupported_features': [], 'partial_features': [],
                 }
             }
         }
         xml_str = export_checkstyle(report)
         root = ET.fromstring(xml_str)
-        errors = root.findall('.//error')
-        assert len(errors) == 0
+        assert len(root.findall('.//error')) == 0
 
     def test_project_path_fallback(self):
         report = {
@@ -104,5 +84,4 @@ class TestCheckstyleEdgeCases:
         }
         xml_str = export_checkstyle(report)
         root = ET.fromstring(xml_str)
-        file_elem = root.find('file')
-        assert file_elem.attrib['name'] == 'src/'
+        assert root.find('file').attrib['name'] == 'src/'

@@ -1,7 +1,6 @@
 """Tests for stdin input support in CLI."""
 
 import pytest
-from unittest.mock import patch, MagicMock
 from click.testing import CliRunner
 
 from src.cli.main import cli
@@ -46,8 +45,7 @@ class TestStdinSupport:
             cli, ['analyze', '--stdin', '--stdin-filename', 'test.js', '--format', 'json'],
             input='const x = Promise.resolve();',
         )
-        # Should succeed (0 or 1 depending on compatibility)
-        assert result.exit_code in (0, 1)
+        assert result.exit_code == 0, f"CLI failed: {result.output}"
 
     def test_stdin_with_css(self):
         runner = CliRunner()
@@ -55,16 +53,13 @@ class TestStdinSupport:
             cli, ['analyze', '--stdin', '--stdin-filename', 'style.css', '--format', 'summary'],
             input='body { display: flex; }',
         )
-        assert result.exit_code in (0, 1)
+        assert result.exit_code == 0, f"CLI failed: {result.output}"
 
     def test_stdin_cleans_up_temp_file(self):
         """Temp file should be cleaned up even on error."""
-        import os
         runner = CliRunner()
-        # This should work and clean up
         result = runner.invoke(
             cli, ['analyze', '--stdin', '--stdin-filename', 'test.js', '--format', 'json'],
             input='var x = 1;',
         )
-        # We can't easily check the temp file is gone, but ensure no crash
-        assert result.exit_code in (0, 1)
+        assert result.exit_code == 0, f"CLI failed: {result.output}"

@@ -1,1 +1,0 @@
-"""Attribute detection tests."""

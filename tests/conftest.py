@@ -5,6 +5,12 @@ import tempfile
 from pathlib import Path
 
 
+def pytest_configure(config):
+    config.addinivalue_line("markers", "unit: Pure unit tests (no I/O)")
+    config.addinivalue_line("markers", "component: Component tests with real dependencies")
+    config.addinivalue_line("markers", "integration: End-to-end pipeline tests")
+
+
 @pytest.fixture
 def temp_dir():
     """Temporary directory for test files."""

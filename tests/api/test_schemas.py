@@ -27,38 +27,38 @@ from src.api.schemas import (
 # Enums
 # ═══════════════════════════════════════════════════════════════════════
 
-class TestAnalysisStatusEnum:
-    """AnalysisStatus enum values."""
+class TestEnums:
+    """Enum values and member counts."""
 
-    def test_values(self):
-        assert AnalysisStatus.SUCCESS.value == "success"
-        assert AnalysisStatus.FAILED.value == "failed"
-        assert AnalysisStatus.NO_FILES.value == "no_files"
+    @pytest.mark.parametrize("member,value", [
+        (AnalysisStatus.SUCCESS, "success"),
+        (AnalysisStatus.FAILED, "failed"),
+        (AnalysisStatus.NO_FILES, "no_files"),
+    ])
+    def test_analysis_status_values(self, member, value):
+        assert member.value == value
 
-    def test_member_count(self):
+    def test_analysis_status_count(self):
         assert len(AnalysisStatus) == 3
 
+    @pytest.mark.parametrize("member,value", [
+        (RiskLevel.LOW, "low"),
+        (RiskLevel.MEDIUM, "medium"),
+        (RiskLevel.HIGH, "high"),
+        (RiskLevel.CRITICAL, "critical"),
+    ])
+    def test_risk_level_values(self, member, value):
+        assert member.value == value
 
-class TestRiskLevelEnum:
-    """RiskLevel enum values."""
-
-    def test_values(self):
-        assert RiskLevel.LOW.value == "low"
-        assert RiskLevel.MEDIUM.value == "medium"
-        assert RiskLevel.HIGH.value == "high"
-        assert RiskLevel.CRITICAL.value == "critical"
-
-    def test_member_count(self):
+    def test_risk_level_count(self):
         assert len(RiskLevel) == 4
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# Simple Dataclasses
+# BrowserTarget
 # ═══════════════════════════════════════════════════════════════════════
 
 class TestBrowserTarget:
-    """BrowserTarget stores name and version."""
-
     def test_fields(self):
         bt = BrowserTarget(name="chrome", version="120")
         assert bt.name == "chrome"
@@ -70,7 +70,6 @@ class TestBrowserTarget:
 # ═══════════════════════════════════════════════════════════════════════
 
 class TestAnalysisRequest:
-    """AnalysisRequest — file lists, helpers."""
 
     def test_defaults_are_empty(self):
         req = AnalysisRequest()
@@ -79,24 +78,14 @@ class TestAnalysisRequest:
         assert req.js_files == []
         assert req.target_browsers == {}
 
-    def test_has_files_false_when_empty(self):
-        req = AnalysisRequest()
-        assert req.has_files() is False
-
-    def test_has_files_true_with_html(self):
-        req = AnalysisRequest(html_files=["index.html"])
-        assert req.has_files() is True
-
-    def test_has_files_true_with_css(self):
-        req = AnalysisRequest(css_files=["style.css"])
-        assert req.has_files() is True
-
-    def test_has_files_true_with_js(self):
-        req = AnalysisRequest(js_files=["app.js"])
-        assert req.has_files() is True
-
-    def test_total_files_empty(self):
-        assert AnalysisRequest().total_files() == 0
+    @pytest.mark.parametrize("kwargs,expected", [
+        ({}, False),
+        ({"html_files": ["index.html"]}, True),
+        ({"css_files": ["style.css"]}, True),
+        ({"js_files": ["app.js"]}, True),
+    ])
+    def test_has_files(self, kwargs, expected):
+        assert AnalysisRequest(**kwargs).has_files() is expected
 
     def test_total_files_counts_all_types(self):
         req = AnalysisRequest(
@@ -107,7 +96,6 @@ class TestAnalysisRequest:
         assert req.total_files() == 6
 
     def test_default_factories_are_independent(self):
-        """Each instance gets its own list objects."""
         a = AnalysisRequest()
         b = AnalysisRequest()
         a.html_files.append("x.html")
@@ -115,39 +103,33 @@ class TestAnalysisRequest:
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# Dataclass Defaults
+# Dataclass Defaults (parametrized)
 # ═══════════════════════════════════════════════════════════════════════
 
 class TestDataclassDefaults:
     """Default field values for simple dataclasses."""
 
-    def test_feature_summary_defaults(self):
-        fs = FeatureSummary()
-        assert fs.total_features == 0
-        assert fs.html_features == 0
-        assert fs.css_features == 0
-        assert fs.js_features == 0
-        assert fs.critical_issues == 0
-
-    def test_detected_features_defaults(self):
-        df = DetectedFeatures()
-        assert df.html == []
-        assert df.css == []
-        assert df.js == []
-        assert df.all == []
-
-    def test_feature_details_defaults(self):
-        fd = FeatureDetails()
-        assert fd.css == []
-        assert fd.js == []
-        assert fd.html == []
-
-    def test_unrecognized_patterns_defaults(self):
-        up = UnrecognizedPatterns()
-        assert up.html == []
-        assert up.css == []
-        assert up.js == []
-        assert up.total == 0
+    @pytest.mark.parametrize("cls,field,expected", [
+        (FeatureSummary, "total_features", 0),
+        (FeatureSummary, "html_features", 0),
+        (FeatureSummary, "css_features", 0),
+        (FeatureSummary, "js_features", 0),
+        (FeatureSummary, "critical_issues", 0),
+        (DetectedFeatures, "html", []),
+        (DetectedFeatures, "css", []),
+        (DetectedFeatures, "js", []),
+        (DetectedFeatures, "all", []),
+        (FeatureDetails, "css", []),
+        (FeatureDetails, "js", []),
+        (FeatureDetails, "html", []),
+        (UnrecognizedPatterns, "html", []),
+        (UnrecognizedPatterns, "css", []),
+        (UnrecognizedPatterns, "js", []),
+        (UnrecognizedPatterns, "total", 0),
+    ])
+    def test_default_value(self, cls, field, expected):
+        obj = cls()
+        assert getattr(obj, field) == expected
 
 
 # ═══════════════════════════════════════════════════════════════════════
@@ -155,7 +137,6 @@ class TestDataclassDefaults:
 # ═══════════════════════════════════════════════════════════════════════
 
 class TestCompatibilityScore:
-    """CompatibilityScore defaults and populated values."""
 
     def test_defaults(self):
         cs = CompatibilityScore()
@@ -175,15 +156,11 @@ class TestCompatibilityScore:
 # ═══════════════════════════════════════════════════════════════════════
 
 class TestBrowserCompatibility:
-    """BrowserCompatibility required + default fields."""
 
-    def test_required_fields(self):
-        bc = BrowserCompatibility(name="chrome", version="120")
-        assert bc.name == "chrome"
-        assert bc.version == "120"
-
-    def test_default_counts(self):
+    def test_required_and_default_fields(self):
         bc = BrowserCompatibility(name="firefox", version="121")
+        assert bc.name == "firefox"
+        assert bc.version == "121"
         assert bc.supported == 0
         assert bc.partial == 0
         assert bc.unsupported == 0
@@ -197,7 +174,6 @@ class TestBrowserCompatibility:
 # ═══════════════════════════════════════════════════════════════════════
 
 class TestAnalysisResultFromDict:
-    """AnalysisResult.from_dict() — dict → dataclass."""
 
     def test_success_populates_all_fields(self, sample_success_report):
         result = AnalysisResult.from_dict(sample_success_report)
@@ -219,7 +195,6 @@ class TestAnalysisResultFromDict:
         assert result.error == "Unknown error"
 
     def test_minimal_success(self):
-        """success=True with no other keys still parses cleanly."""
         result = AnalysisResult.from_dict({'success': True})
         assert result.success is True
         assert result.summary.total_features == 0
@@ -244,13 +219,11 @@ class TestAnalysisResultFromDict:
 # ═══════════════════════════════════════════════════════════════════════
 
 class TestAnalysisResultToDict:
-    """AnalysisResult.to_dict() — dataclass → dict."""
 
     def test_failed_result_minimal(self, sample_failed_result):
         d = sample_failed_result.to_dict()
         assert d['success'] is False
         assert 'error' in d
-        # Failed results should NOT contain extra keys
         assert 'summary' not in d
 
     def test_success_contains_all_keys(self, sample_success_result):
@@ -261,10 +234,8 @@ class TestAnalysisResultToDict:
         assert expected_keys == set(d.keys())
 
     def test_roundtrip_preserves_data(self, sample_success_report):
-        """from_dict → to_dict round-trip preserves key values."""
         result = AnalysisResult.from_dict(sample_success_report)
         d = result.to_dict()
-
         assert d['summary']['total_features'] == 5
         assert d['scores']['grade'] == 'B'
         assert d['browsers']['chrome']['compatibility_percentage'] == 90.0
@@ -281,7 +252,6 @@ class TestAnalysisResultToDict:
 # ═══════════════════════════════════════════════════════════════════════
 
 class TestDatabaseSchemas:
-    """DatabaseInfo and DatabaseUpdateResult."""
 
     def test_database_info_defaults(self):
         di = DatabaseInfo()

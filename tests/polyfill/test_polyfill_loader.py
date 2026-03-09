@@ -1,9 +1,9 @@
-"""Tests for PolyfillLoader — singleton, lookups, reload, edge cases, save/load round-trip."""
+"""Tests for PolyfillLoader — singleton, lookups, predicates, categories, metadata, reload, load/save."""
 
 import json
 import pytest
 from pathlib import Path
-from unittest.mock import patch, mock_open
+from unittest.mock import patch
 
 from src.polyfill.polyfill_loader import (
     PolyfillLoader,
@@ -34,19 +34,19 @@ def raw_data():
 # ---------------------------------------------------------------------------
 
 class TestSingleton:
-    def test_same_instance(self):
+    def test_same_instance_via_factory(self):
         a = get_polyfill_loader()
         b = get_polyfill_loader()
         assert a is b
 
-    def test_new_returns_same_object(self):
+    def test_same_instance_via_constructor(self):
         a = PolyfillLoader()
         b = PolyfillLoader()
         assert a is b
 
 
 # ---------------------------------------------------------------------------
-# Lookups — JavaScript
+# Lookups — JavaScript (batch test + specific detail tests)
 # ---------------------------------------------------------------------------
 
 class TestJavaScriptLookups:
@@ -63,24 +63,16 @@ class TestJavaScriptLookups:
         'array-of', 'es6-array-fill', 'pointer', 'focuswithin', 'focusvisible',
     ]
 
-    @pytest.mark.parametrize("feature_id", JS_FEATURES)
-    def test_javascript_feature_exists(self, loader, feature_id):
-        info = loader.get_polyfill(feature_id)
-        assert info is not None, f"JS feature '{feature_id}' not found in polyfill map"
-
-    @pytest.mark.parametrize("feature_id", JS_FEATURES)
-    def test_javascript_feature_is_polyfillable(self, loader, feature_id):
-        info = loader.get_polyfill(feature_id)
-        assert info['polyfillable'] is True, f"JS feature '{feature_id}' should be polyfillable"
-
-    @pytest.mark.parametrize("feature_id", JS_FEATURES)
-    def test_javascript_feature_has_packages(self, loader, feature_id):
-        info = loader.get_polyfill(feature_id)
-        assert len(info.get('packages', [])) > 0, f"JS feature '{feature_id}' missing packages"
+    def test_all_js_features_exist_polyfillable_with_packages(self, loader):
+        """Every JS feature exists, is polyfillable, and has packages."""
+        for fid in self.JS_FEATURES:
+            info = loader.get_polyfill(fid)
+            assert info is not None, f"JS feature '{fid}' not found"
+            assert info['polyfillable'] is True, f"'{fid}' should be polyfillable"
+            assert len(info.get('packages', [])) > 0, f"'{fid}' missing packages"
 
     def test_fetch_package_details(self, loader):
-        info = loader.get_polyfill('fetch')
-        pkg = info['packages'][0]
+        pkg = loader.get_polyfill('fetch')['packages'][0]
         assert pkg['npm'] == 'whatwg-fetch'
         assert 'import' in pkg
         assert pkg['size_kb'] == 3.2
@@ -104,31 +96,29 @@ class TestJavaScriptLookups:
 
 
 # ---------------------------------------------------------------------------
-# Lookups — CSS
+# Lookups — CSS (batch tests + specific detail tests)
 # ---------------------------------------------------------------------------
 
 class TestCSSLookups:
     CSS_POLYFILLABLE = ['css-variables', 'css-sticky', 'object-fit', 'css-scroll-snap', 'css-scroll-behavior']
     CSS_FALLBACK_ONLY = ['css-grid', 'flexbox', 'css-backdrop-filter', 'css-filters']
 
-    @pytest.mark.parametrize("feature_id", CSS_POLYFILLABLE)
-    def test_css_polyfillable_exists(self, loader, feature_id):
-        info = loader.get_polyfill(feature_id)
-        assert info is not None
-        assert info['polyfillable'] is True
+    def test_all_css_polyfillable_entries(self, loader):
+        """All CSS polyfillable entries exist and are marked polyfillable."""
+        for fid in self.CSS_POLYFILLABLE:
+            info = loader.get_polyfill(fid)
+            assert info is not None, f"CSS feature '{fid}' not found"
+            assert info['polyfillable'] is True, f"'{fid}' should be polyfillable"
 
-    @pytest.mark.parametrize("feature_id", CSS_FALLBACK_ONLY)
-    def test_css_fallback_only(self, loader, feature_id):
-        info = loader.get_polyfill(feature_id)
-        assert info is not None
-        assert info['polyfillable'] is False
-        assert 'fallback' in info
-
-    @pytest.mark.parametrize("feature_id", CSS_FALLBACK_ONLY)
-    def test_css_fallback_has_code(self, loader, feature_id):
-        fb = loader.get_polyfill(feature_id)['fallback']
-        assert 'code' in fb and len(fb['code']) > 0
-        assert 'description' in fb and len(fb['description']) > 0
+    def test_all_css_fallback_entries(self, loader):
+        """All CSS fallback entries exist, are not polyfillable, and have code."""
+        for fid in self.CSS_FALLBACK_ONLY:
+            info = loader.get_polyfill(fid)
+            assert info is not None, f"CSS feature '{fid}' not found"
+            assert info['polyfillable'] is False, f"'{fid}' should not be polyfillable"
+            fb = info['fallback']
+            assert 'code' in fb and len(fb['code']) > 0, f"'{fid}' missing fallback code"
+            assert 'description' in fb and len(fb['description']) > 0, f"'{fid}' missing fallback description"
 
     def test_css_grid_fallback_mentions_flexbox(self, loader):
         fb = loader.get_polyfill('css-grid')['fallback']
@@ -140,21 +130,18 @@ class TestCSSLookups:
 
 
 # ---------------------------------------------------------------------------
-# Lookups — HTML
+# Lookups — HTML (batch test + specific detail tests)
 # ---------------------------------------------------------------------------
 
 class TestHTMLLookups:
     HTML_FEATURES = ['dialog', 'details', 'datalist', 'picture', 'template', 'input-color', 'input-date']
 
-    @pytest.mark.parametrize("feature_id", HTML_FEATURES)
-    def test_html_feature_exists(self, loader, feature_id):
-        info = loader.get_polyfill(feature_id)
-        assert info is not None, f"HTML feature '{feature_id}' not found"
-
-    @pytest.mark.parametrize("feature_id", HTML_FEATURES)
-    def test_html_feature_is_polyfillable(self, loader, feature_id):
-        info = loader.get_polyfill(feature_id)
-        assert info['polyfillable'] is True
+    def test_all_html_features_exist_and_polyfillable(self, loader):
+        """All HTML features exist and are polyfillable."""
+        for fid in self.HTML_FEATURES:
+            info = loader.get_polyfill(fid)
+            assert info is not None, f"HTML feature '{fid}' not found"
+            assert info['polyfillable'] is True, f"'{fid}' should be polyfillable"
 
     def test_dialog_polyfill_package(self, loader):
         info = loader.get_polyfill('dialog')
@@ -166,26 +153,46 @@ class TestHTMLLookups:
 
 
 # ---------------------------------------------------------------------------
-# Negative / missing lookups
+# Named feature lookups (merged from root test_polyfill_module.py)
+# ---------------------------------------------------------------------------
+
+class TestNamedFeatureLookups:
+    """Verify specific features return expected names and types."""
+
+    def test_fetch_details(self, loader):
+        info = loader.get_polyfill('fetch')
+        assert info['name'] == 'Fetch API'
+        assert info['polyfillable'] is True
+        assert len(info['packages']) > 0
+
+    def test_css_grid_details(self, loader):
+        info = loader.get_polyfill('css-grid')
+        assert info['name'] == 'CSS Grid Layout'
+        assert info['polyfillable'] is False
+        assert 'fallback' in info
+
+    def test_dialog_details(self, loader):
+        info = loader.get_polyfill('dialog')
+        assert info['name'] == 'HTML <dialog> Element'
+        assert info['polyfillable'] is True
+
+
+# ---------------------------------------------------------------------------
+# Negative / missing lookups (collapsed from 3 tests per ID to 1)
 # ---------------------------------------------------------------------------
 
 class TestMissingFeatures:
     NONEXISTENT = [
         'completely-fake', 'css-supergrid', 'js-teleporter',
-        '', 'FETCH', 'Fetch',  # case-sensitive
+        '', 'FETCH', 'Fetch',
     ]
 
-    @pytest.mark.parametrize("feature_id", NONEXISTENT)
-    def test_nonexistent_returns_none(self, loader, feature_id):
-        assert loader.get_polyfill(feature_id) is None
-
-    @pytest.mark.parametrize("feature_id", NONEXISTENT)
-    def test_has_polyfill_false(self, loader, feature_id):
-        assert loader.has_polyfill(feature_id) is False
-
-    @pytest.mark.parametrize("feature_id", NONEXISTENT)
-    def test_is_polyfillable_false(self, loader, feature_id):
-        assert loader.is_polyfillable(feature_id) is False
+    def test_nonexistent_features_return_none(self, loader):
+        """Nonexistent features return None and both predicates are False."""
+        for fid in self.NONEXISTENT:
+            assert loader.get_polyfill(fid) is None, f"'{fid}' should return None"
+            assert loader.has_polyfill(fid) is False, f"has_polyfill('{fid}') should be False"
+            assert loader.is_polyfillable(fid) is False, f"is_polyfillable('{fid}') should be False"
 
 
 # ---------------------------------------------------------------------------
@@ -193,11 +200,9 @@ class TestMissingFeatures:
 # ---------------------------------------------------------------------------
 
 class TestPolyfillPredicates:
-    def test_fallback_only_has_polyfill_true(self, loader):
-        """css-grid has a fallback but is NOT polyfillable."""
+    def test_fallback_has_polyfill_but_not_polyfillable(self, loader):
+        """css-grid has a fallback (has_polyfill True) but is NOT polyfillable."""
         assert loader.has_polyfill('css-grid') is True
-
-    def test_fallback_only_is_polyfillable_false(self, loader):
         assert loader.is_polyfillable('css-grid') is False
 
     def test_npm_feature_both_true(self, loader):
@@ -211,19 +216,15 @@ class TestPolyfillPredicates:
 
 class TestCategoryGetters:
     def test_javascript_polyfills_count(self, loader):
-        js = loader.get_all_javascript_polyfills()
-        assert len(js) >= 37  # at least the original 37
+        assert len(loader.get_all_javascript_polyfills()) >= 37
 
     def test_css_polyfills_count(self, loader):
-        css = loader.get_all_css_polyfills()
-        assert len(css) >= 9
+        assert len(loader.get_all_css_polyfills()) >= 9
 
     def test_html_polyfills_count(self, loader):
-        html = loader.get_all_html_polyfills()
-        assert len(html) >= 7
+        assert len(loader.get_all_html_polyfills()) >= 7
 
     def test_category_getters_return_copies(self, loader):
-        """Mutating the returned dict must not affect the loader."""
         js = loader.get_all_javascript_polyfills()
         js['FAKE'] = {}
         assert 'FAKE' not in loader.get_all_javascript_polyfills()
@@ -234,12 +235,9 @@ class TestCategoryGetters:
 # ---------------------------------------------------------------------------
 
 class TestMetadata:
-    def test_has_version(self, loader):
+    def test_metadata_fields(self, loader):
         meta = loader.get_metadata()
         assert 'version' in meta
-
-    def test_has_description(self, loader):
-        meta = loader.get_metadata()
         assert 'description' in meta
 
     def test_metadata_is_copy(self, loader):
@@ -254,34 +252,26 @@ class TestMetadata:
 
 class TestReload:
     def test_reload_succeeds(self, loader):
-        """Reload should not raise even when called multiple times."""
         loader.reload()
         loader.reload()
         assert loader.get_polyfill('fetch') is not None
 
 
 # ---------------------------------------------------------------------------
-# load_polyfill_map / save_polyfill_map round-trip
+# load_polyfill_map / save_polyfill_map
 # ---------------------------------------------------------------------------
 
 class TestLoadSave:
-    def test_load_returns_dict(self):
+    def test_load_returns_complete_dict(self):
         data = load_polyfill_map()
         assert isinstance(data, dict)
-        assert 'javascript' in data
-        assert 'css' in data
-        assert 'html' in data
-
-    def test_load_has_metadata(self):
-        data = load_polyfill_map()
-        assert 'metadata' in data
+        for key in ('javascript', 'css', 'html', 'metadata'):
+            assert key in data
 
     def test_save_and_reload_round_trip(self, tmp_path):
-        """Save to a temp file, reload, and verify nothing is lost."""
         original = load_polyfill_map()
         js_count_before = len(original.get('javascript', {}))
 
-        # Add a temp entry
         original['javascript']['_test_round_trip'] = {
             'name': 'Test Round Trip',
             'polyfillable': True,
@@ -324,9 +314,6 @@ class TestLoadSave:
         assert loaded['javascript']['test']['name'] == 'Test'
 
     def test_save_returns_false_on_write_error(self, tmp_path):
-        readonly_dir = tmp_path / 'no_write'
-        readonly_dir.mkdir()
-        # Point to a path inside a file (impossible to write)
         fake_path = tmp_path / 'nonexistent_dir' / 'sub' / 'polyfill_map.json'
         with patch('src.polyfill.polyfill_loader.POLYFILL_MAP_PATH', fake_path):
             result = save_polyfill_map({'metadata': {}})
@@ -334,50 +321,32 @@ class TestLoadSave:
 
 
 # ---------------------------------------------------------------------------
-# Data integrity — every polyfill_map.json entry
+# Data integrity — validate every polyfill_map.json entry
 # ---------------------------------------------------------------------------
 
 class TestDataIntegrity:
-    """Validate every entry in the real polyfill_map.json."""
+    """Validate structure/consistency of the real polyfill_map.json."""
 
-    def test_every_entry_has_name(self, raw_data):
+    def test_every_entry_has_name_and_polyfillable(self, raw_data):
         for section in ('javascript', 'css', 'html'):
             for fid, info in raw_data.get(section, {}).items():
-                assert 'name' in info, f"{section}/{fid} missing 'name'"
-                assert len(info['name']) > 0, f"{section}/{fid} has empty name"
-
-    def test_every_entry_has_polyfillable_bool(self, raw_data):
-        for section in ('javascript', 'css', 'html'):
-            for fid, info in raw_data.get(section, {}).items():
-                assert 'polyfillable' in info, f"{section}/{fid} missing 'polyfillable'"
+                assert 'name' in info and len(info['name']) > 0, f"{section}/{fid} missing/empty name"
+                assert 'polyfillable' in info, f"{section}/{fid} missing polyfillable"
                 assert isinstance(info['polyfillable'], bool), f"{section}/{fid} polyfillable not bool"
 
     def test_polyfillable_entries_have_packages(self, raw_data):
         for section in ('javascript', 'css', 'html'):
             for fid, info in raw_data.get(section, {}).items():
                 if info.get('polyfillable'):
-                    assert 'packages' in info, f"{section}/{fid} polyfillable but no packages"
-                    assert len(info['packages']) > 0, f"{section}/{fid} empty packages"
+                    assert len(info.get('packages', [])) > 0, f"{section}/{fid} polyfillable but no packages"
 
     def test_packages_have_required_fields(self, raw_data):
         for section in ('javascript', 'css', 'html'):
             for fid, info in raw_data.get(section, {}).items():
                 for i, pkg in enumerate(info.get('packages', [])):
                     assert 'name' in pkg, f"{section}/{fid} package[{i}] missing 'name'"
-                    assert 'npm' in pkg, f"{section}/{fid} package[{i}] missing 'npm'"
-                    assert 'import' in pkg, f"{section}/{fid} package[{i}] missing 'import'"
-
-    def test_package_npm_names_are_nonempty(self, raw_data):
-        for section in ('javascript', 'css', 'html'):
-            for fid, info in raw_data.get(section, {}).items():
-                for pkg in info.get('packages', []):
-                    assert len(pkg['npm'].strip()) > 0, f"{section}/{fid} has empty npm name"
-
-    def test_package_imports_are_nonempty(self, raw_data):
-        for section in ('javascript', 'css', 'html'):
-            for fid, info in raw_data.get(section, {}).items():
-                for pkg in info.get('packages', []):
-                    assert len(pkg['import'].strip()) > 0, f"{section}/{fid} has empty import"
+                    assert 'npm' in pkg and len(pkg['npm'].strip()) > 0, f"{section}/{fid} empty npm"
+                    assert 'import' in pkg and len(pkg['import'].strip()) > 0, f"{section}/{fid} empty import"
 
     def test_package_sizes_are_positive(self, raw_data):
         for section in ('javascript', 'css', 'html'):
@@ -391,20 +360,14 @@ class TestDataIntegrity:
             for fid, info in raw_data.get(section, {}).items():
                 if 'fallback' in info:
                     fb = info['fallback']
-                    assert 'code' in fb, f"{section}/{fid} fallback missing 'code'"
-                    assert 'description' in fb, f"{section}/{fid} fallback missing 'description'"
-                    assert len(fb['code']) > 0
-                    assert len(fb['description']) > 0
+                    assert 'code' in fb and len(fb['code']) > 0, f"{section}/{fid} fallback missing code"
+                    assert 'description' in fb and len(fb['description']) > 0, f"{section}/{fid} fallback missing description"
 
-    def test_no_duplicate_npm_packages_within_entry(self, raw_data):
+    def test_no_duplicate_npm_within_entry(self, raw_data):
         for section in ('javascript', 'css', 'html'):
             for fid, info in raw_data.get(section, {}).items():
-                pkgs = info.get('packages', [])
-                npm_names = [p['npm'] for p in pkgs]
-                # core-js is allowed to repeat across entries but not within one entry
-                assert len(npm_names) == len(set(npm_names)), (
-                    f"{section}/{fid} has duplicate npm packages: {npm_names}"
-                )
+                npm_names = [p['npm'] for p in info.get('packages', [])]
+                assert len(npm_names) == len(set(npm_names)), f"{section}/{fid} duplicate npm: {npm_names}"
 
     def test_feature_ids_are_lowercase(self, raw_data):
         for section in ('javascript', 'css', 'html'):
@@ -416,13 +379,8 @@ class TestDataIntegrity:
             for fid, info in raw_data.get(section, {}).items():
                 for pkg in info.get('packages', []):
                     if 'cdn' in pkg:
-                        assert pkg['cdn'].startswith('https://'), (
-                            f"{section}/{fid} CDN URL not HTTPS: {pkg['cdn']}"
-                        )
+                        assert pkg['cdn'].startswith('https://'), f"{section}/{fid} CDN not HTTPS"
 
     def test_total_entry_count(self, raw_data):
-        js = len(raw_data.get('javascript', {}))
-        css = len(raw_data.get('css', {}))
-        html = len(raw_data.get('html', {}))
-        total = js + css + html
+        total = sum(len(raw_data.get(s, {})) for s in ('javascript', 'css', 'html'))
         assert total >= 53, f"Expected at least 53 polyfill entries, got {total}"

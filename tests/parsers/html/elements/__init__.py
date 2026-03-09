@@ -1,1 +1,0 @@
-"""Element detection tests."""
