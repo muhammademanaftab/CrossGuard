@@ -30,9 +30,7 @@ The system integrates a combination of parsing libraries, analysis techniques, a
 
 10. **reportlab**: A PDF generation library used to create professional analysis reports.
 
-11. **scikit-learn**: A machine learning library used in the optional ML module for compatibility risk prediction.
-
-12. **Git**: Version control system used throughout development.
+11. **Git**: Version control system used throughout development.
 
 ### 2.3 User Guide
 
