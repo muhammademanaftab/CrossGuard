@@ -211,14 +211,18 @@ Displays the compatibility results after analysis.
 
 **Components**
 
-- Score Card showing overall compatibility score
-- Browser Cards showing browser support status
-- Issue Cards listing detected features
-- Quick Statistics summarizing results
+- Compatibility Score Card showing pass/fail status, percentage score, and progress bar
+- Quick Stats row showing Score, Grade, number of Browsers, and total Features
+- Baseline Status row showing counts for Widely Available, Newly Available, and Limited features
+- What Needs Your Attention section highlighting critical issues and warnings
+- Browser Support section (expandable) showing support status per browser
+- Detected Features section (expandable) listing all detected features
+- Visualizations section (expandable) with charts
+- Recommendations section (expandable) with polyfill suggestions
 
-[Figure 3: Results Dashboard - Score Card and Browser Cards]
+[Figure 3: Results Dashboard - Score Card and Quick Stats]
 
-[Figure 4: Results Dashboard - Issue Cards]
+[Figure 4: Results Dashboard - Expandable Sections]
 
 #### 2.7.3 Browser Selector
 
@@ -238,33 +242,20 @@ Allows users to choose target browsers and versions for compatibility checks.
 
 **What It Does**
 
-Stores all previous analyses in the SQLite database.
+Stores all previous analyses in the SQLite database and displays statistics about past results.
 
 **Features**
 
-- View past analyses
-- Bookmark important results
-- Add tags such as production, v2.0, or critical
+- Your Statistics panel showing Total Analyses, Average Score, and Best Score
+- Top Problematic Features list showing the most frequently failing features with failure counts
+- Recent Analyses list showing each analysis with file name, score, grade, feature count, and date
+- Tags and Bookmarks buttons for organizing analyses
+- Bookmark (star icon) and delete (x icon) buttons on each history card
+- Clear All option to reset history
 
 [Figure 6: Analysis History View]
 
-[Figure 7: History Card with Bookmark and Tags]
-
-#### 2.7.5 Statistics Panel
-
-**What It Does**
-
-Displays aggregated insights from previous analyses.
-
-**Information Displayed**
-
-- Compatibility score trends
-- Common problematic features
-- File type distribution
-
-[Figure 8: Statistics Panel]
-
-#### 2.7.6 Custom Rules Manager
+#### 2.7.5 Custom Rules Manager
 
 **What It Does**
 
@@ -278,7 +269,7 @@ Allows users to define additional detection rules without modifying source code.
 
 [Figure 9: Custom Rules Manager]
 
-#### 2.7.7 Export Reports
+#### 2.7.6 Export Reports
 
 **What It Does**
 
@@ -298,21 +289,46 @@ Exports analysis results into downloadable reports.
 
 [Figure 10: PDF Export Report]
 
-#### 2.7.8 Project Scanning
+#### 2.7.7 Project Scanning
 
 **What It Does**
 
-Analyzes an entire project directory recursively.
+Analyzes all HTML, CSS, and JavaScript files in a project directory.
 
-**Scanner Capabilities**
+**How to Use**
 
-- Detects HTML, CSS, and JS files
-- Analyzes each file
-- Produces an overall project compatibility score
+1. Click the Project Scanner icon in the sidebar
+2. Enter the project path or click Browse to select a directory
+3. Configure scan settings under Scan Configuration
+4. Click Scan Project to begin analysis
 
-[Figure 11: Project Scan - Configuration Panel]
+**Scan Configuration Options**
 
-[Figure 12: Project Scan - Results with File Tree]
+- Exclude Directories: select directories to skip (node_modules, dist, build, .git, .next, .nuxt, coverage, vendor)
+- File Types: choose which file types to scan (HTML, CSS, JavaScript)
+- Options: skip minified files (.min.js, .min.css)
+- Preview Files button to see which files will be scanned before running
+
+[Figure 11: Project Scanner - Configuration Panel]
+
+[Figure 12: Project Scan - Results]
+
+#### 2.7.8 Settings
+
+**What It Does**
+
+Provides application configuration options accessible from the sidebar.
+
+**Settings Sections**
+
+- Can I Use Database: shows total features and last updated date, with an Update Database button
+- Custom Detection Rules: shortcut to the rules manager with a Manage Rules button
+- User Preferences:
+  - Auto-save to History toggle (automatically save analyses to history)
+  - History Limit dropdown (maximum analyses to keep, default 100)
+  - Default Browsers checkboxes (Chrome, Firefox, Safari, Edge, Opera, IE)
+
+[Figure 13: Settings Page]
 
 ### 2.8 Features of Cross Guard: CLI
 
@@ -326,7 +342,7 @@ python -m src.cli.main analyze src/ --format json
 python -m src.cli.main analyze file.css --browsers "chrome:120,firefox:121"
 ```
 
-[Figure 13: CLI - Table Output Format]
+[Figure 14: CLI - Table Output Format]
 
 #### 2.8.2 CI/CD Output Formats
 
@@ -343,7 +359,7 @@ python -m src.cli.main analyze file.css --browsers "chrome:120,firefox:121"
 python -m src.cli.main analyze src/ --format sarif -o results.sarif
 ```
 
-[Figure 14: CLI - SARIF Output]
+[Figure 15: CLI - SARIF Output]
 
 #### 2.8.3 Quality Gates
 
