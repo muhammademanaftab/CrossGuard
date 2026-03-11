@@ -10,7 +10,6 @@ from src.cli.formatters import (
     format_result,
     format_history,
     format_stats,
-    format_project_result,
 )
 
 
@@ -123,16 +122,3 @@ class TestFormatCollectionColor:
         assert ANSI_ESC in format_stats(stats, color=True)
         assert ANSI_ESC not in format_stats(stats, color=False)
 
-    def test_project_result_no_color(self):
-        result = {
-            'success': True,
-            'project_name': 'test',
-            'overall_score': 85.0,
-            'overall_grade': 'B',
-            'total_files': 3,
-            'html_files': 1, 'css_files': 1, 'js_files': 1,
-            'total_features': 20, 'unique_features': 15,
-            'unsupported_count': 2, 'partial_count': 3,
-        }
-        out = format_project_result(result, color=False)
-        assert ANSI_ESC not in out

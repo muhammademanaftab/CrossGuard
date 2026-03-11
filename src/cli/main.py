@@ -19,7 +19,6 @@ from .formatters import (
     format_result,
     format_history,
     format_stats,
-    format_project_result,
 )
 from .gates import ThresholdConfig, evaluate_gates
 from .ignore import find_ignore_file, load_ignore_patterns, should_ignore
@@ -279,63 +278,40 @@ def analyze(ctx, target, browsers, fmt, output, config_path,
                     click.echo(f"Using ignore file: {ig_file}", err=True)
 
         if target_path.is_dir():
-            from src.api.project_schemas import ScanConfig
-            scan_config = ScanConfig(exclude_patterns=config.ignore_patterns)
+            files = _collect_files(str(target_path), ignore_pats)
 
-            if cli_ctx.verbosity >= 1:
-                click.echo(f"Scanning {target}...", err=True)
-
-            scan_result = service.scan_project_directory(str(target_path), scan_config)
-
-            if scan_result.total_files == 0:
+            if not files:
                 click.echo("No analyzable files found.", err=True)
                 sys.exit(2)
 
             if cli_ctx.verbosity >= 1:
-                click.echo(f"Analyzing {scan_result.total_files} files...", err=True)
+                click.echo(f"Analyzing {len(files)} files...", err=True)
 
-            project_result = service.analyze_project(
-                scan_result,
-                target_browsers=browser_dict,
-            )
-
-            result_dict = project_result.to_dict()
-
-            if fmt == 'json':
-                result_text = format_result(result_dict, 'json')
-            elif fmt in ('sarif', 'junit', 'checkstyle', 'csv'):
-                result_text = _format_ci_output(result_dict, fmt)
-            else:
-                result_text = format_project_result(result_dict, color=cli_ctx.color)
-
-            score = project_result.overall_score
-            error_count, warning_count = _count_issues(result_dict)
-
-        else:
-            files = [str(target_path)]
             html, css, js = _classify_files(files)
+        else:
+            html, css, js = _classify_files([str(target_path)])
 
-            if not (html or css or js):
-                click.echo(f"Error: Unsupported file type: {target}", err=True)
-                sys.exit(2)
+        if not (html or css or js):
+            click.echo(f"Error: Unsupported file type: {target}", err=True)
+            sys.exit(2)
 
-            result = service.analyze_files(
-                html_files=html,
-                css_files=css,
-                js_files=js,
-                target_browsers=browser_dict,
-            )
+        result = service.analyze_files(
+            html_files=html,
+            css_files=css,
+            js_files=js,
+            target_browsers=browser_dict,
+        )
 
-            result_dict = result.to_dict()
+        result_dict = result.to_dict()
 
-            if fmt in ('sarif', 'junit', 'checkstyle', 'csv'):
-                result_dict['file_path'] = str(target_path)  # CI exporters need this
-                result_text = _format_ci_output(result_dict, fmt)
-            else:
-                result_text = format_result(result_dict, fmt, color=cli_ctx.color)
+        if fmt in ('sarif', 'junit', 'checkstyle', 'csv'):
+            result_dict['file_path'] = str(target_path)  # CI exporters need this
+            result_text = _format_ci_output(result_dict, fmt)
+        else:
+            result_text = format_result(result_dict, fmt, color=cli_ctx.color)
 
-            score = result.scores.simple_score if result.scores else 0.0
-            error_count, warning_count = _count_issues(result_dict)
+        score = result.scores.simple_score if result.scores else 0.0
+        error_count, warning_count = _count_issues(result_dict)
 
         if output:
             with open(output, 'w', encoding='utf-8') as f:

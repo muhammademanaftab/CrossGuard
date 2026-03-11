@@ -289,31 +289,7 @@ Exports analysis results into downloadable reports.
 
 [Figure 10: PDF Export Report]
 
-#### 2.7.7 Project Scanning
-
-**What It Does**
-
-Analyzes all HTML, CSS, and JavaScript files in a project directory.
-
-**How to Use**
-
-1. Click the Project Scanner icon in the sidebar
-2. Enter the project path or click Browse to select a directory
-3. Configure scan settings under Scan Configuration
-4. Click Scan Project to begin analysis
-
-**Scan Configuration Options**
-
-- Exclude Directories: select directories to skip (node_modules, dist, build, .git, .next, .nuxt, coverage, vendor)
-- File Types: choose which file types to scan (HTML, CSS, JavaScript)
-- Options: skip minified files (.min.js, .min.css)
-- Preview Files button to see which files will be scanned before running
-
-[Figure 11: Project Scanner - Configuration Panel]
-
-[Figure 12: Project Scan - Results]
-
-#### 2.7.8 Settings
+#### 2.7.7 Settings
 
 **What It Does**
 
@@ -332,82 +308,203 @@ Provides application configuration options accessible from the sidebar.
 
 ### 2.8 Features of Cross Guard: CLI
 
-The CLI enables automated analysis and integration into CI/CD pipelines.
+The CLI enables automated analysis and integration into CI/CD pipelines. It is built with the Click library and provides 8 commands: `analyze`, `history`, `stats`, `export`, `config`, `update-db`, `init-ci`, and `init-hooks`. All commands share the same analysis backend as the GUI, ensuring identical results.
 
-#### 2.8.1 File and Directory Analysis
+#### 2.8.1 Commands
+
+##### analyze
+
+The primary command. Analyzes a single file or an entire directory for browser compatibility issues.
 
 ```bash
-python -m src.cli.main analyze file.js --format table
-python -m src.cli.main analyze src/ --format json
-python -m src.cli.main analyze file.css --browsers "chrome:120,firefox:121"
+# Analyze a single file
+python -m src.cli.main analyze examples/sample.css
+
+# Analyze a directory (recursively finds all HTML, CSS, and JS files)
+python -m src.cli.main analyze examples/
+
+# Specify target browser versions
+python -m src.cli.main analyze file.css --browsers "chrome:120,safari:13"
 ```
+
+When a directory is provided, the CLI recursively walks the file tree, skipping common non-source directories such as `node_modules`, `.git`, `dist`, and `build`.
 
 [Figure 14: CLI - Table Output Format]
 
-#### 2.8.2 CI/CD Output Formats
+##### history
 
-**Supported Formats**
-
-- SARIF
-- JUnit XML
-- Checkstyle XML
-- CSV
-
-**Example Command**
+Every analysis is automatically saved to the SQLite database. The `history` command lists past analyses.
 
 ```bash
+# Show recent analyses
+python -m src.cli.main history
+
+# Limit to 5 entries
+python -m src.cli.main history --limit 5
+
+# Filter by file type
+python -m src.cli.main history --type css
+```
+
+##### stats
+
+Displays aggregated statistics across all saved analyses, including total analyses run, average score, and the most frequently problematic features.
+
+```bash
+python -m src.cli.main stats
+```
+
+##### export
+
+Exports a previously saved analysis by its database ID in JSON or PDF format.
+
+```bash
+# Export as JSON
+python -m src.cli.main export 42 --format json --output report.json
+
+# Export as PDF
+python -m src.cli.main export 42 --format pdf --output report.pdf
+```
+
+##### config
+
+Displays the active configuration or initializes a new configuration file.
+
+```bash
+# Show current configuration
+python -m src.cli.main config
+
+# Create a crossguard.config.json file
+python -m src.cli.main config --init
+```
+
+Configuration is resolved in the following priority order:
+
+1. CLI flags (highest priority)
+2. `crossguard.config.json` in the project directory
+3. `package.json` under the `"crossguard"` key
+4. Built-in defaults (lowest priority)
+
+##### update-db
+
+Downloads the latest Can I Use database so that browser support information stays current.
+
+```bash
+python -m src.cli.main update-db
+```
+
+##### init-ci
+
+Generates ready-to-use CI/CD configuration files for automated compatibility checking on every code push.
+
+```bash
+# GitHub Actions workflow
+python -m src.cli.main init-ci --provider github
+
+# GitLab CI configuration
+python -m src.cli.main init-ci --provider gitlab
+```
+
+##### init-hooks
+
+Generates a pre-commit hook configuration that runs Cross Guard before every git commit.
+
+```bash
+python -m src.cli.main init-hooks --type pre-commit
+```
+
+#### 2.8.2 Output Formats
+
+The `analyze` command supports 7 output formats for different use cases.
+
+| Format | Flag | Use Case |
+|--------|------|----------|
+| Table | `--format table` | Human-readable terminal output (default) |
+| Summary | `--format summary` | One-line quick check |
+| JSON | `--format json` | Machine-readable data, piping to other tools |
+| SARIF | `--format sarif` | GitHub Code Scanning integration |
+| JUnit XML | `--format junit` | Jenkins and GitLab CI test reports |
+| Checkstyle XML | `--format checkstyle` | SonarQube integration |
+| CSV | `--format csv` | Spreadsheet analysis |
+
+*Table 3: CLI Output Formats*
+
+Results can be saved to a file with the `--output` flag, or multiple formats can be generated simultaneously:
+
+```bash
+# Save SARIF output to a file
 python -m src.cli.main analyze src/ --format sarif -o results.sarif
+
+# Generate table output to the terminal and save JSON and CSV to files
+python -m src.cli.main analyze file.css --format table --output-json report.json --output-csv report.csv
 ```
 
 [Figure 15: CLI - SARIF Output]
 
-#### 2.8.3 Quality Gates
+#### 2.8.3 Global Options
 
-Quality gates allow CI pipelines to fail when compatibility thresholds are not met.
+Global options are placed before the command name and control verbosity, color output, and timing.
 
 ```bash
+python -m src.cli.main [options] <command>
+```
+
+| Option | Description |
+|--------|-------------|
+| `-v` | Verbose output, shows loading and parsing logs |
+| `-vv` | More verbose output |
+| `-vvv` / `--debug` | Maximum verbosity with debug-level detail |
+| `-q` | Quiet mode, suppresses log messages (report still shown) |
+| `--no-color` | Disables ANSI color codes in output |
+| `--timing` | Displays elapsed time after analysis |
+
+*Table 4: CLI Global Options*
+
+All log messages are written to stderr so that stdout remains clean for piped or redirected output.
+
+#### 2.8.4 Quality Gates
+
+Quality gates cause the CLI to exit with code 1 when the analysis results do not meet specified thresholds. This is used in CI/CD pipelines to block code that does not meet compatibility standards.
+
+```bash
+# Fail if score is below 80
 python -m src.cli.main analyze src/ --fail-on-score 80
+
+# Fail if more than 5 unsupported features
 python -m src.cli.main analyze src/ --fail-on-errors 5
+
+# Fail if more than 10 partially supported features
 python -m src.cli.main analyze src/ --fail-on-warnings 10
+
+# Multiple gates can be combined
+python -m src.cli.main analyze src/ --fail-on-score 80 --fail-on-errors 5
 ```
 
-**Exit Codes**
+The CLI uses three exit codes:
 
-- 0 passed
-- 1 quality gate failed
-- 2 error
+| Exit Code | Meaning |
+|-----------|---------|
+| 0 | Success, all quality gates passed |
+| 1 | Quality gate failed or compatibility issues found |
+| 2 | Error such as invalid input or missing file |
 
-#### 2.8.4 Stdin Support
+*Table 5: CLI Exit Codes*
+
+CI/CD systems interpret these exit codes to determine whether a build passes or fails.
+
+#### 2.8.5 Stdin Support
+
+The CLI can read file content from standard input, which is useful for piping content from other commands or analyzing dynamically generated code.
 
 ```bash
-echo "const x = Promise.resolve();" | python -m src.cli.main analyze --stdin --stdin-filename app.js --format sarif
+echo "div { display: grid; }" | python -m src.cli.main analyze --stdin --stdin-filename test.css
 ```
 
-#### 2.8.5 CI Configuration Generators
+The `--stdin-filename` flag is required so that the CLI can determine the file type for parsing.
 
-```bash
-python -m src.cli.main init-ci --provider github
-python -m src.cli.main init-ci --provider gitlab
-python -m src.cli.main init-hooks --type pre-commit
-```
+#### 2.8.6 Ignore Patterns
 
-#### 2.8.6 Configuration
-
-**Configuration Priority**
-
-1. CLI flags
-2. crossguard.config.json
-3. package.json "crossguard" key
-4. Built in defaults
-
-```bash
-python -m src.cli.main config --init
-python -m src.cli.main config
-```
-
-#### 2.8.7 .crossguardignore
-
-Example ignore configuration:
+A `.crossguardignore` file can be placed in the project root to exclude files and directories from analysis. The format follows the same syntax as `.gitignore`.
 
 ```
 node_modules/
