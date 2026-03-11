@@ -1,0 +1,520 @@
+{
+  "success": true,
+  "summary": {
+    "total_features": 40,
+    "html_features": 9,
+    "css_features": 24,
+    "js_features": 8,
+    "critical_issues": 0
+  },
+  "scores": {
+    "grade": "A",
+    "risk_level": "none",
+    "simple_score": 99.69,
+    "weighted_score": 99.69
+  },
+  "browsers": {
+    "chrome": {
+      "version": "144",
+      "supported": 40,
+      "partial": 0,
+      "unsupported": 0,
+      "compatibility_percentage": 100.0,
+      "unsupported_features": [],
+      "partial_features": []
+    },
+    "firefox": {
+      "version": "146",
+      "supported": 40,
+      "partial": 0,
+      "unsupported": 0,
+      "compatibility_percentage": 100.0,
+      "unsupported_features": [],
+      "partial_features": []
+    },
+    "safari": {
+      "version": "18.4",
+      "supported": 39,
+      "partial": 1,
+      "unsupported": 0,
+      "compatibility_percentage": 98.75,
+      "unsupported_features": [],
+      "partial_features": [
+        "srcset"
+      ]
+    },
+    "edge": {
+      "version": "141",
+      "supported": 40,
+      "partial": 0,
+      "unsupported": 0,
+      "compatibility_percentage": 100.0,
+      "unsupported_features": [],
+      "partial_features": []
+    }
+  },
+  "features": {
+    "html": [
+      "cors",
+      "html5semantic",
+      "link-icon-png",
+      "rel-noopener",
+      "rel-noreferrer",
+      "srcset",
+      "subresource-integrity",
+      "svg-img",
+      "viewport-units"
+    ],
+    "css": [
+      "border-radius",
+      "calc",
+      "css-animation",
+      "css-boxshadow",
+      "css-fixed",
+      "css-grid",
+      "css-math-functions",
+      "css-mediaqueries",
+      "css-opacity",
+      "css-scroll-behavior",
+      "css-sel2",
+      "css-sel3",
+      "css-selection",
+      "css-transitions",
+      "css-variables",
+      "css3-boxsizing",
+      "css3-colors",
+      "css3-cursors",
+      "flexbox",
+      "inline-block",
+      "minmaxwh",
+      "rem",
+      "transforms2d",
+      "viewport-units"
+    ],
+    "js": [
+      "addeventlistener",
+      "arrow-functions",
+      "classlist",
+      "const",
+      "es5",
+      "let",
+      "namevalue-storage",
+      "queryselector"
+    ],
+    "all": [
+      "addeventlistener",
+      "arrow-functions",
+      "border-radius",
+      "calc",
+      "classlist",
+      "const",
+      "cors",
+      "css-animation",
+      "css-boxshadow",
+      "css-fixed",
+      "css-grid",
+      "css-math-functions",
+      "css-mediaqueries",
+      "css-opacity",
+      "css-scroll-behavior",
+      "css-sel2",
+      "css-sel3",
+      "css-selection",
+      "css-transitions",
+      "css-variables",
+      "css3-boxsizing",
+      "css3-colors",
+      "css3-cursors",
+      "es5",
+      "flexbox",
+      "html5semantic",
+      "inline-block",
+      "let",
+      "link-icon-png",
+      "minmaxwh",
+      "namevalue-storage",
+      "queryselector",
+      "rel-noopener",
+      "rel-noreferrer",
+      "rem",
+      "srcset",
+      "subresource-integrity",
+      "svg-img",
+      "transforms2d",
+      "viewport-units"
+    ]
+  },
+  "feature_details": {
+    "css": [
+      {
+        "feature": "flexbox",
+        "description": "CSS Flexbox",
+        "matched_properties": [
+          "display",
+          "flex-direction"
+        ]
+      },
+      {
+        "feature": "css-grid",
+        "description": "CSS Grid Layout",
+        "matched_properties": [
+          "display",
+          "grid-template",
+          "grid-auto-rows",
+          "grid-gap"
+        ]
+      },
+      {
+        "feature": "transforms2d",
+        "description": "CSS3 2D Transforms",
+        "matched_properties": [
+          "transform",
+          "rotate"
+        ]
+      },
+      {
+        "feature": "css-animation",
+        "description": "CSS3 Animation",
+        "matched_properties": [
+          "animation"
+        ]
+      },
+      {
+        "feature": "css-transitions",
+        "description": "CSS3 Transitions",
+        "matched_properties": [
+          "transition"
+        ]
+      },
+      {
+        "feature": "css3-colors",
+        "description": "CSS3 Colors (RGB/HSL)",
+        "matched_properties": [
+          "rgba"
+        ]
+      },
+      {
+        "feature": "css3-boxsizing",
+        "description": "CSS3 Box-sizing",
+        "matched_properties": [
+          "box-sizing"
+        ]
+      },
+      {
+        "feature": "minmaxwh",
+        "description": "CSS min/max Width & Height",
+        "matched_properties": [
+          "min-height",
+          "max-width"
+        ]
+      },
+      {
+        "feature": "border-radius",
+        "description": "CSS Border Radius",
+        "matched_properties": [
+          "border-radius"
+        ]
+      },
+      {
+        "feature": "css-boxshadow",
+        "description": "CSS Box Shadow",
+        "matched_properties": [
+          "box-shadow"
+        ]
+      },
+      {
+        "feature": "css-sel2",
+        "description": "CSS2.1 Selectors",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-sel3",
+        "description": "CSS3 Selectors",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-mediaqueries",
+        "description": "CSS3 Media Queries",
+        "matched_properties": []
+      },
+      {
+        "feature": "rem",
+        "description": "rem (Root em) Units",
+        "matched_properties": []
+      },
+      {
+        "feature": "viewport-units",
+        "description": "Viewport units: vw, vh, vmin, vmax",
+        "matched_properties": []
+      },
+      {
+        "feature": "calc",
+        "description": "CSS calc() function",
+        "matched_properties": [
+          "calc"
+        ]
+      },
+      {
+        "feature": "css-variables",
+        "description": "CSS Variables (Custom Properties)",
+        "matched_properties": [
+          "var"
+        ]
+      },
+      {
+        "feature": "css-fixed",
+        "description": "CSS position:fixed",
+        "matched_properties": [
+          "position"
+        ]
+      },
+      {
+        "feature": "css-scroll-behavior",
+        "description": "CSS scroll-behavior",
+        "matched_properties": [
+          "scroll-behavior"
+        ]
+      },
+      {
+        "feature": "css3-cursors",
+        "description": "CSS3 Cursors",
+        "matched_properties": [
+          "cursor"
+        ]
+      },
+      {
+        "feature": "css-opacity",
+        "description": "CSS Opacity",
+        "matched_properties": [
+          "opacity"
+        ]
+      },
+      {
+        "feature": "css-math-functions",
+        "description": "CSS math functions min(), max() and clamp()",
+        "matched_properties": [
+          "max"
+        ]
+      },
+      {
+        "feature": "flexbox",
+        "description": "CSS Flexbox",
+        "matched_properties": [
+          "display",
+          "flex-direction"
+        ]
+      },
+      {
+        "feature": "inline-block",
+        "description": "CSS display: inline-block",
+        "matched_properties": [
+          "display"
+        ]
+      },
+      {
+        "feature": "transforms2d",
+        "description": "CSS3 2D Transforms",
+        "matched_properties": [
+          "transform",
+          "rotate"
+        ]
+      },
+      {
+        "feature": "css-transitions",
+        "description": "CSS3 Transitions",
+        "matched_properties": [
+          "transition"
+        ]
+      },
+      {
+        "feature": "css3-colors",
+        "description": "CSS3 Colors (RGB/HSL)",
+        "matched_properties": [
+          "rgba"
+        ]
+      },
+      {
+        "feature": "minmaxwh",
+        "description": "CSS min/max Width & Height",
+        "matched_properties": [
+          "max-width"
+        ]
+      },
+      {
+        "feature": "border-radius",
+        "description": "CSS Border Radius",
+        "matched_properties": [
+          "border-radius"
+        ]
+      },
+      {
+        "feature": "css-boxshadow",
+        "description": "CSS Box Shadow",
+        "matched_properties": [
+          "box-shadow"
+        ]
+      },
+      {
+        "feature": "css-sel2",
+        "description": "CSS2.1 Selectors",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-sel3",
+        "description": "CSS3 Selectors",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-selection",
+        "description": "CSS ::selection",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-mediaqueries",
+        "description": "CSS3 Media Queries",
+        "matched_properties": []
+      },
+      {
+        "feature": "rem",
+        "description": "rem (Root em) Units",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-variables",
+        "description": "CSS Variables (Custom Properties)",
+        "matched_properties": [
+          "var"
+        ]
+      },
+      {
+        "feature": "css3-cursors",
+        "description": "CSS3 Cursors",
+        "matched_properties": [
+          "cursor"
+        ]
+      },
+      {
+        "feature": "css-opacity",
+        "description": "CSS Opacity",
+        "matched_properties": [
+          "opacity"
+        ]
+      }
+    ],
+    "js": [
+      {
+        "feature": "const",
+        "description": "Const declaration",
+        "matched_apis": [
+          "const"
+        ]
+      },
+      {
+        "feature": "let",
+        "description": "Let declaration",
+        "matched_apis": [
+          "let"
+        ]
+      },
+      {
+        "feature": "arrow-functions",
+        "description": "arrow-functions",
+        "matched_apis": [
+          "arrow_function"
+        ]
+      },
+      {
+        "feature": "es5",
+        "description": "ES5 Array methods",
+        "matched_apis": []
+      },
+      {
+        "feature": "namevalue-storage",
+        "description": "Web Storage (localStorage/sessionStorage)",
+        "matched_apis": [
+          "localStorage"
+        ]
+      },
+      {
+        "feature": "queryselector",
+        "description": "querySelector/querySelectorAll",
+        "matched_apis": []
+      },
+      {
+        "feature": "classlist",
+        "description": "Element.classList",
+        "matched_apis": []
+      },
+      {
+        "feature": "addeventlistener",
+        "description": "EventTarget.addEventListener()",
+        "matched_apis": []
+      }
+    ],
+    "html": [
+      {
+        "feature": "html5semantic",
+        "matched_items": [
+          "<section>",
+          "<article>",
+          "<header>",
+          "<footer>",
+          "<nav>"
+        ]
+      },
+      {
+        "feature": "srcset",
+        "matched_items": [
+          "sizes"
+        ]
+      },
+      {
+        "feature": "subresource-integrity",
+        "matched_items": [
+          "integrity"
+        ]
+      },
+      {
+        "feature": "link-icon-png",
+        "matched_items": [
+          "rel=\"icon\""
+        ]
+      },
+      {
+        "feature": "cors",
+        "matched_items": [
+          "crossorigin=\"anonymous\""
+        ]
+      },
+      {
+        "feature": "rel-noopener",
+        "matched_items": [
+          "rel=\"noopener\""
+        ]
+      },
+      {
+        "feature": "rel-noreferrer",
+        "matched_items": [
+          "rel=\"noreferrer\""
+        ]
+      }
+    ]
+  },
+  "unrecognized": {
+    "html": [
+      "attribute: property"
+    ],
+    "css": [],
+    "js": [],
+    "total": 1
+  },
+  "recommendations": [
+    "ℹ️  1 features have partial support. Test thoroughly in target browsers."
+  ],
+  "baseline_summary": {
+    "widely_available": 28,
+    "newly_available": 0,
+    "limited": 2,
+    "unknown": 10
+  }
+}

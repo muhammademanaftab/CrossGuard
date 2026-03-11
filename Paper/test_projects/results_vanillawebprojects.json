@@ -1,0 +1,3382 @@
+{
+  "success": true,
+  "summary": {
+    "total_features": 75,
+    "html_features": 15,
+    "css_features": 33,
+    "js_features": 28,
+    "critical_issues": 1
+  },
+  "scores": {
+    "grade": "A",
+    "risk_level": "low",
+    "simple_score": 98.33,
+    "weighted_score": 98.33
+  },
+  "browsers": {
+    "chrome": {
+      "version": "144",
+      "supported": 73,
+      "partial": 2,
+      "unsupported": 0,
+      "compatibility_percentage": 98.67,
+      "unsupported_features": [],
+      "partial_features": [
+        "speech-recognition",
+        "input-autocomplete-onoff"
+      ]
+    },
+    "firefox": {
+      "version": "146",
+      "supported": 73,
+      "partial": 1,
+      "unsupported": 1,
+      "compatibility_percentage": 98.0,
+      "unsupported_features": [
+        "speech-recognition"
+      ],
+      "partial_features": [
+        "input-autocomplete-onoff"
+      ]
+    },
+    "safari": {
+      "version": "18.4",
+      "supported": 73,
+      "partial": 2,
+      "unsupported": 0,
+      "compatibility_percentage": 98.67,
+      "unsupported_features": [],
+      "partial_features": [
+        "speech-recognition",
+        "input-autocomplete-onoff"
+      ]
+    },
+    "edge": {
+      "version": "141",
+      "supported": 73,
+      "partial": 1,
+      "unsupported": 1,
+      "compatibility_percentage": 98.0,
+      "unsupported_features": [
+        "speech-recognition"
+      ],
+      "partial_features": [
+        "input-autocomplete-onoff"
+      ]
+    }
+  },
+  "features": {
+    "html": [
+      "audio",
+      "autofocus",
+      "canvas",
+      "cors",
+      "form-validation",
+      "html5semantic",
+      "input-autocomplete-onoff",
+      "input-email-tel-url",
+      "input-number",
+      "input-placeholder",
+      "input-range",
+      "subresource-integrity",
+      "svg",
+      "video",
+      "viewport-units"
+    ],
+    "css": [
+      "background-img-opts",
+      "border-radius",
+      "calc",
+      "css-animation",
+      "css-appearance",
+      "css-boxshadow",
+      "css-conic-gradients",
+      "css-container-queries",
+      "css-fixed",
+      "css-gencontent",
+      "css-gradients",
+      "css-grid",
+      "css-letter-spacing",
+      "css-mediaqueries",
+      "css-opacity",
+      "css-overflow",
+      "css-sel2",
+      "css-sel3",
+      "css-transitions",
+      "css-variables",
+      "css3-boxsizing",
+      "css3-colors",
+      "css3-cursors",
+      "flexbox",
+      "inline-block",
+      "minmaxwh",
+      "multibackgrounds",
+      "object-fit",
+      "outline",
+      "svg-css",
+      "transforms2d",
+      "transforms3d",
+      "viewport-units"
+    ],
+    "js": [
+      "addeventlistener",
+      "array-find",
+      "array-includes",
+      "arrow-functions",
+      "async-functions",
+      "childnode-remove",
+      "classlist",
+      "console-basic",
+      "const",
+      "element-closest",
+      "es5",
+      "es6",
+      "es6-number",
+      "es6-string-includes",
+      "fetch",
+      "form-attribute",
+      "innertext",
+      "json",
+      "keyboardevent-key",
+      "keyboardevent-location",
+      "let",
+      "namevalue-storage",
+      "promises",
+      "queryselector",
+      "requestanimationframe",
+      "speech-recognition",
+      "speech-synthesis",
+      "template-literals"
+    ],
+    "all": [
+      "addeventlistener",
+      "array-find",
+      "array-includes",
+      "arrow-functions",
+      "async-functions",
+      "audio",
+      "autofocus",
+      "background-img-opts",
+      "border-radius",
+      "calc",
+      "canvas",
+      "childnode-remove",
+      "classlist",
+      "console-basic",
+      "const",
+      "cors",
+      "css-animation",
+      "css-appearance",
+      "css-boxshadow",
+      "css-conic-gradients",
+      "css-container-queries",
+      "css-fixed",
+      "css-gencontent",
+      "css-gradients",
+      "css-grid",
+      "css-letter-spacing",
+      "css-mediaqueries",
+      "css-opacity",
+      "css-overflow",
+      "css-sel2",
+      "css-sel3",
+      "css-transitions",
+      "css-variables",
+      "css3-boxsizing",
+      "css3-colors",
+      "css3-cursors",
+      "element-closest",
+      "es5",
+      "es6",
+      "es6-number",
+      "es6-string-includes",
+      "fetch",
+      "flexbox",
+      "form-attribute",
+      "form-validation",
+      "html5semantic",
+      "inline-block",
+      "innertext",
+      "input-autocomplete-onoff",
+      "input-email-tel-url",
+      "input-number",
+      "input-placeholder",
+      "input-range",
+      "json",
+      "keyboardevent-key",
+      "keyboardevent-location",
+      "let",
+      "minmaxwh",
+      "multibackgrounds",
+      "namevalue-storage",
+      "object-fit",
+      "outline",
+      "promises",
+      "queryselector",
+      "requestanimationframe",
+      "speech-recognition",
+      "speech-synthesis",
+      "subresource-integrity",
+      "svg",
+      "svg-css",
+      "template-literals",
+      "transforms2d",
+      "transforms3d",
+      "video",
+      "viewport-units"
+    ]
+  },
+  "feature_details": {
+    "css": [
+      {
+        "feature": "flexbox",
+        "description": "CSS Flexbox",
+        "matched_properties": [
+          "display",
+          "flex-direction"
+        ]
+      },
+      {
+        "feature": "transforms2d",
+        "description": "CSS3 2D Transforms",
+        "matched_properties": [
+          "transform",
+          "scale"
+        ]
+      },
+      {
+        "feature": "css-transitions",
+        "description": "CSS3 Transitions",
+        "matched_properties": [
+          "transition"
+        ]
+      },
+      {
+        "feature": "css3-colors",
+        "description": "CSS3 Colors (RGB/HSL)",
+        "matched_properties": []
+      },
+      {
+        "feature": "css3-boxsizing",
+        "description": "CSS3 Box-sizing",
+        "matched_properties": [
+          "box-sizing"
+        ]
+      },
+      {
+        "feature": "minmaxwh",
+        "description": "CSS min/max Width & Height",
+        "matched_properties": [
+          "min-height"
+        ]
+      },
+      {
+        "feature": "border-radius",
+        "description": "CSS Border Radius",
+        "matched_properties": [
+          "border-radius"
+        ]
+      },
+      {
+        "feature": "outline",
+        "description": "CSS Outline Properties",
+        "matched_properties": [
+          "outline"
+        ]
+      },
+      {
+        "feature": "css-sel2",
+        "description": "CSS2.1 Selectors",
+        "matched_properties": []
+      },
+      {
+        "feature": "viewport-units",
+        "description": "Viewport units: vw, vh, vmin, vmax",
+        "matched_properties": []
+      },
+      {
+        "feature": "css3-cursors",
+        "description": "CSS3 Cursors",
+        "matched_properties": [
+          "cursor"
+        ]
+      },
+      {
+        "feature": "css3-colors",
+        "description": "CSS3 Colors (RGB/HSL)",
+        "matched_properties": []
+      },
+      {
+        "feature": "border-radius",
+        "description": "CSS Border Radius",
+        "matched_properties": [
+          "border-radius"
+        ]
+      },
+      {
+        "feature": "outline",
+        "description": "CSS Outline Properties",
+        "matched_properties": [
+          "outline"
+        ]
+      },
+      {
+        "feature": "css-boxshadow",
+        "description": "CSS Box Shadow",
+        "matched_properties": [
+          "box-shadow"
+        ]
+      },
+      {
+        "feature": "css-sel2",
+        "description": "CSS2.1 Selectors",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-appearance",
+        "description": "CSS appearance property",
+        "matched_properties": [
+          "appearance"
+        ]
+      },
+      {
+        "feature": "css3-cursors",
+        "description": "CSS3 Cursors",
+        "matched_properties": [
+          "cursor"
+        ]
+      },
+      {
+        "feature": "flexbox",
+        "description": "CSS Flexbox",
+        "matched_properties": [
+          "display",
+          "flex-direction"
+        ]
+      },
+      {
+        "feature": "css3-colors",
+        "description": "CSS3 Colors (RGB/HSL)",
+        "matched_properties": []
+      },
+      {
+        "feature": "css3-boxsizing",
+        "description": "CSS3 Box-sizing",
+        "matched_properties": [
+          "box-sizing"
+        ]
+      },
+      {
+        "feature": "minmaxwh",
+        "description": "CSS min/max Width & Height",
+        "matched_properties": [
+          "max-width",
+          "max-height"
+        ]
+      },
+      {
+        "feature": "outline",
+        "description": "CSS Outline Properties",
+        "matched_properties": [
+          "outline"
+        ]
+      },
+      {
+        "feature": "css-sel2",
+        "description": "CSS2.1 Selectors",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-mediaqueries",
+        "description": "CSS3 Media Queries",
+        "matched_properties": []
+      },
+      {
+        "feature": "viewport-units",
+        "description": "Viewport units: vw, vh, vmin, vmax",
+        "matched_properties": []
+      },
+      {
+        "feature": "css3-cursors",
+        "description": "CSS3 Cursors",
+        "matched_properties": [
+          "cursor"
+        ]
+      },
+      {
+        "feature": "flexbox",
+        "description": "CSS Flexbox",
+        "matched_properties": [
+          "display",
+          "flex-direction",
+          "flex"
+        ]
+      },
+      {
+        "feature": "css3-colors",
+        "description": "CSS3 Colors (RGB/HSL)",
+        "matched_properties": []
+      },
+      {
+        "feature": "css3-boxsizing",
+        "description": "CSS3 Box-sizing",
+        "matched_properties": [
+          "box-sizing"
+        ]
+      },
+      {
+        "feature": "minmaxwh",
+        "description": "CSS min/max Width & Height",
+        "matched_properties": [
+          "min-height",
+          "max-width"
+        ]
+      },
+      {
+        "feature": "border-radius",
+        "description": "CSS Border Radius",
+        "matched_properties": [
+          "border-radius"
+        ]
+      },
+      {
+        "feature": "viewport-units",
+        "description": "Viewport units: vw, vh, vmin, vmax",
+        "matched_properties": []
+      },
+      {
+        "feature": "css3-cursors",
+        "description": "CSS3 Cursors",
+        "matched_properties": [
+          "cursor"
+        ]
+      },
+      {
+        "feature": "flexbox",
+        "description": "CSS Flexbox",
+        "matched_properties": [
+          "display",
+          "flex-direction"
+        ]
+      },
+      {
+        "feature": "css3-colors",
+        "description": "CSS3 Colors (RGB/HSL)",
+        "matched_properties": []
+      },
+      {
+        "feature": "multibackgrounds",
+        "description": "CSS3 Multiple backgrounds",
+        "matched_properties": [
+          "background-image"
+        ]
+      },
+      {
+        "feature": "background-img-opts",
+        "description": "CSS3 Background-image options",
+        "matched_properties": [
+          "background-size"
+        ]
+      },
+      {
+        "feature": "css3-boxsizing",
+        "description": "CSS3 Box-sizing",
+        "matched_properties": [
+          "box-sizing"
+        ]
+      },
+      {
+        "feature": "minmaxwh",
+        "description": "CSS min/max Width & Height",
+        "matched_properties": [
+          "max-width"
+        ]
+      },
+      {
+        "feature": "border-radius",
+        "description": "CSS Border Radius",
+        "matched_properties": [
+          "border-radius"
+        ]
+      },
+      {
+        "feature": "outline",
+        "description": "CSS Outline Properties",
+        "matched_properties": [
+          "outline"
+        ]
+      },
+      {
+        "feature": "css-sel2",
+        "description": "CSS2.1 Selectors",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-mediaqueries",
+        "description": "CSS3 Media Queries",
+        "matched_properties": []
+      },
+      {
+        "feature": "viewport-units",
+        "description": "Viewport units: vw, vh, vmin, vmax",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-variables",
+        "description": "CSS Variables (Custom Properties)",
+        "matched_properties": [
+          "var"
+        ]
+      },
+      {
+        "feature": "css-appearance",
+        "description": "CSS appearance property",
+        "matched_properties": [
+          "appearance"
+        ]
+      },
+      {
+        "feature": "css3-cursors",
+        "description": "CSS3 Cursors",
+        "matched_properties": [
+          "cursor"
+        ]
+      },
+      {
+        "feature": "svg-css",
+        "description": "SVG in CSS backgrounds",
+        "matched_properties": [
+          "background-image"
+        ]
+      },
+      {
+        "feature": "flexbox",
+        "description": "CSS Flexbox",
+        "matched_properties": [
+          "display",
+          "flex-direction",
+          "flex"
+        ]
+      },
+      {
+        "feature": "inline-block",
+        "description": "CSS display: inline-block",
+        "matched_properties": [
+          "display"
+        ]
+      },
+      {
+        "feature": "transforms2d",
+        "description": "CSS3 2D Transforms",
+        "matched_properties": [
+          "transform",
+          "translate"
+        ]
+      },
+      {
+        "feature": "css-transitions",
+        "description": "CSS3 Transitions",
+        "matched_properties": [
+          "transition"
+        ]
+      },
+      {
+        "feature": "css3-colors",
+        "description": "CSS3 Colors (RGB/HSL)",
+        "matched_properties": [
+          "rgba"
+        ]
+      },
+      {
+        "feature": "css3-boxsizing",
+        "description": "CSS3 Box-sizing",
+        "matched_properties": [
+          "box-sizing"
+        ]
+      },
+      {
+        "feature": "minmaxwh",
+        "description": "CSS min/max Width & Height",
+        "matched_properties": [
+          "min-height"
+        ]
+      },
+      {
+        "feature": "border-radius",
+        "description": "CSS Border Radius",
+        "matched_properties": [
+          "border-radius"
+        ]
+      },
+      {
+        "feature": "outline",
+        "description": "CSS Outline Properties",
+        "matched_properties": [
+          "outline"
+        ]
+      },
+      {
+        "feature": "css-boxshadow",
+        "description": "CSS Box Shadow",
+        "matched_properties": [
+          "box-shadow"
+        ]
+      },
+      {
+        "feature": "css-sel2",
+        "description": "CSS2.1 Selectors",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-sel3",
+        "description": "CSS3 Selectors",
+        "matched_properties": []
+      },
+      {
+        "feature": "viewport-units",
+        "description": "Viewport units: vw, vh, vmin, vmax",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-variables",
+        "description": "CSS Variables (Custom Properties)",
+        "matched_properties": [
+          "var"
+        ]
+      },
+      {
+        "feature": "css3-cursors",
+        "description": "CSS3 Cursors",
+        "matched_properties": [
+          "cursor"
+        ]
+      },
+      {
+        "feature": "css-opacity",
+        "description": "CSS Opacity",
+        "matched_properties": [
+          "opacity"
+        ]
+      },
+      {
+        "feature": "css-letter-spacing",
+        "description": "letter-spacing CSS property",
+        "matched_properties": [
+          "letter-spacing"
+        ]
+      },
+      {
+        "feature": "flexbox",
+        "description": "CSS Flexbox",
+        "matched_properties": [
+          "display"
+        ]
+      },
+      {
+        "feature": "css3-colors",
+        "description": "CSS3 Colors (RGB/HSL)",
+        "matched_properties": [
+          "rgba"
+        ]
+      },
+      {
+        "feature": "css3-boxsizing",
+        "description": "CSS3 Box-sizing",
+        "matched_properties": [
+          "box-sizing"
+        ]
+      },
+      {
+        "feature": "minmaxwh",
+        "description": "CSS min/max Width & Height",
+        "matched_properties": [
+          "min-height"
+        ]
+      },
+      {
+        "feature": "border-radius",
+        "description": "CSS Border Radius",
+        "matched_properties": [
+          "border-radius"
+        ]
+      },
+      {
+        "feature": "outline",
+        "description": "CSS Outline Properties",
+        "matched_properties": [
+          "outline"
+        ]
+      },
+      {
+        "feature": "css-boxshadow",
+        "description": "CSS Box Shadow",
+        "matched_properties": [
+          "box-shadow"
+        ]
+      },
+      {
+        "feature": "css-sel2",
+        "description": "CSS2.1 Selectors",
+        "matched_properties": []
+      },
+      {
+        "feature": "viewport-units",
+        "description": "Viewport units: vw, vh, vmin, vmax",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-variables",
+        "description": "CSS Variables (Custom Properties)",
+        "matched_properties": [
+          "var"
+        ]
+      },
+      {
+        "feature": "css3-cursors",
+        "description": "CSS3 Cursors",
+        "matched_properties": [
+          "cursor"
+        ]
+      },
+      {
+        "feature": "flexbox",
+        "description": "CSS Flexbox",
+        "matched_properties": [
+          "display",
+          "flex-direction"
+        ]
+      },
+      {
+        "feature": "transforms2d",
+        "description": "CSS3 2D Transforms",
+        "matched_properties": [
+          "transform",
+          "scale"
+        ]
+      },
+      {
+        "feature": "css-transitions",
+        "description": "CSS3 Transitions",
+        "matched_properties": [
+          "transition"
+        ]
+      },
+      {
+        "feature": "css3-colors",
+        "description": "CSS3 Colors (RGB/HSL)",
+        "matched_properties": [
+          "rgba"
+        ]
+      },
+      {
+        "feature": "css3-boxsizing",
+        "description": "CSS3 Box-sizing",
+        "matched_properties": [
+          "box-sizing"
+        ]
+      },
+      {
+        "feature": "border-radius",
+        "description": "CSS Border Radius",
+        "matched_properties": [
+          "border-radius"
+        ]
+      },
+      {
+        "feature": "outline",
+        "description": "CSS Outline Properties",
+        "matched_properties": [
+          "outline"
+        ]
+      },
+      {
+        "feature": "css-boxshadow",
+        "description": "CSS Box Shadow",
+        "matched_properties": [
+          "box-shadow"
+        ]
+      },
+      {
+        "feature": "css-sel2",
+        "description": "CSS2.1 Selectors",
+        "matched_properties": []
+      },
+      {
+        "feature": "viewport-units",
+        "description": "Viewport units: vw, vh, vmin, vmax",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-fixed",
+        "description": "CSS position:fixed",
+        "matched_properties": [
+          "position"
+        ]
+      },
+      {
+        "feature": "css-overflow",
+        "description": "CSS overflow property",
+        "matched_properties": [
+          "overflow"
+        ]
+      },
+      {
+        "feature": "css3-cursors",
+        "description": "CSS3 Cursors",
+        "matched_properties": [
+          "cursor"
+        ]
+      },
+      {
+        "feature": "flexbox",
+        "description": "CSS Flexbox",
+        "matched_properties": [
+          "display",
+          "flex-direction"
+        ]
+      },
+      {
+        "feature": "transforms2d",
+        "description": "CSS3 2D Transforms",
+        "matched_properties": [
+          "transform"
+        ]
+      },
+      {
+        "feature": "css-animation",
+        "description": "CSS3 Animation",
+        "matched_properties": [
+          "animation",
+          "animation-delay"
+        ]
+      },
+      {
+        "feature": "css-transitions",
+        "description": "CSS3 Transitions",
+        "matched_properties": [
+          "transition"
+        ]
+      },
+      {
+        "feature": "css3-colors",
+        "description": "CSS3 Colors (RGB/HSL)",
+        "matched_properties": [
+          "rgba"
+        ]
+      },
+      {
+        "feature": "css3-boxsizing",
+        "description": "CSS3 Box-sizing",
+        "matched_properties": [
+          "box-sizing"
+        ]
+      },
+      {
+        "feature": "minmaxwh",
+        "description": "CSS min/max Width & Height",
+        "matched_properties": [
+          "min-height",
+          "max-width"
+        ]
+      },
+      {
+        "feature": "border-radius",
+        "description": "CSS Border Radius",
+        "matched_properties": [
+          "border-radius"
+        ]
+      },
+      {
+        "feature": "css-boxshadow",
+        "description": "CSS Box Shadow",
+        "matched_properties": [
+          "box-shadow"
+        ]
+      },
+      {
+        "feature": "css-sel3",
+        "description": "CSS3 Selectors",
+        "matched_properties": []
+      },
+      {
+        "feature": "viewport-units",
+        "description": "Viewport units: vw, vh, vmin, vmax",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-fixed",
+        "description": "CSS position:fixed",
+        "matched_properties": [
+          "position"
+        ]
+      },
+      {
+        "feature": "css-opacity",
+        "description": "CSS Opacity",
+        "matched_properties": [
+          "opacity"
+        ]
+      },
+      {
+        "feature": "flexbox",
+        "description": "CSS Flexbox",
+        "matched_properties": [
+          "display",
+          "flex-direction"
+        ]
+      },
+      {
+        "feature": "transforms2d",
+        "description": "CSS3 2D Transforms",
+        "matched_properties": [
+          "transform",
+          "scale"
+        ]
+      },
+      {
+        "feature": "css3-colors",
+        "description": "CSS3 Colors (RGB/HSL)",
+        "matched_properties": [
+          "rgba"
+        ]
+      },
+      {
+        "feature": "background-img-opts",
+        "description": "CSS3 Background-image options",
+        "matched_properties": [
+          "background-size"
+        ]
+      },
+      {
+        "feature": "css3-boxsizing",
+        "description": "CSS3 Box-sizing",
+        "matched_properties": [
+          "box-sizing"
+        ]
+      },
+      {
+        "feature": "minmaxwh",
+        "description": "CSS min/max Width & Height",
+        "matched_properties": [
+          "max-width"
+        ]
+      },
+      {
+        "feature": "border-radius",
+        "description": "CSS Border Radius",
+        "matched_properties": [
+          "border-radius"
+        ]
+      },
+      {
+        "feature": "outline",
+        "description": "CSS Outline Properties",
+        "matched_properties": [
+          "outline"
+        ]
+      },
+      {
+        "feature": "css-sel2",
+        "description": "CSS2.1 Selectors",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-gencontent",
+        "description": "CSS Generated Content (::before/::after)",
+        "matched_properties": [
+          "content"
+        ]
+      },
+      {
+        "feature": "css3-cursors",
+        "description": "CSS3 Cursors",
+        "matched_properties": [
+          "cursor"
+        ]
+      },
+      {
+        "feature": "flexbox",
+        "description": "CSS Flexbox",
+        "matched_properties": [
+          "display",
+          "flex-direction"
+        ]
+      },
+      {
+        "feature": "css-grid",
+        "description": "CSS Grid Layout",
+        "matched_properties": [
+          "display",
+          "grid-template",
+          "grid-gap"
+        ]
+      },
+      {
+        "feature": "inline-block",
+        "description": "CSS display: inline-block",
+        "matched_properties": [
+          "display"
+        ]
+      },
+      {
+        "feature": "css-transitions",
+        "description": "CSS3 Transitions",
+        "matched_properties": [
+          "transition"
+        ]
+      },
+      {
+        "feature": "css3-colors",
+        "description": "CSS3 Colors (RGB/HSL)",
+        "matched_properties": [
+          "rgba"
+        ]
+      },
+      {
+        "feature": "css3-boxsizing",
+        "description": "CSS3 Box-sizing",
+        "matched_properties": [
+          "box-sizing"
+        ]
+      },
+      {
+        "feature": "minmaxwh",
+        "description": "CSS min/max Width & Height",
+        "matched_properties": [
+          "max-width"
+        ]
+      },
+      {
+        "feature": "border-radius",
+        "description": "CSS Border Radius",
+        "matched_properties": [
+          "border-radius"
+        ]
+      },
+      {
+        "feature": "css-sel2",
+        "description": "CSS2.1 Selectors",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-mediaqueries",
+        "description": "CSS3 Media Queries",
+        "matched_properties": []
+      },
+      {
+        "feature": "css3-cursors",
+        "description": "CSS3 Cursors",
+        "matched_properties": [
+          "cursor"
+        ]
+      },
+      {
+        "feature": "css-opacity",
+        "description": "CSS Opacity",
+        "matched_properties": [
+          "opacity"
+        ]
+      },
+      {
+        "feature": "css-letter-spacing",
+        "description": "letter-spacing CSS property",
+        "matched_properties": [
+          "letter-spacing"
+        ]
+      },
+      {
+        "feature": "flexbox",
+        "description": "CSS Flexbox",
+        "matched_properties": [
+          "display",
+          "flex-direction"
+        ]
+      },
+      {
+        "feature": "transforms2d",
+        "description": "CSS3 2D Transforms",
+        "matched_properties": [
+          "transform",
+          "translate"
+        ]
+      },
+      {
+        "feature": "transforms3d",
+        "description": "CSS3 3D Transforms",
+        "matched_properties": [
+          "rotateX",
+          "rotateY",
+          "perspective",
+          "transform-style",
+          "backface-visibility"
+        ]
+      },
+      {
+        "feature": "css-transitions",
+        "description": "CSS3 Transitions",
+        "matched_properties": [
+          "transition"
+        ]
+      },
+      {
+        "feature": "css3-colors",
+        "description": "CSS3 Colors (RGB/HSL)",
+        "matched_properties": [
+          "rgba"
+        ]
+      },
+      {
+        "feature": "css3-boxsizing",
+        "description": "CSS3 Box-sizing",
+        "matched_properties": [
+          "box-sizing"
+        ]
+      },
+      {
+        "feature": "minmaxwh",
+        "description": "CSS min/max Width & Height",
+        "matched_properties": [
+          "min-width",
+          "max-width"
+        ]
+      },
+      {
+        "feature": "border-radius",
+        "description": "CSS Border Radius",
+        "matched_properties": [
+          "border-radius"
+        ]
+      },
+      {
+        "feature": "css-boxshadow",
+        "description": "CSS Box Shadow",
+        "matched_properties": [
+          "box-shadow"
+        ]
+      },
+      {
+        "feature": "css-gencontent",
+        "description": "CSS Generated Content (::before/::after)",
+        "matched_properties": [
+          "content"
+        ]
+      },
+      {
+        "feature": "viewport-units",
+        "description": "Viewport units: vw, vh, vmin, vmax",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-overflow",
+        "description": "CSS overflow property",
+        "matched_properties": [
+          "overflow"
+        ]
+      },
+      {
+        "feature": "css3-cursors",
+        "description": "CSS3 Cursors",
+        "matched_properties": [
+          "cursor"
+        ]
+      },
+      {
+        "feature": "css-opacity",
+        "description": "CSS Opacity",
+        "matched_properties": [
+          "opacity"
+        ]
+      },
+      {
+        "feature": "transforms2d",
+        "description": "CSS3 2D Transforms",
+        "matched_properties": [
+          "transform",
+          "translate"
+        ]
+      },
+      {
+        "feature": "css-animation",
+        "description": "CSS3 Animation",
+        "matched_properties": [
+          "animation-name",
+          "animation-duration"
+        ]
+      },
+      {
+        "feature": "css-transitions",
+        "description": "CSS3 Transitions",
+        "matched_properties": [
+          "transition"
+        ]
+      },
+      {
+        "feature": "css3-colors",
+        "description": "CSS3 Colors (RGB/HSL)",
+        "matched_properties": [
+          "rgba"
+        ]
+      },
+      {
+        "feature": "css3-boxsizing",
+        "description": "CSS3 Box-sizing",
+        "matched_properties": [
+          "box-sizing"
+        ]
+      },
+      {
+        "feature": "minmaxwh",
+        "description": "CSS min/max Width & Height",
+        "matched_properties": [
+          "max-width"
+        ]
+      },
+      {
+        "feature": "border-radius",
+        "description": "CSS Border Radius",
+        "matched_properties": [
+          "border-radius"
+        ]
+      },
+      {
+        "feature": "outline",
+        "description": "CSS Outline Properties",
+        "matched_properties": [
+          "outline"
+        ]
+      },
+      {
+        "feature": "css-boxshadow",
+        "description": "CSS Box Shadow",
+        "matched_properties": [
+          "box-shadow"
+        ]
+      },
+      {
+        "feature": "css-sel2",
+        "description": "CSS2.1 Selectors",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-sel3",
+        "description": "CSS3 Selectors",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-variables",
+        "description": "CSS Variables (Custom Properties)",
+        "matched_properties": [
+          "var"
+        ]
+      },
+      {
+        "feature": "css-fixed",
+        "description": "CSS position:fixed",
+        "matched_properties": [
+          "position"
+        ]
+      },
+      {
+        "feature": "css-overflow",
+        "description": "CSS overflow property",
+        "matched_properties": [
+          "overflow"
+        ]
+      },
+      {
+        "feature": "css3-cursors",
+        "description": "CSS3 Cursors",
+        "matched_properties": [
+          "cursor"
+        ]
+      },
+      {
+        "feature": "css-opacity",
+        "description": "CSS Opacity",
+        "matched_properties": [
+          "opacity"
+        ]
+      },
+      {
+        "feature": "flexbox",
+        "description": "CSS Flexbox",
+        "matched_properties": [
+          "display",
+          "flex-direction"
+        ]
+      },
+      {
+        "feature": "transforms2d",
+        "description": "CSS3 2D Transforms",
+        "matched_properties": [
+          "transform",
+          "scale"
+        ]
+      },
+      {
+        "feature": "transforms3d",
+        "description": "CSS3 3D Transforms",
+        "matched_properties": [
+          "rotateX",
+          "perspective"
+        ]
+      },
+      {
+        "feature": "css3-colors",
+        "description": "CSS3 Colors (RGB/HSL)",
+        "matched_properties": [
+          "rgba"
+        ]
+      },
+      {
+        "feature": "css3-boxsizing",
+        "description": "CSS3 Box-sizing",
+        "matched_properties": [
+          "box-sizing"
+        ]
+      },
+      {
+        "feature": "border-radius",
+        "description": "CSS Border Radius",
+        "matched_properties": [
+          "border-radius"
+        ]
+      },
+      {
+        "feature": "css-boxshadow",
+        "description": "CSS Box Shadow",
+        "matched_properties": [
+          "box-shadow"
+        ]
+      },
+      {
+        "feature": "css-sel2",
+        "description": "CSS2.1 Selectors",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-sel3",
+        "description": "CSS3 Selectors",
+        "matched_properties": []
+      },
+      {
+        "feature": "viewport-units",
+        "description": "Viewport units: vw, vh, vmin, vmax",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-appearance",
+        "description": "CSS appearance property",
+        "matched_properties": [
+          "appearance"
+        ]
+      },
+      {
+        "feature": "css3-cursors",
+        "description": "CSS3 Cursors",
+        "matched_properties": [
+          "cursor"
+        ]
+      },
+      {
+        "feature": "flexbox",
+        "description": "CSS Flexbox",
+        "matched_properties": [
+          "display",
+          "flex-direction"
+        ]
+      },
+      {
+        "feature": "transforms2d",
+        "description": "CSS3 2D Transforms",
+        "matched_properties": [
+          "transform",
+          "translate",
+          "rotate"
+        ]
+      },
+      {
+        "feature": "css-animation",
+        "description": "CSS3 Animation",
+        "matched_properties": [
+          "animation",
+          "animation-play-state"
+        ]
+      },
+      {
+        "feature": "css-transitions",
+        "description": "CSS3 Transitions",
+        "matched_properties": [
+          "transition"
+        ]
+      },
+      {
+        "feature": "css3-colors",
+        "description": "CSS3 Colors (RGB/HSL)",
+        "matched_properties": [
+          "rgba"
+        ]
+      },
+      {
+        "feature": "css-gradients",
+        "description": "CSS Gradients",
+        "matched_properties": [
+          "linear-gradient"
+        ]
+      },
+      {
+        "feature": "css3-boxsizing",
+        "description": "CSS3 Box-sizing",
+        "matched_properties": [
+          "box-sizing"
+        ]
+      },
+      {
+        "feature": "object-fit",
+        "description": "CSS3 object-fit/object-position",
+        "matched_properties": [
+          "object-fit"
+        ]
+      },
+      {
+        "feature": "border-radius",
+        "description": "CSS Border Radius",
+        "matched_properties": [
+          "border-radius"
+        ]
+      },
+      {
+        "feature": "outline",
+        "description": "CSS Outline Properties",
+        "matched_properties": [
+          "outline"
+        ]
+      },
+      {
+        "feature": "css-boxshadow",
+        "description": "CSS Box Shadow",
+        "matched_properties": [
+          "box-shadow"
+        ]
+      },
+      {
+        "feature": "css-sel2",
+        "description": "CSS2.1 Selectors",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-gencontent",
+        "description": "CSS Generated Content (::before/::after)",
+        "matched_properties": [
+          "content"
+        ]
+      },
+      {
+        "feature": "viewport-units",
+        "description": "Viewport units: vw, vh, vmin, vmax",
+        "matched_properties": []
+      },
+      {
+        "feature": "calc",
+        "description": "CSS calc() function",
+        "matched_properties": [
+          "calc"
+        ]
+      },
+      {
+        "feature": "css3-cursors",
+        "description": "CSS3 Cursors",
+        "matched_properties": [
+          "cursor"
+        ]
+      },
+      {
+        "feature": "css-opacity",
+        "description": "CSS Opacity",
+        "matched_properties": [
+          "opacity"
+        ]
+      },
+      {
+        "feature": "css-container-queries",
+        "description": "CSS Container Queries",
+        "matched_properties": [
+          "container"
+        ]
+      },
+      {
+        "feature": "flexbox",
+        "description": "CSS Flexbox",
+        "matched_properties": [
+          "display",
+          "flex-direction"
+        ]
+      },
+      {
+        "feature": "transforms2d",
+        "description": "CSS3 2D Transforms",
+        "matched_properties": [
+          "transform",
+          "scale"
+        ]
+      },
+      {
+        "feature": "css3-colors",
+        "description": "CSS3 Colors (RGB/HSL)",
+        "matched_properties": [
+          "rgba"
+        ]
+      },
+      {
+        "feature": "multibackgrounds",
+        "description": "CSS3 Multiple backgrounds",
+        "matched_properties": [
+          "background-image"
+        ]
+      },
+      {
+        "feature": "background-img-opts",
+        "description": "CSS3 Background-image options",
+        "matched_properties": [
+          "background-size"
+        ]
+      },
+      {
+        "feature": "css3-boxsizing",
+        "description": "CSS3 Box-sizing",
+        "matched_properties": [
+          "box-sizing"
+        ]
+      },
+      {
+        "feature": "minmaxwh",
+        "description": "CSS min/max Width & Height",
+        "matched_properties": [
+          "max-width"
+        ]
+      },
+      {
+        "feature": "css-gencontent",
+        "description": "CSS Generated Content (::before/::after)",
+        "matched_properties": [
+          "content"
+        ]
+      },
+      {
+        "feature": "css-mediaqueries",
+        "description": "CSS3 Media Queries",
+        "matched_properties": []
+      },
+      {
+        "feature": "viewport-units",
+        "description": "Viewport units: vw, vh, vmin, vmax",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-overflow",
+        "description": "CSS overflow property",
+        "matched_properties": [
+          "overflow"
+        ]
+      },
+      {
+        "feature": "css-opacity",
+        "description": "CSS Opacity",
+        "matched_properties": [
+          "opacity"
+        ]
+      },
+      {
+        "feature": "flexbox",
+        "description": "CSS Flexbox",
+        "matched_properties": [
+          "display",
+          "flex-direction"
+        ]
+      },
+      {
+        "feature": "transforms2d",
+        "description": "CSS3 2D Transforms",
+        "matched_properties": [
+          "transform",
+          "rotate",
+          "scale"
+        ]
+      },
+      {
+        "feature": "css-animation",
+        "description": "CSS3 Animation",
+        "matched_properties": [
+          "animation"
+        ]
+      },
+      {
+        "feature": "css3-colors",
+        "description": "CSS3 Colors (RGB/HSL)",
+        "matched_properties": []
+      },
+      {
+        "feature": "css3-boxsizing",
+        "description": "CSS3 Box-sizing",
+        "matched_properties": [
+          "box-sizing"
+        ]
+      },
+      {
+        "feature": "minmaxwh",
+        "description": "CSS min/max Width & Height",
+        "matched_properties": [
+          "min-height"
+        ]
+      },
+      {
+        "feature": "border-radius",
+        "description": "CSS Border Radius",
+        "matched_properties": [
+          "border-radius"
+        ]
+      },
+      {
+        "feature": "viewport-units",
+        "description": "Viewport units: vw, vh, vmin, vmax",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-overflow",
+        "description": "CSS overflow property",
+        "matched_properties": [
+          "overflow"
+        ]
+      },
+      {
+        "feature": "css-conic-gradients",
+        "description": "CSS Conical Gradients",
+        "matched_properties": [
+          "conic-gradient"
+        ]
+      },
+      {
+        "feature": "flexbox",
+        "description": "CSS Flexbox",
+        "matched_properties": [
+          "display",
+          "flex-direction",
+          "flex"
+        ]
+      },
+      {
+        "feature": "transforms2d",
+        "description": "CSS3 2D Transforms",
+        "matched_properties": [
+          "transform",
+          "scale"
+        ]
+      },
+      {
+        "feature": "css3-colors",
+        "description": "CSS3 Colors (RGB/HSL)",
+        "matched_properties": []
+      },
+      {
+        "feature": "css3-boxsizing",
+        "description": "CSS3 Box-sizing",
+        "matched_properties": [
+          "box-sizing"
+        ]
+      },
+      {
+        "feature": "outline",
+        "description": "CSS Outline Properties",
+        "matched_properties": [
+          "outline"
+        ]
+      },
+      {
+        "feature": "css-sel2",
+        "description": "CSS2.1 Selectors",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-sel3",
+        "description": "CSS3 Selectors",
+        "matched_properties": []
+      },
+      {
+        "feature": "viewport-units",
+        "description": "Viewport units: vw, vh, vmin, vmax",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-variables",
+        "description": "CSS Variables (Custom Properties)",
+        "matched_properties": [
+          "var"
+        ]
+      },
+      {
+        "feature": "css3-cursors",
+        "description": "CSS3 Cursors",
+        "matched_properties": [
+          "cursor"
+        ]
+      },
+      {
+        "feature": "flexbox",
+        "description": "CSS Flexbox",
+        "matched_properties": [
+          "display",
+          "flex-direction"
+        ]
+      },
+      {
+        "feature": "inline-block",
+        "description": "CSS display: inline-block",
+        "matched_properties": [
+          "display"
+        ]
+      },
+      {
+        "feature": "css3-colors",
+        "description": "CSS3 Colors (RGB/HSL)",
+        "matched_properties": []
+      },
+      {
+        "feature": "css3-boxsizing",
+        "description": "CSS3 Box-sizing",
+        "matched_properties": [
+          "box-sizing"
+        ]
+      },
+      {
+        "feature": "minmaxwh",
+        "description": "CSS min/max Width & Height",
+        "matched_properties": [
+          "min-height"
+        ]
+      },
+      {
+        "feature": "border-radius",
+        "description": "CSS Border Radius",
+        "matched_properties": [
+          "border-radius"
+        ]
+      },
+      {
+        "feature": "viewport-units",
+        "description": "Viewport units: vw, vh, vmin, vmax",
+        "matched_properties": []
+      },
+      {
+        "feature": "flexbox",
+        "description": "CSS Flexbox",
+        "matched_properties": [
+          "display",
+          "flex-direction"
+        ]
+      },
+      {
+        "feature": "css-grid",
+        "description": "CSS Grid Layout",
+        "matched_properties": [
+          "display",
+          "grid-template",
+          "grid-gap"
+        ]
+      },
+      {
+        "feature": "transforms2d",
+        "description": "CSS3 2D Transforms",
+        "matched_properties": [
+          "transform",
+          "translate",
+          "scale"
+        ]
+      },
+      {
+        "feature": "css-transitions",
+        "description": "CSS3 Transitions",
+        "matched_properties": [
+          "transition"
+        ]
+      },
+      {
+        "feature": "css3-colors",
+        "description": "CSS3 Colors (RGB/HSL)",
+        "matched_properties": [
+          "rgba"
+        ]
+      },
+      {
+        "feature": "css3-boxsizing",
+        "description": "CSS3 Box-sizing",
+        "matched_properties": [
+          "box-sizing"
+        ]
+      },
+      {
+        "feature": "minmaxwh",
+        "description": "CSS min/max Width & Height",
+        "matched_properties": [
+          "min-height",
+          "max-width"
+        ]
+      },
+      {
+        "feature": "object-fit",
+        "description": "CSS3 object-fit/object-position",
+        "matched_properties": [
+          "object-fit"
+        ]
+      },
+      {
+        "feature": "border-radius",
+        "description": "CSS Border Radius",
+        "matched_properties": [
+          "border-radius"
+        ]
+      },
+      {
+        "feature": "outline",
+        "description": "CSS Outline Properties",
+        "matched_properties": [
+          "outline"
+        ]
+      },
+      {
+        "feature": "css-boxshadow",
+        "description": "CSS Box Shadow",
+        "matched_properties": [
+          "box-shadow"
+        ]
+      },
+      {
+        "feature": "css-sel2",
+        "description": "CSS2.1 Selectors",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-mediaqueries",
+        "description": "CSS3 Media Queries",
+        "matched_properties": []
+      },
+      {
+        "feature": "viewport-units",
+        "description": "Viewport units: vw, vh, vmin, vmax",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-overflow",
+        "description": "CSS overflow property",
+        "matched_properties": [
+          "overflow"
+        ]
+      },
+      {
+        "feature": "css3-cursors",
+        "description": "CSS3 Cursors",
+        "matched_properties": [
+          "cursor"
+        ]
+      },
+      {
+        "feature": "css-letter-spacing",
+        "description": "letter-spacing CSS property",
+        "matched_properties": [
+          "letter-spacing"
+        ]
+      },
+      {
+        "feature": "flexbox",
+        "description": "CSS Flexbox",
+        "matched_properties": [
+          "display",
+          "flex-direction"
+        ]
+      },
+      {
+        "feature": "transforms2d",
+        "description": "CSS3 2D Transforms",
+        "matched_properties": [
+          "transform"
+        ]
+      },
+      {
+        "feature": "css-transitions",
+        "description": "CSS3 Transitions",
+        "matched_properties": [
+          "transition"
+        ]
+      },
+      {
+        "feature": "css3-colors",
+        "description": "CSS3 Colors (RGB/HSL)",
+        "matched_properties": [
+          "rgba"
+        ]
+      },
+      {
+        "feature": "css3-boxsizing",
+        "description": "CSS3 Box-sizing",
+        "matched_properties": [
+          "box-sizing"
+        ]
+      },
+      {
+        "feature": "minmaxwh",
+        "description": "CSS min/max Width & Height",
+        "matched_properties": [
+          "min-height"
+        ]
+      },
+      {
+        "feature": "border-radius",
+        "description": "CSS Border Radius",
+        "matched_properties": [
+          "border-radius"
+        ]
+      },
+      {
+        "feature": "outline",
+        "description": "CSS Outline Properties",
+        "matched_properties": [
+          "outline"
+        ]
+      },
+      {
+        "feature": "css-boxshadow",
+        "description": "CSS Box Shadow",
+        "matched_properties": [
+          "box-shadow"
+        ]
+      },
+      {
+        "feature": "css-sel2",
+        "description": "CSS2.1 Selectors",
+        "matched_properties": []
+      },
+      {
+        "feature": "viewport-units",
+        "description": "Viewport units: vw, vh, vmin, vmax",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-appearance",
+        "description": "CSS appearance property",
+        "matched_properties": [
+          "appearance"
+        ]
+      },
+      {
+        "feature": "css3-cursors",
+        "description": "CSS3 Cursors",
+        "matched_properties": [
+          "cursor"
+        ]
+      }
+    ],
+    "js": [
+      {
+        "feature": "arrow-functions",
+        "description": "arrow-functions",
+        "matched_apis": [
+          "arrow_function"
+        ]
+      },
+      {
+        "feature": "template-literals",
+        "description": "template-literals",
+        "matched_apis": [
+          "template_string"
+        ]
+      },
+      {
+        "feature": "es6",
+        "description": "es6",
+        "matched_apis": [
+          "spread_element"
+        ]
+      },
+      {
+        "feature": "const",
+        "description": "Const declaration",
+        "matched_apis": [
+          "const"
+        ]
+      },
+      {
+        "feature": "let",
+        "description": "Let declaration",
+        "matched_apis": [
+          "let"
+        ]
+      },
+      {
+        "feature": "requestanimationframe",
+        "description": "requestanimationframe",
+        "matched_apis": [
+          "requestAnimationFrame()"
+        ]
+      },
+      {
+        "feature": "es5",
+        "description": "ES5 Array methods",
+        "matched_apis": []
+      },
+      {
+        "feature": "classlist",
+        "description": "Element.classList",
+        "matched_apis": []
+      },
+      {
+        "feature": "addeventlistener",
+        "description": "EventTarget.addEventListener()",
+        "matched_apis": []
+      },
+      {
+        "feature": "keyboardevent-key",
+        "description": "KeyboardEvent.key",
+        "matched_apis": []
+      },
+      {
+        "feature": "template-literals",
+        "description": "template-literals",
+        "matched_apis": [
+          "template_string"
+        ]
+      },
+      {
+        "feature": "let",
+        "description": "Let declaration",
+        "matched_apis": [
+          "let"
+        ]
+      },
+      {
+        "feature": "const",
+        "description": "Const declaration",
+        "matched_apis": [
+          "const"
+        ]
+      },
+      {
+        "feature": "addeventlistener",
+        "description": "EventTarget.addEventListener()",
+        "matched_apis": []
+      },
+      {
+        "feature": "arrow-functions",
+        "description": "arrow-functions",
+        "matched_apis": [
+          "arrow_function"
+        ]
+      },
+      {
+        "feature": "template-literals",
+        "description": "template-literals",
+        "matched_apis": [
+          "template_string"
+        ]
+      },
+      {
+        "feature": "const",
+        "description": "Const declaration",
+        "matched_apis": [
+          "const"
+        ]
+      },
+      {
+        "feature": "es6",
+        "description": "es6",
+        "matched_apis": [
+          "spread_element"
+        ]
+      },
+      {
+        "feature": "async-functions",
+        "description": "Async/await",
+        "matched_apis": [
+          "async",
+          "await_expression"
+        ]
+      },
+      {
+        "feature": "let",
+        "description": "Let declaration",
+        "matched_apis": [
+          "let"
+        ]
+      },
+      {
+        "feature": "fetch",
+        "description": "fetch",
+        "matched_apis": [
+          "fetch()"
+        ]
+      },
+      {
+        "feature": "es5",
+        "description": "ES5 Array methods",
+        "matched_apis": []
+      },
+      {
+        "feature": "console-basic",
+        "description": "Basic console logging functions",
+        "matched_apis": [
+          "console.log"
+        ]
+      },
+      {
+        "feature": "classlist",
+        "description": "Element.classList",
+        "matched_apis": []
+      },
+      {
+        "feature": "addeventlistener",
+        "description": "EventTarget.addEventListener()",
+        "matched_apis": []
+      },
+      {
+        "feature": "arrow-functions",
+        "description": "arrow-functions",
+        "matched_apis": [
+          "arrow_function"
+        ]
+      },
+      {
+        "feature": "const",
+        "description": "Const declaration",
+        "matched_apis": [
+          "const"
+        ]
+      },
+      {
+        "feature": "template-literals",
+        "description": "template-literals",
+        "matched_apis": [
+          "template_string"
+        ]
+      },
+      {
+        "feature": "fetch",
+        "description": "fetch",
+        "matched_apis": [
+          "fetch()"
+        ]
+      },
+      {
+        "feature": "promises",
+        "description": "Promises",
+        "matched_apis": []
+      },
+      {
+        "feature": "addeventlistener",
+        "description": "EventTarget.addEventListener()",
+        "matched_apis": []
+      },
+      {
+        "feature": "innertext",
+        "description": "HTMLElement.innerText",
+        "matched_apis": []
+      },
+      {
+        "feature": "arrow-functions",
+        "description": "arrow-functions",
+        "matched_apis": [
+          "arrow_function"
+        ]
+      },
+      {
+        "feature": "template-literals",
+        "description": "template-literals",
+        "matched_apis": [
+          "template_string"
+        ]
+      },
+      {
+        "feature": "const",
+        "description": "Const declaration",
+        "matched_apis": [
+          "const"
+        ]
+      },
+      {
+        "feature": "let",
+        "description": "Let declaration",
+        "matched_apis": [
+          "let"
+        ]
+      },
+      {
+        "feature": "json",
+        "description": "json",
+        "matched_apis": [
+          "JSON.stringify",
+          "JSON.parse"
+        ]
+      },
+      {
+        "feature": "es5",
+        "description": "ES5 Array methods",
+        "matched_apis": []
+      },
+      {
+        "feature": "form-attribute",
+        "description": "Form attribute",
+        "matched_apis": [
+          "form"
+        ]
+      },
+      {
+        "feature": "namevalue-storage",
+        "description": "Web Storage (localStorage/sessionStorage)",
+        "matched_apis": [
+          "localStorage"
+        ]
+      },
+      {
+        "feature": "classlist",
+        "description": "Element.classList",
+        "matched_apis": []
+      },
+      {
+        "feature": "addeventlistener",
+        "description": "EventTarget.addEventListener()",
+        "matched_apis": []
+      },
+      {
+        "feature": "innertext",
+        "description": "HTMLElement.innerText",
+        "matched_apis": []
+      },
+      {
+        "feature": "template-literals",
+        "description": "template-literals",
+        "matched_apis": [
+          "template_string"
+        ]
+      },
+      {
+        "feature": "let",
+        "description": "Let declaration",
+        "matched_apis": [
+          "let"
+        ]
+      },
+      {
+        "feature": "const",
+        "description": "Const declaration",
+        "matched_apis": [
+          "const"
+        ]
+      },
+      {
+        "feature": "es5",
+        "description": "ES5 Array methods",
+        "matched_apis": []
+      },
+      {
+        "feature": "form-attribute",
+        "description": "Form attribute",
+        "matched_apis": [
+          "form"
+        ]
+      },
+      {
+        "feature": "queryselector",
+        "description": "querySelector/querySelectorAll",
+        "matched_apis": []
+      },
+      {
+        "feature": "addeventlistener",
+        "description": "EventTarget.addEventListener()",
+        "matched_apis": []
+      },
+      {
+        "feature": "innertext",
+        "description": "HTMLElement.innerText",
+        "matched_apis": []
+      },
+      {
+        "feature": "arrow-functions",
+        "description": "arrow-functions",
+        "matched_apis": [
+          "arrow_function"
+        ]
+      },
+      {
+        "feature": "const",
+        "description": "Const declaration",
+        "matched_apis": [
+          "const"
+        ]
+      },
+      {
+        "feature": "template-literals",
+        "description": "template-literals",
+        "matched_apis": [
+          "template_string"
+        ]
+      },
+      {
+        "feature": "let",
+        "description": "Let declaration",
+        "matched_apis": [
+          "let"
+        ]
+      },
+      {
+        "feature": "es6",
+        "description": "ES6 features (destructuring, spread, Map, Set, Symbol, Reflect)",
+        "matched_apis": []
+      },
+      {
+        "feature": "es5",
+        "description": "ES5 Array methods",
+        "matched_apis": []
+      },
+      {
+        "feature": "array-includes",
+        "description": "Array.includes",
+        "matched_apis": []
+      },
+      {
+        "feature": "es6-string-includes",
+        "description": "String.includes",
+        "matched_apis": []
+      },
+      {
+        "feature": "queryselector",
+        "description": "querySelector/querySelectorAll",
+        "matched_apis": []
+      },
+      {
+        "feature": "classlist",
+        "description": "Element.classList",
+        "matched_apis": []
+      },
+      {
+        "feature": "addeventlistener",
+        "description": "EventTarget.addEventListener()",
+        "matched_apis": []
+      },
+      {
+        "feature": "innertext",
+        "description": "HTMLElement.innerText",
+        "matched_apis": []
+      },
+      {
+        "feature": "keyboardevent-key",
+        "description": "KeyboardEvent.key",
+        "matched_apis": []
+      },
+      {
+        "feature": "arrow-functions",
+        "description": "arrow-functions",
+        "matched_apis": [
+          "arrow_function"
+        ]
+      },
+      {
+        "feature": "const",
+        "description": "Const declaration",
+        "matched_apis": [
+          "const"
+        ]
+      },
+      {
+        "feature": "es6",
+        "description": "ES6 destructuring",
+        "matched_apis": [
+          "destructuring"
+        ]
+      },
+      {
+        "feature": "async-functions",
+        "description": "Async/await",
+        "matched_apis": [
+          "async",
+          "await_expression"
+        ]
+      },
+      {
+        "feature": "template-literals",
+        "description": "template-literals",
+        "matched_apis": [
+          "template_string"
+        ]
+      },
+      {
+        "feature": "let",
+        "description": "Let declaration",
+        "matched_apis": [
+          "let"
+        ]
+      },
+      {
+        "feature": "fetch",
+        "description": "fetch",
+        "matched_apis": [
+          "fetch()"
+        ]
+      },
+      {
+        "feature": "es5",
+        "description": "ES5 Array methods",
+        "matched_apis": []
+      },
+      {
+        "feature": "queryselector",
+        "description": "querySelector/querySelectorAll",
+        "matched_apis": []
+      },
+      {
+        "feature": "classlist",
+        "description": "Element.classList",
+        "matched_apis": []
+      },
+      {
+        "feature": "addeventlistener",
+        "description": "EventTarget.addEventListener()",
+        "matched_apis": []
+      },
+      {
+        "feature": "innertext",
+        "description": "HTMLElement.innerText",
+        "matched_apis": []
+      },
+      {
+        "feature": "arrow-functions",
+        "description": "arrow-functions",
+        "matched_apis": [
+          "arrow_function"
+        ]
+      },
+      {
+        "feature": "const",
+        "description": "Const declaration",
+        "matched_apis": [
+          "const"
+        ]
+      },
+      {
+        "feature": "async-functions",
+        "description": "Async/await",
+        "matched_apis": [
+          "async",
+          "await_expression"
+        ]
+      },
+      {
+        "feature": "template-literals",
+        "description": "template-literals",
+        "matched_apis": [
+          "template_string"
+        ]
+      },
+      {
+        "feature": "fetch",
+        "description": "fetch",
+        "matched_apis": [
+          "fetch()"
+        ]
+      },
+      {
+        "feature": "form-attribute",
+        "description": "Form attribute",
+        "matched_apis": [
+          "form"
+        ]
+      },
+      {
+        "feature": "addeventlistener",
+        "description": "EventTarget.addEventListener()",
+        "matched_apis": []
+      },
+      {
+        "feature": "arrow-functions",
+        "description": "arrow-functions",
+        "matched_apis": [
+          "arrow_function"
+        ]
+      },
+      {
+        "feature": "const",
+        "description": "Const declaration",
+        "matched_apis": [
+          "const"
+        ]
+      },
+      {
+        "feature": "template-literals",
+        "description": "template-literals",
+        "matched_apis": [
+          "template_string"
+        ]
+      },
+      {
+        "feature": "let",
+        "description": "Let declaration",
+        "matched_apis": [
+          "let"
+        ]
+      },
+      {
+        "feature": "fetch",
+        "description": "fetch",
+        "matched_apis": [
+          "fetch()"
+        ]
+      },
+      {
+        "feature": "promises",
+        "description": "Promises",
+        "matched_apis": []
+      },
+      {
+        "feature": "es5",
+        "description": "ES5 Array methods",
+        "matched_apis": []
+      },
+      {
+        "feature": "console-basic",
+        "description": "Basic console logging functions",
+        "matched_apis": [
+          "console.log"
+        ]
+      },
+      {
+        "feature": "array-find",
+        "description": "Array.find/findIndex/findLast/findLastIndex",
+        "matched_apis": []
+      },
+      {
+        "feature": "classlist",
+        "description": "Element.classList",
+        "matched_apis": []
+      },
+      {
+        "feature": "addeventlistener",
+        "description": "EventTarget.addEventListener()",
+        "matched_apis": []
+      },
+      {
+        "feature": "arrow-functions",
+        "description": "arrow-functions",
+        "matched_apis": [
+          "arrow_function"
+        ]
+      },
+      {
+        "feature": "const",
+        "description": "Const declaration",
+        "matched_apis": [
+          "const"
+        ]
+      },
+      {
+        "feature": "template-literals",
+        "description": "template-literals",
+        "matched_apis": [
+          "template_string"
+        ]
+      },
+      {
+        "feature": "let",
+        "description": "Let declaration",
+        "matched_apis": [
+          "let"
+        ]
+      },
+      {
+        "feature": "json",
+        "description": "json",
+        "matched_apis": [
+          "JSON.stringify",
+          "JSON.parse"
+        ]
+      },
+      {
+        "feature": "es5",
+        "description": "ES5 Array methods",
+        "matched_apis": []
+      },
+      {
+        "feature": "keyboardevent-location",
+        "description": "KeyboardEvent.location",
+        "matched_apis": []
+      },
+      {
+        "feature": "namevalue-storage",
+        "description": "Web Storage (localStorage/sessionStorage)",
+        "matched_apis": [
+          "localStorage"
+        ]
+      },
+      {
+        "feature": "classlist",
+        "description": "Element.classList",
+        "matched_apis": []
+      },
+      {
+        "feature": "addeventlistener",
+        "description": "EventTarget.addEventListener()",
+        "matched_apis": []
+      },
+      {
+        "feature": "innertext",
+        "description": "HTMLElement.innerText",
+        "matched_apis": []
+      },
+      {
+        "feature": "arrow-functions",
+        "description": "arrow-functions",
+        "matched_apis": [
+          "arrow_function"
+        ]
+      },
+      {
+        "feature": "const",
+        "description": "Const declaration",
+        "matched_apis": [
+          "const"
+        ]
+      },
+      {
+        "feature": "classlist",
+        "description": "Element.classList",
+        "matched_apis": []
+      },
+      {
+        "feature": "addeventlistener",
+        "description": "EventTarget.addEventListener()",
+        "matched_apis": []
+      },
+      {
+        "feature": "arrow-functions",
+        "description": "arrow-functions",
+        "matched_apis": [
+          "arrow_function"
+        ]
+      },
+      {
+        "feature": "const",
+        "description": "Const declaration",
+        "matched_apis": [
+          "const"
+        ]
+      },
+      {
+        "feature": "es6",
+        "description": "es6",
+        "matched_apis": [
+          "spread_element"
+        ]
+      },
+      {
+        "feature": "let",
+        "description": "Let declaration",
+        "matched_apis": [
+          "let"
+        ]
+      },
+      {
+        "feature": "json",
+        "description": "json",
+        "matched_apis": [
+          "JSON.parse",
+          "JSON.stringify"
+        ]
+      },
+      {
+        "feature": "es5",
+        "description": "ES5 Array methods",
+        "matched_apis": []
+      },
+      {
+        "feature": "namevalue-storage",
+        "description": "Web Storage (localStorage/sessionStorage)",
+        "matched_apis": [
+          "localStorage"
+        ]
+      },
+      {
+        "feature": "queryselector",
+        "description": "querySelector/querySelectorAll",
+        "matched_apis": []
+      },
+      {
+        "feature": "classlist",
+        "description": "Element.classList",
+        "matched_apis": []
+      },
+      {
+        "feature": "addeventlistener",
+        "description": "EventTarget.addEventListener()",
+        "matched_apis": []
+      },
+      {
+        "feature": "innertext",
+        "description": "HTMLElement.innerText",
+        "matched_apis": []
+      },
+      {
+        "feature": "arrow-functions",
+        "description": "arrow-functions",
+        "matched_apis": [
+          "arrow_function"
+        ]
+      },
+      {
+        "feature": "const",
+        "description": "Const declaration",
+        "matched_apis": [
+          "const"
+        ]
+      },
+      {
+        "feature": "let",
+        "description": "Let declaration",
+        "matched_apis": [
+          "let"
+        ]
+      },
+      {
+        "feature": "es6",
+        "description": "ES6 destructuring",
+        "matched_apis": [
+          "destructuring"
+        ]
+      },
+      {
+        "feature": "template-literals",
+        "description": "template-literals",
+        "matched_apis": [
+          "template_string"
+        ]
+      },
+      {
+        "feature": "queryselector",
+        "description": "querySelector/querySelectorAll",
+        "matched_apis": []
+      },
+      {
+        "feature": "classlist",
+        "description": "Element.classList",
+        "matched_apis": []
+      },
+      {
+        "feature": "addeventlistener",
+        "description": "EventTarget.addEventListener()",
+        "matched_apis": []
+      },
+      {
+        "feature": "innertext",
+        "description": "HTMLElement.innerText",
+        "matched_apis": []
+      },
+      {
+        "feature": "arrow-functions",
+        "description": "arrow-functions",
+        "matched_apis": [
+          "arrow_function"
+        ]
+      },
+      {
+        "feature": "const",
+        "description": "Const declaration",
+        "matched_apis": [
+          "const"
+        ]
+      },
+      {
+        "feature": "template-literals",
+        "description": "template-literals",
+        "matched_apis": [
+          "template_string"
+        ]
+      },
+      {
+        "feature": "innertext",
+        "description": "HTMLElement.innerText",
+        "matched_apis": []
+      },
+      {
+        "feature": "childnode-remove",
+        "description": "ChildNode.remove()",
+        "matched_apis": []
+      },
+      {
+        "feature": "arrow-functions",
+        "description": "arrow-functions",
+        "matched_apis": [
+          "arrow_function"
+        ]
+      },
+      {
+        "feature": "const",
+        "description": "Const declaration",
+        "matched_apis": [
+          "const"
+        ]
+      },
+      {
+        "feature": "template-literals",
+        "description": "template-literals",
+        "matched_apis": [
+          "template_string"
+        ]
+      },
+      {
+        "feature": "let",
+        "description": "Let declaration",
+        "matched_apis": [
+          "let"
+        ]
+      },
+      {
+        "feature": "es5",
+        "description": "ES5 Array methods",
+        "matched_apis": []
+      },
+      {
+        "feature": "array-includes",
+        "description": "Array.includes",
+        "matched_apis": []
+      },
+      {
+        "feature": "es6-string-includes",
+        "description": "String.includes",
+        "matched_apis": []
+      },
+      {
+        "feature": "queryselector",
+        "description": "querySelector/querySelectorAll",
+        "matched_apis": []
+      },
+      {
+        "feature": "classlist",
+        "description": "Element.classList",
+        "matched_apis": []
+      },
+      {
+        "feature": "addeventlistener",
+        "description": "EventTarget.addEventListener()",
+        "matched_apis": []
+      },
+      {
+        "feature": "innertext",
+        "description": "HTMLElement.innerText",
+        "matched_apis": []
+      },
+      {
+        "feature": "arrow-functions",
+        "description": "arrow-functions",
+        "matched_apis": [
+          "arrow_function"
+        ]
+      },
+      {
+        "feature": "const",
+        "description": "Const declaration",
+        "matched_apis": [
+          "const"
+        ]
+      },
+      {
+        "feature": "innertext",
+        "description": "HTMLElement.innerText",
+        "matched_apis": []
+      },
+      {
+        "feature": "arrow-functions",
+        "description": "arrow-functions",
+        "matched_apis": [
+          "arrow_function"
+        ]
+      },
+      {
+        "feature": "const",
+        "description": "Const declaration",
+        "matched_apis": [
+          "const"
+        ]
+      },
+      {
+        "feature": "template-literals",
+        "description": "template-literals",
+        "matched_apis": [
+          "template_string"
+        ]
+      },
+      {
+        "feature": "es6",
+        "description": "es6",
+        "matched_apis": [
+          "spread_element"
+        ]
+      },
+      {
+        "feature": "let",
+        "description": "Let declaration",
+        "matched_apis": [
+          "let"
+        ]
+      },
+      {
+        "feature": "es5",
+        "description": "ES5 Array methods",
+        "matched_apis": []
+      },
+      {
+        "feature": "element-closest",
+        "description": "Element.closest()",
+        "matched_apis": []
+      },
+      {
+        "feature": "queryselector",
+        "description": "querySelector/querySelectorAll",
+        "matched_apis": []
+      },
+      {
+        "feature": "classlist",
+        "description": "Element.classList",
+        "matched_apis": []
+      },
+      {
+        "feature": "addeventlistener",
+        "description": "EventTarget.addEventListener()",
+        "matched_apis": []
+      },
+      {
+        "feature": "innertext",
+        "description": "HTMLElement.innerText",
+        "matched_apis": []
+      },
+      {
+        "feature": "arrow-functions",
+        "description": "arrow-functions",
+        "matched_apis": [
+          "arrow_function"
+        ]
+      },
+      {
+        "feature": "template-literals",
+        "description": "template-literals",
+        "matched_apis": [
+          "template_string"
+        ]
+      },
+      {
+        "feature": "const",
+        "description": "Const declaration",
+        "matched_apis": [
+          "const"
+        ]
+      },
+      {
+        "feature": "let",
+        "description": "Let declaration",
+        "matched_apis": [
+          "let"
+        ]
+      },
+      {
+        "feature": "es6-number",
+        "description": "es6-number",
+        "matched_apis": [
+          "Number.isNaN"
+        ]
+      },
+      {
+        "feature": "speech-recognition",
+        "description": "Speech Recognition API",
+        "matched_apis": [
+          "SpeechRecognition",
+          "webkitSpeechRecognition"
+        ]
+      },
+      {
+        "feature": "keyboardevent-location",
+        "description": "KeyboardEvent.location",
+        "matched_apis": []
+      },
+      {
+        "feature": "console-basic",
+        "description": "Basic console logging functions",
+        "matched_apis": [
+          "console.log"
+        ]
+      },
+      {
+        "feature": "addeventlistener",
+        "description": "EventTarget.addEventListener()",
+        "matched_apis": []
+      },
+      {
+        "feature": "arrow-functions",
+        "description": "arrow-functions",
+        "matched_apis": [
+          "arrow_function"
+        ]
+      },
+      {
+        "feature": "template-literals",
+        "description": "template-literals",
+        "matched_apis": [
+          "template_string"
+        ]
+      },
+      {
+        "feature": "const",
+        "description": "Const declaration",
+        "matched_apis": [
+          "const"
+        ]
+      },
+      {
+        "feature": "let",
+        "description": "Let declaration",
+        "matched_apis": [
+          "let"
+        ]
+      },
+      {
+        "feature": "es6",
+        "description": "ES6 destructuring",
+        "matched_apis": [
+          "destructuring"
+        ]
+      },
+      {
+        "feature": "speech-synthesis",
+        "description": "speech-synthesis",
+        "matched_apis": [
+          "SpeechSynthesisUtterance"
+        ]
+      },
+      {
+        "feature": "es5",
+        "description": "ES5 Array methods",
+        "matched_apis": []
+      },
+      {
+        "feature": "array-find",
+        "description": "Array.find/findIndex/findLast/findLastIndex",
+        "matched_apis": []
+      },
+      {
+        "feature": "queryselector",
+        "description": "querySelector/querySelectorAll",
+        "matched_apis": []
+      },
+      {
+        "feature": "classlist",
+        "description": "Element.classList",
+        "matched_apis": []
+      },
+      {
+        "feature": "addeventlistener",
+        "description": "EventTarget.addEventListener()",
+        "matched_apis": []
+      },
+      {
+        "feature": "innertext",
+        "description": "HTMLElement.innerText",
+        "matched_apis": []
+      },
+      {
+        "feature": "arrow-functions",
+        "description": "arrow-functions",
+        "matched_apis": [
+          "arrow_function"
+        ]
+      },
+      {
+        "feature": "const",
+        "description": "Const declaration",
+        "matched_apis": [
+          "const"
+        ]
+      },
+      {
+        "feature": "template-literals",
+        "description": "template-literals",
+        "matched_apis": [
+          "template_string"
+        ]
+      },
+      {
+        "feature": "let",
+        "description": "Let declaration",
+        "matched_apis": [
+          "let"
+        ]
+      },
+      {
+        "feature": "namevalue-storage",
+        "description": "Web Storage (localStorage/sessionStorage)",
+        "matched_apis": [
+          "localStorage"
+        ]
+      },
+      {
+        "feature": "classlist",
+        "description": "Element.classList",
+        "matched_apis": []
+      },
+      {
+        "feature": "addeventlistener",
+        "description": "EventTarget.addEventListener()",
+        "matched_apis": []
+      }
+    ],
+    "html": [
+      {
+        "feature": "canvas",
+        "matched_items": [
+          "<canvas>"
+        ]
+      },
+      {
+        "feature": "video",
+        "matched_items": [
+          "<video>"
+        ]
+      },
+      {
+        "feature": "input-range",
+        "matched_items": [
+          "<input type=\"range\">"
+        ]
+      },
+      {
+        "feature": "subresource-integrity",
+        "matched_items": [
+          "integrity"
+        ]
+      },
+      {
+        "feature": "form-validation",
+        "matched_items": [
+          "min",
+          "max",
+          "step"
+        ]
+      },
+      {
+        "feature": "cors",
+        "matched_items": [
+          "crossorigin=\"anonymous\""
+        ]
+      },
+      {
+        "feature": "html5semantic",
+        "matched_items": [
+          "<main>",
+          "<aside>"
+        ]
+      },
+      {
+        "feature": "input-number",
+        "matched_items": [
+          "<input type=\"number\">"
+        ]
+      },
+      {
+        "feature": "input-placeholder",
+        "matched_items": [
+          "placeholder"
+        ]
+      },
+      {
+        "feature": "input-number",
+        "matched_items": [
+          "<input type=\"number\">"
+        ]
+      },
+      {
+        "feature": "input-placeholder",
+        "matched_items": [
+          "placeholder"
+        ]
+      },
+      {
+        "feature": "input-placeholder",
+        "matched_items": [
+          "placeholder"
+        ]
+      },
+      {
+        "feature": "svg",
+        "matched_items": [
+          "<svg>"
+        ]
+      },
+      {
+        "feature": "input-placeholder",
+        "matched_items": [
+          "placeholder"
+        ]
+      },
+      {
+        "feature": "html5semantic",
+        "matched_items": [
+          "<header>"
+        ]
+      },
+      {
+        "feature": "input-placeholder",
+        "matched_items": [
+          "placeholder"
+        ]
+      },
+      {
+        "feature": "input-placeholder",
+        "matched_items": [
+          "placeholder"
+        ]
+      },
+      {
+        "feature": "subresource-integrity",
+        "matched_items": [
+          "integrity"
+        ]
+      },
+      {
+        "feature": "input-placeholder",
+        "matched_items": [
+          "placeholder"
+        ]
+      },
+      {
+        "feature": "cors",
+        "matched_items": [
+          "crossorigin=\"anonymous\""
+        ]
+      },
+      {
+        "feature": "html5semantic",
+        "matched_items": [
+          "<header>",
+          "<nav>"
+        ]
+      },
+      {
+        "feature": "input-email-tel-url",
+        "matched_items": [
+          "<input type=\"email\">"
+        ]
+      },
+      {
+        "feature": "subresource-integrity",
+        "matched_items": [
+          "integrity"
+        ]
+      },
+      {
+        "feature": "input-placeholder",
+        "matched_items": [
+          "placeholder"
+        ]
+      },
+      {
+        "feature": "cors",
+        "matched_items": [
+          "crossorigin=\"anonymous\""
+        ]
+      },
+      {
+        "feature": "audio",
+        "matched_items": [
+          "<audio>"
+        ]
+      },
+      {
+        "feature": "svg",
+        "matched_items": [
+          "<svg>"
+        ]
+      },
+      {
+        "feature": "html5semantic",
+        "matched_items": [
+          "<main>",
+          "<nav>"
+        ]
+      },
+      {
+        "feature": "input-placeholder",
+        "matched_items": [
+          "placeholder"
+        ]
+      },
+      {
+        "feature": "cors",
+        "matched_items": [
+          "crossorigin=\"anonymous\""
+        ]
+      },
+      {
+        "feature": "html5semantic",
+        "matched_items": [
+          "<main>"
+        ]
+      },
+      {
+        "feature": "input-placeholder",
+        "matched_items": [
+          "placeholder"
+        ]
+      },
+      {
+        "feature": "subresource-integrity",
+        "matched_items": [
+          "integrity"
+        ]
+      },
+      {
+        "feature": "input-autocomplete-onoff",
+        "matched_items": [
+          "autocomplete"
+        ]
+      },
+      {
+        "feature": "input-placeholder",
+        "matched_items": [
+          "placeholder"
+        ]
+      },
+      {
+        "feature": "autofocus",
+        "matched_items": [
+          "autofocus"
+        ]
+      },
+      {
+        "feature": "cors",
+        "matched_items": [
+          "crossorigin=\"anonymous\""
+        ]
+      }
+    ]
+  },
+  "unrecognized": {
+    "html": [],
+    "css": [],
+    "js": [
+      "API: UnffnalMessageRevealWord",
+      "method: .composedPath()"
+    ],
+    "total": 2
+  },
+  "recommendations": [
+    "⚠️  1 features are not supported in some browsers. Consider providing fallbacks or polyfills.",
+    "ℹ️  6 features have partial support. Test thoroughly in target browsers."
+  ],
+  "baseline_summary": {
+    "widely_available": 47,
+    "newly_available": 0,
+    "limited": 2,
+    "unknown": 26
+  }
+}

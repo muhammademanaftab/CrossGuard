@@ -1,0 +1,624 @@
+{
+  "success": true,
+  "summary": {
+    "total_features": 54,
+    "html_features": 6,
+    "css_features": 25,
+    "js_features": 25,
+    "critical_issues": 0
+  },
+  "scores": {
+    "grade": "A",
+    "risk_level": "none",
+    "simple_score": 99.07,
+    "weighted_score": 99.07
+  },
+  "browsers": {
+    "chrome": {
+      "version": "144",
+      "supported": 53,
+      "partial": 1,
+      "unsupported": 0,
+      "compatibility_percentage": 99.07,
+      "unsupported_features": [],
+      "partial_features": [
+        "font-smooth"
+      ]
+    },
+    "firefox": {
+      "version": "146",
+      "supported": 53,
+      "partial": 1,
+      "unsupported": 0,
+      "compatibility_percentage": 99.07,
+      "unsupported_features": [],
+      "partial_features": [
+        "font-smooth"
+      ]
+    },
+    "safari": {
+      "version": "18.4",
+      "supported": 53,
+      "partial": 1,
+      "unsupported": 0,
+      "compatibility_percentage": 99.07,
+      "unsupported_features": [],
+      "partial_features": [
+        "font-smooth"
+      ]
+    },
+    "edge": {
+      "version": "141",
+      "supported": 53,
+      "partial": 1,
+      "unsupported": 0,
+      "compatibility_percentage": 99.07,
+      "unsupported_features": [],
+      "partial_features": [
+        "font-smooth"
+      ]
+    }
+  },
+  "features": {
+    "html": [
+      "autofocus",
+      "dataset",
+      "es6-module",
+      "html5semantic",
+      "input-placeholder",
+      "viewport-units"
+    ],
+    "css": [
+      "border-radius",
+      "calc",
+      "css-appearance",
+      "css-boxshadow",
+      "css-gencontent",
+      "css-mediaqueries",
+      "css-opacity",
+      "css-overflow",
+      "css-placeholder",
+      "css-sel2",
+      "css-textshadow",
+      "css-transitions",
+      "css3-boxsizing",
+      "css3-colors",
+      "css3-cursors",
+      "flexbox",
+      "font-smooth",
+      "inline-block",
+      "kerning-pairs-ligatures",
+      "minmaxwh",
+      "multibackgrounds",
+      "outline",
+      "svg-css",
+      "transforms2d",
+      "word-break"
+    ],
+    "js": [
+      "addeventlistener",
+      "array-find",
+      "arrow-functions",
+      "classlist",
+      "const",
+      "customevent",
+      "dataset",
+      "dispatchevent",
+      "element-closest",
+      "es5",
+      "es6",
+      "es6-class",
+      "es6-module",
+      "hashchange",
+      "insertadjacenthtml",
+      "json",
+      "keyboardevent-key",
+      "keyboardevent-location",
+      "let",
+      "matchesselector",
+      "namevalue-storage",
+      "queryselector",
+      "rest-parameters",
+      "template-literals",
+      "textcontent"
+    ],
+    "all": [
+      "addeventlistener",
+      "array-find",
+      "arrow-functions",
+      "autofocus",
+      "border-radius",
+      "calc",
+      "classlist",
+      "const",
+      "css-appearance",
+      "css-boxshadow",
+      "css-gencontent",
+      "css-mediaqueries",
+      "css-opacity",
+      "css-overflow",
+      "css-placeholder",
+      "css-sel2",
+      "css-textshadow",
+      "css-transitions",
+      "css3-boxsizing",
+      "css3-colors",
+      "css3-cursors",
+      "customevent",
+      "dataset",
+      "dispatchevent",
+      "element-closest",
+      "es5",
+      "es6",
+      "es6-class",
+      "es6-module",
+      "flexbox",
+      "font-smooth",
+      "hashchange",
+      "html5semantic",
+      "inline-block",
+      "input-placeholder",
+      "insertadjacenthtml",
+      "json",
+      "kerning-pairs-ligatures",
+      "keyboardevent-key",
+      "keyboardevent-location",
+      "let",
+      "matchesselector",
+      "minmaxwh",
+      "multibackgrounds",
+      "namevalue-storage",
+      "outline",
+      "queryselector",
+      "rest-parameters",
+      "svg-css",
+      "template-literals",
+      "textcontent",
+      "transforms2d",
+      "viewport-units",
+      "word-break"
+    ]
+  },
+  "feature_details": {
+    "css": [
+      {
+        "feature": "flexbox",
+        "description": "CSS Flexbox",
+        "matched_properties": [
+          "display"
+        ]
+      },
+      {
+        "feature": "inline-block",
+        "description": "CSS display: inline-block",
+        "matched_properties": [
+          "display"
+        ]
+      },
+      {
+        "feature": "transforms2d",
+        "description": "CSS3 2D Transforms",
+        "matched_properties": [
+          "transform",
+          "rotate"
+        ]
+      },
+      {
+        "feature": "css-transitions",
+        "description": "CSS3 Transitions",
+        "matched_properties": [
+          "transition"
+        ]
+      },
+      {
+        "feature": "css3-colors",
+        "description": "CSS3 Colors (RGB/HSL)",
+        "matched_properties": [
+          "rgba"
+        ]
+      },
+      {
+        "feature": "multibackgrounds",
+        "description": "CSS3 Multiple backgrounds",
+        "matched_properties": [
+          "background-image"
+        ]
+      },
+      {
+        "feature": "font-smooth",
+        "description": "CSS font-smooth",
+        "matched_properties": []
+      },
+      {
+        "feature": "word-break",
+        "description": "CSS3 word-break",
+        "matched_properties": [
+          "word-break"
+        ]
+      },
+      {
+        "feature": "css3-boxsizing",
+        "description": "CSS3 Box-sizing",
+        "matched_properties": [
+          "box-sizing"
+        ]
+      },
+      {
+        "feature": "minmaxwh",
+        "description": "CSS min/max Width & Height",
+        "matched_properties": [
+          "min-width",
+          "max-width"
+        ]
+      },
+      {
+        "feature": "border-radius",
+        "description": "CSS Border Radius",
+        "matched_properties": [
+          "border-radius"
+        ]
+      },
+      {
+        "feature": "outline",
+        "description": "CSS Outline Properties",
+        "matched_properties": [
+          "outline"
+        ]
+      },
+      {
+        "feature": "css-boxshadow",
+        "description": "CSS Box Shadow",
+        "matched_properties": [
+          "box-shadow"
+        ]
+      },
+      {
+        "feature": "css-textshadow",
+        "description": "CSS Text Shadow",
+        "matched_properties": [
+          "text-shadow"
+        ]
+      },
+      {
+        "feature": "css-sel2",
+        "description": "CSS2.1 Selectors",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-gencontent",
+        "description": "CSS Generated Content (::before/::after)",
+        "matched_properties": [
+          "content"
+        ]
+      },
+      {
+        "feature": "css-placeholder",
+        "description": "CSS ::placeholder",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-mediaqueries",
+        "description": "CSS3 Media Queries",
+        "matched_properties": []
+      },
+      {
+        "feature": "calc",
+        "description": "CSS calc() function",
+        "matched_properties": [
+          "calc"
+        ]
+      },
+      {
+        "feature": "css-overflow",
+        "description": "CSS overflow property",
+        "matched_properties": [
+          "overflow"
+        ]
+      },
+      {
+        "feature": "css-appearance",
+        "description": "CSS appearance property",
+        "matched_properties": [
+          "appearance"
+        ]
+      },
+      {
+        "feature": "css3-cursors",
+        "description": "CSS3 Cursors",
+        "matched_properties": [
+          "cursor"
+        ]
+      },
+      {
+        "feature": "css-opacity",
+        "description": "CSS Opacity",
+        "matched_properties": [
+          "opacity"
+        ]
+      },
+      {
+        "feature": "kerning-pairs-ligatures",
+        "description": "High-quality kerning pairs & ligatures",
+        "matched_properties": [
+          "text-rendering"
+        ]
+      },
+      {
+        "feature": "svg-css",
+        "description": "SVG in CSS backgrounds",
+        "matched_properties": [
+          "background-image"
+        ]
+      }
+    ],
+    "js": [
+      {
+        "feature": "hashchange",
+        "description": "hashchange event",
+        "matched_apis": [
+          "addEventListener('hashchange')"
+        ]
+      },
+      {
+        "feature": "const",
+        "description": "Const declaration",
+        "matched_apis": [
+          "const"
+        ]
+      },
+      {
+        "feature": "es6",
+        "description": "es6",
+        "matched_apis": [
+          "spread_element"
+        ]
+      },
+      {
+        "feature": "arrow-functions",
+        "description": "arrow-functions",
+        "matched_apis": [
+          "arrow_function"
+        ]
+      },
+      {
+        "feature": "template-literals",
+        "description": "template-literals",
+        "matched_apis": [
+          "template_string"
+        ]
+      },
+      {
+        "feature": "let",
+        "description": "Let declaration",
+        "matched_apis": [
+          "let"
+        ]
+      },
+      {
+        "feature": "es5",
+        "description": "ES5 Array methods",
+        "matched_apis": []
+      },
+      {
+        "feature": "matchesselector",
+        "description": "matches() DOM method",
+        "matched_apis": []
+      },
+      {
+        "feature": "element-closest",
+        "description": "Element.closest()",
+        "matched_apis": []
+      },
+      {
+        "feature": "es6-module",
+        "description": "JavaScript modules via script tag",
+        "matched_apis": [
+          "import"
+        ]
+      },
+      {
+        "feature": "queryselector",
+        "description": "querySelector/querySelectorAll",
+        "matched_apis": []
+      },
+      {
+        "feature": "classlist",
+        "description": "Element.classList",
+        "matched_apis": []
+      },
+      {
+        "feature": "dataset",
+        "description": "HTMLElement.dataset",
+        "matched_apis": []
+      },
+      {
+        "feature": "addeventlistener",
+        "description": "EventTarget.addEventListener()",
+        "matched_apis": []
+      },
+      {
+        "feature": "textcontent",
+        "description": "Node.textContent",
+        "matched_apis": []
+      },
+      {
+        "feature": "keyboardevent-key",
+        "description": "KeyboardEvent.key",
+        "matched_apis": []
+      },
+      {
+        "feature": "const",
+        "description": "Const declaration",
+        "matched_apis": [
+          "const"
+        ]
+      },
+      {
+        "feature": "arrow-functions",
+        "description": "arrow-functions",
+        "matched_apis": [
+          "arrow_function"
+        ]
+      },
+      {
+        "feature": "keyboardevent-location",
+        "description": "KeyboardEvent.location",
+        "matched_apis": []
+      },
+      {
+        "feature": "matchesselector",
+        "description": "matches() DOM method",
+        "matched_apis": []
+      },
+      {
+        "feature": "es6-module",
+        "description": "JavaScript modules via script tag",
+        "matched_apis": [
+          "export"
+        ]
+      },
+      {
+        "feature": "addeventlistener",
+        "description": "EventTarget.addEventListener()",
+        "matched_apis": []
+      },
+      {
+        "feature": "insertadjacenthtml",
+        "description": "Element.insertAdjacentHTML()",
+        "matched_apis": []
+      },
+      {
+        "feature": "const",
+        "description": "Const declaration",
+        "matched_apis": [
+          "const"
+        ]
+      },
+      {
+        "feature": "es6-class",
+        "description": "es6-class",
+        "matched_apis": [
+          "class"
+        ]
+      },
+      {
+        "feature": "arrow-functions",
+        "description": "arrow-functions",
+        "matched_apis": [
+          "arrow_function"
+        ]
+      },
+      {
+        "feature": "es6",
+        "description": "es6",
+        "matched_apis": [
+          "spread_element"
+        ]
+      },
+      {
+        "feature": "customevent",
+        "description": "customevent",
+        "matched_apis": [
+          "new CustomEvent"
+        ]
+      },
+      {
+        "feature": "json",
+        "description": "json",
+        "matched_apis": [
+          "JSON.stringify",
+          "JSON.parse"
+        ]
+      },
+      {
+        "feature": "rest-parameters",
+        "description": "Rest parameters",
+        "matched_apis": []
+      },
+      {
+        "feature": "es5",
+        "description": "ES5 Array methods",
+        "matched_apis": []
+      },
+      {
+        "feature": "dispatchevent",
+        "description": "EventTarget.dispatchEvent",
+        "matched_apis": []
+      },
+      {
+        "feature": "es6-module",
+        "description": "JavaScript modules via script tag",
+        "matched_apis": [
+          "export"
+        ]
+      },
+      {
+        "feature": "array-find",
+        "description": "Array.find/findIndex/findLast/findLastIndex",
+        "matched_apis": []
+      },
+      {
+        "feature": "namevalue-storage",
+        "description": "Web Storage (localStorage/sessionStorage)",
+        "matched_apis": [
+          "localStorage"
+        ]
+      },
+      {
+        "feature": "addeventlistener",
+        "description": "EventTarget.addEventListener()",
+        "matched_apis": []
+      }
+    ],
+    "html": [
+      {
+        "feature": "html5semantic",
+        "matched_items": [
+          "<section>",
+          "<header>",
+          "<footer>"
+        ]
+      },
+      {
+        "feature": "input-placeholder",
+        "matched_items": [
+          "placeholder"
+        ]
+      },
+      {
+        "feature": "autofocus",
+        "matched_items": [
+          "autofocus"
+        ]
+      },
+      {
+        "feature": "es6-module",
+        "matched_items": [
+          "type=\"module\""
+        ]
+      }
+    ]
+  },
+  "unrecognized": {
+    "html": [],
+    "css": [
+      "property: -moz-text-rendering",
+      "property: -webkit-text-rendering",
+      "property: text-rendering"
+    ],
+    "js": [
+      "API: Todos",
+      "method: ._readStorage()"
+    ],
+    "total": 5
+  },
+  "recommendations": [
+    "ℹ️  4 features have partial support. Test thoroughly in target browsers."
+  ],
+  "baseline_summary": {
+    "widely_available": 30,
+    "newly_available": 0,
+    "limited": 1,
+    "unknown": 23
+  }
+}

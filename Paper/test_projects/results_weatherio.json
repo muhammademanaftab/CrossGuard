@@ -1,0 +1,1061 @@
+{
+  "success": true,
+  "summary": {
+    "total_features": 79,
+    "html_features": 13,
+    "css_features": 50,
+    "js_features": 18,
+    "critical_issues": 1
+  },
+  "scores": {
+    "grade": "A",
+    "risk_level": "low",
+    "simple_score": 95.09,
+    "weighted_score": 95.09
+  },
+  "browsers": {
+    "chrome": {
+      "version": "144",
+      "supported": 73,
+      "partial": 4,
+      "unsupported": 1,
+      "compatibility_percentage": 94.94,
+      "unsupported_features": [
+        "css-filter-function"
+      ],
+      "partial_features": [
+        "input-autocomplete-onoff",
+        "wai-aria",
+        "font-smooth",
+        "css-clip-path"
+      ]
+    },
+    "firefox": {
+      "version": "146",
+      "supported": 73,
+      "partial": 4,
+      "unsupported": 1,
+      "compatibility_percentage": 94.94,
+      "unsupported_features": [
+        "css-filter-function"
+      ],
+      "partial_features": [
+        "input-autocomplete-onoff",
+        "intrinsic-width",
+        "wai-aria",
+        "font-smooth"
+      ]
+    },
+    "safari": {
+      "version": "18.4",
+      "supported": 73,
+      "partial": 5,
+      "unsupported": 0,
+      "compatibility_percentage": 95.57,
+      "unsupported_features": [],
+      "partial_features": [
+        "input-autocomplete-onoff",
+        "wai-aria",
+        "font-smooth",
+        "css-clip-path",
+        "srcset"
+      ]
+    },
+    "edge": {
+      "version": "141",
+      "supported": 73,
+      "partial": 4,
+      "unsupported": 1,
+      "compatibility_percentage": 94.94,
+      "unsupported_features": [
+        "css-filter-function"
+      ],
+      "partial_features": [
+        "input-autocomplete-onoff",
+        "wai-aria",
+        "font-smooth",
+        "css-clip-path"
+      ]
+    }
+  },
+  "features": {
+    "html": [
+      "dataset",
+      "es6-module",
+      "html5semantic",
+      "input-autocomplete-onoff",
+      "input-placeholder",
+      "input-search",
+      "link-icon-png",
+      "link-rel-preconnect",
+      "loading-lazy-attr",
+      "rel-noopener",
+      "srcset",
+      "viewport-units",
+      "wai-aria"
+    ],
+    "css": [
+      "border-radius",
+      "calc",
+      "css-all",
+      "css-animation",
+      "css-boxshadow",
+      "css-clip-path",
+      "css-container-queries",
+      "css-filter-function",
+      "css-filters",
+      "css-fixed",
+      "css-focus-visible",
+      "css-focus-within",
+      "css-gencontent",
+      "css-gradients",
+      "css-grid",
+      "css-has",
+      "css-letter-spacing",
+      "css-logical-props",
+      "css-matches-pseudo",
+      "css-math-functions",
+      "css-mediaqueries",
+      "css-opacity",
+      "css-overflow",
+      "css-placeholder",
+      "css-scroll-behavior",
+      "css-sel2",
+      "css-sel3",
+      "css-selection",
+      "css-sticky",
+      "css-transitions",
+      "css-unset-value",
+      "css-variables",
+      "css3-boxsizing",
+      "css3-colors",
+      "css3-cursors",
+      "flexbox",
+      "flexbox-gap",
+      "font-feature",
+      "font-smooth",
+      "fontface",
+      "intrinsic-width",
+      "minmaxwh",
+      "outline",
+      "pointer-events",
+      "rem",
+      "transforms2d",
+      "viewport-unit-variants",
+      "viewport-units",
+      "woff2",
+      "wordwrap"
+    ],
+    "js": [
+      "addeventlistener",
+      "arrow-functions",
+      "classlist",
+      "console-basic",
+      "const",
+      "es6",
+      "es6-module",
+      "fetch",
+      "geolocation",
+      "hashchange",
+      "keyboardevent-location",
+      "let",
+      "mdn-javascript_operators_nullish_coalescing",
+      "promises",
+      "queryselector",
+      "template-literals",
+      "url",
+      "use-strict"
+    ],
+    "all": [
+      "addeventlistener",
+      "arrow-functions",
+      "border-radius",
+      "calc",
+      "classlist",
+      "console-basic",
+      "const",
+      "css-all",
+      "css-animation",
+      "css-boxshadow",
+      "css-clip-path",
+      "css-container-queries",
+      "css-filter-function",
+      "css-filters",
+      "css-fixed",
+      "css-focus-visible",
+      "css-focus-within",
+      "css-gencontent",
+      "css-gradients",
+      "css-grid",
+      "css-has",
+      "css-letter-spacing",
+      "css-logical-props",
+      "css-matches-pseudo",
+      "css-math-functions",
+      "css-mediaqueries",
+      "css-opacity",
+      "css-overflow",
+      "css-placeholder",
+      "css-scroll-behavior",
+      "css-sel2",
+      "css-sel3",
+      "css-selection",
+      "css-sticky",
+      "css-transitions",
+      "css-unset-value",
+      "css-variables",
+      "css3-boxsizing",
+      "css3-colors",
+      "css3-cursors",
+      "dataset",
+      "es6",
+      "es6-module",
+      "fetch",
+      "flexbox",
+      "flexbox-gap",
+      "font-feature",
+      "font-smooth",
+      "fontface",
+      "geolocation",
+      "hashchange",
+      "html5semantic",
+      "input-autocomplete-onoff",
+      "input-placeholder",
+      "input-search",
+      "intrinsic-width",
+      "keyboardevent-location",
+      "let",
+      "link-icon-png",
+      "link-rel-preconnect",
+      "loading-lazy-attr",
+      "mdn-javascript_operators_nullish_coalescing",
+      "minmaxwh",
+      "outline",
+      "pointer-events",
+      "promises",
+      "queryselector",
+      "rel-noopener",
+      "rem",
+      "srcset",
+      "template-literals",
+      "transforms2d",
+      "url",
+      "use-strict",
+      "viewport-unit-variants",
+      "viewport-units",
+      "wai-aria",
+      "woff2",
+      "wordwrap"
+    ]
+  },
+  "feature_details": {
+    "css": [
+      {
+        "feature": "flexbox",
+        "description": "CSS Flexbox",
+        "matched_properties": [
+          "flex-direction"
+        ]
+      },
+      {
+        "feature": "css-grid",
+        "description": "CSS Grid Layout",
+        "matched_properties": [
+          "display",
+          "grid-template",
+          "grid-column"
+        ]
+      },
+      {
+        "feature": "css-animation",
+        "description": "CSS3 Animation",
+        "matched_properties": [
+          "animation"
+        ]
+      },
+      {
+        "feature": "css-filter-function",
+        "description": "CSS Filter Effects",
+        "matched_properties": [
+          "filter"
+        ]
+      },
+      {
+        "feature": "minmaxwh",
+        "description": "CSS min/max Width & Height",
+        "matched_properties": [
+          "min-width",
+          "min-height",
+          "max-height"
+        ]
+      },
+      {
+        "feature": "border-radius",
+        "description": "CSS Border Radius",
+        "matched_properties": [
+          "border-radius"
+        ]
+      },
+      {
+        "feature": "css-sel2",
+        "description": "CSS2.1 Selectors",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-sel3",
+        "description": "CSS3 Selectors",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-gencontent",
+        "description": "CSS Generated Content (::before/::after)",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-matches-pseudo",
+        "description": "CSS :is()/:where() Selectors",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-has",
+        "description": "CSS :has() Selector",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-focus-within",
+        "description": "CSS :focus-within pseudo-class",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-mediaqueries",
+        "description": "CSS3 Media Queries",
+        "matched_properties": []
+      },
+      {
+        "feature": "rem",
+        "description": "rem (Root em) Units",
+        "matched_properties": []
+      },
+      {
+        "feature": "viewport-units",
+        "description": "Viewport units: vw, vh, vmin, vmax",
+        "matched_properties": []
+      },
+      {
+        "feature": "viewport-unit-variants",
+        "description": "Small, Large, and Dynamic viewport units",
+        "matched_properties": [
+          "svh"
+        ]
+      },
+      {
+        "feature": "calc",
+        "description": "CSS calc() function",
+        "matched_properties": [
+          "calc"
+        ]
+      },
+      {
+        "feature": "css-variables",
+        "description": "CSS Variables (Custom Properties)",
+        "matched_properties": [
+          "var"
+        ]
+      },
+      {
+        "feature": "css-sticky",
+        "description": "CSS position: sticky",
+        "matched_properties": [
+          "position"
+        ]
+      },
+      {
+        "feature": "css-overflow",
+        "description": "CSS overflow property",
+        "matched_properties": [
+          "overflow-y"
+        ]
+      },
+      {
+        "feature": "css-clip-path",
+        "description": "CSS clip-path property (for HTML)",
+        "matched_properties": [
+          "clip-path"
+        ]
+      },
+      {
+        "feature": "css-all",
+        "description": "CSS all property",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-unset-value",
+        "description": "CSS unset value",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-logical-props",
+        "description": "CSS Logical Properties",
+        "matched_properties": [
+          "margin-inline",
+          "margin-block",
+          "padding-inline",
+          "padding-block",
+          "border-block"
+        ]
+      },
+      {
+        "feature": "css-filters",
+        "description": "CSS Filter Effects",
+        "matched_properties": [
+          "filter"
+        ]
+      },
+      {
+        "feature": "css-math-functions",
+        "description": "CSS math functions min(), max() and clamp()",
+        "matched_properties": [
+          "max"
+        ]
+      },
+      {
+        "feature": "flexbox",
+        "description": "CSS Flexbox",
+        "matched_properties": [
+          "display",
+          "flex-direction",
+          "flex-wrap",
+          "flex-grow",
+          "flex"
+        ]
+      },
+      {
+        "feature": "flexbox-gap",
+        "description": "gap property for Flexbox",
+        "matched_properties": [
+          "display"
+        ]
+      },
+      {
+        "feature": "css-grid",
+        "description": "CSS Grid Layout",
+        "matched_properties": [
+          "display",
+          "grid-template",
+          "place-items"
+        ]
+      },
+      {
+        "feature": "transforms2d",
+        "description": "CSS3 2D Transforms",
+        "matched_properties": [
+          "transform",
+          "translate",
+          "rotate"
+        ]
+      },
+      {
+        "feature": "css-animation",
+        "description": "CSS3 Animation",
+        "matched_properties": [
+          "animation"
+        ]
+      },
+      {
+        "feature": "css-transitions",
+        "description": "CSS3 Transitions",
+        "matched_properties": [
+          "transition"
+        ]
+      },
+      {
+        "feature": "css3-colors",
+        "description": "CSS3 Colors (RGB/HSL)",
+        "matched_properties": [
+          "hsla"
+        ]
+      },
+      {
+        "feature": "css-gradients",
+        "description": "CSS Gradients",
+        "matched_properties": [
+          "linear-gradient"
+        ]
+      },
+      {
+        "feature": "fontface",
+        "description": "@font-face Web fonts",
+        "matched_properties": []
+      },
+      {
+        "feature": "woff2",
+        "description": "WOFF 2.0 - Web Open Font Format",
+        "matched_properties": [
+          "format"
+        ]
+      },
+      {
+        "feature": "font-feature",
+        "description": "CSS font-feature-settings",
+        "matched_properties": [
+          "font-feature-settings"
+        ]
+      },
+      {
+        "feature": "font-smooth",
+        "description": "CSS font-smooth",
+        "matched_properties": []
+      },
+      {
+        "feature": "wordwrap",
+        "description": "CSS3 Overflow-wrap",
+        "matched_properties": [
+          "word-wrap"
+        ]
+      },
+      {
+        "feature": "css3-boxsizing",
+        "description": "CSS3 Box-sizing",
+        "matched_properties": [
+          "box-sizing"
+        ]
+      },
+      {
+        "feature": "minmaxwh",
+        "description": "CSS min/max Width & Height",
+        "matched_properties": [
+          "min-width",
+          "max-width"
+        ]
+      },
+      {
+        "feature": "intrinsic-width",
+        "description": "Intrinsic & Extrinsic Sizing",
+        "matched_properties": [
+          "width"
+        ]
+      },
+      {
+        "feature": "border-radius",
+        "description": "CSS Border Radius",
+        "matched_properties": [
+          "border-radius"
+        ]
+      },
+      {
+        "feature": "outline",
+        "description": "CSS Outline Properties",
+        "matched_properties": [
+          "outline",
+          "outline-offset"
+        ]
+      },
+      {
+        "feature": "css-boxshadow",
+        "description": "CSS Box Shadow",
+        "matched_properties": [
+          "box-shadow"
+        ]
+      },
+      {
+        "feature": "css-sel2",
+        "description": "CSS2.1 Selectors",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-sel3",
+        "description": "CSS3 Selectors",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-gencontent",
+        "description": "CSS Generated Content (::before/::after)",
+        "matched_properties": [
+          "content"
+        ]
+      },
+      {
+        "feature": "css-selection",
+        "description": "CSS ::selection",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-placeholder",
+        "description": "CSS ::placeholder",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-matches-pseudo",
+        "description": "CSS :is()/:where() Selectors",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-has",
+        "description": "CSS :has() Selector",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-focus-within",
+        "description": "CSS :focus-within pseudo-class",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-focus-visible",
+        "description": "CSS :focus-visible",
+        "matched_properties": []
+      },
+      {
+        "feature": "rem",
+        "description": "rem (Root em) Units",
+        "matched_properties": []
+      },
+      {
+        "feature": "viewport-units",
+        "description": "Viewport units: vw, vh, vmin, vmax",
+        "matched_properties": []
+      },
+      {
+        "feature": "viewport-unit-variants",
+        "description": "Small, Large, and Dynamic viewport units",
+        "matched_properties": [
+          "svh"
+        ]
+      },
+      {
+        "feature": "calc",
+        "description": "CSS calc() function",
+        "matched_properties": [
+          "calc"
+        ]
+      },
+      {
+        "feature": "css-variables",
+        "description": "CSS Variables (Custom Properties)",
+        "matched_properties": [
+          "var"
+        ]
+      },
+      {
+        "feature": "css-fixed",
+        "description": "CSS position:fixed",
+        "matched_properties": [
+          "position"
+        ]
+      },
+      {
+        "feature": "css-overflow",
+        "description": "CSS overflow property",
+        "matched_properties": [
+          "overflow",
+          "overflow-x",
+          "overflow-y"
+        ]
+      },
+      {
+        "feature": "css-clip-path",
+        "description": "CSS clip-path property (for HTML)",
+        "matched_properties": [
+          "clip-path"
+        ]
+      },
+      {
+        "feature": "pointer-events",
+        "description": "CSS pointer-events (for HTML)",
+        "matched_properties": [
+          "pointer-events"
+        ]
+      },
+      {
+        "feature": "css-scroll-behavior",
+        "description": "CSS scroll-behavior",
+        "matched_properties": [
+          "scroll-behavior"
+        ]
+      },
+      {
+        "feature": "css3-cursors",
+        "description": "CSS3 Cursors",
+        "matched_properties": [
+          "cursor"
+        ]
+      },
+      {
+        "feature": "css-opacity",
+        "description": "CSS Opacity",
+        "matched_properties": [
+          "opacity"
+        ]
+      },
+      {
+        "feature": "css-logical-props",
+        "description": "CSS Logical Properties",
+        "matched_properties": [
+          "margin-inline",
+          "margin-block",
+          "padding-inline",
+          "padding-block",
+          "border-block"
+        ]
+      },
+      {
+        "feature": "css-container-queries",
+        "description": "CSS Container Queries",
+        "matched_properties": [
+          "container"
+        ]
+      },
+      {
+        "feature": "css-letter-spacing",
+        "description": "letter-spacing CSS property",
+        "matched_properties": [
+          "letter-spacing"
+        ]
+      },
+      {
+        "feature": "css-math-functions",
+        "description": "CSS math functions min(), max() and clamp()",
+        "matched_properties": [
+          "max"
+        ]
+      }
+    ],
+    "js": [
+      {
+        "feature": "use-strict",
+        "description": "ECMAScript 5 Strict Mode",
+        "matched_apis": [
+          "\"use strict\""
+        ]
+      },
+      {
+        "feature": "const",
+        "description": "Const declaration",
+        "matched_apis": [
+          "const"
+        ]
+      },
+      {
+        "feature": "template-literals",
+        "description": "template-literals",
+        "matched_apis": [
+          "template_string"
+        ]
+      },
+      {
+        "feature": "arrow-functions",
+        "description": "arrow-functions",
+        "matched_apis": [
+          "arrow_function"
+        ]
+      },
+      {
+        "feature": "fetch",
+        "description": "fetch",
+        "matched_apis": [
+          "fetch()"
+        ]
+      },
+      {
+        "feature": "promises",
+        "description": "Promises",
+        "matched_apis": []
+      },
+      {
+        "feature": "console-basic",
+        "description": "Basic console logging functions",
+        "matched_apis": [
+          "console.error"
+        ]
+      },
+      {
+        "feature": "es6-module",
+        "description": "JavaScript modules via script tag",
+        "matched_apis": [
+          "export"
+        ]
+      },
+      {
+        "feature": "use-strict",
+        "description": "ECMAScript 5 Strict Mode",
+        "matched_apis": [
+          "\"use strict\""
+        ]
+      },
+      {
+        "feature": "const",
+        "description": "Const declaration",
+        "matched_apis": [
+          "const"
+        ]
+      },
+      {
+        "feature": "arrow-functions",
+        "description": "arrow-functions",
+        "matched_apis": [
+          "arrow_function"
+        ]
+      },
+      {
+        "feature": "template-literals",
+        "description": "template-literals",
+        "matched_apis": [
+          "template_string"
+        ]
+      },
+      {
+        "feature": "es6",
+        "description": "ES6 destructuring",
+        "matched_apis": [
+          "destructuring"
+        ]
+      },
+      {
+        "feature": "let",
+        "description": "Let declaration",
+        "matched_apis": [
+          "let"
+        ]
+      },
+      {
+        "feature": "mdn-javascript_operators_nullish_coalescing",
+        "description": "Nullish coalescing",
+        "matched_apis": [
+          "??"
+        ]
+      },
+      {
+        "feature": "keyboardevent-location",
+        "description": "KeyboardEvent.location",
+        "matched_apis": []
+      },
+      {
+        "feature": "es6-module",
+        "description": "JavaScript modules via script tag",
+        "matched_apis": [
+          "import",
+          "export"
+        ]
+      },
+      {
+        "feature": "queryselector",
+        "description": "querySelector/querySelectorAll",
+        "matched_apis": []
+      },
+      {
+        "feature": "classlist",
+        "description": "Element.classList",
+        "matched_apis": []
+      },
+      {
+        "feature": "addeventlistener",
+        "description": "EventTarget.addEventListener()",
+        "matched_apis": []
+      },
+      {
+        "feature": "use-strict",
+        "description": "ECMAScript 5 Strict Mode",
+        "matched_apis": [
+          "\"use strict\""
+        ]
+      },
+      {
+        "feature": "const",
+        "description": "Const declaration",
+        "matched_apis": [
+          "const"
+        ]
+      },
+      {
+        "feature": "arrow-functions",
+        "description": "arrow-functions",
+        "matched_apis": [
+          "arrow_function"
+        ]
+      },
+      {
+        "feature": "template-literals",
+        "description": "template-literals",
+        "matched_apis": [
+          "template_string"
+        ]
+      },
+      {
+        "feature": "es6-module",
+        "description": "JavaScript modules via script tag",
+        "matched_apis": [
+          "export"
+        ]
+      },
+      {
+        "feature": "use-strict",
+        "description": "ECMAScript 5 Strict Mode",
+        "matched_apis": [
+          "\"use strict\""
+        ]
+      },
+      {
+        "feature": "hashchange",
+        "description": "hashchange event",
+        "matched_apis": [
+          "addEventListener('hashchange')"
+        ]
+      },
+      {
+        "feature": "const",
+        "description": "Const declaration",
+        "matched_apis": [
+          "const"
+        ]
+      },
+      {
+        "feature": "es6",
+        "description": "ES6 destructuring",
+        "matched_apis": [
+          "destructuring",
+          "spread_element",
+          "new Map"
+        ]
+      },
+      {
+        "feature": "arrow-functions",
+        "description": "arrow-functions",
+        "matched_apis": [
+          "arrow_function"
+        ]
+      },
+      {
+        "feature": "template-literals",
+        "description": "template-literals",
+        "matched_apis": [
+          "template_string"
+        ]
+      },
+      {
+        "feature": "geolocation",
+        "description": "Geolocation API",
+        "matched_apis": [
+          "navigator.geolocation",
+          "getCurrentPosition"
+        ]
+      },
+      {
+        "feature": "url",
+        "description": "URL API",
+        "matched_apis": [
+          "URL."
+        ]
+      },
+      {
+        "feature": "keyboardevent-location",
+        "description": "KeyboardEvent.location",
+        "matched_apis": []
+      },
+      {
+        "feature": "es6-module",
+        "description": "JavaScript modules via script tag",
+        "matched_apis": [
+          "import"
+        ]
+      },
+      {
+        "feature": "addeventlistener",
+        "description": "EventTarget.addEventListener()",
+        "matched_apis": []
+      }
+    ],
+    "html": [
+      {
+        "feature": "html5semantic",
+        "matched_items": [
+          "<main>",
+          "<section>",
+          "<article>",
+          "<header>",
+          "<footer>"
+        ]
+      },
+      {
+        "feature": "input-search",
+        "matched_items": [
+          "<input type=\"search\">"
+        ]
+      },
+      {
+        "feature": "input-autocomplete-onoff",
+        "matched_items": [
+          "autocomplete"
+        ]
+      },
+      {
+        "feature": "input-placeholder",
+        "matched_items": [
+          "placeholder"
+        ]
+      },
+      {
+        "feature": "wai-aria",
+        "matched_items": [
+          "aria-label",
+          "aria-labelledby"
+        ]
+      },
+      {
+        "feature": "loading-lazy-attr",
+        "matched_items": [
+          "loading",
+          "loading=\"lazy\""
+        ]
+      },
+      {
+        "feature": "srcset",
+        "matched_items": [
+          "srcset"
+        ]
+      },
+      {
+        "feature": "link-icon-png",
+        "matched_items": [
+          "rel=\"icon\""
+        ]
+      },
+      {
+        "feature": "link-rel-preconnect",
+        "matched_items": [
+          "rel=\"preconnect\""
+        ]
+      },
+      {
+        "feature": "rel-noopener",
+        "matched_items": [
+          "rel=\"noopener\""
+        ]
+      },
+      {
+        "feature": "es6-module",
+        "matched_items": [
+          "type=\"module\""
+        ]
+      }
+    ]
+  },
+  "unrecognized": {
+    "html": [],
+    "css": [],
+    "js": [
+      "method: .currentWeather()",
+      "method: .reverseGeo()"
+    ],
+    "total": 2
+  },
+  "recommendations": [
+    "⚠️  1 features are not supported in some browsers. Consider providing fallbacks or polyfills.",
+    "ℹ️  17 features have partial support. Test thoroughly in target browsers.",
+    "ℹ️  1 feature not found in database across 4 browsers. These may be universally supported or custom features."
+  ],
+  "baseline_summary": {
+    "widely_available": 53,
+    "newly_available": 2,
+    "limited": 3,
+    "unknown": 21
+  }
+}

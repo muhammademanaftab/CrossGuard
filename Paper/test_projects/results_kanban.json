@@ -1,0 +1,126 @@
+{
+  "success": true,
+  "summary": {
+    "total_features": 6,
+    "html_features": 6,
+    "css_features": 0,
+    "js_features": 0,
+    "critical_issues": 0
+  },
+  "scores": {
+    "grade": "A",
+    "risk_level": "none",
+    "simple_score": 100.0,
+    "weighted_score": 100.0
+  },
+  "browsers": {
+    "chrome": {
+      "version": "144",
+      "supported": 6,
+      "partial": 0,
+      "unsupported": 0,
+      "compatibility_percentage": 100.0,
+      "unsupported_features": [],
+      "partial_features": []
+    },
+    "firefox": {
+      "version": "146",
+      "supported": 6,
+      "partial": 0,
+      "unsupported": 0,
+      "compatibility_percentage": 100.0,
+      "unsupported_features": [],
+      "partial_features": []
+    },
+    "safari": {
+      "version": "18.4",
+      "supported": 6,
+      "partial": 0,
+      "unsupported": 0,
+      "compatibility_percentage": 100.0,
+      "unsupported_features": [],
+      "partial_features": []
+    },
+    "edge": {
+      "version": "141",
+      "supported": 6,
+      "partial": 0,
+      "unsupported": 0,
+      "compatibility_percentage": 100.0,
+      "unsupported_features": [],
+      "partial_features": []
+    }
+  },
+  "features": {
+    "html": [
+      "html5semantic",
+      "input-event",
+      "input-file-accept",
+      "input-placeholder",
+      "link-icon-png",
+      "viewport-units"
+    ],
+    "css": [],
+    "js": [],
+    "all": [
+      "html5semantic",
+      "input-event",
+      "input-file-accept",
+      "input-placeholder",
+      "link-icon-png",
+      "viewport-units"
+    ]
+  },
+  "feature_details": {
+    "css": [],
+    "js": [],
+    "html": [
+      {
+        "feature": "html5semantic",
+        "matched_items": [
+          "<header>"
+        ]
+      },
+      {
+        "feature": "input-file-accept",
+        "matched_items": [
+          "<input type=\"file\">",
+          "accept"
+        ]
+      },
+      {
+        "feature": "input-placeholder",
+        "matched_items": [
+          "placeholder"
+        ]
+      },
+      {
+        "feature": "input-event",
+        "matched_items": [
+          "oninput"
+        ]
+      },
+      {
+        "feature": "link-icon-png",
+        "matched_items": [
+          "rel=\"icon\""
+        ]
+      }
+    ]
+  },
+  "unrecognized": {
+    "html": [],
+    "css": [],
+    "js": [],
+    "total": 0
+  },
+  "recommendations": [
+    "✅ Excellent! All features are well-supported across target browsers."
+  ],
+  "baseline_summary": {
+    "widely_available": 3,
+    "newly_available": 0,
+    "limited": 0,
+    "unknown": 3
+  }
+}
