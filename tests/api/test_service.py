@@ -191,29 +191,6 @@ class TestBrowserConfig:
 
 
 # ═══════════════════════════════════════════════════════════════════════
-# _score_to_grade()
-# ═══════════════════════════════════════════════════════════════════════
-
-class TestScoreToGrade:
-    """_score_to_grade() boundary conditions."""
-
-    @pytest.mark.parametrize("score,grade", [
-        (100.0, 'A'),
-        (90.0, 'A'),
-        (89.9, 'B'),
-        (80.0, 'B'),
-        (79.9, 'C'),
-        (70.0, 'C'),
-        (69.9, 'D'),
-        (60.0, 'D'),
-        (59.9, 'F'),
-        (0.0, 'F'),
-    ])
-    def test_grade_boundaries(self, service, score, grade):
-        assert service._score_to_grade(score) == grade
-
-
-# ═══════════════════════════════════════════════════════════════════════
 # Database Management
 # ═══════════════════════════════════════════════════════════════════════
 

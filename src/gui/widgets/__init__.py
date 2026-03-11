@@ -40,11 +40,6 @@ from .statistics_panel import StatisticsPanel, CompactStatsBar
 from .bookmark_button import BookmarkButton, BookmarkIndicator
 from .tag_widget import TagChip, TagList, TagSelector, TagManagerDialog
 
-from .project_tree import ProjectTreeWidget, TreeItemWidget
-from .scan_config_panel import ScanConfigPanel
-from .project_stats_card import ProjectStatsCard, ProjectSummaryBadge
-from .framework_hint_card import FrameworkHintCard, FrameworkHint
-
 from .polyfill_card import PolyfillCard, PolyfillEmptyCard
 from .baseline_bar import BaselineBar
 
@@ -95,13 +90,6 @@ __all__ = [
     'TagList',
     'TagSelector',
     'TagManagerDialog',
-    'ProjectTreeWidget',
-    'TreeItemWidget',
-    'ScanConfigPanel',
-    'ProjectStatsCard',
-    'ProjectSummaryBadge',
-    'FrameworkHintCard',
-    'FrameworkHint',
     'PolyfillCard',
     'PolyfillEmptyCard',
     'BaselineBar',
