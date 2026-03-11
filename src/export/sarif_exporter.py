@@ -16,10 +16,7 @@ def export_sarif(
     if not report:
         raise ValueError("No analysis report to export")
 
-    if 'file_results' in report:
-        results, rules = _project_results(report)
-    else:
-        results, rules = _single_file_results(report)
+    results, rules = _single_file_results(report)
 
     # Stash scores in SARIF properties so CI tools can read them
     properties: Dict = {}
@@ -27,10 +24,6 @@ def export_sarif(
     if scores:
         properties['score'] = scores.get('simple_score', 0)
         properties['grade'] = scores.get('grade', 'N/A')
-    if report.get('overall_score') is not None:
-        properties['score'] = report['overall_score']
-        properties['grade'] = report.get('overall_grade', 'N/A')
-
     baseline = report.get('baseline_summary')
     if baseline:
         properties['baseline'] = baseline
@@ -89,38 +82,6 @@ def _single_file_results(report: Dict):
                 message=f"'{feat}' is only partially supported in {browser_name} {version}",
                 level="warning",
                 file_path=file_path,
-            ))
-
-    return results, rules
-
-
-def _project_results(report: Dict):
-    rules: Dict[str, Dict] = {}
-    results: List[Dict] = []
-
-    for browser_name, browser_data in report.get('browsers', {}).items():
-        if not isinstance(browser_data, dict):
-            continue
-        version = browser_data.get('version', '')
-
-        for feat in browser_data.get('unsupported_features', []):
-            rule_id = _to_rule_id(feat)
-            _ensure_rule(rules, rule_id, feat)
-            results.append(_make_result(
-                rule_id=rule_id,
-                message=f"'{feat}' is not supported in {browser_name} {version}",
-                level="error",
-                file_path=report.get('project_path', 'unknown'),
-            ))
-
-        for feat in browser_data.get('partial_features', []):
-            rule_id = _to_rule_id(feat)
-            _ensure_rule(rules, rule_id, feat)
-            results.append(_make_result(
-                rule_id=rule_id,
-                message=f"'{feat}' is only partially supported in {browser_name} {version}",
-                level="warning",
-                file_path=report.get('project_path', 'unknown'),
             ))
 
     return results, rules

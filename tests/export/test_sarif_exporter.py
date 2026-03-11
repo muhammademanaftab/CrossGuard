@@ -32,25 +32,6 @@ _SAMPLE_REPORT = {
     'file_path': 'src/style.css',
 }
 
-_PROJECT_REPORT = {
-    'success': True,
-    'overall_score': 75.0,
-    'overall_grade': 'C',
-    'project_path': 'src/',
-    'file_results': [{'file_path': 'src/a.css'}],
-    'browsers': {
-        'chrome': {
-            'version': '120',
-            'supported': 5,
-            'partial': 2,
-            'unsupported': 3,
-            'unsupported_features': ['css-grid', 'css-subgrid'],
-            'partial_features': ['flexbox-gap', 'backdrop-filter'],
-        },
-    },
-}
-
-
 class TestSarifSchema:
     def test_top_level_structure(self):
         sarif = export_sarif(_SAMPLE_REPORT)
@@ -89,13 +70,6 @@ class TestSarifProperties:
         sarif = export_sarif(_SAMPLE_REPORT)
         assert sarif['runs'][0]['properties']['score'] == 78.5
 
-    def test_project_score_in_properties(self):
-        sarif = export_sarif(_PROJECT_REPORT)
-        props = sarif['runs'][0]['properties']
-        assert props['score'] == 75.0
-        assert props['grade'] == 'C'
-
-
 class TestSarifFileOutput:
     def test_write_to_file(self, tmp_path):
         out = tmp_path / 'report.sarif'
@@ -111,11 +85,3 @@ class TestSarifFileOutput:
             export_sarif(bad_input)
 
 
-class TestSarifProjectResults:
-    def test_project_unsupported_and_partial(self):
-        sarif = export_sarif(_PROJECT_REPORT)
-        results = sarif['runs'][0]['results']
-        errors = [r for r in results if r['level'] == 'error']
-        warnings = [r for r in results if r['level'] == 'warning']
-        assert len(errors) == 2   # css-grid + css-subgrid
-        assert len(warnings) == 2  # flexbox-gap + backdrop-filter

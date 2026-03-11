@@ -122,18 +122,15 @@ The scope of Cross Guard covers the following areas:
    A desktop application built with CustomTkinter that includes drag-and-drop file upload, a results dashboard with score cards, browser cards, and issue cards. It also has analysis history with bookmarks and tags, a statistics panel, and a visual editor for custom rules.
 
 4. **Production CLI with CI/CD Integration**
-   A command-line interface built with Click that supports 6 export formats (JSON, PDF, SARIF, JUnit XML, Checkstyle XML, CSV). It includes quality gates for automated builds, stdin support for piped content, `.crossguardignore` file exclusion, and CI configuration generators for GitHub Actions, GitLab CI, and pre-commit hooks.
+   A command-line interface built with Click that supports 6 export formats (JSON, PDF, SARIF, JUnit XML, Checkstyle XML, CSV). It includes quality gates for automated builds, stdin support for piped content, and CI configuration generators for GitHub Actions, GitLab CI, and pre-commit hooks.
 
-5. **Project-Level Analysis**
-   The tool can scan entire project directories recursively. It detects which frameworks are being used (React, Vue, Angular, etc.) and produces an aggregated compatibility report for the whole project.
-
-6. **Polyfill Recommendations**
+5. **Polyfill Recommendations**
    When the tool finds unsupported features, it automatically suggests polyfills that can fix the compatibility issues. This helps developers find solutions quickly.
 
-7. **Machine Learning Risk Prediction**
+6. **Machine Learning Risk Prediction**
    An optional ML module built with scikit-learn that predicts compatibility risk levels based on the patterns of feature usage in the code. This gives developers a heads-up about potential problems before they become real issues.
 
-8. **Data Persistence**
+7. **Data Persistence**
    A SQLite database with 8 tables that stores analysis history, user settings, bookmarks, and tags. The database has schema versioning and handles migrations automatically when upgrading.
 
 ---
@@ -420,19 +417,6 @@ The Cross Guard GUI provides an interactive desktop application for analyzing we
 
 [Figure 15: PDF Export Report]
 
-#### 8. Project Scanning
-
-- **What It Does**: Analyzes an entire project directory recursively, detecting frameworks used and providing a project-level compatibility report.
-- **How to Use It**:
-  1. Click "Scan Project" or select a directory for analysis.
-  2. Configure scan settings (exclude patterns, target browsers).
-  3. The scanner detects all HTML, CSS, and JS files and analyzes them.
-  4. Results show a project tree with per-file scores and an aggregated project score.
-
-[Figure 16: Project Scan — Configuration Panel]
-
-[Figure 17: Project Scan — Results with File Tree]
-
 ### 2.6 Features of Cross Guard: CLI
 
 The CLI provides a command-line interface for automated analysis, CI/CD integration, and scripting.
@@ -541,17 +525,6 @@ Configuration is loaded with the following precedence (highest to lowest):
 3. `package.json` "crossguard" key (for JavaScript projects)
 4. Built-in defaults
 
-#### 8. .crossguardignore
-
-Create a `.crossguardignore` file to exclude files from analysis (gitignore-compatible syntax):
-
-```
-node_modules/
-dist/
-*.min.js
-*.test.js
-```
-
 ---
 
 # Chapter 3
@@ -649,7 +622,7 @@ Cross Guard follows a layered architecture with strict dependency rules:
 ┌─────────────────────────────────────────┐
 │         API Facade (src/api/)           │     Service Layer
 │  AnalyzerService — 59 methods           │     Data contracts (schemas.py)
-│  schemas.py + project_schemas.py        │     Single entry point for all operations
+│  schemas.py                             │     Single entry point for all operations
 └────────────────┬────────────────────────┘
                  │
      ┌───────────┼───────────┬──────────────┐
@@ -672,7 +645,7 @@ The `AnalyzerService` class acts as the central facade, providing 59 methods org
 
 | Method Group | Count | Examples |
 |-------------|-------|---------|
-| Analysis | 5 | `analyze()`, `analyze_files()`, `analyze_project()` |
+| Analysis | 5 | `analyze()`, `analyze_files()`, `analyze_single_file()` |
 | History | 6 | `save_analysis_to_history()`, `get_analysis_history()`, `delete_from_history()` |
 | Statistics | 3 | `get_statistics()`, `get_score_trend()`, `get_top_problematic_features()` |
 | Settings | 5 | `get_setting()`, `set_setting()`, `get_all_settings()` |
@@ -684,7 +657,6 @@ The `AnalyzerService` class acts as the central facade, providing 59 methods org
 | Custom Rules | 5 | `get_custom_rules()`, `save_custom_rule()`, `delete_custom_rule()` |
 | Polyfills | 2 | `get_polyfill_suggestions()` |
 | ML | 2 | `predict_risk()`, `get_risk_summary()` |
-| Project | 2 | `scan_project()`, `detect_frameworks()` |
 
 Table 6: AnalyzerService Method Groups
 
@@ -863,9 +835,8 @@ src/
 ├── export/        # 6 export formats (JSON, PDF, SARIF, JUnit, Checkstyle, CSV)
 ├── analyzer/      # Compatibility engine (scoring, Can I Use lookup)
 ├── database/      # SQLite persistence (4 repositories, migrations)
-├── gui/           # CustomTkinter GUI (27 widgets)
+├── gui/           # CustomTkinter GUI (23 widgets)
 ├── ml/            # ML risk prediction (scikit-learn)
-├── scanner/       # Project scanner + framework detector
 ├── polyfill/      # Polyfill recommendation engine
 ├── parsers/       # HTML/CSS/JS parsers + feature maps
 └── utils/         # Logging, exceptions, types, constants
@@ -994,7 +965,6 @@ The CLI is built with Click and includes:
 - **main.py** (600 lines): 8 commands (analyze, export, history, stats, config, update-db, init-ci, init-hooks) with browser validation and helpful "Did you mean?" suggestions for typos.
 - **context.py**: `CliContext` dataclass managing verbosity (0-3), color detection (respects `NO_COLOR` env var), and timing.
 - **gates.py**: `ThresholdConfig` and `evaluate_gates()` for CI/CD quality gate evaluation.
-- **ignore.py**: `.crossguardignore` file support with gitignore-compatible pattern matching.
 - **generators.py**: CI configuration generators producing GitHub Actions YAML, GitLab CI YAML, and pre-commit hook configs.
 - **formatters.py**: Output formatting for all 7 output modes (table, json, sarif, junit, checkstyle, csv, pdf).
 
@@ -1160,9 +1130,7 @@ To enhance Cross Guard further, the following features can be implemented in the
 - Figure 13: Statistics Panel — Top Problematic Features
 - Figure 14: Custom Rules Manager
 - Figure 15: PDF Export Report
-- Figure 16: Project Scan — Configuration Panel
-- Figure 17: Project Scan — Results with File Tree
-- Figure 18: CLI — Table Output Format
+- Figure 16: CLI — Table Output Format
 - Figure 19: System Architecture — Layer Diagram
 - Figure 20: Class Diagram — AnalyzerService
 - Figure 21: Use Case Diagram

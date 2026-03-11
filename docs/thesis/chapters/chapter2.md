@@ -220,9 +220,7 @@ Displays the compatibility results after analysis.
 - Visualizations section (expandable) with charts
 - Recommendations section (expandable) with polyfill suggestions
 
-[Figure 3: Results Dashboard - Score Card and Quick Stats]
-
-[Figure 4: Results Dashboard - Expandable Sections]
+[Figure 3: Results Dashboard]
 
 #### 2.7.3 Browser Selector
 
@@ -242,7 +240,7 @@ Allows users to choose target browsers and versions for compatibility checks.
 
 **What It Does**
 
-Stores all previous analyses in the SQLite database and displays statistics about past results.
+Stores all previous analyses in the SQLite database.
 
 **Features**
 
@@ -297,8 +295,8 @@ Provides application configuration options accessible from the sidebar.
 
 **Settings Sections**
 
-- Can I Use Database: shows total features and last updated date, with an Update Database button
-- Custom Detection Rules: shortcut to the rules manager with a Manage Rules button
+- Can I Use Database: Displays total features and the last updated date, with an Update Database button.
+- Custom Detection Rules: Shortcut to the rules manager with a Manage Rules button.
 - User Preferences:
   - Auto-save to History toggle (automatically save analyses to history)
   - History Limit dropdown (maximum analyses to keep, default 100)
@@ -308,106 +306,75 @@ Provides application configuration options accessible from the sidebar.
 
 ### 2.8 Features of Cross Guard: CLI
 
-The CLI enables automated analysis and integration into CI/CD pipelines. It is built with the Click library and provides 8 commands: `analyze`, `history`, `stats`, `export`, `config`, `update-db`, `init-ci`, and `init-hooks`. All commands share the same analysis backend as the GUI, ensuring identical results.
+The CLI (Command Line Interface) enables automated analysis and integration into CI/CD pipelines. It is built with the Click library and provides eight commands: `analyze`, `history`, `stats`, `export`, `config`, `update-db`, `init-ci`, and `init-hooks`.
+
+All commands use the same analysis backend as the GUI, ensuring identical results.
 
 #### 2.8.1 Commands
 
-##### analyze
+The CLI provides several commands for running analyses and managing results.
 
-The primary command. Analyzes a single file or an entire directory for browser compatibility issues.
+**analyze** — Analyzes a file or directory for browser compatibility issues.
 
 ```bash
-# Analyze a single file
 python -m src.cli.main analyze examples/sample.css
-
-# Analyze a directory (recursively finds all HTML, CSS, and JS files)
 python -m src.cli.main analyze examples/
-
-# Specify target browser versions
 python -m src.cli.main analyze file.css --browsers "chrome:120,safari:13"
 ```
 
-When a directory is provided, the CLI recursively walks the file tree, skipping common non-source directories such as `node_modules`, `.git`, `dist`, and `build`.
+When a directory is analyzed, the CLI scans files recursively and skips common folders such as `node_modules`, `.git`, `dist`, and `build`.
 
 [Figure 14: CLI - Table Output Format]
 
-##### history
-
-Every analysis is automatically saved to the SQLite database. The `history` command lists past analyses.
+**history** — Lists previously saved analyses from the SQLite database.
 
 ```bash
-# Show recent analyses
 python -m src.cli.main history
-
-# Limit to 5 entries
 python -m src.cli.main history --limit 5
-
-# Filter by file type
 python -m src.cli.main history --type css
 ```
 
-##### stats
-
-Displays aggregated statistics across all saved analyses, including total analyses run, average score, and the most frequently problematic features.
+**stats** — Displays aggregated statistics across all saved analyses.
 
 ```bash
 python -m src.cli.main stats
 ```
 
-##### export
-
-Exports a previously saved analysis by its database ID in JSON or PDF format.
+**export** — Exports a saved analysis by database ID.
 
 ```bash
-# Export as JSON
 python -m src.cli.main export 42 --format json --output report.json
-
-# Export as PDF
 python -m src.cli.main export 42 --format pdf --output report.pdf
 ```
 
-##### config
-
-Displays the active configuration or initializes a new configuration file.
+**config** — Shows or initializes configuration settings.
 
 ```bash
-# Show current configuration
 python -m src.cli.main config
-
-# Create a crossguard.config.json file
 python -m src.cli.main config --init
 ```
 
-Configuration is resolved in the following priority order:
+Configuration priority:
 
-1. CLI flags (highest priority)
-2. `crossguard.config.json` in the project directory
-3. `package.json` under the `"crossguard"` key
-4. Built-in defaults (lowest priority)
+1. CLI flags
+2. `crossguard.config.json`
+3. `package.json` `"crossguard"`
+4. Built-in defaults
 
-##### update-db
-
-Downloads the latest Can I Use database so that browser support information stays current.
+**update-db** — Updates the local Can I Use database.
 
 ```bash
 python -m src.cli.main update-db
 ```
 
-##### init-ci
-
-Generates ready-to-use CI/CD configuration files for automated compatibility checking on every code push.
+**init-ci** — Generates CI/CD workflow configurations.
 
 ```bash
-# GitHub Actions workflow
 python -m src.cli.main init-ci --provider github
-
-# GitLab CI configuration
 python -m src.cli.main init-ci --provider gitlab
 ```
 
-##### init-hooks
-
-Generates a pre-commit hook configuration that runs Cross Guard before every git commit.
+**init-hooks** — Creates Git pre-commit hooks for running Cross Guard automatically.
 
 ```bash
 python -m src.cli.main init-hooks --type pre-commit
@@ -415,35 +382,33 @@ python -m src.cli.main init-hooks --type pre-commit
 
 #### 2.8.2 Output Formats
 
-The `analyze` command supports 7 output formats for different use cases.
+The `analyze` command supports multiple output formats for different use cases.
 
 | Format | Flag | Use Case |
 |--------|------|----------|
 | Table | `--format table` | Human-readable terminal output (default) |
 | Summary | `--format summary` | One-line quick check |
-| JSON | `--format json` | Machine-readable data, piping to other tools |
+| JSON | `--format json` | Machine-readable output |
 | SARIF | `--format sarif` | GitHub Code Scanning integration |
-| JUnit XML | `--format junit` | Jenkins and GitLab CI test reports |
+| JUnit XML | `--format junit` | Jenkins and GitLab CI reports |
 | Checkstyle XML | `--format checkstyle` | SonarQube integration |
 | CSV | `--format csv` | Spreadsheet analysis |
 
 *Table 3: CLI Output Formats*
 
-Results can be saved to a file with the `--output` flag, or multiple formats can be generated simultaneously:
+Results can be saved to files using the `--output` flag.
 
 ```bash
-# Save SARIF output to a file
+# Save SARIF output
 python -m src.cli.main analyze src/ --format sarif -o results.sarif
 
-# Generate table output to the terminal and save JSON and CSV to files
+# Generate multiple outputs
 python -m src.cli.main analyze file.css --format table --output-json report.json --output-csv report.csv
 ```
 
-[Figure 15: CLI - SARIF Output]
-
 #### 2.8.3 Global Options
 
-Global options are placed before the command name and control verbosity, color output, and timing.
+Global options are placed before the command name.
 
 ```bash
 python -m src.cli.main [options] <command>
@@ -451,23 +416,23 @@ python -m src.cli.main [options] <command>
 
 | Option | Description |
 |--------|-------------|
-| `-v` | Verbose output, shows loading and parsing logs |
+| `-v` | Verbose output |
 | `-vv` | More verbose output |
-| `-vvv` / `--debug` | Maximum verbosity with debug-level detail |
-| `-q` | Quiet mode, suppresses log messages (report still shown) |
-| `--no-color` | Disables ANSI color codes in output |
-| `--timing` | Displays elapsed time after analysis |
+| `-vvv` / `--debug` | Debug-level output |
+| `-q` | Quiet mode |
+| `--no-color` | Disable ANSI colors |
+| `--timing` | Display elapsed time |
 
 *Table 4: CLI Global Options*
 
-All log messages are written to stderr so that stdout remains clean for piped or redirected output.
+All log messages are written to stderr so that stdout remains clean for piped output.
 
 #### 2.8.4 Quality Gates
 
-Quality gates cause the CLI to exit with code 1 when the analysis results do not meet specified thresholds. This is used in CI/CD pipelines to block code that does not meet compatibility standards.
+Quality gates cause the CLI to exit with code 1 if compatibility thresholds are not met.
 
 ```bash
-# Fail if score is below 80
+# Fail if score below 80
 python -m src.cli.main analyze src/ --fail-on-score 80
 
 # Fail if more than 5 unsupported features
@@ -476,42 +441,21 @@ python -m src.cli.main analyze src/ --fail-on-errors 5
 # Fail if more than 10 partially supported features
 python -m src.cli.main analyze src/ --fail-on-warnings 10
 
-# Multiple gates can be combined
+# Combine gates
 python -m src.cli.main analyze src/ --fail-on-score 80 --fail-on-errors 5
 ```
 
-The CLI uses three exit codes:
+Exit codes:
 
 | Exit Code | Meaning |
 |-----------|---------|
-| 0 | Success, all quality gates passed |
-| 1 | Quality gate failed or compatibility issues found |
-| 2 | Error such as invalid input or missing file |
+| 0 | Success |
+| 1 | Quality gate failed |
+| 2 | Error (invalid input or missing file) |
 
 *Table 5: CLI Exit Codes*
 
-CI/CD systems interpret these exit codes to determine whether a build passes or fails.
-
-#### 2.8.5 Stdin Support
-
-The CLI can read file content from standard input, which is useful for piping content from other commands or analyzing dynamically generated code.
-
-```bash
-echo "div { display: grid; }" | python -m src.cli.main analyze --stdin --stdin-filename test.css
-```
-
-The `--stdin-filename` flag is required so that the CLI can determine the file type for parsing.
-
-#### 2.8.6 Ignore Patterns
-
-A `.crossguardignore` file can be placed in the project root to exclude files and directories from analysis. The format follows the same syntax as `.gitignore`.
-
-```
-node_modules/
-dist/
-*.min.js
-*.test.js
-```
+CI/CD systems use these exit codes to determine whether a build passes or fails.
 
 ### 2.9 FAQ
 

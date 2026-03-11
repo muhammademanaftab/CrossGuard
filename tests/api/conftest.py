@@ -44,7 +44,7 @@ def empty_request():
 
 @pytest.fixture
 def sample_success_report():
-    """Realistic dict as returned by CrossGuardAnalyzer.analyze_project()."""
+    """Realistic dict as returned by CrossGuardAnalyzer.run_analysis()."""
     return {
         'success': True,
         'summary': {

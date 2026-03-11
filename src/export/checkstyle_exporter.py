@@ -18,7 +18,7 @@ def export_checkstyle(
 
     root = ET.Element('checkstyle', version='1.0.0')
 
-    file_path = report.get('file_path', report.get('project_path', 'unknown'))
+    file_path = report.get('file_path', 'unknown')
 
     file_elem = ET.SubElement(root, 'file', name=file_path)
 

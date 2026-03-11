@@ -28,11 +28,6 @@ class TestDefaultConfig:
         cfg = get_default_config()
         assert cfg['output'] == 'table'
 
-    def test_has_ignore_patterns(self):
-        cfg = get_default_config()
-        assert 'node_modules' in cfg['ignore']
-        assert '.git' in cfg['ignore']
-
     def test_returns_copy(self):
         a = get_default_config()
         b = get_default_config()
@@ -92,11 +87,6 @@ class TestConfigManager:
 
         mgr = ConfigManager()
         assert mgr.output_format == 'json'
-
-    def test_ignore_patterns_property(self):
-        mgr = ConfigManager()
-        assert isinstance(mgr.ignore_patterns, list)
-        assert 'node_modules' in mgr.ignore_patterns
 
     def test_rules_path_default_none(self):
         mgr = ConfigManager()

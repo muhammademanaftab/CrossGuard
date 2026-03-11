@@ -71,17 +71,3 @@ class TestCheckstyleEdgeCases:
         root = ET.fromstring(xml_str)
         assert len(root.findall('.//error')) == 0
 
-    def test_project_path_fallback(self):
-        report = {
-            'project_path': 'src/',
-            'browsers': {
-                'chrome': {
-                    'version': '120',
-                    'unsupported_features': ['css-grid'],
-                    'partial_features': [],
-                }
-            }
-        }
-        xml_str = export_checkstyle(report)
-        root = ET.fromstring(xml_str)
-        assert root.find('file').attrib['name'] == 'src/'

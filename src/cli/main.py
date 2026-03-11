@@ -21,7 +21,6 @@ from .formatters import (
     format_stats,
 )
 from .gates import ThresholdConfig, evaluate_gates
-from .ignore import find_ignore_file, load_ignore_patterns, should_ignore
 
 
 _KNOWN_BROWSERS = set(LATEST_VERSIONS.keys())
@@ -85,11 +84,8 @@ def _classify_files(paths: list[str]) -> tuple[list, list, list]:
     return html, css, js
 
 
-def _collect_files(
-    target: str,
-    ignore_patterns: Optional[list[str]] = None,
-) -> list[str]:
-    """Gather web files from a path, respecting ignore patterns."""
+def _collect_files(target: str) -> list[str]:
+    """Gather web files from a path, skipping common non-source directories."""
     target_path = Path(target)
     if target_path.is_file():
         return [str(target_path)]
@@ -104,12 +100,7 @@ def _collect_files(
             }]
             for fname in filenames:
                 if os.path.splitext(fname)[1].lower() in extensions:
-                    full_path = os.path.join(root, fname)
-                    if ignore_patterns:
-                        rel_path = os.path.relpath(full_path, str(target_path))
-                        if should_ignore(rel_path, ignore_patterns):
-                            continue
-                    files.append(full_path)
+                    files.append(os.path.join(root, fname))
         return sorted(files)
 
     return []
@@ -206,8 +197,6 @@ def cli(ctx, verbose, quiet, debug, no_color, timing):
               help='Read file content from stdin.')
 @click.option('--stdin-filename', default=None,
               help='Filename for stdin content (required with --stdin).')
-@click.option('--ignore-path', default=None,
-              help='Path to a custom ignore file.')
 @click.option('--output-sarif', default=None,
               help='Write SARIF output to this file (independent of --format).')
 @click.option('--output-junit', default=None,
@@ -221,7 +210,7 @@ def cli(ctx, verbose, quiet, debug, no_color, timing):
 @click.pass_context
 def analyze(ctx, target, browsers, fmt, output, config_path,
             fail_on_score, fail_on_errors, fail_on_warnings,
-            use_stdin, stdin_filename, ignore_path,
+            use_stdin, stdin_filename,
             output_sarif, output_junit, output_json_path,
             output_checkstyle, output_csv):
     """Analyze files or directories for browser compatibility.
@@ -267,18 +256,8 @@ def analyze(ctx, target, browsers, fmt, output, config_path,
             click.echo(f"Error: '{target}' not found", err=True)
             sys.exit(2)
 
-        ignore_pats: Optional[list[str]] = None
-        if ignore_path:
-            ignore_pats = load_ignore_patterns(Path(ignore_path))
-        elif target_path.is_dir():
-            ig_file = find_ignore_file(target_path)
-            if ig_file:
-                ignore_pats = load_ignore_patterns(ig_file)
-                if cli_ctx.verbosity >= 2:
-                    click.echo(f"Using ignore file: {ig_file}", err=True)
-
         if target_path.is_dir():
-            files = _collect_files(str(target_path), ignore_pats)
+            files = _collect_files(str(target_path))
 
             if not files:
                 click.echo("No analyzable files found.", err=True)

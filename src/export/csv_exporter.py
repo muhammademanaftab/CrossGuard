@@ -20,7 +20,7 @@ def export_csv(
     writer = csv.writer(buf)
     writer.writerow(_COLUMNS)
 
-    file_path = report.get('file_path', report.get('project_path', 'unknown'))
+    file_path = report.get('file_path', 'unknown')
 
     for browser_name, browser_data in report.get('browsers', {}).items():
         if not isinstance(browser_data, dict):

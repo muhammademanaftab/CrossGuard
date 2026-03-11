@@ -14,10 +14,6 @@ DEFAULT_CONFIG: Dict[str, Any] = {
         'edge': LATEST_VERSIONS['edge'],
     },
     'output': 'table',
-    'ignore': [
-        'node_modules', 'dist', 'build', '.git',
-        '__pycache__', '.next', '.nuxt', 'vendor',
-    ],
     'rules': None,  # None = use built-in rules
 }
 
@@ -75,10 +71,6 @@ class ConfigManager:
     @property
     def output_format(self) -> str:
         return self._config.get('output', 'table')
-
-    @property
-    def ignore_patterns(self) -> List[str]:
-        return list(self._config.get('ignore', DEFAULT_CONFIG['ignore']))
 
     @property
     def rules_path(self) -> Optional[str]:

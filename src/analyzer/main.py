@@ -41,7 +41,7 @@ class CrossGuardAnalyzer:
         self.js_feature_details = []
         self.html_feature_details = []
         
-    def analyze_project(
+    def run_analysis(
         self,
         html_files: Optional[List[str]] = None,
         css_files: Optional[List[str]] = None,
@@ -560,7 +560,7 @@ class CrossGuardAnalyzer:
         return html
 
 
-def analyze_project(
+def run_analysis(
     html_files: Optional[List[str]] = None,
     css_files: Optional[List[str]] = None,
     js_files: Optional[List[str]] = None,
@@ -568,4 +568,4 @@ def analyze_project(
 ) -> Dict:
     """Shortcut to create an analyzer and run it."""
     analyzer = CrossGuardAnalyzer()
-    return analyzer.analyze_project(html_files, css_files, js_files, target_browsers)
+    return analyzer.run_analysis(html_files, css_files, js_files, target_browsers)

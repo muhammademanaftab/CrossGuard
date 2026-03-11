@@ -65,7 +65,7 @@ class AnalyzerService:
             analyzer = self._get_analyzer()
             target_browsers = request.target_browsers or self.DEFAULT_BROWSERS
 
-            report = analyzer.analyze_project(
+            report = analyzer.run_analysis(
                 html_files=request.html_files if request.html_files else None,
                 css_files=request.css_files if request.css_files else None,
                 js_files=request.js_files if request.js_files else None,
