@@ -471,7 +471,6 @@ This is one class with **59 methods** organized into categories:
 | **Config** | `get_config()`, `get_default_browsers()` | Read configuration settings |
 | **Statistics** | `get_statistics()`, `get_score_distribution()` | Aggregated analysis data |
 | **Polyfills** | `get_polyfill_recommendations()` | Suggest fixes for unsupported features |
-| **Scanner** | `scan_project()`, `get_framework_info()` | Project-level directory scanning |
 
 ### Lazy Loading
 
@@ -674,7 +673,6 @@ Important: **logging goes to stderr, output goes to stdout**. This means you can
 | `src/cli/context.py` | `CliContext` dataclass (verbosity, color, timing settings) |
 | `src/cli/gates.py` | Quality gate evaluation logic |
 | `src/cli/generators.py` | CI config generators (GitHub Actions, GitLab CI YAML) |
-| `src/cli/ignore.py` | `.crossguardignore` file support |
 
 ---
 
@@ -1123,31 +1121,6 @@ The polyfill service also provides helper methods:
 - `get_aggregate_imports()` → list of all import statements needed
 - `get_total_size_kb()` → total bundle size impact
 
-### Project Scanning
-
-Instead of analyzing one file at a time, you can point Cross Guard at an entire project directory. The **project scanner** handles this.
-
-**File**: `src/scanner/project_scanner.py`
-
-What it does:
-1. **Recursively walks** the directory tree
-2. **Filters** by file type (HTML, CSS, JS — configurable)
-3. **Excludes** common non-source directories by default: `node_modules`, `dist`, `build`, `.git`, `__pycache__`, `.next`, `.nuxt`, `coverage`, `.cache`, `vendor`
-4. **Safety limits**: max 1000 files by default, configurable depth limit
-5. **Builds a file tree** structure for the GUI to display
-6. **Optionally skips minified files** (compressed production code)
-
-### Framework Detection
-
-**File**: `src/scanner/framework_detector.py`
-
-When scanning a project, Cross Guard can detect which frameworks are in use (React, Vue, Angular, Svelte, etc.) by looking at:
-- `package.json` dependencies
-- Import statements in JS files
-- File naming conventions (`.vue`, `.jsx`, `.tsx`, `.svelte` files)
-
-This information is shown as a hint card in the GUI, helping users understand their project's context.
-
 ### Configuration System
 
 Cross Guard supports layered configuration with this precedence (highest to lowest):
@@ -1175,30 +1148,11 @@ A typical `crossguard.config.json`:
     "edge": "120"
   },
   "output": "table",
-  "ignore": ["node_modules", "dist", "build"],
   "rules": null
 }
 ```
 
 The config manager searches for this file starting in the current directory and walking up to 10 parent directories. If not found, it checks `package.json` for a `"crossguard"` key. If that's also missing, it uses built-in defaults.
-
-### .crossguardignore
-
-Like `.gitignore`, but for Cross Guard. Lets you exclude files from analysis:
-
-**File**: `src/cli/ignore.py`
-
-```
-# .crossguardignore
-node_modules/
-dist/
-*.min.js
-*.min.css
-vendor/
-test/fixtures/
-```
-
-Supports the same glob patterns as `.gitignore`.
 
 ### CI/CD Integration
 

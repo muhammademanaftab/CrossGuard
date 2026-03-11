@@ -135,16 +135,16 @@ python -m src.cli.main export 111 --format pdf --output report.pdf
 ### 5. `config` — View or Create Configuration
 
 ```bash
-# Show current config (browsers, output format, ignore patterns)
+# Show current config (browsers, output format)
 python -m src.cli.main config
 ```
-Output: JSON showing default browsers, output format, ignore patterns.
+Output: JSON showing default browsers and output format.
 
 ```bash
 # Create a crossguard.config.json file in your project
 python -m src.cli.main config --init
 ```
-Output: creates the file, you can then edit it to set default browsers, ignore patterns, etc.
+Output: creates the file, you can then edit it to set default browsers, output format, etc.
 
 ---
 
@@ -287,7 +287,6 @@ src/cli/
 ├── context.py      ← Stores verbosity, color, timing settings
 ├── formatters.py   ← Makes output pretty (colors, tables)
 ├── gates.py        ← Pass/fail logic (3 if-statements)
-├── ignore.py       ← .crossguardignore file support
 └── generators.py   ← CI config YAML templates
 ```
 

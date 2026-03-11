@@ -57,8 +57,7 @@ Input File (HTML/CSS/JS)
 1. **Multi-format Parsing**: Parses HTML, CSS, and JS using AST-based parsers (tinycss2, tree-sitter) with regex fallback
 2. **Compatibility Scoring**: Weighted scores (0-100) with letter grades (A+ through F) per file
 3. **Custom Rules**: User-defined feature detection rules via JSON or GUI editor
-4. **Project Scanning**: Recursive directory analysis with framework detection (React, Vue, Angular, etc.)
-5. **Polyfill Suggestions**: Recommends polyfills for unsupported features
+4. **Polyfill Suggestions**: Recommends polyfills for unsupported features
 6. **ML Risk Prediction**: Optional machine learning module that predicts compatibility risk levels
 
 ### GUI
@@ -73,8 +72,7 @@ Input File (HTML/CSS/JS)
 13. **Quality Gates**: `--fail-on-score`, `--fail-on-errors`, `--fail-on-warnings` (exit 1 on failure)
 14. **CI Config Generation**: Auto-generate GitHub Actions, GitLab CI, or pre-commit hook configs
 15. **Stdin Support**: Pipe file content via `--stdin --stdin-filename`
-16. **.crossguardignore**: Gitignore-compatible file exclusion patterns
-17. **Config File**: `crossguard.config.json` or `package.json` "crossguard" key
+16. **Config File**: `crossguard.config.json` or `package.json` "crossguard" key
 
 ## How to Run
 
@@ -135,15 +133,13 @@ python -m src.cli.main config --init
 src/
 ├── api/                    # API layer (service facade)
 │   ├── schemas.py          # Data schemas (incl. ExportRequest)
-│   ├── service.py          # Main service class (59 methods)
-│   └── project_schemas.py  # Project scanner schemas
+│   └── service.py          # Main service class (59 methods)
 ├── cli/                    # CLI (Click-based)
 │   ├── main.py             # CLI commands (analyze, export, history, stats, config, update-db, init-ci, init-hooks)
 │   ├── formatters.py       # Terminal output formatting (with color support)
 │   ├── context.py          # CliContext dataclass (verbosity, color, timing)
 │   ├── gates.py            # Quality gate evaluation (ThresholdConfig, evaluate_gates)
-│   ├── generators.py       # CI config generators (GitHub Actions, GitLab CI, pre-commit)
-│   └── ignore.py           # .crossguardignore file support
+│   └── generators.py       # CI config generators (GitHub Actions, GitLab CI, pre-commit)
 ├── config/                 # Configuration file support
 │   └── config_manager.py   # crossguard.config.json + package.json fallback
 ├── export/                 # Report export (GUI-independent)
@@ -173,7 +169,7 @@ src/
 │   ├── config.py           # GUI configuration
 │   ├── file_selector.py    # File selection with drag-and-drop
 │   ├── export_manager.py   # GUI export dialogs (delegates to src/export/)
-│   └── widgets/            # Reusable UI widgets (27 widgets)
+│   └── widgets/            # Reusable UI widgets (23 widgets)
 │       ├── bookmark_button.py
 │       ├── browser_card.py
 │       ├── browser_selector.py
@@ -182,18 +178,14 @@ src/
 │       ├── collapsible.py
 │       ├── drop_zone.py
 │       ├── file_table.py
-│       ├── framework_hint_card.py  # Framework detection hints
 │       ├── header_bar.py
 │       ├── history_card.py     # Analysis history item
 │       ├── issue_card.py
 │       ├── messagebox.py
 │       ├── ml_risk_card.py
 │       ├── polyfill_card.py    # Polyfill recommendations
-│       ├── project_stats_card.py   # Project-level statistics
-│       ├── project_tree.py     # Project file tree view
 │       ├── quick_stats.py
 │       ├── rules_manager.py    # Custom rules UI
-│       ├── scan_config_panel.py    # Scan configuration UI
 │       ├── score_card.py
 │       ├── sidebar.py
 │       ├── statistics_panel.py # Aggregated stats display
@@ -207,9 +199,6 @@ src/
 │   ├── risk_labels.py
 │   ├── risk_predictor.py
 │   └── visualizations.py
-├── scanner/                # Project-level file scanning
-│   ├── framework_detector.py   # Detect JS/CSS frameworks in projects
-│   └── project_scanner.py  # Recursive directory scanning
 ├── polyfill/               # Polyfill recommendations
 │   ├── polyfill_generator.py   # Generate polyfill suggestions
 │   ├── polyfill_loader.py  # Load polyfill mapping data

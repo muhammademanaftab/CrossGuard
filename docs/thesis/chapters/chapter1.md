@@ -38,17 +38,14 @@ Cross Guard covers the following functional areas:
    A desktop application built with CustomTkinter that provides drag-and-drop file upload (via TkinterDnD2), a results dashboard with score cards, browser support cards, and collapsible issue cards. The GUI includes an analysis history panel with bookmarks and tags, a statistics panel showing aggregated trends, a polyfill recommendations view, and a visual custom rules editor. The interface uses a dark blue theme and is designed for interactive exploration of compatibility results.
 
 4. **Production CLI with CI/CD Integration**
-   A command-line interface built with Click that supports 6 export formats (JSON, PDF, SARIF 2.1.0, JUnit XML, Checkstyle XML, CSV), quality gates for automated builds, stdin support for piped content, `.crossguardignore` file exclusion patterns, configurable target browsers, and CI configuration generators for GitHub Actions, GitLab CI, and pre-commit hooks. The CLI is designed for non-interactive use in CI/CD environments, with logging directed to stderr to keep stdout clean for piped output.
+   A command-line interface built with Click that supports 6 export formats (JSON, PDF, SARIF 2.1.0, JUnit XML, Checkstyle XML, CSV), quality gates for automated builds, stdin support for piped content, configurable target browsers, and CI configuration generators for GitHub Actions, GitLab CI, and pre-commit hooks. The CLI is designed for non-interactive use in CI/CD environments, with logging directed to stderr to keep stdout clean for piped output.
 
-5. **Project-Level Analysis**
-   The tool can recursively scan entire project directories, automatically detecting file types and applying the appropriate parser. It includes a framework detector that identifies popular frameworks (React, Vue, Angular, Svelte, etc.) based on project configuration files, and produces aggregated compatibility reports for multi-file projects.
-
-6. **Polyfill Recommendations**
+5. **Polyfill Recommendations**
    When the tool finds unsupported or partially supported features, it consults a built-in polyfill mapping to suggest packages and scripts that can restore compatibility. This helps developers fix issues quickly without having to research each feature individually.
 
-7. **Machine Learning Risk Prediction**
+6. **Machine Learning Risk Prediction**
    An optional module built with scikit-learn that analyzes patterns in feature usage across a codebase and predicts compatibility risk levels. This experimental feature provides an early warning system for files that are likely to have compatibility problems based on their feature profile.
 
-8. **Data Persistence**
+7. **Data Persistence**
    A SQLite database with 8 tables that stores analysis history, per-feature results, browser support status, user settings, bookmarks, and tags. The database uses schema versioning with automatic migrations, ensuring that upgrades preserve existing data.
 

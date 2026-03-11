@@ -60,42 +60,42 @@ class TestAnalyze:
     @patch('src.analyzer.main.CrossGuardAnalyzer')
     def test_success_delegates_to_analyzer(self, MockAnalyzer, service, sample_success_report):
         mock_instance = MockAnalyzer.return_value
-        mock_instance.analyze_project.return_value = sample_success_report
+        mock_instance.run_analysis.return_value = sample_success_report
 
         request = AnalysisRequest(css_files=["style.css"])
         result = service.analyze(request)
 
         assert result.success is True
         assert result.summary.total_features == 5
-        mock_instance.analyze_project.assert_called_once()
+        mock_instance.run_analysis.assert_called_once()
 
     @patch('src.analyzer.main.CrossGuardAnalyzer')
     def test_uses_default_browsers_when_not_specified(self, MockAnalyzer, service, sample_success_report):
         mock_instance = MockAnalyzer.return_value
-        mock_instance.analyze_project.return_value = sample_success_report
+        mock_instance.run_analysis.return_value = sample_success_report
 
         request = AnalysisRequest(html_files=["index.html"])
         service.analyze(request)
 
-        call_kwargs = mock_instance.analyze_project.call_args[1]
+        call_kwargs = mock_instance.run_analysis.call_args[1]
         assert call_kwargs['target_browsers'] == service.DEFAULT_BROWSERS
 
     @patch('src.analyzer.main.CrossGuardAnalyzer')
     def test_uses_custom_browsers_when_specified(self, MockAnalyzer, service, sample_success_report):
         mock_instance = MockAnalyzer.return_value
-        mock_instance.analyze_project.return_value = sample_success_report
+        mock_instance.run_analysis.return_value = sample_success_report
 
         custom_browsers = {'chrome': '100'}
         request = AnalysisRequest(js_files=["app.js"], target_browsers=custom_browsers)
         service.analyze(request)
 
-        call_kwargs = mock_instance.analyze_project.call_args[1]
+        call_kwargs = mock_instance.run_analysis.call_args[1]
         assert call_kwargs['target_browsers'] == custom_browsers
 
     @patch('src.analyzer.main.CrossGuardAnalyzer')
     def test_exception_returns_failure(self, MockAnalyzer, service):
         mock_instance = MockAnalyzer.return_value
-        mock_instance.analyze_project.side_effect = RuntimeError("boom")
+        mock_instance.run_analysis.side_effect = RuntimeError("boom")
 
         request = AnalysisRequest(css_files=["style.css"])
         result = service.analyze(request)
@@ -107,7 +107,7 @@ class TestAnalyze:
     def test_lazy_loads_analyzer(self, MockAnalyzer, service, sample_success_report):
         """Analyzer is not created until analyze() is called."""
         mock_instance = MockAnalyzer.return_value
-        mock_instance.analyze_project.return_value = sample_success_report
+        mock_instance.run_analysis.return_value = sample_success_report
 
         assert service._analyzer is None
         service.analyze(AnalysisRequest(html_files=["index.html"]))
@@ -116,7 +116,7 @@ class TestAnalyze:
     @patch('src.analyzer.main.CrossGuardAnalyzer')
     def test_reuses_analyzer_on_second_call(self, MockAnalyzer, service, sample_success_report):
         mock_instance = MockAnalyzer.return_value
-        mock_instance.analyze_project.return_value = sample_success_report
+        mock_instance.run_analysis.return_value = sample_success_report
 
         service.analyze(AnalysisRequest(css_files=["a.css"]))
         service.analyze(AnalysisRequest(css_files=["b.css"]))
@@ -127,7 +127,7 @@ class TestAnalyze:
     @patch('src.analyzer.main.CrossGuardAnalyzer')
     def test_failure_report_from_analyzer(self, MockAnalyzer, service, sample_failure_report):
         mock_instance = MockAnalyzer.return_value
-        mock_instance.analyze_project.return_value = sample_failure_report
+        mock_instance.run_analysis.return_value = sample_failure_report
 
         result = service.analyze(AnalysisRequest(js_files=["app.js"]))
         assert result.success is False
@@ -143,7 +143,7 @@ class TestAnalyzeFiles:
     @patch('src.analyzer.main.CrossGuardAnalyzer')
     def test_wraps_analyze(self, MockAnalyzer, service, sample_success_report):
         mock_instance = MockAnalyzer.return_value
-        mock_instance.analyze_project.return_value = sample_success_report
+        mock_instance.run_analysis.return_value = sample_success_report
 
         result = service.analyze_files(css_files=["style.css"])
         assert result.success is True
@@ -157,11 +157,11 @@ class TestAnalyzeFiles:
     @patch('src.analyzer.main.CrossGuardAnalyzer')
     def test_passes_target_browsers(self, MockAnalyzer, service, sample_success_report):
         mock_instance = MockAnalyzer.return_value
-        mock_instance.analyze_project.return_value = sample_success_report
+        mock_instance.run_analysis.return_value = sample_success_report
 
         browsers = {'firefox': '100'}
         service.analyze_files(html_files=["a.html"], target_browsers=browsers)
-        call_kwargs = mock_instance.analyze_project.call_args[1]
+        call_kwargs = mock_instance.run_analysis.call_args[1]
         assert call_kwargs['target_browsers'] == browsers
 
 

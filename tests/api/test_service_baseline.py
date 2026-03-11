@@ -49,7 +49,7 @@ class TestBaselineEnrichment:
     @patch('src.api.service.AnalyzerService._get_analyzer')
     def test_baseline_added_when_data_available(self, mock_get_analyzer, service, mock_report):
         mock_analyzer = MagicMock()
-        mock_analyzer.analyze_project.return_value = mock_report
+        mock_analyzer.run_analysis.return_value = mock_report
         mock_get_analyzer.return_value = mock_analyzer
 
         mock_wf = MagicMock()
@@ -73,7 +73,7 @@ class TestBaselineEnrichment:
     @patch('src.api.service.AnalyzerService._get_analyzer')
     def test_baseline_none_when_no_data(self, mock_get_analyzer, service, mock_report):
         mock_analyzer = MagicMock()
-        mock_analyzer.analyze_project.return_value = mock_report
+        mock_analyzer.run_analysis.return_value = mock_report
         mock_get_analyzer.return_value = mock_analyzer
 
         mock_wf = MagicMock()
@@ -89,7 +89,7 @@ class TestBaselineEnrichment:
     @patch('src.api.service.AnalyzerService._get_analyzer')
     def test_baseline_none_on_failure(self, mock_get_analyzer, service):
         mock_analyzer = MagicMock()
-        mock_analyzer.analyze_project.return_value = {
+        mock_analyzer.run_analysis.return_value = {
             'success': False, 'error': 'Parse error'
         }
         mock_get_analyzer.return_value = mock_analyzer
