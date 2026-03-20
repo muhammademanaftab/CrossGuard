@@ -43,19 +43,10 @@ class TestCollectFiles:
         f.write_text("const x = 1;")
         assert len(_collect_files(str(f))) == 1
 
-    def test_directory_collects_supported_only(self, tmp_path):
+    def test_directory_returns_empty(self, tmp_path):
         (tmp_path / "a.html").write_text("<div></div>")
         (tmp_path / "b.css").write_text("body {}")
-        (tmp_path / "c.js").write_text("var x;")
-        (tmp_path / "d.txt").write_text("ignored")
-        assert len(_collect_files(str(tmp_path))) == 3
-
-    def test_ignores_node_modules(self, tmp_path):
-        nm = tmp_path / "node_modules"
-        nm.mkdir()
-        (nm / "lib.js").write_text("module.exports = {};")
-        (tmp_path / "app.js").write_text("import x;")
-        assert len(_collect_files(str(tmp_path))) == 1
+        assert _collect_files(str(tmp_path)) == []
 
     def test_nonexistent_returns_empty(self):
         assert _collect_files("/nonexistent/path") == []

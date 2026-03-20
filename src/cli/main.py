@@ -85,24 +85,10 @@ def _classify_files(paths: list[str]) -> tuple[list, list, list]:
 
 
 def _collect_files(target: str) -> list[str]:
-    """Gather web files from a path, skipping common non-source directories."""
+    """Return a single-element list if the target is a valid file."""
     target_path = Path(target)
     if target_path.is_file():
         return [str(target_path)]
-
-    if target_path.is_dir():
-        extensions = {'.html', '.htm', '.css', '.js', '.mjs', '.jsx', '.ts', '.tsx'}
-        files = []
-        for root, dirs, filenames in os.walk(target_path):
-            dirs[:] = [d for d in dirs if d not in {
-                'node_modules', '.git', 'dist', 'build', '__pycache__',
-                '.next', '.nuxt', 'vendor',
-            }]
-            for fname in filenames:
-                if os.path.splitext(fname)[1].lower() in extensions:
-                    files.append(os.path.join(root, fname))
-        return sorted(files)
-
     return []
 
 
@@ -213,9 +199,9 @@ def analyze(ctx, target, browsers, fmt, output, config_path,
             use_stdin, stdin_filename,
             output_sarif, output_junit, output_json_path,
             output_checkstyle, output_csv):
-    """Analyze files or directories for browser compatibility.
+    """Analyze a file for browser compatibility.
 
-    TARGET can be a single file or a directory.
+    TARGET is a single HTML, CSS, or JavaScript file.
     Use --stdin to read from standard input.
     """
     cli_ctx: CliContext = ctx.obj['cli_ctx']
@@ -257,18 +243,10 @@ def analyze(ctx, target, browsers, fmt, output, config_path,
             sys.exit(2)
 
         if target_path.is_dir():
-            files = _collect_files(str(target_path))
+            click.echo("Error: Directory analysis is not supported. Please provide a single file.", err=True)
+            sys.exit(2)
 
-            if not files:
-                click.echo("No analyzable files found.", err=True)
-                sys.exit(2)
-
-            if cli_ctx.verbosity >= 1:
-                click.echo(f"Analyzing {len(files)} files...", err=True)
-
-            html, css, js = _classify_files(files)
-        else:
-            html, css, js = _classify_files([str(target_path)])
+        html, css, js = _classify_files([str(target_path)])
 
         if not (html or css or js):
             click.echo(f"Error: Unsupported file type: {target}", err=True)

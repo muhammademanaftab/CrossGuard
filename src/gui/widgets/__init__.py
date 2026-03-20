@@ -41,7 +41,6 @@ from .bookmark_button import BookmarkButton, BookmarkIndicator
 from .tag_widget import TagChip, TagList, TagSelector, TagManagerDialog
 
 from .polyfill_card import PolyfillCard, PolyfillEmptyCard
-from .baseline_bar import BaselineBar
 
 __all__ = [
     'DropZone',
@@ -92,5 +91,4 @@ __all__ = [
     'TagManagerDialog',
     'PolyfillCard',
     'PolyfillEmptyCard',
-    'BaselineBar',
 ]
