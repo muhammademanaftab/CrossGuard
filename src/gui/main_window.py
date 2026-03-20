@@ -41,7 +41,6 @@ from .widgets import (
     TagManagerDialog,
     PolyfillCard,
     PolyfillEmptyCard,
-    BaselineBar,
 )
 from .widgets.rules_manager import show_rules_manager
 
@@ -313,21 +312,6 @@ class MainWindow(ctk.CTkFrame):
             browsers_count=browsers_count,
             features_count=total_features
         )
-
-        # Baseline status bar (if web-features data available)
-        baseline_data = report.get('baseline_summary')
-        if baseline_data:
-            baseline_details = self._get_baseline_feature_lists(features)
-
-            baseline_bar = BaselineBar(scroll_frame)
-            baseline_bar.pack(fill="x", pady=(0, SPACING['lg']))
-            baseline_bar.set_data(
-                widely_available=baseline_data.get('widely_available', 0),
-                newly_available=baseline_data.get('newly_available', 0),
-                limited=baseline_data.get('limited', 0),
-                limited_features=baseline_details['limited'],
-                newly_features=baseline_details['newly'],
-            )
 
         # ML risk assessment (only if ML module is available)
         if self._analyzer_service.is_ml_enabled():
@@ -1043,26 +1027,6 @@ class MainWindow(ctk.CTkFrame):
             for feature in browser_data.get('partial_features', []):
                 issues.add(feature)
         return len(issues)
-
-    def _get_baseline_feature_lists(self, features: Dict) -> Dict[str, List[str]]:
-        """Categorize detected features by Baseline status, returning display names."""
-        limited = []
-        newly = []
-        all_features = []
-        if features:
-            all_features = features.get('all', [])
-
-        for fid in all_features:
-            baseline = self._analyzer_service.get_baseline_status(fid)
-            if not baseline:
-                continue
-            name = self._analyzer_service.get_feature_display_name(fid)
-            if baseline['status'] == 'limited':
-                limited.append(name)
-            elif baseline['status'] == 'low':
-                newly.append(name)
-
-        return {'limited': limited, 'newly': newly}
 
     def _extract_issues(self, browsers: Dict) -> List[dict]:
         """Group unsupported/partial features into issue dicts for IssuesSummary."""
