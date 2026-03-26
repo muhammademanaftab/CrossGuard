@@ -7,6 +7,8 @@ from pathlib import Path
 
 def pytest_configure(config):
     config.addinivalue_line("markers", "unit: Pure unit tests (no I/O)")
+    config.addinivalue_line("markers", "blackbox: Black box tests (public API only, no mocking)")
+    config.addinivalue_line("markers", "whitebox: White box tests (internals, mocking, state inspection)")
     config.addinivalue_line("markers", "component: Component tests with real dependencies")
     config.addinivalue_line("markers", "integration: End-to-end pipeline tests")
 

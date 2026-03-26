@@ -227,38 +227,45 @@ data/
 
 tests/
 ├── conftest.py             # Shared fixtures + test markers (unit/component/integration)
-├── analyzer/               # Compatibility engine tests (287 tests)
-├── api/                    # API service layer tests (200 tests)
-├── cli/                    # CLI tests (162 tests)
-├── config/                 # Config module tests (27 tests)
-├── database/               # Database layer tests (175 tests)
-├── export/                 # Export module tests (43 tests)
-├── polyfill/               # Polyfill tests (158 tests)
+├── analyzer/               # Compatibility engine tests (151 tests, 3 files)
+│   ├── test_analyzer_blackbox.py   # Scoring, compatibility, version ranges (89)
+│   ├── test_analyzer_whitebox.py   # DB loading, web features, NPM updater (49)
+│   └── test_analyzer_integration.py # Full pipeline (13)
+├── api/                    # API service layer tests (89 tests, 3 files)
+│   ├── test_api_blackbox.py        # Analyze, CRUD, export (52)
+│   ├── test_api_whitebox.py        # Singleton, lazy loading, baseline (23)
+│   └── test_api_integration.py     # End-to-end (14)
+├── cli/                    # CLI tests (83 tests, 3 files)
+│   ├── test_cli_blackbox.py        # Commands, gates, browser validation (30)
+│   ├── test_cli_whitebox.py        # Formatters, context, generators (34)
+│   └── test_cli_integration.py     # Full command integration (19)
+├── config/                 # Config module tests (19 tests, 1 file)
+│   └── test_config_blackbox.py     # Loading, merging, defaults, pkg.json
+├── database/               # Database layer tests (129 tests, 2 files)
+│   ├── test_database_blackbox.py   # CRUD, statistics, models (99)
+│   └── test_database_whitebox.py   # Migrations, singleton, schema (30)
+├── export/                 # Export module tests (33 tests, 1 file)
+│   └── test_export_blackbox.py     # All 6 formats (~5 per format)
+├── polyfill/               # Polyfill tests (60 tests, 3 files)
+│   ├── test_polyfill_blackbox.py   # Recommendations, lookups (23)
+│   ├── test_polyfill_whitebox.py   # Singleton, reload, internals (15)
+│   └── test_polyfill_integration.py # File generation, multi-feature (22)
 ├── parsers/
-│   ├── css/                # CSS parser tests (520 tests, 8 files)
-│   │   ├── test_css_detection.py       # Property/value detection (217)
-│   │   ├── test_css_pipeline.py        # Parser API + tinycss2 pipeline (137)
-│   │   ├── test_css_selectors.py       # Selector detection (43)
-│   │   ├── test_css_at_rules.py        # At-rules + media queries (38)
-│   │   ├── test_css_modern.py          # Modern CSS features (36)
-│   │   ├── test_css_edge_cases.py      # Edge cases (20)
-│   │   ├── test_css_bug_hunt.py        # Documented real bugs (17)
-│   │   └── test_css_custom_rules.py    # Custom rules (12)
-│   ├── html/               # HTML parser tests (496 tests, 7 files)
-│   │   ├── test_html_attributes.py     # ARIA, form, event, loading (102)
-│   │   ├── test_html_api.py            # Parser API + integration (83)
-│   │   ├── test_html_edge_cases.py     # False positives, malformed HTML (78)
-│   │   ├── test_html_special_patterns.py # SVG, responsive, custom elements (70)
-│   │   ├── test_html_elements.py       # Semantic, form, media elements (70)
-│   │   ├── test_html_attribute_values.py # rel, CSP, crossorigin (50)
-│   │   └── test_html_input_types.py    # Input type detection (43)
-│   ├── js/                 # JS parser tests (284 tests, 5 files)
-│   │   ├── test_js_detection.py        # Feature detection (154)
-│   │   ├── test_js_ast.py              # tree-sitter AST tests (87)
-│   │   ├── test_js_edge_cases.py       # Edge cases (17)
-│   │   ├── test_js_integration.py      # End-to-end (14)
-│   │   └── test_js_custom_rules.py     # Custom rules (12)
-│   └── custom_rules/       # Custom rules loader tests (42 tests)
+│   ├── css/                # CSS parser tests (185 tests, 3 files)
+│   │   ├── test_css_blackbox.py    # Feature detection, edge cases (102)
+│   │   ├── test_css_whitebox.py    # tinycss2 internals, bugs, custom rules (55)
+│   │   └── test_css_integration.py # File I/O, real-world scenarios (28)
+│   ├── html/               # HTML parser tests (167 tests, 3 files)
+│   │   ├── test_html_blackbox.py   # Detection, edge cases, validate (88)
+│   │   ├── test_html_whitebox.py   # State, custom rules (38)
+│   │   └── test_html_integration.py # File I/O, real-world, reports (41)
+│   ├── js/                 # JS parser tests (196 tests, 3 files)
+│   │   ├── test_js_blackbox.py     # Feature detection, edge cases (100)
+│   │   ├── test_js_whitebox.py     # AST internals, custom rules (82)
+│   │   └── test_js_integration.py  # End-to-end (14)
+│   └── custom_rules/       # Custom rules loader tests (23 tests, 2 files)
+│       ├── test_custom_rules_blackbox.py  # Loading, applying (12)
+│       └── test_custom_rules_whitebox.py  # Singleton, save, reload (11)
 └── validation/             # Manual validation sample files
     ├── css/                # CSS validation samples + checklist
     ├── html/               # HTML validation samples + checklist
@@ -385,45 +392,45 @@ Edit `src/parsers/custom_rules.json`:
 
 ## Testing
 
-**Total: 2,394 tests** across all modules (pytest). All tests use `@pytest.mark.parametrize` for data-driven testing and return sets/dicts for diagnosable failures.
+**Total: 1,135 tests** across all modules (pytest), organized into black box / white box / integration files. Each module has `test_<module>_blackbox.py` (public API), `test_<module>_whitebox.py` (internals), and optionally `test_<module>_integration.py` (end-to-end).
 
 ### Run All Tests
 ```bash
-pytest tests/                       # Full suite (2,394 tests)
-pytest tests/ -m unit               # Unit tests only (864)
-pytest tests/ -m integration        # Integration tests only (103)
+pytest tests/                       # Full suite (1,135 tests)
+pytest tests/ -m unit               # Unit tests only (907)
+pytest tests/ -m integration        # Integration tests only (206)
 ```
 
 ### Run by Module
 ```bash
-pytest tests/parsers/css/ -v        # CSS parser tests (520)
-pytest tests/parsers/html/ -v       # HTML parser tests (496)
-pytest tests/parsers/js/ -v         # JS parser tests (284)
-pytest tests/parsers/custom_rules/  # Custom rules loader tests (42)
-pytest tests/analyzer/ -v           # Compatibility engine tests (287)
-pytest tests/api/ -v                # API service layer tests (200)
-pytest tests/database/ -v           # Database layer tests (175)
-pytest tests/cli/ -v                # CLI tests (162)
-pytest tests/polyfill/ -v           # Polyfill tests (158)
-pytest tests/export/ -v             # Export module tests (43)
-pytest tests/config/ -v             # Config module tests (27)
+pytest tests/parsers/css/ -v        # CSS parser tests (185)
+pytest tests/parsers/html/ -v       # HTML parser tests (167)
+pytest tests/parsers/js/ -v         # JS parser tests (196)
+pytest tests/parsers/custom_rules/  # Custom rules loader tests (23)
+pytest tests/analyzer/ -v           # Compatibility engine tests (151)
+pytest tests/api/ -v                # API service layer tests (89)
+pytest tests/database/ -v           # Database layer tests (129)
+pytest tests/cli/ -v                # CLI tests (83)
+pytest tests/polyfill/ -v           # Polyfill tests (60)
+pytest tests/export/ -v             # Export module tests (33)
+pytest tests/config/ -v             # Config module tests (19)
 ```
 
 ### Test Coverage Summary
 
-| Module | Tests | Coverage | What's Covered |
-|--------|-------|----------|----------------|
-| CSS parser | 520 | 90% | Properties, selectors, at-rules, tinycss2 AST |
-| HTML parser | 496 | 95% | Elements, attributes, input types, edge cases |
-| JS parser | 284 | 84% | APIs, syntax, tree-sitter AST, custom rules |
-| Custom rules | 42 | 89% | Loader, singleton, save/reload, edge cases |
-| Analyzer | 287 | 83-100% | Scorer (100%), compatibility (100%), versions |
-| API service | 200 | 82% | Service facade (59 methods) |
-| Database | 175 | 83-95% | Models, migrations, repositories, statistics |
-| CLI | 162 | 79-100% | Commands, gates, formatters, ignore, stdin |
-| Polyfill | 158 | 89-100% | Loader, service, generator, integration |
-| Export | 43 | 94-100% | JSON, PDF, SARIF, JUnit, Checkstyle, CSV |
-| Config | 27 | 99% | Config loading, merging, defaults, pkg.json |
+| Module | Tests | BB/WB/Int | What's Covered |
+|--------|-------|-----------|----------------|
+| CSS parser | 185 | 102/55/28 | Detection, tinycss2 AST, bugs, real-world |
+| HTML parser | 167 | 88/38/41 | Detection, DOM, custom rules, real-world |
+| JS parser | 196 | 100/82/14 | Detection, tree-sitter AST, custom rules |
+| Custom rules | 23 | 12/11/- | Loading, singleton, save/reload |
+| Analyzer | 151 | 89/49/13 | Scoring, compatibility, DB, web features |
+| API service | 89 | 52/23/14 | Analyze, CRUD, singleton, end-to-end |
+| Database | 129 | 99/30/- | CRUD, statistics, migrations, singleton |
+| CLI | 83 | 30/34/19 | Commands, gates, formatters, generators |
+| Polyfill | 60 | 23/15/22 | Recommendations, singleton, file gen |
+| Export | 33 | 33/-/- | All 6 formats (~5 per format) |
+| Config | 19 | 19/-/- | Loading, merging, defaults, pkg.json |
 
 ### Manual Validation
 See `tests/validation/` for manual validation samples and checklists (CSS, HTML, JS, custom rules).

@@ -1,6 +1,7 @@
 """Integration tests for the JavaScript parser.
 
-Tests with validation files, feature category coverage, and parser statistics.
+End-to-end tests with validation files, feature category coverage, and parser
+statistics -- exercises the full pipeline from file I/O through detection.
 """
 
 import pytest
@@ -15,6 +16,7 @@ class TestValidationFiles:
         """Path to JS validation test files."""
         return Path(__file__).parent.parent.parent / 'validation' / 'js'
 
+    @pytest.mark.integration
     def test_es6_syntax_file(self, js_parser, validation_path):
         file_path = validation_path / '01_es6_syntax.js'
         if file_path.exists():
@@ -23,6 +25,7 @@ class TestValidationFiles:
                          'template-literals', 'es6-class', 'es6-generators', 'use-strict']:
                 assert feat in features, f"Missing feature: {feat}"
 
+    @pytest.mark.integration
     def test_promises_file(self, js_parser, validation_path):
         file_path = validation_path / '02_promises_async.js'
         if file_path.exists():
@@ -30,6 +33,7 @@ class TestValidationFiles:
             for feat in ['promises', 'fetch', 'abortcontroller', 'requestanimationframe']:
                 assert feat in features, f"Missing feature: {feat}"
 
+    @pytest.mark.integration
     def test_dom_apis_file(self, js_parser, validation_path):
         file_path = validation_path / '03_dom_apis.js'
         if file_path.exists():
@@ -37,6 +41,7 @@ class TestValidationFiles:
             for feat in ['queryselector', 'classlist', 'dataset', 'addeventlistener']:
                 assert feat in features, f"Missing feature: {feat}"
 
+    @pytest.mark.integration
     def test_storage_file(self, js_parser, validation_path):
         file_path = validation_path / '04_web_storage.js'
         if file_path.exists():
@@ -44,6 +49,7 @@ class TestValidationFiles:
             for feat in ['namevalue-storage', 'indexeddb', 'filereader', 'textencoder']:
                 assert feat in features, f"Missing feature: {feat}"
 
+    @pytest.mark.integration
     def test_comprehensive_file(self, js_parser, validation_path):
         file_path = validation_path / 'comprehensive_test.js'
         if file_path.exists():
@@ -52,8 +58,9 @@ class TestValidationFiles:
 
 
 class TestFeatureCategories:
-    """Tests that each feature category is properly detected."""
+    """Tests that each feature category is properly detected end-to-end."""
 
+    @pytest.mark.integration
     def test_syntax_features(self, parse_features):
         js = """
         const fn = async () => {
@@ -67,6 +74,7 @@ class TestFeatureCategories:
                          'es6-class', 'es6-generators']:
             assert expected in features
 
+    @pytest.mark.integration
     def test_promise_features(self, parse_features):
         js = """
         new Promise((r) => r(1))
@@ -80,6 +88,7 @@ class TestFeatureCategories:
         for expected in ['promises', 'promise-finally', 'fetch', 'abortcontroller']:
             assert expected in features
 
+    @pytest.mark.integration
     def test_dom_features(self, parse_features):
         js = """
         document.querySelector('.el').classList.add('active');
@@ -93,6 +102,7 @@ class TestFeatureCategories:
                          'addeventlistener', 'insertadjacenthtml', 'scrollintoview']:
             assert expected in features
 
+    @pytest.mark.integration
     def test_observer_features(self, parse_features):
         js = """
         new IntersectionObserver(cb);
@@ -103,6 +113,7 @@ class TestFeatureCategories:
         for expected in ['intersectionobserver', 'mutationobserver', 'resizeobserver']:
             assert expected in features
 
+    @pytest.mark.integration
     def test_storage_features(self, parse_features):
         js = """
         localStorage.setItem('k', 'v');
@@ -114,6 +125,7 @@ class TestFeatureCategories:
         for expected in ['namevalue-storage', 'indexeddb', 'filereader', 'textencoder']:
             assert expected in features
 
+    @pytest.mark.integration
     def test_array_methods(self, parse_features):
         js = """
         arr.flat();
@@ -125,6 +137,7 @@ class TestFeatureCategories:
         for expected in ['array-flat', 'array-includes', 'array-find', 'es5']:
             assert expected in features
 
+    @pytest.mark.integration
     def test_modern_apis(self, parse_features):
         js = """
         new WebGLRenderingContext();
@@ -141,6 +154,7 @@ class TestFeatureCategories:
 class TestParserStatistics:
     """Tests for parser statistics functionality."""
 
+    @pytest.mark.integration
     def test_statistics_populated(self, js_parser):
         js = """
         const fn = () => 1;
@@ -154,6 +168,7 @@ class TestParserStatistics:
         assert 'features_list' in stats
         assert len(stats['features_list']) > 0
 
+    @pytest.mark.integration
     def test_detailed_report(self, js_parser):
         js = "new IntersectionObserver(cb);"
         js_parser.parse_string(js)
