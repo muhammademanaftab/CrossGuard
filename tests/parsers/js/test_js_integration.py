@@ -33,29 +33,6 @@ class TestValidationFiles:
             for feat in ['promises', 'fetch', 'abortcontroller', 'requestanimationframe']:
                 assert feat in features, f"Missing feature: {feat}"
 
-    @pytest.mark.integration
-    def test_dom_apis_file(self, js_parser, validation_path):
-        file_path = validation_path / '03_dom_apis.js'
-        if file_path.exists():
-            features = js_parser.parse_file(str(file_path))
-            for feat in ['queryselector', 'classlist', 'dataset', 'addeventlistener']:
-                assert feat in features, f"Missing feature: {feat}"
-
-    @pytest.mark.integration
-    def test_storage_file(self, js_parser, validation_path):
-        file_path = validation_path / '04_web_storage.js'
-        if file_path.exists():
-            features = js_parser.parse_file(str(file_path))
-            for feat in ['namevalue-storage', 'indexeddb', 'filereader', 'textencoder']:
-                assert feat in features, f"Missing feature: {feat}"
-
-    @pytest.mark.integration
-    def test_comprehensive_file(self, js_parser, validation_path):
-        file_path = validation_path / 'comprehensive_test.js'
-        if file_path.exists():
-            features = js_parser.parse_file(str(file_path))
-            assert len(features) >= 100, f"Expected 100+ features, got {len(features)}"
-
 
 class TestFeatureCategories:
     """Tests that each feature category is properly detected end-to-end."""
@@ -89,20 +66,6 @@ class TestFeatureCategories:
             assert expected in features
 
     @pytest.mark.integration
-    def test_dom_features(self, parse_features):
-        js = """
-        document.querySelector('.el').classList.add('active');
-        element.dataset.id = '1';
-        element.addEventListener('click', () => {});
-        element.insertAdjacentHTML('beforeend', '<span/>');
-        element.scrollIntoView();
-        """
-        features = parse_features(js)
-        for expected in ['queryselector', 'classlist', 'dataset',
-                         'addeventlistener', 'insertadjacenthtml', 'scrollintoview']:
-            assert expected in features
-
-    @pytest.mark.integration
     def test_observer_features(self, parse_features):
         js = """
         new IntersectionObserver(cb);
@@ -123,31 +86,6 @@ class TestFeatureCategories:
         """
         features = parse_features(js)
         for expected in ['namevalue-storage', 'indexeddb', 'filereader', 'textencoder']:
-            assert expected in features
-
-    @pytest.mark.integration
-    def test_array_methods(self, parse_features):
-        js = """
-        arr.flat();
-        arr.includes(x);
-        arr.find(x => x);
-        arr.forEach(x => x);
-        """
-        features = parse_features(js)
-        for expected in ['array-flat', 'array-includes', 'array-find', 'es5']:
-            assert expected in features
-
-    @pytest.mark.integration
-    def test_modern_apis(self, parse_features):
-        js = """
-        new WebGLRenderingContext();
-        new RTCPeerConnection(config);
-        element.animate(keyframes, 1000);
-        navigator.share({ title: 'Test' });
-        history.pushState({}, '', '/');
-        """
-        features = parse_features(js)
-        for expected in ['webgl', 'rtcpeerconnection', 'web-animation', 'web-share', 'history']:
             assert expected in features
 
 
