@@ -392,7 +392,7 @@ class CrossGuardAnalyzer:
 
         if critical_issues:
             recommendations.append(
-                f"⚠️  {len(critical_issues)} features are not supported in some browsers. "
+                f"{len(critical_issues)} features are not supported in some browsers. "
                 "Consider providing fallbacks or polyfills."
             )
         
@@ -402,7 +402,7 @@ class CrossGuardAnalyzer:
         )
         if partial_count > 0:
             recommendations.append(
-                f"ℹ️  {partial_count} features have partial support. "
+                f"{partial_count} features have partial support. "
                 "Test thoroughly in target browsers."
             )
         
@@ -421,7 +421,7 @@ class CrossGuardAnalyzer:
                 feature_text = "features"
             
             recommendations.append(
-                f"ℹ️  {num_features} {feature_text} not found in database across {num_browsers} browsers. "
+                f"{num_features} {feature_text} not found in database across {num_browsers} browsers. "
                 "These may be universally supported or custom features."
             )
         
@@ -429,13 +429,13 @@ class CrossGuardAnalyzer:
             unsupported = len(results['unsupported'])
             if unsupported > 5:
                 recommendations.append(
-                    f"⚠️  {browser.capitalize()}: {unsupported} unsupported features detected. "
+                    f"{browser.capitalize()}: {unsupported} unsupported features detected. "
                     "Consider testing and providing alternatives."
                 )
         
         if not critical_issues and partial_count == 0:
             recommendations.append(
-                "✅ Excellent! All features are well-supported across target browsers."
+                "All features are well-supported across target browsers."
             )
         
         return recommendations

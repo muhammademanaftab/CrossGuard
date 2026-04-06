@@ -314,43 +314,23 @@ class MainWindow(ctk.CTkFrame):
             features_count=total_features
         )
 
-        # --- Issues & Fixes (merged section) ---
+        # --- Issues & Fixes ---
         issues = self._extract_issues(browsers)
         if issues:
-            critical_count = sum(1 for i in issues if i.get('severity') == 'critical')
-            warning_count = len(issues) - critical_count
-            badge_parts = []
-            if critical_count:
-                badge_parts.append(f"{critical_count} critical")
-            if warning_count:
-                badge_parts.append(f"{warning_count} warning")
-
             issues_section = CollapsibleSection(
                 scroll_frame,
-                title="WHAT NEEDS YOUR ATTENTION",
-                badge_text=badge_parts[0] if badge_parts else "",
-                badge_color=COLORS['danger'] if critical_count else COLORS['warning'],
+                title="Issues & Fixes",
+                badge_text=f"{len(issues)} issues",
+                badge_color=COLORS['danger'],
                 expanded=True,
             )
             issues_section.pack(fill="x", pady=(0, SPACING['lg']))
             issues_content = issues_section.get_content_frame()
 
-            # Add second badge if both critical and warning exist
-            if len(badge_parts) > 1:
-                header = issues_section.header_frame
-                ctk.CTkLabel(
-                    header,
-                    text=f" {badge_parts[1]} ",
-                    font=ctk.CTkFont(size=10),
-                    text_color=COLORS['text_primary'],
-                    fg_color=COLORS['warning'],
-                    corner_radius=4,
-                ).pack(side="left", padx=(SPACING['xs'], 0))
-
             issues_summary = IssuesSummary(issues_content, issues=issues)
             issues_summary.pack(fill="x")
 
-            # AI Fix button inside the issues section
+            # AI Fix button inside the section
             ai_key = self._analyzer_service.get_setting('ai_api_key', '')
             if ai_key:
                 ctk.CTkFrame(issues_content, fg_color=COLORS['border'], height=1).pack(
@@ -413,14 +393,15 @@ class MainWindow(ctk.CTkFrame):
                         fill="x", pady=SPACING['sm']
                     )
                 for i, rec in enumerate(recommendations, 1):
-                    rec_frame = ctk.CTkFrame(rec_content, fg_color=COLORS['bg_light'], corner_radius=4)
-                    rec_frame.pack(fill="x", pady=(0, SPACING['xs']))
+                    rec_row = ctk.CTkFrame(rec_content, fg_color=COLORS['bg_dark'], corner_radius=4, height=28)
+                    rec_row.pack(fill="x", pady=(0, 1))
+                    rec_row.pack_propagate(False)
                     ctk.CTkLabel(
-                        rec_frame, text=f"{i}. {rec}",
-                        font=ctk.CTkFont(size=12),
+                        rec_row, text=f"{i}. {rec}",
+                        font=ctk.CTkFont(size=11),
                         text_color=COLORS['text_secondary'],
-                        wraplength=600, justify="left",
-                    ).pack(anchor="w", padx=SPACING['sm'], pady=SPACING['sm'])
+                        anchor="w",
+                    ).pack(side="left", padx=SPACING['sm'])
 
         # --- Browser Support (collapsed) ---
         if browsers:
