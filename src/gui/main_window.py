@@ -314,106 +314,95 @@ class MainWindow(ctk.CTkFrame):
             features_count=total_features
         )
 
-        # ML risk assessment (only if ML module is available)
-        if self._analyzer_service.is_ml_enabled():
-            self._ml_features = features
-            self._ml_total_features = total_features
-
-            ml_section = CollapsibleSection(
-                scroll_frame,
-                title="ML Risk Assessment",
-                badge_text="AI",
-                badge_color=COLORS['accent'],
-                expanded=True,
-            )
-            ml_section.pack(fill="x", pady=(0, SPACING['lg']))
-
-            ml_content = ml_section.get_content_frame()
-
-            # Replaced with actual results when user clicks "Run ML Analysis"
-            self._ml_content_frame = ctk.CTkFrame(ml_content, fg_color="transparent")
-            self._ml_content_frame.pack(fill="x")
-
-            self._ml_button_frame = ctk.CTkFrame(self._ml_content_frame, fg_color=COLORS['bg_medium'], corner_radius=8)
-            self._ml_button_frame.pack(fill="x", pady=SPACING['sm'])
-
-            ml_info_frame = ctk.CTkFrame(self._ml_button_frame, fg_color="transparent")
-            ml_info_frame.pack(fill="x", padx=SPACING['lg'], pady=SPACING['lg'])
-
-            ctk.CTkLabel(
-                ml_info_frame,
-                text="🤖 ML-Powered Risk Analysis",
-                font=ctk.CTkFont(size=14, weight="bold"),
-                text_color=COLORS['text_primary'],
-            ).pack(anchor="w")
-
-            ctk.CTkLabel(
-                ml_info_frame,
-                text="Use machine learning to predict compatibility risks based on feature characteristics,\nspec status, browser bugs, and historical patterns.",
-                font=ctk.CTkFont(size=12),
-                text_color=COLORS['text_muted'],
-                justify="left",
-            ).pack(anchor="w", pady=(SPACING['xs'], SPACING['md']))
-
-            self._run_ml_button = ctk.CTkButton(
-                ml_info_frame,
-                text="▶  Run ML Analysis",
-                font=ctk.CTkFont(size=13, weight="bold"),
-                fg_color=COLORS['accent'],
-                hover_color=COLORS['accent_bright'],
-                height=40,
-                width=180,
-                command=self._run_ml_analysis,
-            )
-            self._run_ml_button.pack(anchor="w")
-
-        # Issues summary (if any)
+        # --- Issues & Fixes (merged section) ---
         issues = self._extract_issues(browsers)
         if issues:
-            issues_summary = IssuesSummary(scroll_frame, issues=issues)
-            issues_summary.pack(fill="x", pady=(0, SPACING['lg']))
+            issues_section = CollapsibleSection(
+                scroll_frame,
+                title="WHAT NEEDS YOUR ATTENTION",
+                badge_text=f"{len([i for i in issues if i['severity'] == 'error'])} critical" if any(i['severity'] == 'error' for i in issues) else "",
+                badge_color=COLORS['danger'],
+                expanded=True,
+            )
+            issues_section.pack(fill="x", pady=(0, SPACING['lg']))
+            issues_content = issues_section.get_content_frame()
 
-        # AI Fix Suggestions (optional -- only if API key is set)
-        ai_key = self._analyzer_service.get_setting('ai_api_key', '')
-        if ai_key and browsers:
-            ai_data = self._get_ai_fix_suggestions(browsers)
-            if ai_data['has_suggestions']:
-                ai_section = CollapsibleSection(
-                    scroll_frame,
-                    title="AI Fix Suggestions",
-                    badge_text=str(ai_data['count']),
-                    badge_color=COLORS['accent'],
-                    expanded=True,
+            issues_summary = IssuesSummary(issues_content, issues=issues)
+            issues_summary.pack(fill="x")
+
+            # AI Fix button inside the issues section
+            ai_key = self._analyzer_service.get_setting('ai_api_key', '')
+            if ai_key:
+                ctk.CTkFrame(issues_content, fg_color=COLORS['border'], height=1).pack(
+                    fill="x", pady=SPACING['md']
                 )
-                ai_section.pack(fill="x", pady=(0, SPACING['lg']))
-                ai_card = AIFixCard(ai_section.get_content_frame(), suggestions=ai_data['suggestions'])
-                ai_card.pack(fill="x")
+                self._ai_placeholder = ctk.CTkFrame(issues_content, fg_color="transparent")
+                self._ai_placeholder.pack(fill="x")
 
-        # Polyfill recommendations
+                ai_row = ctk.CTkFrame(self._ai_placeholder, fg_color="transparent")
+                ai_row.pack(fill="x")
+
+                ctk.CTkLabel(
+                    ai_row,
+                    text="Need help fixing these issues?",
+                    font=ctk.CTkFont(size=11),
+                    text_color=COLORS['text_muted'],
+                ).pack(side="left")
+
+                ctk.CTkButton(
+                    ai_row, text="Get AI Suggestions",
+                    font=ctk.CTkFont(size=11),
+                    width=150, height=30,
+                    fg_color=COLORS['accent'],
+                    hover_color=COLORS['accent_dim'],
+                    command=lambda e=None: self._on_ai_suggestions_click(browsers, scroll_frame),
+                ).pack(side="right")
+
+        # --- Recommendations (polyfills + text recs merged) ---
         polyfill_data = self._get_polyfill_recommendations(browsers)
-        if polyfill_data['has_recommendations']:
-            polyfill_section = CollapsibleSection(
+        recommendations = report.get('recommendations', [])
+        has_recs = polyfill_data['has_recommendations'] or recommendations
+
+        if has_recs:
+            rec_count = polyfill_data.get('count', 0) + len(recommendations)
+            rec_section = CollapsibleSection(
                 scroll_frame,
                 title="Recommendations",
-                badge_text=str(polyfill_data['count']),
+                badge_text=str(rec_count),
                 badge_color=COLORS['info'],
                 expanded=False,
             )
-            polyfill_section.pack(fill="x", pady=(0, SPACING['lg']))
+            rec_section.pack(fill="x", pady=(0, SPACING['lg']))
+            rec_content = rec_section.get_content_frame()
 
-            polyfill_content = polyfill_section.get_content_frame()
-            polyfill_card = PolyfillCard(
-                polyfill_content,
-                install_command=polyfill_data['install_command'],
-                import_statements=polyfill_data['imports'],
-                npm_recommendations=polyfill_data['npm'],
-                css_fallbacks=polyfill_data['css'],
-                total_size_kb=polyfill_data['total_size_kb'],
-                on_generate_file=self._generate_polyfills_file,
-            )
-            polyfill_card.pack(fill="x")
+            if polyfill_data['has_recommendations']:
+                polyfill_card = PolyfillCard(
+                    rec_content,
+                    install_command=polyfill_data['install_command'],
+                    import_statements=polyfill_data['imports'],
+                    npm_recommendations=polyfill_data['npm'],
+                    css_fallbacks=polyfill_data['css'],
+                    total_size_kb=polyfill_data['total_size_kb'],
+                    on_generate_file=self._generate_polyfills_file,
+                )
+                polyfill_card.pack(fill="x")
 
-        # Browser support (collapsed)
+            if recommendations:
+                if polyfill_data['has_recommendations']:
+                    ctk.CTkFrame(rec_content, fg_color=COLORS['border'], height=1).pack(
+                        fill="x", pady=SPACING['sm']
+                    )
+                for i, rec in enumerate(recommendations, 1):
+                    rec_frame = ctk.CTkFrame(rec_content, fg_color=COLORS['bg_light'], corner_radius=4)
+                    rec_frame.pack(fill="x", pady=(0, SPACING['xs']))
+                    ctk.CTkLabel(
+                        rec_frame, text=f"{i}. {rec}",
+                        font=ctk.CTkFont(size=12),
+                        text_color=COLORS['text_secondary'],
+                        wraplength=600, justify="left",
+                    ).pack(anchor="w", padx=SPACING['sm'], pady=SPACING['sm'])
+
+        # --- Browser Support (collapsed) ---
         if browsers:
             browser_section = CollapsibleSection(
                 scroll_frame,
@@ -572,6 +561,76 @@ class MainWindow(ctk.CTkFrame):
 
             search_var.trace_add("write", filter_features)
 
+            # Unrecognized patterns (sub-section inside Detected Features)
+            unrecognized = report.get('unrecognized', {})
+            if unrecognized and unrecognized.get('total', 0) > 0:
+                unrec_card = ctk.CTkFrame(
+                    features_content, fg_color=COLORS['bg_medium'],
+                    corner_radius=8, border_width=1, border_color=COLORS['warning'],
+                )
+                unrec_card.pack(fill="x", pady=(SPACING['lg'], 0))
+
+                unrec_inner = ctk.CTkFrame(unrec_card, fg_color="transparent")
+                unrec_inner.pack(fill="x", padx=SPACING['md'], pady=SPACING['md'])
+
+                unrec_header = ctk.CTkFrame(unrec_inner, fg_color="transparent")
+                unrec_header.pack(fill="x", pady=(0, SPACING['xs']))
+
+                ctk.CTkLabel(
+                    unrec_header,
+                    text="Unrecognized Patterns",
+                    font=ctk.CTkFont(size=12, weight="bold"),
+                    text_color=COLORS['text_primary'],
+                ).pack(side="left")
+
+                ctk.CTkLabel(
+                    unrec_header,
+                    text=f" {unrecognized.get('total', 0)} ",
+                    font=ctk.CTkFont(size=9),
+                    text_color=COLORS['text_primary'],
+                    fg_color=COLORS['warning'],
+                    corner_radius=4,
+                ).pack(side="left", padx=(SPACING['sm'], 0))
+
+                ctk.CTkLabel(
+                    unrec_inner,
+                    text="Found in source but no detection rule matched. Consider adding custom rules.",
+                    font=ctk.CTkFont(size=10),
+                    text_color=COLORS['text_muted'],
+                ).pack(anchor="w", pady=(0, SPACING['sm']))
+
+                unrec_types = [
+                    ("HTML", unrecognized.get('html', []), COLORS['html_color']),
+                    ("CSS", unrecognized.get('css', []), COLORS['css_color']),
+                    ("JavaScript", unrecognized.get('js', []), COLORS['js_color']),
+                ]
+
+                for type_name, pattern_list, color in unrec_types:
+                    if pattern_list:
+                        type_frame = ctk.CTkFrame(unrec_inner, fg_color="transparent")
+                        type_frame.pack(fill="x", pady=(0, SPACING['xs']))
+
+                        ctk.CTkLabel(
+                            type_frame,
+                            text=f" {type_name} ({len(pattern_list)}) ",
+                            font=ctk.CTkFont(size=10, weight="bold"),
+                            text_color=COLORS['text_primary'],
+                            fg_color=color,
+                            corner_radius=4,
+                        ).pack(side="left")
+
+                        display_text = ", ".join(pattern_list[:10])
+                        if len(pattern_list) > 10:
+                            display_text += f", ... (+{len(pattern_list) - 10} more)"
+
+                        ctk.CTkLabel(
+                            type_frame,
+                            text=display_text,
+                            font=ctk.CTkFont(size=10),
+                            text_color=COLORS['text_muted'],
+                            wraplength=500, justify="left",
+                        ).pack(side="left", padx=(SPACING['sm'], 0))
+
         # Visualizations
         if browsers:
             viz_section = CollapsibleSection(
@@ -617,118 +676,6 @@ class MainWindow(ctk.CTkFrame):
             breakdown_chart = CompatibilityBarChart(viz_content)
             breakdown_chart.pack(fill="x", pady=(SPACING['sm'], 0))
             breakdown_chart.set_data(chart_data)
-
-        # Unrecognized patterns
-        unrecognized = report.get('unrecognized', {})
-        if unrecognized and unrecognized.get('total', 0) > 0:
-            unrec_section = CollapsibleSection(
-                scroll_frame,
-                title="Unrecognized Patterns",
-                badge_text=str(unrecognized.get('total', 0)),
-                badge_color=COLORS['warning'],
-                expanded=False,
-            )
-            unrec_section.pack(fill="x", pady=(0, SPACING['lg']))
-
-            unrec_content = unrec_section.get_content_frame()
-
-            ctk.CTkLabel(
-                unrec_content,
-                text="These patterns were found but have no detection rules. Consider adding custom rules.",
-                font=ctk.CTkFont(size=11),
-                text_color=COLORS['text_muted'],
-            ).pack(anchor="w", pady=(0, SPACING['sm']))
-
-            unrec_types = [
-                ("HTML", unrecognized.get('html', []), COLORS['html_color']),
-                ("CSS", unrecognized.get('css', []), COLORS['css_color']),
-                ("JavaScript", unrecognized.get('js', []), COLORS['js_color']),
-            ]
-
-            for type_name, pattern_list, color in unrec_types:
-                if pattern_list:
-                    type_frame = ctk.CTkFrame(unrec_content, fg_color="transparent")
-                    type_frame.pack(fill="x", pady=(0, SPACING['sm']))
-
-                    badge = ctk.CTkLabel(
-                        type_frame,
-                        text=f" {type_name} ({len(pattern_list)}) ",
-                        font=ctk.CTkFont(size=11, weight="bold"),
-                        text_color=COLORS['text_primary'],
-                        fg_color=color,
-                        corner_radius=4,
-                    )
-                    badge.pack(side="left")
-
-                    patterns_container = ctk.CTkFrame(type_frame, fg_color="transparent")
-                    patterns_container.pack(side="left", fill="x", expand=True, padx=(SPACING['sm'], 0))
-
-                    short_text = ", ".join(pattern_list[:10])
-                    full_text = ", ".join(pattern_list)
-                    is_truncated = len(pattern_list) > 10
-
-                    if is_truncated:
-                        short_text += f", ... (+{len(pattern_list) - 10} more)"
-
-                    patterns_label = ctk.CTkLabel(
-                        patterns_container,
-                        text=short_text,
-                        font=ctk.CTkFont(size=11),
-                        text_color=COLORS['text_muted'],
-                        wraplength=600,
-                        justify="left",
-                    )
-                    patterns_label.pack(side="left")
-
-                    if is_truncated:
-                        is_expanded = [False]  # mutable closure trick
-
-                        def toggle_expand(lbl=patterns_label, short=short_text, full=full_text, expanded=is_expanded):
-                            expanded[0] = not expanded[0]
-                            lbl.configure(text=full if expanded[0] else short)
-
-                        see_all_btn = ctk.CTkButton(
-                            patterns_container,
-                            text="See All",
-                            font=ctk.CTkFont(size=10),
-                            width=50,
-                            height=20,
-                            fg_color=COLORS['bg_light'],
-                            hover_color=COLORS['bg_medium'],
-                            text_color=COLORS['accent'],
-                            command=toggle_expand,
-                        )
-                        see_all_btn.pack(side="left", padx=(SPACING['sm'], 0))
-
-        # Recommendations
-        recommendations = report.get('recommendations', [])
-        if recommendations:
-            rec_section = CollapsibleSection(
-                scroll_frame,
-                title="Recommendations",
-                badge_text=str(len(recommendations)),
-                badge_color=COLORS['info'],
-                expanded=False,
-            )
-            rec_section.pack(fill="x", pady=(0, SPACING['lg']))
-
-            rec_content = rec_section.get_content_frame()
-            for i, rec in enumerate(recommendations, 1):
-                rec_frame = ctk.CTkFrame(
-                    rec_content,
-                    fg_color=COLORS['bg_light'],
-                    corner_radius=4,
-                )
-                rec_frame.pack(fill="x", pady=(0, SPACING['sm']))
-
-                ctk.CTkLabel(
-                    rec_frame,
-                    text=f"{i}. {rec}",
-                    font=ctk.CTkFont(size=12),
-                    text_color=COLORS['text_secondary'],
-                    wraplength=600,
-                    justify="left",
-                ).pack(anchor="w", padx=SPACING['sm'], pady=SPACING['sm'])
 
         # Export actions
         actions_frame = ctk.CTkFrame(
@@ -1161,6 +1108,75 @@ class MainWindow(ctk.CTkFrame):
             'count': len(suggestions),
             'suggestions': suggestions,
         }
+
+    def _on_ai_suggestions_click(self, browsers: Dict, scroll_frame):
+        """Called when user clicks 'Get AI Suggestions' button. Runs API in background thread."""
+        import threading
+
+        # Replace button with loading indicator
+        for w in self._ai_placeholder.winfo_children():
+            w.destroy()
+
+        loading_frame = ctk.CTkFrame(self._ai_placeholder, fg_color="transparent")
+        loading_frame.pack(fill="x")
+
+        loading_label = ctk.CTkLabel(
+            loading_frame,
+            text="Generating AI suggestions...",
+            font=ctk.CTkFont(size=11),
+            text_color=COLORS['text_muted'],
+        )
+        loading_label.pack(side="left")
+
+        # Animate dots while waiting
+        self._ai_loading = True
+        dot_count = [0]
+
+        def animate_dots():
+            if not self._ai_loading:
+                return
+            dot_count[0] = (dot_count[0] % 3) + 1
+            try:
+                loading_label.configure(text="Generating AI suggestions" + "." * dot_count[0])
+                self.after(500, animate_dots)
+            except Exception:
+                pass
+
+        animate_dots()
+
+        # Run API call in background thread
+        def fetch():
+            ai_data = self._get_ai_fix_suggestions(browsers)
+            # Schedule UI update back on main thread
+            self.after(0, lambda: self._show_ai_results(ai_data))
+
+        threading.Thread(target=fetch, daemon=True).start()
+
+    def _show_ai_results(self, ai_data: dict):
+        """Render AI suggestions after background fetch completes."""
+        self._ai_loading = False
+
+        for w in self._ai_placeholder.winfo_children():
+            w.destroy()
+
+        if ai_data['has_suggestions']:
+            ai_section = CollapsibleSection(
+                self._ai_placeholder,
+                title="AI Fix Suggestions",
+                badge_text=str(ai_data['count']),
+                badge_color=COLORS['accent'],
+                expanded=True,
+            )
+            ai_section.pack(fill="x")
+            ai_card = AIFixCard(ai_section.get_content_frame(), suggestions=ai_data['suggestions'])
+            ai_card.pack(fill="x")
+        else:
+            ctk.CTkLabel(
+                self._ai_placeholder,
+                text="No suggestions available for these features",
+                font=ctk.CTkFont(size=11),
+                text_color=COLORS['text_muted'],
+            ).pack(anchor="w")
 
     def _generate_polyfills_file(self, filename: str):
         """Save a polyfills.js file with all necessary imports."""
@@ -1755,6 +1771,17 @@ class MainWindow(ctk.CTkFrame):
             command=lambda e=None: self._save_ai_key(),
         ).pack(side="left", padx=(SPACING['sm'], 0))
 
+        ctk.CTkButton(
+            key_row,
+            text="Clear",
+            width=60,
+            height=32,
+            fg_color=COLORS['danger_muted'] if 'danger_muted' in COLORS else COLORS['bg_light'],
+            hover_color=COLORS['danger'] if 'danger' in COLORS else COLORS['hover_bg'],
+            text_color=COLORS['danger'] if 'danger' in COLORS else COLORS['text_muted'],
+            command=lambda e=None: self._clear_ai_key(ai_key_entry),
+        ).pack(side="left", padx=(SPACING['xs'], 0))
+
         provider_row = ctk.CTkFrame(ai_content, fg_color="transparent")
         provider_row.pack(fill="x")
 
@@ -2085,6 +2112,11 @@ class MainWindow(ctk.CTkFrame):
             show_info(self, "Saved", "AI API key saved. Fix suggestions will appear in analysis results.")
         else:
             show_info(self, "Cleared", "AI API key removed. Fix suggestions are disabled.")
+
+    def _clear_ai_key(self, entry_widget):
+        self._ai_key_var.set("")
+        self._analyzer_service.set_setting('ai_api_key', '')
+        show_info(self, "Cleared", "AI API key removed. Fix suggestions are disabled.")
 
     def _update_database(self):
         try:

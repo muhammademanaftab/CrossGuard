@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#4285f4">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'">
+    <link rel="preload" href="styles.css" as="style">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <script type="module" src="app.js" defer></script>
+    <title>Cross Guard Test Page</title>
+
+    <style>
+        /* CSS Grid + Flexbox */
+        .grid-layout {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .flex-card {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transition: transform 0.3s ease;
+        }
+
+        .flex-card:hover {
+            transform: translateY(-4px);
+        }
+
+        /* CSS Variables + Dark Mode */
+        :root {
+            --bg: #ffffff;
+            --text: #1a1a1a;
+            --accent: #4285f4;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #1a1a1a;
+                --text: #ffffff;
+            }
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: system-ui, sans-serif;
+            font-size: clamp(1rem, 2vw, 1.25rem);
+        }
+
+        /* Modern CSS */
+        .container {
+            container-type: inline-size;
+            container-name: main;
+        }
+
+        @container main (min-width: 600px) {
+            .responsive { display: flex; }
+        }
+
+        .nested {
+            color: blue;
+            &:hover { color: red; }
+            & .child { opacity: 0.8; }
+        }
+
+        /* Selectors */
+        article:has(img) { padding: 20px; }
+        :is(h1, h2, h3) { margin-top: 1em; }
+        button:focus-visible { outline: 2px solid var(--accent); }
+
+        /* Filters + Backdrop */
+        .glass {
+            backdrop-filter: blur(10px);
+            filter: brightness(1.1);
+        }
+
+        /* Scroll Snap */
+        .gallery {
+            scroll-snap-type: x mandatory;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+        }
+
+        .gallery-item {
+            scroll-snap-align: start;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate { animation: fadeIn 0.5s ease-out; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .animate { animation: none; }
+        }
+
+        /* Logical Properties */
+        .rtl-safe {
+            margin-inline: auto;
+            padding-block: 20px;
+        }
+
+        /* Modern Units */
+        .hero { height: 100dvh; }
+        .sidebar { width: 20cqi; }
+    </style>
+</head>
+<body>
+    <!-- Semantic HTML5 -->
+    <header>
+        <nav aria-label="Main navigation" role="navigation">
+            <a href="/">Home</a>
+            <a href="/about">About</a>
+        </nav>
+    </header>
+
+    <main>
+        <!-- Dialog -->
+        <dialog id="modal">
+            <form method="dialog">
+                <h2>Settings</h2>
+                <button>Close</button>
+            </form>
+        </dialog>
+
+        <!-- Details/Summary -->
+        <details>
+            <summary>FAQ: How does Cross Guard work?</summary>
+            <p>It parses your HTML, CSS, and JS files to detect browser compatibility issues.</p>
+        </details>
+
+        <!-- Responsive Images -->
+        <picture>
+            <source srcset="hero.avif" type="image/avif">
+            <source srcset="hero.webp" type="image/webp">
+            <img src="hero.jpg" srcset="hero-2x.jpg 2x" loading="lazy" alt="Hero image">
+        </picture>
+
+        <!-- Video with Tracks -->
+        <video controls crossorigin="anonymous" poster="poster.jpg">
+            <source src="demo.webm" type="video/webm">
+            <source src="demo.mp4" type="video/mp4">
+            <track kind="captions" src="captions.vtt" srclang="en" default>
+        </video>
+
+        <!-- Audio -->
+        <audio controls>
+            <source src="podcast.opus" type="audio/opus">
+            <source src="podcast.mp3" type="audio/mpeg">
+        </audio>
+
+        <!-- Canvas + SVG -->
+        <canvas id="chart" width="800" height="400" aria-label="Analytics chart" role="img"></canvas>
+
+        <svg viewBox="0 0 100 100" aria-label="Logo">
+            <circle cx="50" cy="50" r="40" fill="var(--accent)"/>
+        </svg>
+        <img src="icon.svg" alt="Icon">
+        <svg class="sprite"><use href="icons.svg#menu"></use></svg>
+
+        <!-- Forms -->
+        <form id="checkout">
+            <fieldset disabled>
+                <legend>Disabled Section</legend>
+                <input type="text" disabled>
+            </fieldset>
+
+            <input type="email" required autocomplete="email" placeholder="you@example.com" inputmode="email">
+            <input type="tel" pattern="[0-9]{10}" minlength="10" maxlength="15">
+            <input type="date" required>
+            <input type="color" value="#4285f4">
+            <input type="range" min="0" max="100">
+            <input type="number" min="1" max="99" step="1">
+            <input type="search" autofocus>
+            <input type="file" accept="image/*" multiple capture="environment">
+            <input type="file" webkitdirectory>
+
+            <datalist id="browsers">
+                <option value="Chrome">
+                <option value="Firefox">
+            </datalist>
+            <input list="browsers">
+
+            <meter min="0" max="100" value="75">75%</meter>
+            <progress value="60" max="100">60%</progress>
+
+            <button type="submit" formaction="/submit" formmethod="post">Submit</button>
+        </form>
+
+        <!-- Interactive Attributes -->
+        <div contenteditable="true" spellcheck="true" role="textbox" aria-label="Editor">
+            Edit this text
+        </div>
+
+        <div draggable="true" tabindex="0">Drag me</div>
+        <div hidden>Secret content</div>
+        <a href="report.pdf" download="report.pdf" rel="noopener noreferrer"
+           referrerpolicy="no-referrer">Download Report</a>
+        <a href="https://example.com" ping="/analytics">External Link</a>
+
+        <!-- Lazy Loading -->
+        <img src="photo.jpg" loading="lazy" alt="Lazy photo">
+        <iframe src="embed.html" loading="lazy" sandbox="allow-scripts"
+                srcdoc="<p>Embedded</p>"></iframe>
+
+        <!-- Subresource Integrity -->
+        <script src="lib.js" integrity="sha384-abc123" crossorigin="anonymous" async></script>
+
+        <!-- Custom Elements + Shadow DOM -->
+        <my-dashboard>
+            <template shadowrootmode="open">
+                <slot name="content"></slot>
+            </template>
+        </my-dashboard>
+
+        <button is="fancy-button">Enhanced Button</button>
+
+        <!-- Data Attributes -->
+        <div data-user-id="123" data-config='{"theme":"dark"}' ontouchstart="handleTouch()"
+             onpointerdown="handlePointer()">
+            Touch-enabled content
+        </div>
+
+        <!-- Media Fragments -->
+        <video src="clip.mp4#t=10,30"></video>
+
+        <!-- Data URI -->
+        <img src="data:image/png;base64,iVBORw0KGgo=" alt="Tiny icon">
+
+        <!-- Ruby -->
+        <ruby>漢<rt>kan</rt></ruby>
+
+        <!-- Math -->
+        <math><mi>x</mi><mo>=</mo><mn>42</mn></math>
+
+        <!-- WBR -->
+        <p>Supercalifragilistic<wbr>expialidocious</p>
+    </main>
+
+    <footer>
+        <p>&copy; 2024 Cross Guard Test</p>
+    </footer>
+
+    <script>
+        // ES6+ Syntax
+        const greet = (name) => `Hello, ${name}!`;
+        let count = 0;
+        class App {
+            #privateField = 42;
+            async init() {
+                const data = await fetch('/api/data');
+                const json = await data.json();
+                return json;
+            }
+        }
+
+        // Promises
+        const loadData = () => new Promise((resolve) => resolve('done'));
+        loadData().then(console.log);
+
+        // Optional Chaining + Nullish Coalescing
+        const value = window?.config?.theme ?? 'default';
+
+        // Modern APIs
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(e => e.isIntersecting && e.target.classList.add('visible'));
+        });
+
+        const resizer = new ResizeObserver((entries) => {
+            entries.forEach(e => console.log(e.contentRect));
+        });
+
+        new MutationObserver((mutations) => {
+            mutations.forEach(m => console.log(m.type));
+        }).observe(document.body, { childList: true });
+
+        // Service Worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/sw.js');
+        }
+
+        // Geolocation
+        navigator.geolocation.getCurrentPosition(pos => console.log(pos));
+
+        // Storage
+        localStorage.setItem('key', 'value');
+        const db = indexedDB.open('myDB', 1);
+
+        // WebSocket
+        const ws = new WebSocket('wss://example.com/socket');
+
+        // Crypto
+        crypto.subtle.digest('SHA-256', new ArrayBuffer(8));
+
+        // AbortController + Fetch
+        const controller = new AbortController();
+        fetch('/api', { signal: controller.signal });
+
+        // Typed Arrays
+        const buffer = new ArrayBuffer(16);
+        const view = new Float64Array(buffer);
+
+        // Web Workers
+        const worker = new Worker('worker.js');
+
+        // Proxy + Symbol + Map + Set
+        const proxy = new Proxy({}, { get: (t, p) => p });
+        const sym = Symbol('unique');
+        const map = new Map([['key', 'value']]);
+        const set = new Set([1, 2, 3]);
+        const weakMap = new WeakMap();
+
+        // BigInt
+        const big = BigInt(9007199254740991);
+
+        // Modules
+        import('./module.js').then(m => m.default());
+
+        // Custom Elements
+        customElements.define('my-dashboard', class extends HTMLElement {
+            connectedCallback() { this.innerHTML = '<p>Dashboard</p>'; }
+        });
+
+        // WebGL
+        const gl = document.querySelector('canvas').getContext('webgl');
+
+        // Clipboard
+        navigator.clipboard.writeText('copied');
+
+        // Broadcast Channel
+        const channel = new BroadcastChannel('app');
+
+        // structuredClone
+        const clone = structuredClone({ nested: { data: true } });
+    </script>
+</body>
+</html>
