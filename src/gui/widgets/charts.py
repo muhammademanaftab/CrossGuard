@@ -1,586 +1,278 @@
-"""Matplotlib chart widgets for data visualization."""
+"""Native CustomTkinter chart widgets for data visualization."""
 
-from typing import Dict, List
-import math
-
+from typing import Dict
 import customtkinter as ctk
-import numpy as np
-from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
-from matplotlib.figure import Figure
-from matplotlib.patches import FancyBboxPatch, Wedge, Circle, Polygon
-from matplotlib.lines import Line2D
-import matplotlib.pyplot as plt
-import matplotlib.patheffects as path_effects
 
-from ..theme import COLORS
+from ..theme import COLORS, SPACING
+from .browser_card import StackedBarWidget
 
+
+# --- Browser Compatibility Bars (replaces radar + bar chart) ---
 
 class BrowserRadarChart(ctk.CTkFrame):
-    """Radar/spider chart comparing browser compatibility scores."""
+    """Browser compatibility overview with stacked bars per browser."""
 
     def __init__(self, master, **kwargs):
-        super().__init__(
-            master,
-            fg_color=COLORS['bg_medium'],
-            corner_radius=12,
-            **kwargs
-        )
+        super().__init__(master, fg_color=COLORS['bg_medium'], corner_radius=8, **kwargs)
+        self._data = {}
 
-        self._browsers_data = {}
-        self._init_ui()
-
-    def _init_ui(self):
-        plt.style.use('dark_background')
-
-        self.title_label = ctk.CTkLabel(
-            self,
-            text="Browser Compatibility Radar",
-            font=ctk.CTkFont(size=14, weight="bold"),
+        ctk.CTkLabel(
+            self, text="Browser Compatibility",
+            font=ctk.CTkFont(size=13, weight="bold"),
             text_color=COLORS['text_primary'],
-        )
-        self.title_label.pack(anchor="w", padx=16, pady=(12, 4))
-
-        self.figure = Figure(figsize=(5, 4.5), dpi=100, facecolor=COLORS['bg_medium'])
-        self.figure.patch.set_facecolor(COLORS['bg_medium'])
-
-        self.canvas = FigureCanvasTkAgg(self.figure, master=self)
-        canvas_widget = self.canvas.get_tk_widget()
-        canvas_widget.configure(bg=COLORS['bg_medium'], highlightthickness=0)
-        canvas_widget.pack(fill="both", expand=True, padx=8, pady=(0, 12))
+        ).pack(anchor="w", padx=SPACING['md'], pady=(SPACING['md'], SPACING['sm']))
 
     def set_data(self, browsers_data: Dict):
-        self._browsers_data = browsers_data
-        self._draw_chart()
+        self._data = browsers_data
+        self._draw()
 
-    def _draw_chart(self):
-        self.figure.clear()
+    def _draw(self, **kwargs):
+        # Remove old rows (keep the title label)
+        if not hasattr(self, '_data'):
+            return
+        for w in self.winfo_children()[1:]:
+            w.destroy()
 
-        if not self._browsers_data:
-            self.canvas.draw()
+        if not self._data:
             return
 
-        browsers = list(self._browsers_data.keys())
-        n_browsers = len(browsers)
-
-        if n_browsers < 3:
-            # Radar needs at least 3 points, fall back to bars
-            self._draw_fallback_bar()
-            return
-
-        angles = np.linspace(0, 2 * np.pi, n_browsers, endpoint=False).tolist()
-        angles += angles[:1]  # close the polygon
-
-        values = []
-        for browser in browsers:
-            data = self._browsers_data[browser]
+        for name, data in self._data.items():
+            supported = data.get('supported', 0) or 0
+            partial = data.get('partial', 0) or 0
+            unsupported = data.get('unsupported', 0) or 0
             pct = data.get('compatibility_percentage', 0) or 0
-            values.append(pct)
-        values += values[:1]
 
-        ax = self.figure.add_subplot(111, projection='polar')
-        ax.set_facecolor(COLORS['bg_medium'])
+            row = ctk.CTkFrame(self, fg_color="transparent")
+            row.pack(fill="x", padx=SPACING['md'], pady=(0, SPACING['sm']))
 
-        # Background rings at 25% intervals
-        for ring_val in [25, 50, 75, 100]:
-            ring_angles = np.linspace(0, 2 * np.pi, 100)
-            ring_values = [ring_val] * 100
-            ax.plot(ring_angles, ring_values, color=COLORS['border'],
-                   linewidth=0.5, linestyle='-', alpha=0.4)
+            # Browser name
+            ctk.CTkLabel(
+                row, text=name.title(),
+                font=ctk.CTkFont(size=11, weight="bold"),
+                text_color=COLORS['text_primary'],
+                width=70, anchor="w",
+            ).pack(side="left")
 
-        for angle in angles[:-1]:
-            ax.plot([angle, angle], [0, 100], color=COLORS['border'],
-                   linewidth=0.5, alpha=0.4)
+            # Stacked bar
+            bar = StackedBarWidget(row, height=16, bg_color=COLORS['bg_medium'])
+            bar.pack(side="left", fill="x", expand=True, padx=SPACING['sm'])
+            bar.set_values(supported, partial, unsupported, animate=False)
 
-        # Layered fill for depth effect
-        ax.fill(angles, values, alpha=0.1, color='#58a6ff')
-        ax.fill(angles, values, alpha=0.3, color='#58a6ff')
-        ax.plot(angles, values, 'o-', linewidth=2.5, color='#58a6ff',
-               markersize=8, markerfacecolor='#79c0ff', markeredgecolor='#58a6ff',
-               markeredgewidth=2)
+            # Percentage
+            if pct >= 80:
+                pct_color = COLORS['success']
+            elif pct >= 50:
+                pct_color = COLORS['warning']
+            else:
+                pct_color = COLORS['danger']
 
-        # Glow behind markers
-        ax.plot(angles, values, 'o', markersize=12, color='#58a6ff', alpha=0.3)
+            ctk.CTkLabel(
+                row, text=f"{pct:.0f}%",
+                font=ctk.CTkFont(size=11, weight="bold"),
+                text_color=pct_color,
+                width=45, anchor="e",
+            ).pack(side="right")
 
-        ax.set_xticks(angles[:-1])
-        browser_labels = []
-        for i, browser in enumerate(browsers):
-            pct = values[i]
-            browser_labels.append(f'{browser.title()}\n{pct:.0f}%')
+        # Legend row
+        legend = ctk.CTkFrame(self, fg_color="transparent")
+        legend.pack(fill="x", padx=SPACING['md'], pady=(SPACING['xs'], SPACING['md']))
 
-        ax.set_xticklabels(browser_labels, fontsize=10, fontweight='bold',
-                          color=COLORS['text_primary'])
-
-        ax.set_yticklabels([])
-        ax.set_ylim(0, 105)
-
-        ax.spines['polar'].set_color(COLORS['border'])
-        ax.spines['polar'].set_linewidth(1)
-        ax.grid(False)
-
-        avg_score = sum(values[:-1]) / n_browsers
-        ax.text(0, 0, f'{avg_score:.0f}%\navg', ha='center', va='center',
-               fontsize=14, fontweight='bold', color=COLORS['accent'],
-               transform=ax.transData)
-
-        self.figure.tight_layout(pad=1)
-        self.canvas.draw()
-
-    def _draw_fallback_bar(self):
-        ax = self.figure.add_subplot(111)
-        ax.set_facecolor(COLORS['bg_medium'])
-
-        browsers = list(self._browsers_data.keys())
-        percentages = [self._browsers_data[b].get('compatibility_percentage', 0) or 0
-                      for b in browsers]
-
-        bars = ax.barh(browsers, percentages, color='#58a6ff', height=0.5)
-
-        ax.set_xlim(0, 100)
-        ax.set_xlabel('Compatibility %', color=COLORS['text_muted'])
-        ax.tick_params(colors=COLORS['text_primary'])
-
-        for spine in ax.spines.values():
-            spine.set_visible(False)
-
-        self.figure.tight_layout()
-        self.canvas.draw()
+        for label, color in [("Supported", COLORS['success']), ("Partial", COLORS['warning']), ("Unsupported", COLORS['danger'])]:
+            dot = ctk.CTkFrame(legend, fg_color=color, width=8, height=8, corner_radius=4)
+            dot.pack(side="left", padx=(0, 3))
+            ctk.CTkLabel(
+                legend, text=label,
+                font=ctk.CTkFont(size=9),
+                text_color=COLORS['text_muted'],
+            ).pack(side="left", padx=(0, SPACING['md']))
 
     def clear(self):
-        self.figure.clear()
-        self.canvas.draw()
+        for w in self.winfo_children()[1:]:
+            w.destroy()
 
 
-class CompatibilityBarChart(ctk.CTkFrame):
-    """Horizontal stacked bar chart: supported/partial/unsupported per browser."""
-
-    def __init__(self, master, **kwargs):
-        super().__init__(
-            master,
-            fg_color=COLORS['bg_medium'],
-            corner_radius=12,
-            **kwargs
-        )
-
-        self._browsers_data = {}
-        self._init_ui()
-
-    def _init_ui(self):
-        plt.style.use('dark_background')
-
-        self.title_label = ctk.CTkLabel(
-            self,
-            text="Feature Support Breakdown",
-            font=ctk.CTkFont(size=14, weight="bold"),
-            text_color=COLORS['text_primary'],
-        )
-        self.title_label.pack(anchor="w", padx=16, pady=(12, 4))
-
-        self.figure = Figure(figsize=(7, 3.5), dpi=100, facecolor=COLORS['bg_medium'])
-        self.figure.patch.set_facecolor(COLORS['bg_medium'])
-
-        self.canvas = FigureCanvasTkAgg(self.figure, master=self)
-        canvas_widget = self.canvas.get_tk_widget()
-        canvas_widget.configure(bg=COLORS['bg_medium'], highlightthickness=0)
-        canvas_widget.pack(fill="both", expand=True, padx=8, pady=(0, 12))
-
-    def set_data(self, browsers_data: Dict):
-        self._browsers_data = browsers_data
-        self._draw_chart()
-
-    def _draw_chart(self):
-        self.figure.clear()
-
-        if not self._browsers_data:
-            self.canvas.draw()
-            return
-
-        ax = self.figure.add_subplot(111)
-        ax.set_facecolor(COLORS['bg_medium'])
-
-        browsers = list(self._browsers_data.keys())
-        n_browsers = len(browsers)
-
-        supported = []
-        partial = []
-        unsupported = []
-        percentages = []
-
-        for browser in browsers:
-            data = self._browsers_data[browser]
-            supported.append(data.get('supported', 0) or 0)
-            partial.append(data.get('partial', 0) or 0)
-            unsupported.append(data.get('unsupported', 0) or 0)
-            percentages.append(data.get('compatibility_percentage', 0) or 0)
-
-        y_pos = np.arange(n_browsers)
-        bar_height = 0.6
-
-        colors = {
-            'supported': '#3fb950',
-            'partial': '#d29922',
-            'unsupported': '#f85149',
-        }
-
-        bars1 = ax.barh(y_pos, supported, height=bar_height, color=colors['supported'],
-                       label='Supported', edgecolor='none')
-        bars2 = ax.barh(y_pos, partial, left=supported, height=bar_height,
-                       color=colors['partial'], label='Partial', edgecolor='none')
-        bars3 = ax.barh(y_pos, unsupported, left=[s+p for s,p in zip(supported, partial)],
-                       height=bar_height, color=colors['unsupported'],
-                       label='Unsupported', edgecolor='none')
-
-        ax.set_yticks(y_pos)
-        ax.set_yticklabels([b.title() for b in browsers], fontsize=11,
-                          color=COLORS['text_primary'])
-
-        max_total = max([s+p+u for s,p,u in zip(supported, partial, unsupported)]) or 1
-        for i, pct in enumerate(percentages):
-            pct_color = colors['supported'] if pct >= 80 else (
-                colors['partial'] if pct >= 50 else colors['unsupported'])
-            ax.text(max_total + 1, i, f'{pct:.0f}%', va='center', ha='left',
-                   fontsize=11, fontweight='bold', color=pct_color)
-
-        ax.set_xlabel('Features', fontsize=10, color=COLORS['text_muted'])
-        ax.set_xlim(0, max_total + 8)
-        ax.tick_params(axis='x', colors=COLORS['text_muted'])
-
-        for spine in ax.spines.values():
-            spine.set_visible(False)
-
-        legend = ax.legend(loc='upper right', fontsize=9, frameon=True,
-                          facecolor=COLORS['bg_dark'], edgecolor=COLORS['border'],
-                          labelcolor=COLORS['text_primary'])
-        legend.get_frame().set_alpha(0.95)
-
-        ax.invert_yaxis()
-        self.figure.tight_layout(pad=1.5)
-        self.canvas.draw()
-
-    def clear(self):
-        self.figure.clear()
-        self.canvas.draw()
-
+# --- Feature Distribution (replaces donut chart) ---
 
 class FeatureDistributionChart(ctk.CTkFrame):
-    """Donut chart showing HTML/CSS/JS feature distribution."""
+    """Feature type breakdown with progress bars for HTML/CSS/JS."""
 
     def __init__(self, master, **kwargs):
-        super().__init__(
-            master,
-            fg_color=COLORS['bg_medium'],
-            corner_radius=12,
-            **kwargs
-        )
+        super().__init__(master, fg_color=COLORS['bg_medium'], corner_radius=8, **kwargs)
+        self._total_label = None
 
-        self._data = {}
-        self._total_unique = None
-        self._init_ui()
-
-    def _init_ui(self):
-        plt.style.use('dark_background')
-
-        self.title_label = ctk.CTkLabel(
-            self,
-            text="Feature Distribution",
-            font=ctk.CTkFont(size=14, weight="bold"),
+        ctk.CTkLabel(
+            self, text="Feature Distribution",
+            font=ctk.CTkFont(size=13, weight="bold"),
             text_color=COLORS['text_primary'],
-        )
-        self.title_label.pack(anchor="w", padx=16, pady=(12, 4))
+        ).pack(anchor="w", padx=SPACING['md'], pady=(SPACING['md'], SPACING['sm']))
 
-        self.figure = Figure(figsize=(4, 4), dpi=100, facecolor=COLORS['bg_medium'])
-        self.figure.patch.set_facecolor(COLORS['bg_medium'])
-
-        self.canvas = FigureCanvasTkAgg(self.figure, master=self)
-        canvas_widget = self.canvas.get_tk_widget()
-        canvas_widget.configure(bg=COLORS['bg_medium'], highlightthickness=0)
-        canvas_widget.pack(fill="both", expand=True, padx=8, pady=(0, 12))
+        self._content = ctk.CTkFrame(self, fg_color="transparent")
+        self._content.pack(fill="x", padx=SPACING['md'], pady=(0, SPACING['md']))
 
     def set_data(self, html_count: int, css_count: int, js_count: int, total_unique: int = None):
-        """If total_unique is None, the sum of counts is used instead."""
-        self._data = {
-            'HTML': html_count or 0,
-            'CSS': css_count or 0,
-            'JavaScript': js_count or 0
-        }
-        self._total_unique = total_unique
-        self._draw_chart()
+        html_count = html_count or 0
+        css_count = css_count or 0
+        js_count = js_count or 0
+        total = total_unique if total_unique is not None else (html_count + css_count + js_count)
 
-    def _draw_chart(self):
-        self.figure.clear()
+        for w in self._content.winfo_children():
+            w.destroy()
 
-        labels = []
-        sizes = []
-        colors = []
+        # Total
+        ctk.CTkLabel(
+            self._content,
+            text=f"{total} features detected",
+            font=ctk.CTkFont(size=11),
+            text_color=COLORS['text_muted'],
+        ).pack(anchor="w", pady=(0, SPACING['sm']))
 
-        color_map = {
-            'HTML': '#e34c26',
-            'CSS': '#264de4',
-            'JavaScript': '#f7df1e'
-        }
+        types = [
+            ("HTML", html_count, COLORS.get('html_color', '#e34c26')),
+            ("CSS", css_count, COLORS.get('css_color', '#264de4')),
+            ("JavaScript", js_count, COLORS.get('js_color', '#f7df1e')),
+        ]
 
-        for label, size in self._data.items():
-            if size > 0:
-                labels.append(label)
-                sizes.append(size)
-                colors.append(color_map[label])
+        for name, count, color in types:
+            if count == 0 and total == 0:
+                continue
 
-        if not sizes:
-            ax = self.figure.add_subplot(111)
-            ax.set_facecolor(COLORS['bg_medium'])
-            ax.text(0.5, 0.5, 'No features\ndetected',
-                   ha='center', va='center', fontsize=12,
-                   color=COLORS['text_muted'], transform=ax.transAxes)
-            ax.axis('off')
-            self.canvas.draw()
-            return
+            row = ctk.CTkFrame(self._content, fg_color="transparent")
+            row.pack(fill="x", pady=(0, SPACING['xs']))
 
-        ax = self.figure.add_subplot(111)
-        ax.set_facecolor(COLORS['bg_medium'])
+            # Label row: dot + name + count
+            label_row = ctk.CTkFrame(row, fg_color="transparent")
+            label_row.pack(fill="x")
 
-        total = self._total_unique if self._total_unique is not None else sum(sizes)
+            dot = ctk.CTkFrame(label_row, fg_color=color, width=8, height=8, corner_radius=4)
+            dot.pack(side="left", pady=2)
 
-        wedges, texts = ax.pie(
-            sizes,
-            colors=colors,
-            startangle=90,
-            wedgeprops=dict(width=0.4, edgecolor=COLORS['bg_medium'], linewidth=2),
-            counterclock=False
-        )
+            ctk.CTkLabel(
+                label_row, text=name,
+                font=ctk.CTkFont(size=11),
+                text_color=COLORS['text_primary'],
+            ).pack(side="left", padx=(SPACING['xs'], 0))
 
-        for wedge in wedges:
-            wedge.set_alpha(0.9)
+            pct_text = f"{(count / total * 100):.0f}%" if total > 0 else "0%"
+            ctk.CTkLabel(
+                label_row, text=f"{count} ({pct_text})",
+                font=ctk.CTkFont(size=10),
+                text_color=COLORS['text_muted'],
+            ).pack(side="right")
 
-        center_circle = Circle((0, 0), 0.55, fc=COLORS['bg_medium'], ec='none', zorder=10)
-        ax.add_patch(center_circle)
+            # Progress bar
+            bar_bg = ctk.CTkFrame(row, fg_color=COLORS['bg_light'], height=6, corner_radius=3)
+            bar_bg.pack(fill="x", pady=(2, 0))
+            bar_bg.pack_propagate(False)
 
-        ax.text(0, 0.08, str(total), ha='center', va='center',
-               fontsize=28, fontweight='bold', color=COLORS['text_primary'], zorder=11)
-        ax.text(0, -0.18, 'features', ha='center', va='center',
-               fontsize=10, color=COLORS['text_muted'], zorder=11)
-
-        legend_labels = []
-        for label, size in zip(labels, sizes):
-            pct = (size / total) * 100
-            legend_labels.append(f'{label}  {size} ({pct:.0f}%)')
-
-        legend = ax.legend(wedges, legend_labels, loc='center left',
-                          bbox_to_anchor=(1.05, 0.5), fontsize=9, frameon=True,
-                          facecolor=COLORS['bg_dark'], edgecolor=COLORS['border'],
-                          labelcolor=COLORS['text_primary'])
-        legend.get_frame().set_alpha(0.95)
-
-        ax.set_aspect('equal')
-        self.figure.tight_layout(pad=0.5)
-        self.canvas.draw()
+            fill_pct = (count / total) if total > 0 else 0
+            if fill_pct > 0:
+                bar_fill = ctk.CTkFrame(bar_bg, fg_color=color, corner_radius=3)
+                bar_fill.place(relx=0, rely=0, relwidth=fill_pct, relheight=1)
 
     def clear(self):
-        self.figure.clear()
-        self.canvas.draw()
+        for w in self._content.winfo_children():
+            w.destroy()
 
 
-class ScoreGaugeChart(ctk.CTkFrame):
-    """Semi-circular arc gauge for displaying the compatibility score."""
+# --- Compatibility Bar Chart (replaces matplotlib stacked bars) ---
+
+class CompatibilityBarChart(ctk.CTkFrame):
+    """Support summary with stat blocks for supported/partial/unsupported totals."""
 
     def __init__(self, master, **kwargs):
-        super().__init__(
-            master,
-            fg_color=COLORS['bg_medium'],
-            corner_radius=12,
-            **kwargs
-        )
+        super().__init__(master, fg_color=COLORS['bg_medium'], corner_radius=8, **kwargs)
 
-        self._score = 0
-        self._grade = 'N/A'
-        self._init_ui()
+        ctk.CTkLabel(
+            self, text="Support Summary",
+            font=ctk.CTkFont(size=13, weight="bold"),
+            text_color=COLORS['text_primary'],
+        ).pack(anchor="w", padx=SPACING['md'], pady=(SPACING['md'], SPACING['sm']))
 
-    def _init_ui(self):
-        plt.style.use('dark_background')
+        self._content = ctk.CTkFrame(self, fg_color="transparent")
+        self._content.pack(fill="x", padx=SPACING['md'], pady=(0, SPACING['md']))
 
-        self.figure = Figure(figsize=(3.5, 3.5), dpi=100, facecolor=COLORS['bg_medium'])
-        self.figure.patch.set_facecolor(COLORS['bg_medium'])
+    def set_data(self, browsers_data: Dict):
+        for w in self._content.winfo_children():
+            w.destroy()
 
-        self.canvas = FigureCanvasTkAgg(self.figure, master=self)
-        canvas_widget = self.canvas.get_tk_widget()
-        canvas_widget.configure(bg=COLORS['bg_medium'], highlightthickness=0)
-        canvas_widget.pack(fill="both", expand=True, padx=8, pady=8)
+        if not browsers_data:
+            return
 
-    def set_score(self, score: float, grade: str = None):
-        self._score = max(0, min(100, score or 0))
-        self._grade = grade or self._calculate_grade(self._score)
-        self._draw_gauge()
+        # Aggregate across all browsers
+        total_supported = 0
+        total_partial = 0
+        total_unsupported = 0
 
-    def _calculate_grade(self, score: float) -> str:
-        if score >= 90:
-            return 'A'
-        elif score >= 80:
-            return 'B'
-        elif score >= 70:
-            return 'C'
-        elif score >= 60:
-            return 'D'
-        else:
-            return 'F'
+        for data in browsers_data.values():
+            total_supported += data.get('supported', 0) or 0
+            total_partial += data.get('partial', 0) or 0
+            total_unsupported += data.get('unsupported', 0) or 0
 
-    def _draw_gauge(self):
-        self.figure.clear()
+        grand_total = total_supported + total_partial + total_unsupported
 
-        ax = self.figure.add_subplot(111)
-        ax.set_facecolor(COLORS['bg_medium'])
-        ax.set_aspect('equal')
-        ax.axis('off')
+        # Three stat blocks in a row
+        stats_row = ctk.CTkFrame(self._content, fg_color="transparent")
+        stats_row.pack(fill="x")
+        stats_row.grid_columnconfigure(0, weight=1)
+        stats_row.grid_columnconfigure(1, weight=1)
+        stats_row.grid_columnconfigure(2, weight=1)
 
-        if self._score >= 90:
-            score_color = '#3fb950'
-        elif self._score >= 75:
-            score_color = '#56d364'
-        elif self._score >= 60:
-            score_color = '#d29922'
-        elif self._score >= 40:
-            score_color = '#f0883e'
-        else:
-            score_color = '#f85149'
+        stats = [
+            ("Supported", total_supported, COLORS['success']),
+            ("Partial", total_partial, COLORS['warning']),
+            ("Unsupported", total_unsupported, COLORS['danger']),
+        ]
 
-        # 270-degree arc from bottom-left to bottom-right
-        theta1, theta2 = 225, -45
-        track = Wedge((0, 0), 0.9, theta2, theta1, width=0.15,
-                     facecolor=COLORS['bg_light'], edgecolor='none', zorder=1)
-        ax.add_patch(track)
+        for col, (label, count, color) in enumerate(stats):
+            block = ctk.CTkFrame(stats_row, fg_color=COLORS['bg_dark'], corner_radius=6)
+            block.grid(row=0, column=col, sticky="nsew", padx=(0 if col == 0 else SPACING['xs'], 0))
 
-        if self._score > 0:
-            arc_range = 270
-            score_angle = (self._score / 100) * arc_range
-            score_theta2 = 225 - score_angle
+            inner = ctk.CTkFrame(block, fg_color="transparent")
+            inner.pack(padx=SPACING['sm'], pady=SPACING['sm'])
 
-            score_arc = Wedge((0, 0), 0.9, score_theta2, theta1, width=0.15,
-                             facecolor=score_color, edgecolor='none', zorder=2)
-            ax.add_patch(score_arc)
+            ctk.CTkLabel(
+                inner, text=str(count),
+                font=ctk.CTkFont(size=22, weight="bold"),
+                text_color=color,
+            ).pack()
 
-        center = Circle((0, 0), 0.65, fc=COLORS['bg_medium'], ec='none', zorder=3)
-        ax.add_patch(center)
+            pct = f"{(count / grand_total * 100):.0f}%" if grand_total > 0 else "0%"
+            ctk.CTkLabel(
+                inner, text=pct,
+                font=ctk.CTkFont(size=10),
+                text_color=COLORS['text_muted'],
+            ).pack()
 
-        ax.text(0, 0.08, f'{self._score:.0f}', ha='center', va='center',
-               fontsize=36, fontweight='bold', color=score_color, zorder=10)
-        ax.text(0.35, 0.15, '%', ha='center', va='center',
-               fontsize=14, fontweight='bold', color=score_color, alpha=0.7, zorder=10)
-        ax.text(0, -0.22, f'Grade {self._grade}', ha='center', va='center',
-               fontsize=12, fontweight='bold', color=COLORS['text_primary'], zorder=10)
-
-        ax.set_xlim(-1.2, 1.2)
-        ax.set_ylim(-1.2, 1.2)
-
-        self.figure.tight_layout(pad=0)
-        self.canvas.draw()
+            ctk.CTkLabel(
+                inner, text=label,
+                font=ctk.CTkFont(size=10),
+                text_color=COLORS['text_secondary'],
+            ).pack(pady=(2, 0))
 
     def clear(self):
-        self.figure.clear()
-        self.canvas.draw()
+        for w in self._content.winfo_children():
+            w.destroy()
+
+
+# --- Keep ScoreGaugeChart and SupportStatusChart as stubs for backward compatibility ---
+
+class ScoreGaugeChart(ctk.CTkFrame):
+    def __init__(self, master, **kwargs):
+        super().__init__(master, fg_color="transparent", **kwargs)
+
+    def set_score(self, score: float, grade: str = None):
+        pass
+
+    def clear(self):
+        pass
 
 
 class SupportStatusChart(ctk.CTkFrame):
-    """Pie chart showing supported/partial/unsupported distribution."""
-
     def __init__(self, master, **kwargs):
-        super().__init__(
-            master,
-            fg_color=COLORS['bg_medium'],
-            corner_radius=12,
-            **kwargs
-        )
-
-        self._data = {}
-        self._init_ui()
-
-    def _init_ui(self):
-        plt.style.use('dark_background')
-
-        self.title_label = ctk.CTkLabel(
-            self,
-            text="Overall Support Status",
-            font=ctk.CTkFont(size=14, weight="bold"),
-            text_color=COLORS['text_primary'],
-        )
-        self.title_label.pack(anchor="w", padx=16, pady=(12, 4))
-
-        self.figure = Figure(figsize=(4, 3.5), dpi=100, facecolor=COLORS['bg_medium'])
-        self.figure.patch.set_facecolor(COLORS['bg_medium'])
-
-        self.canvas = FigureCanvasTkAgg(self.figure, master=self)
-        canvas_widget = self.canvas.get_tk_widget()
-        canvas_widget.configure(bg=COLORS['bg_medium'], highlightthickness=0)
-        canvas_widget.pack(fill="both", expand=True, padx=8, pady=(0, 12))
+        super().__init__(master, fg_color="transparent", **kwargs)
 
     def set_data(self, supported: int, partial: int, unsupported: int):
-        self._data = {
-            'Supported': supported or 0,
-            'Partial': partial or 0,
-            'Unsupported': unsupported or 0
-        }
-        self._draw_chart()
-
-    def _draw_chart(self):
-        self.figure.clear()
-
-        colors = {
-            'Supported': '#3fb950',
-            'Partial': '#d29922',
-            'Unsupported': '#f85149'
-        }
-
-        labels = []
-        sizes = []
-        chart_colors = []
-
-        for label, size in self._data.items():
-            if size > 0:
-                labels.append(label)
-                sizes.append(size)
-                chart_colors.append(colors[label])
-
-        if not sizes:
-            ax = self.figure.add_subplot(111)
-            ax.set_facecolor(COLORS['bg_medium'])
-            ax.text(0.5, 0.5, 'No data', ha='center', va='center',
-                   fontsize=12, color=COLORS['text_muted'], transform=ax.transAxes)
-            ax.axis('off')
-            self.canvas.draw()
-            return
-
-        ax = self.figure.add_subplot(111)
-        ax.set_facecolor(COLORS['bg_medium'])
-
-        total = sum(sizes)
-
-        # Pop out the largest segment slightly
-        explode = [0.02] * len(sizes)
-        max_idx = sizes.index(max(sizes))
-        explode[max_idx] = 0.08
-
-        wedges, texts, autotexts = ax.pie(
-            sizes,
-            explode=explode,
-            colors=chart_colors,
-            autopct=lambda p: f'{p:.0f}%' if p > 5 else '',
-            startangle=90,
-            wedgeprops=dict(edgecolor=COLORS['bg_medium'], linewidth=2),
-            textprops={'fontsize': 11, 'fontweight': 'bold', 'color': 'white'}
-        )
-
-        for autotext in autotexts:
-            autotext.set_path_effects([
-                path_effects.withStroke(linewidth=2, foreground=COLORS['bg_dark'])
-            ])
-
-        legend_labels = [f'{l}  ({s})' for l, s in zip(labels, sizes)]
-        legend = ax.legend(wedges, legend_labels, loc='center left',
-                          bbox_to_anchor=(1, 0.5), fontsize=9, frameon=True,
-                          facecolor=COLORS['bg_dark'], edgecolor=COLORS['border'],
-                          labelcolor=COLORS['text_primary'])
-        legend.get_frame().set_alpha(0.95)
-
-        ax.set_aspect('equal')
-        self.figure.tight_layout(pad=0.5)
-        self.canvas.draw()
+        pass
 
     def clear(self):
-        self.figure.clear()
-        self.canvas.draw()
+        pass

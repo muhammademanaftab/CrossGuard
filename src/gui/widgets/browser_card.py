@@ -57,7 +57,7 @@ class StackedBarWidget(ctk.CTkCanvas):
     def _on_resize(self, event):
         self._draw()
 
-    def _draw(self):
+    def _draw(self, **kwargs):
         self.delete("all")
 
         width = self.winfo_width()
