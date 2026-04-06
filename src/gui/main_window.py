@@ -317,15 +317,35 @@ class MainWindow(ctk.CTkFrame):
         # --- Issues & Fixes (merged section) ---
         issues = self._extract_issues(browsers)
         if issues:
+            critical_count = sum(1 for i in issues if i.get('severity') == 'critical')
+            warning_count = len(issues) - critical_count
+            badge_parts = []
+            if critical_count:
+                badge_parts.append(f"{critical_count} critical")
+            if warning_count:
+                badge_parts.append(f"{warning_count} warning")
+
             issues_section = CollapsibleSection(
                 scroll_frame,
                 title="WHAT NEEDS YOUR ATTENTION",
-                badge_text=f"{len([i for i in issues if i['severity'] == 'error'])} critical" if any(i['severity'] == 'error' for i in issues) else "",
-                badge_color=COLORS['danger'],
+                badge_text=badge_parts[0] if badge_parts else "",
+                badge_color=COLORS['danger'] if critical_count else COLORS['warning'],
                 expanded=True,
             )
             issues_section.pack(fill="x", pady=(0, SPACING['lg']))
             issues_content = issues_section.get_content_frame()
+
+            # Add second badge if both critical and warning exist
+            if len(badge_parts) > 1:
+                header = issues_section.header_frame
+                ctk.CTkLabel(
+                    header,
+                    text=f" {badge_parts[1]} ",
+                    font=ctk.CTkFont(size=10),
+                    text_color=COLORS['text_primary'],
+                    fg_color=COLORS['warning'],
+                    corner_radius=4,
+                ).pack(side="left", padx=(SPACING['xs'], 0))
 
             issues_summary = IssuesSummary(issues_content, issues=issues)
             issues_summary.pack(fill="x")
