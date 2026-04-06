@@ -118,6 +118,7 @@ class AnalysisResult:
     unrecognized_patterns: Optional[UnrecognizedPatterns] = None
     recommendations: List[str] = field(default_factory=list)
     baseline_summary: Optional[BaselineSummary] = None
+    ai_suggestions: Optional[List] = None
     error: Optional[str] = None
 
     @classmethod

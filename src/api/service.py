@@ -625,6 +625,32 @@ class AnalyzerService:
         from src.utils.feature_names import get_fix_suggestion
         return get_fix_suggestion(feature_id)
 
+    def get_ai_fix_suggestions(
+        self,
+        unsupported_features: List[str],
+        partial_features: List[str] = None,
+        file_type: str = "css",
+        browsers: Dict[str, str] = None,
+        api_key: str = None,
+        provider: str = "anthropic",
+    ) -> List[Any]:
+        """Get AI-generated fix suggestions. Returns empty list if no API key."""
+        key = api_key or self.get_setting('ai_api_key', '')
+        if not key:
+            return []
+        try:
+            from src.ai import AIFixService
+            service = AIFixService(api_key=key, provider=provider)
+            return service.get_fix_suggestions(
+                unsupported_features=set(unsupported_features),
+                partial_features=set(partial_features or []),
+                file_type=file_type,
+                browsers=browsers or self.DEFAULT_BROWSERS,
+            )
+        except Exception as e:
+            logger.error(f"Failed to get AI fix suggestions: {e}")
+            return []
+
     def get_polyfill_suggestions(
         self,
         unsupported_features: List[str],

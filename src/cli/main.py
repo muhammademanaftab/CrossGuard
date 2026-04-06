@@ -193,12 +193,18 @@ def cli(ctx, verbose, quiet, debug, no_color, timing):
               help='Write Checkstyle XML to this file (independent of --format).')
 @click.option('--output-csv', default=None,
               help='Write CSV output to this file (independent of --format).')
+@click.option('--api-key', default=None, envvar='CROSSGUARD_AI_KEY',
+              help='API key for AI fix suggestions (Anthropic or OpenAI).')
+@click.option('--ai-provider', default='anthropic',
+              type=click.Choice(['anthropic', 'openai']),
+              help='AI provider for fix suggestions.')
 @click.pass_context
 def analyze(ctx, target, browsers, fmt, output, config_path,
             fail_on_score, fail_on_errors, fail_on_warnings,
             use_stdin, stdin_filename,
             output_sarif, output_junit, output_json_path,
-            output_checkstyle, output_csv):
+            output_checkstyle, output_csv,
+            api_key, ai_provider):
     """Analyze a file for browser compatibility.
 
     TARGET is a single HTML, CSS, or JavaScript file.
@@ -269,6 +275,31 @@ def analyze(ctx, target, browsers, fmt, output, config_path,
 
         score = result.scores.simple_score if result.scores else 0.0
         error_count, warning_count = _count_issues(result_dict)
+
+        # --- AI Fix Suggestions (optional) ---
+        if api_key and result.success:
+            file_type = 'css' if css else ('js' if js else 'html')
+            unsupported = []
+            partial = []
+            for bdata in result_dict.get('browsers', {}).values():
+                unsupported.extend(bdata.get('unsupported_features', []))
+                partial.extend(bdata.get('partial_features', []))
+            if unsupported or partial:
+                ai_suggestions = service.get_ai_fix_suggestions(
+                    unsupported_features=list(set(unsupported)),
+                    partial_features=list(set(partial)),
+                    file_type=file_type,
+                    browsers=browser_dict or service.DEFAULT_BROWSERS,
+                    api_key=api_key,
+                    provider=ai_provider,
+                )
+                if ai_suggestions:
+                    result_text += "\n\n--- AI Fix Suggestions ---\n"
+                    for s in ai_suggestions:
+                        result_text += f"\n{s.feature_name} ({s.feature_id}):\n"
+                        result_text += f"  {s.suggestion}\n"
+                        if s.code_example:
+                            result_text += f"  Example: {s.code_example}\n"
 
         if output:
             with open(output, 'w', encoding='utf-8') as f:
