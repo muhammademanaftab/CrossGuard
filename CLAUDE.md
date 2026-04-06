@@ -4,7 +4,7 @@
 
 Cross Guard is a static analysis tool that checks HTML, CSS, and JavaScript source files for browser compatibility issues. It parses source files, extracts the web platform features they use (e.g. CSS Grid, Promises, `<dialog>` element), looks up each feature in the Can I Use database, and reports which features are unsupported or partially supported in the target browsers. Each analysis produces a compatibility score (0-100), a letter grade, and a per-feature breakdown showing support status across Chrome, Firefox, Safari, and Edge.
 
-The tool provides two frontends — a **desktop GUI** (CustomTkinter) and a **production CLI** (Click) — both sharing a single backend through the `src/api/` service facade. Analysis results can be exported in 6 formats (JSON, PDF, SARIF, JUnit XML, Checkstyle XML, CSV) and the CLI integrates directly into CI/CD pipelines with quality gates.
+The tool provides two frontends — a **desktop GUI** (CustomTkinter) and a **production CLI** (Click) — both sharing a single backend through the `src/api/` service facade. Analysis results can be exported in 6 formats (JSON, PDF, SARIF, JUnit XML, Checkstyle XML, CSV) and the CLI integrates directly into CI/CD pipelines with quality gates. An optional AI module (`src/ai/`) can generate code fix suggestions for unsupported features using OpenAI or Anthropic APIs.
 
 ## How It Works (Data Flow)
 
@@ -58,6 +58,7 @@ Input File (HTML/CSS/JS)
 2. **Compatibility Scoring**: Weighted scores (0-100) with letter grades (A+ through F) per file
 3. **Custom Rules**: User-defined feature detection rules via JSON or GUI editor
 4. **Polyfill Suggestions**: Recommends polyfills for unsupported features
+5. **AI Fix Suggestions**: Optional LLM-powered code fix suggestions (OpenAI/Anthropic) for unsupported features
 6. **ML Risk Prediction**: Optional machine learning module that predicts compatibility risk levels
 
 ### GUI
@@ -131,6 +132,10 @@ python -m src.cli.main config --init
 
 ```
 src/
+├── ai/                     # AI fix suggestions (optional, LLM-powered)
+│   ├── __init__.py         # Module exports
+│   ├── ai_service.py       # AIFixService (Anthropic/OpenAI API calls)
+│   └── schemas.py          # AIFixSuggestion dataclass
 ├── api/                    # API layer (service facade)
 │   ├── schemas.py          # Data schemas (incl. ExportRequest)
 │   └── service.py          # Main service class (59 methods)
@@ -170,6 +175,7 @@ src/
 │   ├── file_selector.py    # File selection with drag-and-drop
 │   ├── export_manager.py   # GUI export dialogs (delegates to src/export/)
 │   └── widgets/            # Reusable UI widgets (23 widgets)
+│       ├── ai_fix_card.py       # AI fix suggestion display
 │       ├── bookmark_button.py
 │       ├── browser_card.py
 │       ├── browser_selector.py
@@ -392,45 +398,48 @@ Edit `src/parsers/custom_rules.json`:
 
 ## Testing
 
-**Total: 1,135 tests** across all modules (pytest), organized into black box / white box / integration files. Each module has `test_<module>_blackbox.py` (public API), `test_<module>_whitebox.py` (internals), and optionally `test_<module>_integration.py` (end-to-end).
+**Total: 289 tests** across all modules (pytest), organized into black box / white box / integration files. Each module has `test_<module>_blackbox.py` (public API), `test_<module>_whitebox.py` (internals), and optionally `test_<module>_integration.py` (end-to-end).
 
 ### Run All Tests
 ```bash
-pytest tests/                       # Full suite (1,135 tests)
-pytest tests/ -m unit               # Unit tests only (907)
-pytest tests/ -m integration        # Integration tests only (206)
+pytest tests/                       # Full suite (289 tests)
+pytest tests/ -m blackbox           # Black box tests only (133)
+pytest tests/ -m whitebox           # White box tests only (83)
+pytest tests/ -m integration        # Integration tests only (59)
 ```
 
 ### Run by Module
 ```bash
-pytest tests/parsers/css/ -v        # CSS parser tests (185)
-pytest tests/parsers/html/ -v       # HTML parser tests (167)
-pytest tests/parsers/js/ -v         # JS parser tests (196)
-pytest tests/parsers/custom_rules/  # Custom rules loader tests (23)
-pytest tests/analyzer/ -v           # Compatibility engine tests (151)
-pytest tests/api/ -v                # API service layer tests (89)
-pytest tests/database/ -v           # Database layer tests (129)
-pytest tests/cli/ -v                # CLI tests (83)
-pytest tests/polyfill/ -v           # Polyfill tests (60)
-pytest tests/export/ -v             # Export module tests (33)
-pytest tests/config/ -v             # Config module tests (19)
+pytest tests/parsers/css/ -v        # CSS parser tests (53)
+pytest tests/parsers/html/ -v       # HTML parser tests (52)
+pytest tests/parsers/js/ -v         # JS parser tests (52)
+pytest tests/parsers/custom_rules/  # Custom rules loader tests (10)
+pytest tests/analyzer/ -v           # Compatibility engine tests (56)
+pytest tests/api/ -v                # API service layer tests (36)
+pytest tests/database/ -v           # Database layer tests (37)
+pytest tests/cli/ -v                # CLI tests (37)
+pytest tests/polyfill/ -v           # Polyfill tests (23)
+pytest tests/export/ -v             # Export module tests (18)
+pytest tests/config/ -v             # Config module tests (11)
+pytest tests/ai/ -v                 # AI fix suggestions tests (14)
 ```
 
 ### Test Coverage Summary
 
 | Module | Tests | BB/WB/Int | What's Covered |
 |--------|-------|-----------|----------------|
-| CSS parser | 185 | 102/55/28 | Detection, tinycss2 AST, bugs, real-world |
-| HTML parser | 167 | 88/38/41 | Detection, DOM, custom rules, real-world |
-| JS parser | 196 | 100/82/14 | Detection, tree-sitter AST, custom rules |
-| Custom rules | 23 | 12/11/- | Loading, singleton, save/reload |
-| Analyzer | 151 | 89/49/13 | Scoring, compatibility, DB, web features |
-| API service | 89 | 52/23/14 | Analyze, CRUD, singleton, end-to-end |
-| Database | 129 | 99/30/- | CRUD, statistics, migrations, singleton |
-| CLI | 83 | 30/34/19 | Commands, gates, formatters, generators |
-| Polyfill | 60 | 23/15/22 | Recommendations, singleton, file gen |
-| Export | 33 | 33/-/- | All 6 formats (~5 per format) |
-| Config | 19 | 19/-/- | Loading, merging, defaults, pkg.json |
+| CSS parser | 53 | 21/22/10 | Detection, tinycss2 AST, bugs, real-world |
+| HTML parser | 52 | 33/10/9 | Detection, DOM, custom rules, real-world |
+| JS parser | 52 | 25/19/8 | Detection, tree-sitter AST, custom rules |
+| Custom rules | 10 | 5/5/- | Loading, singleton, save/reload |
+| Analyzer | 56 | 35/15/6 | Scoring, compatibility, DB, web features |
+| API service | 36 | 18/10/8 | Analyze, CRUD, singleton, end-to-end |
+| Database | 37 | 27/10/- | CRUD, statistics, migrations, singleton |
+| CLI | 37 | 12/15/10 | Commands, gates, formatters, generators |
+| Polyfill | 23 | 8/6/9 | Recommendations, singleton, file gen |
+| Export | 18 | 18/-/- | All 6 formats (~3 per format) |
+| Config | 11 | 11/-/- | Loading, merging, defaults, pkg.json |
+| AI | 14 | 8/6/- | API calls, prompt building, response parsing |
 
 ### Manual Validation
 See `tests/validation/` for manual validation samples and checklists (CSS, HTML, JS, custom rules).

@@ -1357,7 +1357,7 @@ class MainWindow(ctk.CTkFrame):
         else:
             ctk.CTkLabel(
                 self._ai_placeholder,
-                text="No suggestions available for these features",
+                text="Could not generate suggestions. Check your API key and internet connection, then try again.",
                 font=ctk.CTkFont(size=11),
                 text_color=COLORS['text_muted'],
             ).pack(anchor="w")

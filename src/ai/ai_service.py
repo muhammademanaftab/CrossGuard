@@ -44,9 +44,14 @@ class AIFixService:
         if not all_features:
             return []
 
+        # Limit to top 10 features to avoid API timeouts
+        # Prioritize unsupported over partial
+        priority = sorted(unsupported_features) + sorted(partial_features - unsupported_features)
+        limited = priority[:10]
+
         # Build context for the LLM
         feature_list = []
-        for fid in sorted(all_features):
+        for fid in limited:
             name = get_feature_name(fid)
             status = "unsupported" if fid in unsupported_features else "partial"
             affected = [f"{b} {v}" for b, v in browsers.items()]
@@ -117,7 +122,7 @@ Example response format:
                 "max_tokens": 2048,
                 "messages": [{"role": "user", "content": prompt}],
             },
-            timeout=30,
+            timeout=60,
         )
         resp.raise_for_status()
         data = resp.json()
@@ -136,7 +141,7 @@ Example response format:
                 "messages": [{"role": "user", "content": prompt}],
                 "max_tokens": 2048,
             },
-            timeout=30,
+            timeout=60,
         )
         resp.raise_for_status()
         data = resp.json()
