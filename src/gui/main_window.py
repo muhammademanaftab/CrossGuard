@@ -585,154 +585,211 @@ class MainWindow(ctk.CTkFrame):
 
             features_content = features_section.get_content_frame()
 
-            search_frame = ctk.CTkFrame(features_content, fg_color="transparent")
-            search_frame.pack(fill="x", pady=(0, SPACING['md']))
+            # Build per-feature support lookup from browser data
+            feature_support = {}  # feature_id -> {browser: status}
+            browser_names_ordered = list(browsers.keys())
+            for b_name, b_data in browsers.items():
+                for fid in b_data.get('unsupported_features', []):
+                    feature_support.setdefault(fid, {})[b_name] = 'unsupported'
+                for fid in b_data.get('partial_features', []):
+                    feature_support.setdefault(fid, {})[b_name] = 'partial'
 
-            search_icon = ctk.CTkLabel(
-                search_frame,
-                text="🔍",
-                font=ctk.CTkFont(size=12),
-                text_color=COLORS['text_muted'],
-            )
-            search_icon.pack(side="left", padx=(0, SPACING['xs']))
+            # Browser legend with letter badges (dynamic)
+            legend_row = ctk.CTkFrame(features_content, fg_color="transparent")
+            legend_row.pack(fill="x", pady=(0, SPACING['sm']))
 
+            # Build short labels: first letter, or first 2 if duplicates
+            browser_labels = {}
+            used_labels = set()
+            for b_name in browser_names_ordered:
+                label = b_name[0].upper()
+                if label in used_labels:
+                    label = b_name[:2].upper()
+                used_labels.add(label)
+                browser_labels[b_name] = label
+
+            for b_name in browser_names_ordered:
+                ctk.CTkLabel(
+                    legend_row, text=browser_labels[b_name],
+                    font=ctk.CTkFont(size=8, weight="bold"),
+                    text_color=COLORS['success'], width=14,
+                ).pack(side="left")
+                ctk.CTkLabel(legend_row, text=b_name.title(), font=ctk.CTkFont(size=8),
+                             text_color=COLORS['text_muted']).pack(side="left", padx=(1, SPACING['md']))
+
+            # Color meaning legend (right side)
+            for label, color in [("Supported", COLORS['success']), ("Partial", COLORS['warning']), ("Unsupported", COLORS['danger'])]:
+                ctk.CTkLabel(
+                    legend_row, text=label,
+                    font=ctk.CTkFont(size=8),
+                    text_color=color,
+                ).pack(side="right", padx=(SPACING['sm'], 0))
+
+            # Search
             search_var = ctk.StringVar()
             search_entry = ctk.CTkEntry(
-                search_frame,
+                features_content,
                 placeholder_text="Search features...",
                 textvariable=search_var,
-                width=250,
                 height=28,
                 font=ctk.CTkFont(size=11),
                 fg_color=COLORS['bg_medium'],
                 border_color=COLORS['border'],
                 text_color=COLORS['text_primary'],
             )
-            search_entry.pack(side="left", fill="x", expand=True)
+            search_entry.pack(fill="x", pady=(0, SPACING['sm']))
 
-            all_feature_frames = []  # (frame, searchable_text) tuples for filtering
-            html_details_map = {}
-            for detail in feature_details.get('html', []):
-                fid = detail.get('feature')
-                if fid:
-                    html_details_map[fid] = detail
-
-            css_details_map = {}
-            for detail in feature_details.get('css', []):
-                fid = detail.get('feature')
-                if fid:
-                    css_details_map[fid] = detail
-
-            js_details_map = {}
-            for detail in feature_details.get('js', []):
-                fid = detail.get('feature')
-                if fid:
-                    js_details_map[fid] = detail
+            # Build detail maps
+            all_feature_frames = []
+            detail_maps = {}
+            for lang in ('html', 'css', 'js'):
+                detail_maps[lang] = {}
+                for detail in feature_details.get(lang, []):
+                    fid = detail.get('feature')
+                    if fid:
+                        detail_maps[lang][fid] = detail
 
             feature_types = [
-                ("HTML", features.get('html', []), COLORS['html_color'], html_details_map),
-                ("CSS", features.get('css', []), COLORS['css_color'], css_details_map),
-                ("JavaScript", features.get('js', []), COLORS['js_color'], js_details_map),
+                ("HTML", features.get('html', []), COLORS['html_color'], detail_maps['html']),
+                ("CSS", features.get('css', []), COLORS['css_color'], detail_maps['css']),
+                ("JavaScript", features.get('js', []), COLORS['js_color'], detail_maps['js']),
             ]
 
-            for type_name, feature_list, color, details_map in feature_types:
-                if feature_list:
-                    type_container = ctk.CTkFrame(features_content, fg_color="transparent")
-                    type_container.pack(fill="x", pady=(0, SPACING['md']))
+            for type_name, feature_list, type_color, details_map in feature_types:
+                if not feature_list:
+                    continue
 
-                    # Header row with badge and toggle button
-                    header_row = ctk.CTkFrame(type_container, fg_color="transparent")
-                    header_row.pack(fill="x")
+                # Type header with collapse toggle
+                type_header = ctk.CTkFrame(features_content, fg_color="transparent", cursor="hand2")
+                type_header.pack(fill="x", pady=(SPACING['sm'], SPACING['xs']))
 
-                    badge = ctk.CTkLabel(
-                        header_row,
-                        text=f" {type_name} ({len(feature_list)}) ",
-                        font=ctk.CTkFont(size=11, weight="bold"),
-                        text_color=COLORS['text_primary'],
-                        fg_color=color,
-                        corner_radius=4,
-                    )
-                    badge.pack(side="left")
+                type_toggle = ctk.CTkLabel(
+                    type_header, text="\u25BC",
+                    font=ctk.CTkFont(size=8), text_color=COLORS['text_muted'], width=12,
+                )
+                type_toggle.pack(side="left", padx=(0, SPACING['xs']))
 
-                    def create_feature_label(parent, feature_id, details_map, frame_list):
-                        detail = details_map.get(feature_id, {})
-                        matched_items = (
-                            detail.get('matched_properties', []) or
-                            detail.get('matched_apis', []) or
-                            detail.get('matched_items', [])
-                        )
-                        description = detail.get('description', self._analyzer_service.get_feature_display_name(feature_id))
+                ctk.CTkLabel(
+                    type_header,
+                    text=f" {type_name} ({len(feature_list)}) ",
+                    font=ctk.CTkFont(size=10, weight="bold"),
+                    text_color=COLORS['text_primary'],
+                    fg_color=type_color,
+                    corner_radius=4,
+                ).pack(side="left")
 
-                        item_frame = ctk.CTkFrame(parent, fg_color="transparent")
-                        item_frame.pack(fill="x", pady=(2, 0), padx=(SPACING['md'], 0))
+                ctk.CTkLabel(
+                    type_header, text="Collapse",
+                    font=ctk.CTkFont(size=8), text_color=COLORS['text_muted'],
+                ).pack(side="right")
 
-                        if matched_items:
-                            items_text = ", ".join(matched_items)
-                            display_text = f"{items_text}  →  {description} ({feature_id})"
+                type_container = ctk.CTkFrame(features_content, fg_color="transparent")
+                type_container.pack(fill="x")
+                type_expanded = [True]
+
+                def make_type_toggle(container, toggle_lbl, expanded, hint_parent):
+                    hint = [w for w in hint_parent.winfo_children() if hasattr(w, 'cget') and w.cget("text") in ("Collapse", "Expand")]
+                    def toggle():
+                        expanded[0] = not expanded[0]
+                        if expanded[0]:
+                            container.pack(fill="x")
+                            toggle_lbl.configure(text="\u25BC")
+                            if hint:
+                                hint[0].configure(text="Collapse")
                         else:
-                            display_text = f"{description} ({feature_id})"
+                            container.pack_forget()
+                            toggle_lbl.configure(text="\u25B6")
+                            if hint:
+                                hint[0].configure(text="Expand")
+                    return toggle
 
+                toggler = make_type_toggle(type_container, type_toggle, type_expanded, type_header)
+                type_header.bind("<Button-1>", lambda e=None, t=toggler: t())
+                for child in type_header.winfo_children():
+                    child.bind("<Button-1>", lambda e=None, t=toggler: t())
+
+                for feature_id in feature_list:
+                    detail = details_map.get(feature_id, {})
+                    matched = (
+                        detail.get('matched_properties', []) or
+                        detail.get('matched_apis', []) or
+                        detail.get('matched_items', [])
+                    )
+                    name = detail.get('description', self._analyzer_service.get_feature_display_name(feature_id))
+                    match_text = ", ".join(matched[:3]) if matched else ""
+                    search_text = f"{name} {feature_id} {match_text}".lower()
+
+                    row = ctk.CTkFrame(type_container, fg_color=COLORS['bg_dark'], corner_radius=3, height=26)
+                    row.pack(fill="x", pady=(0, 1))
+                    row.pack_propagate(False)
+
+                    # Feature name
+                    ctk.CTkLabel(
+                        row, text=name,
+                        font=ctk.CTkFont(size=10, weight="bold"),
+                        text_color=COLORS['text_primary'],
+                        anchor="w",
+                    ).pack(side="left", padx=(SPACING['sm'], 0))
+
+                    # Matched pattern
+                    if match_text:
                         ctk.CTkLabel(
-                            item_frame,
-                            text=display_text,
-                            font=ctk.CTkFont(size=11),
-                            text_color=COLORS['text_secondary'],
-                            wraplength=650,
-                            justify="left",
-                        ).pack(anchor="w")
+                            row, text=match_text,
+                            font=ctk.CTkFont(size=9),
+                            text_color=COLORS['text_muted'],
+                            anchor="w",
+                        ).pack(side="left", padx=(SPACING['sm'], 0))
 
-                        frame_list.append((item_frame, display_text.lower()))
+                    # Browser support letter badges (right side, dynamic)
+                    badges_frame = ctk.CTkFrame(row, fg_color="transparent")
+                    badges_frame.pack(side="right", padx=SPACING['sm'])
 
-                    for feature_id in feature_list:
-                        create_feature_label(type_container, feature_id, details_map, all_feature_frames)
+                    support_info = feature_support.get(feature_id, {})
+                    for b_name in browser_names_ordered:
+                        status = support_info.get(b_name, 'supported')
+                        badge_color = COLORS['success'] if status == 'supported' else (
+                            COLORS['warning'] if status == 'partial' else COLORS['danger'])
+                        ctk.CTkLabel(
+                            badges_frame,
+                            text=browser_labels[b_name],
+                            font=ctk.CTkFont(size=8, weight="bold"),
+                            text_color=badge_color,
+                            width=16,
+                        ).pack(side="left", padx=(1, 0))
+
+                    # Hover highlight
+                    def on_enter(e, r=row):
+                        r.configure(fg_color=COLORS['bg_medium'])
+                    def on_leave(e, r=row):
+                        r.configure(fg_color=COLORS['bg_dark'])
+                    row.bind("<Enter>", on_enter)
+                    row.bind("<Leave>", on_leave)
+
+                    all_feature_frames.append((row, search_text))
 
             def filter_features(*args):
                 query = search_var.get().lower().strip()
                 for frame, text in all_feature_frames:
                     if query == "" or query in text:
-                        frame.pack(fill="x", pady=(2, 0), padx=(SPACING['md'], 0))
+                        frame.pack(fill="x", pady=(0, 1))
                     else:
                         frame.pack_forget()
 
             search_var.trace_add("write", filter_features)
 
-            # Unrecognized patterns (sub-section inside Detected Features)
+            # Unrecognized patterns (same style as detected features above)
             unrecognized = report.get('unrecognized', {})
             if unrecognized and unrecognized.get('total', 0) > 0:
-                unrec_card = ctk.CTkFrame(
-                    features_content, fg_color=COLORS['bg_medium'],
-                    corner_radius=8, border_width=1, border_color=COLORS['warning'],
-                )
-                unrec_card.pack(fill="x", pady=(SPACING['lg'], 0))
-
-                unrec_inner = ctk.CTkFrame(unrec_card, fg_color="transparent")
-                unrec_inner.pack(fill="x", padx=SPACING['md'], pady=SPACING['md'])
-
-                unrec_header = ctk.CTkFrame(unrec_inner, fg_color="transparent")
-                unrec_header.pack(fill="x", pady=(0, SPACING['xs']))
+                ctk.CTkFrame(features_content, fg_color=COLORS['border'], height=1).pack(fill="x", pady=SPACING['sm'])
 
                 ctk.CTkLabel(
-                    unrec_header,
-                    text="Unrecognized Patterns",
-                    font=ctk.CTkFont(size=12, weight="bold"),
+                    features_content,
+                    text=f" Unrecognized ({unrecognized.get('total', 0)}) ",
+                    font=ctk.CTkFont(size=10, weight="bold"),
                     text_color=COLORS['text_primary'],
-                ).pack(side="left")
-
-                ctk.CTkLabel(
-                    unrec_header,
-                    text=f" {unrecognized.get('total', 0)} ",
-                    font=ctk.CTkFont(size=9),
-                    text_color=COLORS['text_primary'],
-                    fg_color=COLORS['warning'],
+                    fg_color=COLORS['bg_light'],
                     corner_radius=4,
-                ).pack(side="left", padx=(SPACING['sm'], 0))
-
-                ctk.CTkLabel(
-                    unrec_inner,
-                    text="Found in source but no detection rule matched. Consider adding custom rules.",
-                    font=ctk.CTkFont(size=10),
-                    text_color=COLORS['text_muted'],
-                ).pack(anchor="w", pady=(0, SPACING['sm']))
+                ).pack(anchor="w", pady=(0, SPACING['xs']))
 
                 unrec_types = [
                     ("HTML", unrecognized.get('html', []), COLORS['html_color']),
@@ -741,30 +798,22 @@ class MainWindow(ctk.CTkFrame):
                 ]
 
                 for type_name, pattern_list, color in unrec_types:
-                    if pattern_list:
-                        type_frame = ctk.CTkFrame(unrec_inner, fg_color="transparent")
-                        type_frame.pack(fill="x", pady=(0, SPACING['xs']))
+                    for pattern in pattern_list:
+                        row = ctk.CTkFrame(features_content, fg_color=COLORS['bg_dark'], corner_radius=3, height=26)
+                        row.pack(fill="x", pady=(0, 1))
+                        row.pack_propagate(False)
 
                         ctk.CTkLabel(
-                            type_frame,
-                            text=f" {type_name} ({len(pattern_list)}) ",
+                            row, text=pattern,
                             font=ctk.CTkFont(size=10, weight="bold"),
-                            text_color=COLORS['text_primary'],
-                            fg_color=color,
-                            corner_radius=4,
-                        ).pack(side="left")
-
-                        display_text = ", ".join(pattern_list[:10])
-                        if len(pattern_list) > 10:
-                            display_text += f", ... (+{len(pattern_list) - 10} more)"
+                            text_color=COLORS['text_muted'],
+                        ).pack(side="left", padx=(SPACING['sm'], 0))
 
                         ctk.CTkLabel(
-                            type_frame,
-                            text=display_text,
-                            font=ctk.CTkFont(size=10),
+                            row, text=type_name,
+                            font=ctk.CTkFont(size=8),
                             text_color=COLORS['text_muted'],
-                            wraplength=500, justify="left",
-                        ).pack(side="left", padx=(SPACING['sm'], 0))
+                        ).pack(side="right", padx=SPACING['sm'])
 
         # Visualizations
         if browsers:
