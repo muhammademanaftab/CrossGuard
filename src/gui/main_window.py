@@ -415,27 +415,149 @@ class MainWindow(ctk.CTkFrame):
             browser_section.pack(fill="x", pady=(0, SPACING['lg']))
 
             browser_content = browser_section.get_content_frame()
-            all_detected_features = []
-            if features:
-                all_detected_features.extend(features.get('html', []))
-                all_detected_features.extend(features.get('css', []))
-                all_detected_features.extend(features.get('js', []))
+            from .widgets.browser_card import StackedBarWidget
 
             for browser_name, details in browsers.items():
-                card = BrowserCard(
-                    browser_content,
-                    browser_name=browser_name,
-                    version=details.get('version', ''),
-                    supported=details.get('supported', 0),
-                    partial=details.get('partial', 0),
-                    unsupported=details.get('unsupported', 0),
-                    compatibility_pct=details.get('compatibility_percentage', 0),
-                    unsupported_features=details.get('unsupported_features', []),
-                    partial_features=details.get('partial_features', []),
-                    supported_features=details.get('supported_features', []),
-                    all_features=all_detected_features,
-                )
-                card.pack(fill="x", pady=(0, SPACING['sm']))
+                supported = details.get('supported', 0)
+                partial = details.get('partial', 0)
+                unsupported = details.get('unsupported', 0)
+                pct = details.get('compatibility_percentage', 0)
+                version = details.get('version', '')
+                unsupported_list = details.get('unsupported_features', [])
+                partial_list = details.get('partial_features', [])
+
+                card = ctk.CTkFrame(browser_content, fg_color=COLORS['bg_dark'], corner_radius=4)
+                card.pack(fill="x", pady=(0, 2))
+
+                # --- Summary row (always visible, clickable) ---
+                summary_row = ctk.CTkFrame(card, fg_color="transparent", cursor="hand2")
+                summary_row.pack(fill="x", padx=SPACING['sm'], pady=SPACING['sm'])
+
+                ctk.CTkLabel(
+                    summary_row,
+                    text=f"{browser_name.title()} {version}",
+                    font=ctk.CTkFont(size=12, weight="bold"),
+                    text_color=COLORS['text_primary'],
+                    width=120, anchor="w",
+                ).pack(side="left")
+
+                bar = StackedBarWidget(summary_row, height=14, bg_color=COLORS['bg_dark'])
+                bar.pack(side="left", fill="x", expand=True, padx=SPACING['sm'])
+                bar.set_values(supported, partial, unsupported, animate=False)
+
+                pct_color = COLORS['success'] if pct >= 80 else (COLORS['warning'] if pct >= 50 else COLORS['danger'])
+                ctk.CTkLabel(
+                    summary_row,
+                    text=f"{pct:.0f}%",
+                    font=ctk.CTkFont(size=12, weight="bold"),
+                    text_color=pct_color,
+                    width=45, anchor="e",
+                ).pack(side="right")
+
+                # --- Detail panel (hidden by default) ---
+                detail_panel = ctk.CTkFrame(card, fg_color="transparent")
+                detail_expanded = [False]
+
+                def build_detail(panel, s, p, u, u_list, p_list, b_name):
+                    # Counts
+                    counts = ctk.CTkFrame(panel, fg_color="transparent")
+                    counts.pack(fill="x", padx=SPACING['sm'], pady=(0, SPACING['xs']))
+                    for label, count, color in [("Supported", s, COLORS['success']), ("Partial", p, COLORS['warning']), ("Unsupported", u, COLORS['danger'])]:
+                        ctk.CTkLabel(
+                            counts, text=f"{label}: {count}",
+                            font=ctk.CTkFont(size=9), text_color=color,
+                        ).pack(side="left", padx=(0, SPACING['md']))
+
+                    # Unsupported features
+                    if u_list:
+                        ctk.CTkLabel(
+                            panel, text=f"Not supported: {', '.join(u_list)}",
+                            font=ctk.CTkFont(size=9), text_color=COLORS['danger'],
+                            anchor="w", wraplength=600, justify="left",
+                        ).pack(fill="x", padx=SPACING['sm'], pady=(0, SPACING['xs']))
+
+                    # Partial features
+                    if p_list:
+                        ctk.CTkLabel(
+                            panel, text=f"Partial: {', '.join(p_list)}",
+                            font=ctk.CTkFont(size=9), text_color=COLORS['warning'],
+                            anchor="w", wraplength=600, justify="left",
+                        ).pack(fill="x", padx=SPACING['sm'], pady=(0, SPACING['xs']))
+
+                    # Version history toggle
+                    problem_features = list(u_list) + list(p_list)
+                    if problem_features:
+                        history_container = ctk.CTkFrame(panel, fg_color="transparent")
+                        history_content = ctk.CTkFrame(panel, fg_color="transparent")
+                        history_loaded = [False]
+                        history_visible = [False]
+
+                        history_btn = ctk.CTkButton(
+                            history_container, text="Show Version History",
+                            font=ctk.CTkFont(size=9), width=140, height=22,
+                            fg_color=COLORS['bg_light'], hover_color=COLORS['hover_bg'],
+                            text_color=COLORS['text_muted'],
+                        )
+
+                        def toggle_history(btn=history_btn, content=history_content,
+                                           loaded=history_loaded, visible=history_visible,
+                                           feats=problem_features, browser=b_name):
+                            visible[0] = not visible[0]
+                            if visible[0]:
+                                btn.configure(text="Hide Version History")
+                                if not loaded[0]:
+                                    from src.analyzer.version_ranges import get_version_ranges
+                                    for fid in feats[:8]:
+                                        ranges = get_version_ranges(fid, browser)
+                                        if not ranges:
+                                            continue
+                                        row = ctk.CTkFrame(content, fg_color="transparent")
+                                        row.pack(fill="x", pady=(0, 1))
+
+                                        name = self._analyzer_service.get_feature_display_name(fid)
+                                        ctk.CTkLabel(
+                                            row, text=name,
+                                            font=ctk.CTkFont(size=9, weight="bold"),
+                                            text_color=COLORS['text_primary'],
+                                            width=160, anchor="w",
+                                        ).pack(side="left")
+
+                                        for r in ranges[-4:]:
+                                            v = r['start'] if r['start'] == r['end'] else f"{r['start']}-{r['end']}"
+                                            s_color = COLORS['success'] if r['status'] == 'y' else (
+                                                COLORS['warning'] if r['status'] in ('a', 'p') else COLORS['danger'])
+                                            ctk.CTkLabel(
+                                                row,
+                                                text=f" {v} ",
+                                                font=ctk.CTkFont(size=8),
+                                                text_color="#FFFFFF",
+                                                fg_color=s_color,
+                                                corner_radius=3,
+                                            ).pack(side="left", padx=(1, 0))
+
+                                    loaded[0] = True
+                                content.pack(fill="x", padx=SPACING['sm'], pady=(SPACING['xs'], 0))
+                            else:
+                                btn.configure(text="Show Version History")
+                                content.pack_forget()
+
+                        history_btn.configure(command=toggle_history)
+                        history_container.pack(fill="x", padx=SPACING['sm'], pady=(SPACING['xs'], 0))
+                        history_btn.pack(side="left")
+
+                build_detail(detail_panel, supported, partial, unsupported, unsupported_list, partial_list, browser_name)
+
+                def toggle_detail(panel=detail_panel, expanded=detail_expanded):
+                    expanded[0] = not expanded[0]
+                    if expanded[0]:
+                        panel.pack(fill="x", pady=(0, SPACING['xs']))
+                    else:
+                        panel.pack_forget()
+
+                # Make summary row clickable
+                summary_row.bind("<Button-1>", lambda e=None, t=toggle_detail: t())
+                for child in summary_row.winfo_children():
+                    child.bind("<Button-1>", lambda e=None, t=toggle_detail: t())
 
         # Detected features
         feature_details = report.get('feature_details', {})
