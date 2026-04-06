@@ -446,6 +446,16 @@ class MainWindow(ctk.CTkFrame):
                 bar.set_values(supported, partial, unsupported, animate=False)
 
                 pct_color = COLORS['success'] if pct >= 80 else (COLORS['warning'] if pct >= 50 else COLORS['danger'])
+
+                details_hint = ctk.CTkLabel(
+                    summary_row,
+                    text="Details",
+                    font=ctk.CTkFont(size=9),
+                    text_color=COLORS['text_muted'],
+                    cursor="hand2",
+                )
+                details_hint.pack(side="right", padx=(SPACING['sm'], 0))
+
                 ctk.CTkLabel(
                     summary_row,
                     text=f"{pct:.0f}%",
@@ -528,12 +538,13 @@ class MainWindow(ctk.CTkFrame):
                                                 COLORS['warning'] if r['status'] in ('a', 'p') else COLORS['danger'])
                                             ctk.CTkLabel(
                                                 row,
-                                                text=f" {v} ",
+                                                text=v,
                                                 font=ctk.CTkFont(size=8),
                                                 text_color="#FFFFFF",
                                                 fg_color=s_color,
                                                 corner_radius=3,
-                                            ).pack(side="left", padx=(1, 0))
+                                                width=65,
+                                            ).pack(side="left", padx=(2, 0))
 
                                     loaded[0] = True
                                 content.pack(fill="x", padx=SPACING['sm'], pady=(SPACING['xs'], 0))
@@ -547,12 +558,14 @@ class MainWindow(ctk.CTkFrame):
 
                 build_detail(detail_panel, supported, partial, unsupported, unsupported_list, partial_list, browser_name)
 
-                def toggle_detail(panel=detail_panel, expanded=detail_expanded):
+                def toggle_detail(panel=detail_panel, expanded=detail_expanded, hint=details_hint):
                     expanded[0] = not expanded[0]
                     if expanded[0]:
                         panel.pack(fill="x", pady=(0, SPACING['xs']))
+                        hint.configure(text="Collapse")
                     else:
                         panel.pack_forget()
+                        hint.configure(text="Details")
 
                 # Make summary row clickable
                 summary_row.bind("<Button-1>", lambda e=None, t=toggle_detail: t())
