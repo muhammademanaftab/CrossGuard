@@ -1800,7 +1800,11 @@ class MainWindow(ctk.CTkFrame):
                     )
 
     def _build_settings_view(self):
-        container = ctk.CTkFrame(self.content_frame, fg_color="transparent")
+        container = ctk.CTkScrollableFrame(
+            self.content_frame, fg_color="transparent",
+            scrollbar_button_color=COLORS['bg_light'],
+            scrollbar_button_hover_color=COLORS['accent'],
+        )
         container.pack(fill="both", expand=True, padx=SPACING['xl'], pady=SPACING['xl'])
 
         ctk.CTkLabel(
@@ -1893,104 +1897,124 @@ class MainWindow(ctk.CTkFrame):
         ).pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['lg']))
 
         # --- AI Fix Suggestions settings ---
+        OPENAI_MODELS = ["gpt-4o-mini", "gpt-4o", "gpt-4-turbo", "gpt-3.5-turbo"]
+        ANTHROPIC_MODELS = ["claude-sonnet-4-20250514", "claude-haiku-4-5-20251001", "claude-opus-4-20250514"]
+
         ai_section = ctk.CTkFrame(
-            container,
-            fg_color=COLORS['bg_medium'],
-            corner_radius=8,
-            border_width=1,
-            border_color=COLORS['border'],
+            container, fg_color=COLORS['bg_medium'], corner_radius=8,
+            border_width=1, border_color=COLORS['border'],
         )
         ai_section.pack(fill="x", pady=(0, SPACING['lg']))
 
-        ai_header = ctk.CTkFrame(ai_section, fg_color="transparent")
-        ai_header.pack(fill="x", padx=SPACING['lg'], pady=SPACING['lg'])
+        ai_inner = ctk.CTkFrame(ai_section, fg_color="transparent")
+        ai_inner.pack(fill="x", padx=SPACING['lg'], pady=SPACING['lg'])
 
         ctk.CTkLabel(
-            ai_header,
-            text="AI Fix Suggestions",
-            font=ctk.CTkFont(size=14, weight="bold"),
-            text_color=COLORS['text_primary'],
-        ).pack(side="left")
-
-        ai_content = ctk.CTkFrame(ai_section, fg_color="transparent")
-        ai_content.pack(fill="x", padx=SPACING['lg'], pady=(0, SPACING['lg']))
+            ai_inner, text="AI Fix Suggestions",
+            font=ctk.CTkFont(size=14, weight="bold"), text_color=COLORS['text_primary'],
+        ).pack(anchor="w", pady=(0, SPACING['xs']))
 
         ctk.CTkLabel(
-            ai_content,
-            text="Optional: provide an API key to get AI-generated fix suggestions for unsupported features",
-            font=ctk.CTkFont(size=11),
-            text_color=COLORS['text_muted'],
-        ).pack(anchor="w", pady=(0, SPACING['sm']))
+            ai_inner, text="Configure AI-powered code fix suggestions for unsupported browser features",
+            font=ctk.CTkFont(size=11), text_color=COLORS['text_muted'],
+        ).pack(anchor="w", pady=(0, SPACING['md']))
 
-        key_row = ctk.CTkFrame(ai_content, fg_color="transparent")
-        key_row.pack(fill="x", pady=(0, SPACING['sm']))
+        lbl_width = 100
 
-        ctk.CTkLabel(
-            key_row,
-            text="API Key",
-            font=ctk.CTkFont(size=12),
-            text_color=COLORS['text_secondary'],
-            width=80,
-        ).pack(side="left")
+        def make_row(parent):
+            row = ctk.CTkFrame(parent, fg_color="transparent")
+            row.pack(fill="x", pady=(0, SPACING['sm']))
+            return row
 
+        # API Key
+        r = make_row(ai_inner)
+        ctk.CTkLabel(r, text="API Key", font=ctk.CTkFont(size=11), text_color=COLORS['text_secondary'], width=lbl_width).pack(side="left")
         current_key = self._analyzer_service.get_setting('ai_api_key', '')
         self._ai_key_var = ctk.StringVar(value=current_key)
-        ai_key_entry = ctk.CTkEntry(
-            key_row,
-            textvariable=self._ai_key_var,
-            show="*",
-            placeholder_text="sk-... (Anthropic or OpenAI)",
-            width=300,
-            height=32,
-        )
-        ai_key_entry.pack(side="left", padx=(SPACING['sm'], 0))
+        ctk.CTkEntry(r, textvariable=self._ai_key_var, show="*", placeholder_text="sk-...", height=30).pack(side="left", fill="x", expand=True, padx=(SPACING['sm'], 0))
 
-        ctk.CTkButton(
-            key_row,
-            text="Save",
-            width=60,
-            height=32,
-            fg_color=COLORS['accent'],
-            hover_color=COLORS['accent_dim'],
-            command=lambda e=None: self._save_ai_key(),
-        ).pack(side="left", padx=(SPACING['sm'], 0))
-
-        ctk.CTkButton(
-            key_row,
-            text="Clear",
-            width=60,
-            height=32,
-            fg_color=COLORS['danger_muted'] if 'danger_muted' in COLORS else COLORS['bg_light'],
-            hover_color=COLORS['danger'] if 'danger' in COLORS else COLORS['hover_bg'],
-            text_color=COLORS['danger'] if 'danger' in COLORS else COLORS['text_muted'],
-            command=lambda e=None: self._clear_ai_key(ai_key_entry),
-        ).pack(side="left", padx=(SPACING['xs'], 0))
-
-        provider_row = ctk.CTkFrame(ai_content, fg_color="transparent")
-        provider_row.pack(fill="x")
-
-        ctk.CTkLabel(
-            provider_row,
-            text="Provider",
-            font=ctk.CTkFont(size=12),
-            text_color=COLORS['text_secondary'],
-            width=80,
-        ).pack(side="left")
-
+        # Provider
+        r = make_row(ai_inner)
+        ctk.CTkLabel(r, text="Provider", font=ctk.CTkFont(size=11), text_color=COLORS['text_secondary'], width=lbl_width).pack(side="left")
         current_provider = self._analyzer_service.get_setting('ai_provider', 'anthropic')
         self._ai_provider_var = ctk.StringVar(value=current_provider)
-        provider_menu = ctk.CTkOptionMenu(
-            provider_row,
-            values=["anthropic", "openai"],
-            variable=self._ai_provider_var,
-            width=140,
-            height=32,
-            fg_color=COLORS['bg_light'],
-            button_color=COLORS['bg_light'],
-            button_hover_color=COLORS['hover_bg'],
-            command=lambda val: self._analyzer_service.set_setting('ai_provider', val),
+
+        # Model dropdown (updates when provider changes)
+        model_r = make_row(ai_inner)
+        ctk.CTkLabel(model_r, text="Model", font=ctk.CTkFont(size=11), text_color=COLORS['text_secondary'], width=lbl_width).pack(side="left")
+        current_model = self._analyzer_service.get_setting('ai_model', '')
+        models_for_provider = OPENAI_MODELS if current_provider == "openai" else ANTHROPIC_MODELS
+        self._ai_model_var = ctk.StringVar(value=current_model if current_model else models_for_provider[0])
+        self._model_menu = ctk.CTkOptionMenu(
+            model_r, values=models_for_provider, variable=self._ai_model_var,
+            width=250, height=30, fg_color=COLORS['bg_light'],
+            button_color=COLORS['bg_light'], button_hover_color=COLORS['hover_bg'],
         )
-        provider_menu.pack(side="left", padx=(SPACING['sm'], 0))
+        self._model_menu.pack(side="left", padx=(SPACING['sm'], 0))
+
+        def on_provider_change(val):
+            new_models = OPENAI_MODELS if val == "openai" else ANTHROPIC_MODELS
+            self._model_menu.configure(values=new_models)
+            self._ai_model_var.set(new_models[0])
+
+        ctk.CTkOptionMenu(
+            r, values=["anthropic", "openai"], variable=self._ai_provider_var,
+            width=140, height=30, fg_color=COLORS['bg_light'],
+            button_color=COLORS['bg_light'], button_hover_color=COLORS['hover_bg'],
+            command=on_provider_change,
+        ).pack(side="left", padx=(SPACING['sm'], 0))
+
+        # Max features
+        r = make_row(ai_inner)
+        ctk.CTkLabel(r, text="Max Features", font=ctk.CTkFont(size=11), text_color=COLORS['text_secondary'], width=lbl_width).pack(side="left")
+        current_limit = self._analyzer_service.get_setting('ai_max_features', '10')
+        limit_display = "All" if current_limit == "0" else current_limit
+        self._ai_limit_var = ctk.StringVar(value=limit_display)
+        ctk.CTkOptionMenu(
+            r, values=["5", "10", "15", "20", "All"], variable=self._ai_limit_var,
+            width=100, height=30, fg_color=COLORS['bg_light'],
+            button_color=COLORS['bg_light'], button_hover_color=COLORS['hover_bg'],
+        ).pack(side="left", padx=(SPACING['sm'], 0))
+        ctk.CTkLabel(r, text="features sent per API request", font=ctk.CTkFont(size=9), text_color=COLORS['text_muted']).pack(side="left", padx=(SPACING['sm'], 0))
+
+        # Priority
+        r = make_row(ai_inner)
+        ctk.CTkLabel(r, text="Priority", font=ctk.CTkFont(size=11), text_color=COLORS['text_secondary'], width=lbl_width).pack(side="left")
+        current_priority = self._analyzer_service.get_setting('ai_priority', 'unsupported_first')
+        self._ai_priority_var = ctk.StringVar(value=current_priority)
+        ctk.CTkOptionMenu(
+            r, values=["unsupported_first", "all_equal"], variable=self._ai_priority_var,
+            width=170, height=30, fg_color=COLORS['bg_light'],
+            button_color=COLORS['bg_light'], button_hover_color=COLORS['hover_bg'],
+        ).pack(side="left", padx=(SPACING['sm'], 0))
+        ctk.CTkLabel(r, text="which features to send first", font=ctk.CTkFont(size=9), text_color=COLORS['text_muted']).pack(side="left", padx=(SPACING['sm'], 0))
+
+        # --- Save All / Clear buttons ---
+        btn_row = ctk.CTkFrame(ai_inner, fg_color="transparent")
+        btn_row.pack(fill="x", pady=(SPACING['sm'], 0))
+
+        def save_all_ai():
+            self._analyzer_service.set_setting('ai_api_key', self._ai_key_var.get().strip())
+            self._analyzer_service.set_setting('ai_provider', self._ai_provider_var.get())
+            self._analyzer_service.set_setting('ai_model', self._ai_model_var.get())
+            limit_val = self._ai_limit_var.get()
+            self._analyzer_service.set_setting('ai_max_features', '0' if limit_val == 'All' else limit_val)
+            self._analyzer_service.set_setting('ai_priority', self._ai_priority_var.get())
+            show_info(self, "Saved", "AI settings saved successfully.")
+
+        ctk.CTkButton(
+            btn_row, text="Save Settings", width=120, height=32,
+            fg_color=COLORS['accent'], hover_color=COLORS['accent_dim'],
+            font=ctk.CTkFont(size=11),
+            command=save_all_ai,
+        ).pack(side="left")
+
+        ctk.CTkButton(
+            btn_row, text="Clear API Key", width=110, height=32,
+            fg_color=COLORS['bg_light'], hover_color=COLORS['hover_bg'],
+            text_color=COLORS['text_muted'], font=ctk.CTkFont(size=11),
+            command=lambda e=None: [self._ai_key_var.set(""), self._analyzer_service.set_setting('ai_api_key', ''), show_info(self, "Cleared", "API key removed.")],
+        ).pack(side="left", padx=(SPACING['sm'], 0))
 
         prefs_section = ctk.CTkFrame(
             container,

@@ -640,7 +640,14 @@ class AnalyzerService:
             return []
         try:
             from src.ai import AIFixService
-            service = AIFixService(api_key=key, provider=provider)
+            prov = provider or self.get_setting('ai_provider', 'anthropic')
+            model = self.get_setting('ai_model', '')
+            max_feat = int(self.get_setting('ai_max_features', '10'))
+            priority = self.get_setting('ai_priority', 'unsupported_first')
+            service = AIFixService(
+                api_key=key, provider=prov,
+                model=model or None, max_features=max_feat, priority=priority,
+            )
             return service.get_fix_suggestions(
                 unsupported_features=set(unsupported_features),
                 partial_features=set(partial_features or []),

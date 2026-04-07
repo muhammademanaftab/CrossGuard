@@ -23,9 +23,13 @@ class AIFixService:
         "openai": "gpt-4o-mini",
     }
 
-    def __init__(self, api_key: str = None, provider: str = "anthropic"):
+    def __init__(self, api_key: str = None, provider: str = "anthropic",
+                 model: str = None, max_features: int = 10, priority: str = "unsupported_first"):
         self._api_key = api_key or ""
         self._provider = provider
+        self._model = model  # None = use default for provider
+        self._max_features = max_features  # 0 = no limit (send all)
+        self._priority = priority  # "unsupported_first" or "all_equal"
 
     def is_available(self) -> bool:
         return bool(self._api_key)
@@ -44,10 +48,13 @@ class AIFixService:
         if not all_features:
             return []
 
-        # Limit to top 10 features to avoid API timeouts
-        # Prioritize unsupported over partial
-        priority = sorted(unsupported_features) + sorted(partial_features - unsupported_features)
-        limited = priority[:10]
+        # Prioritize and limit features
+        if self._priority == "unsupported_first":
+            ordered = sorted(unsupported_features) + sorted(partial_features - unsupported_features)
+        else:
+            ordered = sorted(all_features)
+
+        limited = ordered[:self._max_features] if self._max_features > 0 else ordered
 
         # Build context for the LLM
         feature_list = []
@@ -109,7 +116,7 @@ Example response format:
             raise ValueError(f"Unknown AI provider: {self._provider}")
 
     def _call_anthropic(self, prompt: str) -> str:
-        model = self.DEFAULT_MODELS["anthropic"]
+        model = self._model or self.DEFAULT_MODELS["anthropic"]
         resp = requests.post(
             self.ANTHROPIC_URL,
             headers={
@@ -129,7 +136,7 @@ Example response format:
         return data["content"][0]["text"]
 
     def _call_openai(self, prompt: str) -> str:
-        model = self.DEFAULT_MODELS["openai"]
+        model = self._model or self.DEFAULT_MODELS["openai"]
         resp = requests.post(
             self.OPENAI_URL,
             headers={
