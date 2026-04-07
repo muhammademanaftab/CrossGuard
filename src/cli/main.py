@@ -195,9 +195,9 @@ def cli(ctx, verbose, quiet, debug, no_color, timing):
               help='Write CSV output to this file (independent of --format).')
 @click.option('--api-key', default=None, envvar='CROSSGUARD_AI_KEY',
               help='API key for AI fix suggestions (Anthropic or OpenAI).')
-@click.option('--ai-provider', default='anthropic',
+@click.option('--ai-provider', default=None,
               type=click.Choice(['anthropic', 'openai']),
-              help='AI provider for fix suggestions.')
+              help='AI provider for fix suggestions (default: anthropic).')
 @click.pass_context
 def analyze(ctx, target, browsers, fmt, output, config_path,
             fail_on_score, fail_on_errors, fail_on_warnings,
@@ -277,7 +277,14 @@ def analyze(ctx, target, browsers, fmt, output, config_path,
         error_count, warning_count = _count_issues(result_dict)
 
         # --- AI Fix Suggestions (optional) ---
-        if api_key and result.success:
+        # Priority: CLI flag/env var > config file > SQLite settings
+        ai_key = api_key or config.ai_config.get('api_key', '') or None
+        ai_prov = (ai_provider
+                   or config.ai_config.get('provider', '')
+                   or None)
+
+        ai_suggestions = []
+        if result.success:
             file_type = 'css' if css else ('js' if js else 'html')
             unsupported = []
             partial = []
@@ -290,16 +297,39 @@ def analyze(ctx, target, browsers, fmt, output, config_path,
                     partial_features=list(set(partial)),
                     file_type=file_type,
                     browsers=browser_dict or service.DEFAULT_BROWSERS,
-                    api_key=api_key,
-                    provider=ai_provider,
+                    api_key=ai_key,
+                    provider=ai_prov,
                 )
-                if ai_suggestions:
-                    result_text += "\n\n--- AI Fix Suggestions ---\n"
-                    for s in ai_suggestions:
-                        result_text += f"\n{s.feature_name} ({s.feature_id}):\n"
-                        result_text += f"  {s.suggestion}\n"
-                        if s.code_example:
-                            result_text += f"  Example: {s.code_example}\n"
+
+        if ai_suggestions:
+            ai_data = [
+                {
+                    "feature_id": s.feature_id,
+                    "feature_name": s.feature_name,
+                    "suggestion": s.suggestion,
+                    "code_example": s.code_example,
+                    "browsers_affected": s.browsers_affected,
+                }
+                for s in ai_suggestions
+            ]
+
+            # Always add to result_dict so secondary outputs get AI data
+            result_dict['ai_suggestions'] = ai_data
+
+            if fmt in ('json', 'sarif', 'junit', 'checkstyle', 'csv'):
+                # Re-format with embedded AI suggestions
+                if fmt in ('sarif', 'junit', 'checkstyle', 'csv'):
+                    result_text = _format_ci_output(result_dict, fmt)
+                else:
+                    result_text = format_result(result_dict, fmt, color=cli_ctx.color)
+            else:
+                # Text formats: append as readable text
+                result_text += "\n\n--- AI Fix Suggestions ---\n"
+                for s in ai_suggestions:
+                    result_text += f"\n{s.feature_name} ({s.feature_id}):\n"
+                    result_text += f"  {s.suggestion}\n"
+                    if s.code_example:
+                        result_text += f"  Example: {s.code_example}\n"
 
         if output:
             with open(output, 'w', encoding='utf-8') as f:

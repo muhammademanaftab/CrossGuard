@@ -22,21 +22,34 @@ def export_checkstyle(
 
     file_elem = ET.SubElement(root, 'file', name=file_path)
 
+    # Build AI suggestion lookup
+    ai_map = {}
+    for s in report.get('ai_suggestions', []):
+        ai_map[s['feature_id']] = s
+
     for browser_name, browser_data in report.get('browsers', {}).items():
         if not isinstance(browser_data, dict):
             continue
         version = browser_data.get('version', '')
 
         for feat in browser_data.get('unsupported_features', []):
+            msg = f"'{feat}' is not supported in {browser_name} {version}"
+            ai = ai_map.get(feat)
+            if ai:
+                msg += f" -- Fix: {ai['suggestion']}"
             ET.SubElement(file_elem, 'error',
                           severity='error',
-                          message=f"'{feat}' is not supported in {browser_name} {version}",
+                          message=msg,
                           source=f"crossguard.{browser_name}.unsupported")
 
         for feat in browser_data.get('partial_features', []):
+            msg = f"'{feat}' is only partially supported in {browser_name} {version}"
+            ai = ai_map.get(feat)
+            if ai:
+                msg += f" -- Fix: {ai['suggestion']}"
             ET.SubElement(file_elem, 'error',
                           severity='warning',
-                          message=f"'{feat}' is only partially supported in {browser_name} {version}",
+                          message=msg,
                           source=f"crossguard.{browser_name}.partial")
 
     xml_string = ET.tostring(root, encoding='unicode', xml_declaration=True)

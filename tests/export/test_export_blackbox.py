@@ -145,7 +145,8 @@ class TestCsvExporter:
         csv_text = export_csv(_FULL_REPORT)
         reader = csv.reader(io.StringIO(csv_text))
         rows = list(reader)
-        assert rows[0] == ['feature_id', 'feature_name', 'browser', 'version', 'status', 'file_path']
+        assert rows[0] == ['feature_id', 'feature_name', 'browser', 'version', 'status', 'file_path',
+                           'ai_suggestion', 'ai_code_example']
         assert len(rows) == 5
 
     def test_writes_valid_csv_file(self, tmp_path):

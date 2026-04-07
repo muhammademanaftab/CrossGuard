@@ -28,6 +28,23 @@ def export_sarif(
     if baseline:
         properties['baseline'] = baseline
 
+    # Attach AI fix suggestions to matching SARIF results
+    ai_suggestions = report.get('ai_suggestions', [])
+    if ai_suggestions:
+        ai_map = {s['feature_id']: s for s in ai_suggestions}
+        for r in results:
+            rid = r.get('ruleId', '')
+            if rid in ai_map:
+                s = ai_map[rid]
+                r['fixes'] = [{
+                    'description': {'text': s.get('suggestion', '')},
+                    'artifactChanges': [{
+                        'artifactLocation': {'uri': report.get('file_path', 'unknown')},
+                        'replacements': [{'insertedContent': {'text': s.get('code_example', '')}}],
+                    }],
+                }]
+        properties['ai_suggestions'] = ai_suggestions
+
     sarif: Dict = {
         "$schema": _SARIF_SCHEMA,
         "version": _SARIF_VERSION,

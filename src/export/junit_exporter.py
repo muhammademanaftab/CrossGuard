@@ -18,6 +18,11 @@ def export_junit(
 
     testsuites = ET.Element('testsuites', name='CrossGuard')
 
+    # Build AI suggestion lookup
+    ai_map = {}
+    for s in report.get('ai_suggestions', []):
+        ai_map[s['feature_id']] = s
+
     browsers = report.get('browsers', {})
     for browser_name, browser_data in browsers.items():
         if not isinstance(browser_data, dict):
@@ -47,6 +52,10 @@ def export_junit(
                                    message=f"'{feat}' is not supported in "
                                            f"{browser_name} {version}")
             failure.text = f"Feature '{feat}' is not supported"
+            ai = ai_map.get(feat)
+            if ai:
+                sysout = ET.SubElement(tc, 'system-out')
+                sysout.text = f"AI Suggestion: {ai['suggestion']}\nExample: {ai.get('code_example', '')}"
 
         for feat in partial_list:
             tc = ET.SubElement(testsuite, 'testcase',
@@ -57,6 +66,10 @@ def export_junit(
                                    message=f"'{feat}' is only partially supported in "
                                            f"{browser_name} {version}")
             failure.text = f"Feature '{feat}' has partial support"
+            ai = ai_map.get(feat)
+            if ai:
+                sysout = ET.SubElement(tc, 'system-out')
+                sysout.text = f"AI Suggestion: {ai['suggestion']}\nExample: {ai.get('code_example', '')}"
 
         # One passing testcase to represent all supported features
         if supported > 0:

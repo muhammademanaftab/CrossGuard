@@ -5,7 +5,8 @@ import io
 from typing import Dict, Optional, Union
 
 
-_COLUMNS = ['feature_id', 'feature_name', 'browser', 'version', 'status', 'file_path']
+_COLUMNS = ['feature_id', 'feature_name', 'browser', 'version', 'status', 'file_path',
+            'ai_suggestion', 'ai_code_example']
 
 
 def export_csv(
@@ -22,12 +23,18 @@ def export_csv(
 
     file_path = report.get('file_path', 'unknown')
 
+    # Build AI suggestion lookup
+    ai_map = {}
+    for s in report.get('ai_suggestions', []):
+        ai_map[s['feature_id']] = s
+
     for browser_name, browser_data in report.get('browsers', {}).items():
         if not isinstance(browser_data, dict):
             continue
         version = browser_data.get('version', '')
 
         for feat in browser_data.get('unsupported_features', []):
+            ai = ai_map.get(feat, {})
             writer.writerow([
                 feat.lower().replace(' ', '-'),
                 feat,
@@ -35,9 +42,12 @@ def export_csv(
                 version,
                 'unsupported',
                 file_path,
+                ai.get('suggestion', ''),
+                ai.get('code_example', ''),
             ])
 
         for feat in browser_data.get('partial_features', []):
+            ai = ai_map.get(feat, {})
             writer.writerow([
                 feat.lower().replace(' ', '-'),
                 feat,
@@ -45,6 +55,8 @@ def export_csv(
                 version,
                 'partial',
                 file_path,
+                ai.get('suggestion', ''),
+                ai.get('code_example', ''),
             ])
 
     csv_text = buf.getvalue()

@@ -15,6 +15,11 @@ DEFAULT_CONFIG: Dict[str, Any] = {
     },
     'output': 'table',
     'rules': None,  # None = use built-in rules
+    'ai': {
+        'api_key': '',
+        'provider': '',
+        'model': '',
+    },
 }
 
 CONFIG_FILENAME = 'crossguard.config.json'
@@ -75,6 +80,10 @@ class ConfigManager:
     @property
     def rules_path(self) -> Optional[str]:
         return self._config.get('rules')
+
+    @property
+    def ai_config(self) -> Dict[str, str]:
+        return dict(self._config.get('ai', {}))
 
     def get(self, key: str, default: Any = None) -> Any:
         return self._config.get(key, default)
