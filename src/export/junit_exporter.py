@@ -20,7 +20,7 @@ def export_junit(
 
     # Build AI suggestion lookup
     ai_map = {}
-    for s in report.get('ai_suggestions', []):
+    for s in report.get('ai_suggestions') or []:
         ai_map[s['feature_id']] = s
 
     browsers = report.get('browsers', {})

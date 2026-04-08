@@ -29,7 +29,7 @@ def export_sarif(
         properties['baseline'] = baseline
 
     # Attach AI fix suggestions to matching SARIF results
-    ai_suggestions = report.get('ai_suggestions', [])
+    ai_suggestions = report.get('ai_suggestions') or []
     if ai_suggestions:
         ai_map = {s['feature_id']: s for s in ai_suggestions}
         for r in results:

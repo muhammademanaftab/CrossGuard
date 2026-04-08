@@ -261,6 +261,16 @@ class AnalysisResult:
                 'limited': self.baseline_summary.limited,
                 'unknown': self.baseline_summary.unknown,
             } if self.baseline_summary else None,
+            'ai_suggestions': [
+                {
+                    'feature_id': s.feature_id,
+                    'feature_name': s.feature_name,
+                    'suggestion': s.suggestion,
+                    'code_example': s.code_example,
+                    'browsers_affected': s.browsers_affected,
+                }
+                for s in self.ai_suggestions
+            ] if self.ai_suggestions else None,
         }
 
 
