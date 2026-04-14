@@ -69,10 +69,6 @@ SEVERITY_LEVELS = {
 
 APP_NAME = "Cross Guard"
 APP_VERSION = "1.0.0"
-WINDOW_WIDTH = 1200
-WINDOW_HEIGHT = 800
-
-ML_ENABLED = False  # Not ready yet — enable after testing
 
 # --- Logging ---
 

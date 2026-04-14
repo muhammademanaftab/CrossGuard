@@ -2,7 +2,7 @@
 
 import json
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 
 def get_version_ranges(feature_id: str, browser: str) -> List[Dict]:

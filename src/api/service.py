@@ -1,6 +1,6 @@
 """Facade over the backend -- the only thing frontends should talk to."""
 
-from typing import Callable, Optional, Dict, List, Any
+from typing import Optional, Dict, List, Any
 from pathlib import Path
 from datetime import datetime
 
@@ -251,8 +251,7 @@ class AnalyzerService:
 
             return [analysis.to_dict() for analysis in analyses]
 
-        except Exception as e:
-            logger.error(f"Failed to get analysis history: {e}")
+        except Exception:
             return []
 
     def get_analysis_by_id(self, analysis_id: int) -> Optional[Dict[str, Any]]:
@@ -266,8 +265,7 @@ class AnalyzerService:
                 return analysis.to_dict()
             return None
 
-        except Exception as e:
-            logger.error(f"Failed to get analysis #{analysis_id}: {e}")
+        except Exception:
             return None
 
     def delete_from_history(self, analysis_id: int) -> bool:
@@ -277,8 +275,7 @@ class AnalyzerService:
             repo = AnalysisRepository()
             return repo.delete_analysis(analysis_id)
 
-        except Exception as e:
-            logger.error(f"Failed to delete analysis #{analysis_id}: {e}")
+        except Exception:
             return False
 
     def clear_history(self) -> bool:
@@ -301,8 +298,7 @@ class AnalyzerService:
             repo = AnalysisRepository()
             return repo.get_count()
 
-        except Exception as e:
-            logger.error(f"Failed to get history count: {e}")
+        except Exception:
             return 0
 
     # -- Statistics ------------------------------------------------------------
@@ -316,7 +312,6 @@ class AnalyzerService:
             return service.get_summary_statistics()
 
         except Exception as e:
-            logger.error(f"Failed to get statistics: {e}")
             return {
                 'total_analyses': 0,
                 'average_score': 0,
@@ -334,8 +329,7 @@ class AnalyzerService:
             service = get_statistics_service()
             return service.get_score_trend(days)
 
-        except Exception as e:
-            logger.error(f"Failed to get score trend: {e}")
+        except Exception:
             return []
 
     def get_top_problematic_features(self, limit: int = 5) -> List[Dict[str, Any]]:
@@ -345,8 +339,7 @@ class AnalyzerService:
             service = get_statistics_service()
             return service.get_top_problematic_features(limit)
 
-        except Exception as e:
-            logger.error(f"Failed to get problematic features: {e}")
+        except Exception:
             return []
 
     # -- Settings --------------------------------------------------------------
@@ -356,8 +349,7 @@ class AnalyzerService:
             from src.database.repositories import SettingsRepository
             repo = SettingsRepository()
             return repo.get(key, default)
-        except Exception as e:
-            logger.error(f"Failed to get setting '{key}': {e}")
+        except Exception:
             return default
 
     def set_setting(self, key: str, value: str) -> bool:
@@ -366,8 +358,7 @@ class AnalyzerService:
             repo = SettingsRepository()
             repo.set(key, value)
             return True
-        except Exception as e:
-            logger.error(f"Failed to set setting '{key}': {e}")
+        except Exception:
             return False
 
     def get_all_settings(self) -> Dict[str, str]:
@@ -375,8 +366,7 @@ class AnalyzerService:
             from src.database.repositories import SettingsRepository
             repo = SettingsRepository()
             return repo.get_all()
-        except Exception as e:
-            logger.error(f"Failed to get all settings: {e}")
+        except Exception:
             return {}
 
     def get_setting_as_bool(self, key: str, default: bool = False) -> bool:
@@ -403,8 +393,7 @@ class AnalyzerService:
             repo = BookmarksRepository()
             repo.add_bookmark(analysis_id, note)
             return True
-        except Exception as e:
-            logger.error(f"Failed to add bookmark for analysis #{analysis_id}: {e}")
+        except Exception:
             return False
 
     def remove_bookmark(self, analysis_id: int) -> bool:
@@ -412,8 +401,7 @@ class AnalyzerService:
             from src.database.repositories import BookmarksRepository
             repo = BookmarksRepository()
             return repo.remove_bookmark(analysis_id)
-        except Exception as e:
-            logger.error(f"Failed to remove bookmark from analysis #{analysis_id}: {e}")
+        except Exception:
             return False
 
     def is_bookmarked(self, analysis_id: int) -> bool:
@@ -438,8 +426,7 @@ class AnalyzerService:
             from src.database.repositories import BookmarksRepository
             repo = BookmarksRepository()
             return repo.get_all_bookmarks(limit)
-        except Exception as e:
-            logger.error(f"Failed to get bookmarks: {e}")
+        except Exception:
             return []
 
     def update_bookmark_note(self, analysis_id: int, note: str) -> bool:
@@ -447,8 +434,7 @@ class AnalyzerService:
             from src.database.repositories import BookmarksRepository
             repo = BookmarksRepository()
             return repo.update_note(analysis_id, note)
-        except Exception as e:
-            logger.error(f"Failed to update bookmark note: {e}")
+        except Exception:
             return False
 
     def get_bookmarks_count(self) -> int:
@@ -466,8 +452,7 @@ class AnalyzerService:
             from src.database.repositories import TagsRepository
             repo = TagsRepository()
             return repo.create_tag(name, color)
-        except Exception as e:
-            logger.error(f"Failed to create tag '{name}': {e}")
+        except Exception:
             return None
 
     def get_all_tags(self) -> List[Dict[str, Any]]:
@@ -475,8 +460,7 @@ class AnalyzerService:
             from src.database.repositories import TagsRepository
             repo = TagsRepository()
             return repo.get_all_tags()
-        except Exception as e:
-            logger.error(f"Failed to get tags: {e}")
+        except Exception:
             return []
 
     def delete_tag(self, tag_id: int) -> bool:
@@ -484,8 +468,7 @@ class AnalyzerService:
             from src.database.repositories import TagsRepository
             repo = TagsRepository()
             return repo.delete_tag(tag_id)
-        except Exception as e:
-            logger.error(f"Failed to delete tag #{tag_id}: {e}")
+        except Exception:
             return False
 
     def update_tag(self, tag_id: int, name: str = None, color: str = None) -> bool:
@@ -493,8 +476,7 @@ class AnalyzerService:
             from src.database.repositories import TagsRepository
             repo = TagsRepository()
             return repo.update_tag(tag_id, name, color)
-        except Exception as e:
-            logger.error(f"Failed to update tag #{tag_id}: {e}")
+        except Exception:
             return False
 
     def add_tag_to_analysis(self, analysis_id: int, tag_id: int) -> bool:
@@ -502,8 +484,7 @@ class AnalyzerService:
             from src.database.repositories import TagsRepository
             repo = TagsRepository()
             return repo.add_tag_to_analysis(analysis_id, tag_id)
-        except Exception as e:
-            logger.error(f"Failed to add tag to analysis: {e}")
+        except Exception:
             return False
 
     def remove_tag_from_analysis(self, analysis_id: int, tag_id: int) -> bool:
@@ -511,8 +492,7 @@ class AnalyzerService:
             from src.database.repositories import TagsRepository
             repo = TagsRepository()
             return repo.remove_tag_from_analysis(analysis_id, tag_id)
-        except Exception as e:
-            logger.error(f"Failed to remove tag from analysis: {e}")
+        except Exception:
             return False
 
     def get_tags_for_analysis(self, analysis_id: int) -> List[Dict[str, Any]]:
@@ -520,8 +500,7 @@ class AnalyzerService:
             from src.database.repositories import TagsRepository
             repo = TagsRepository()
             return repo.get_tags_for_analysis(analysis_id)
-        except Exception as e:
-            logger.error(f"Failed to get tags for analysis #{analysis_id}: {e}")
+        except Exception:
             return []
 
     def get_analyses_by_tag(self, tag_id: int, limit: int = 50) -> List[Dict[str, Any]]:
@@ -529,8 +508,7 @@ class AnalyzerService:
             from src.database.repositories import TagsRepository
             repo = TagsRepository()
             return repo.get_analyses_by_tag(tag_id, limit)
-        except Exception as e:
-            logger.error(f"Failed to get analyses by tag #{tag_id}: {e}")
+        except Exception:
             return []
 
     def get_tag_counts(self) -> Dict[str, int]:
@@ -538,8 +516,7 @@ class AnalyzerService:
             from src.database.repositories import TagsRepository
             repo = TagsRepository()
             return repo.get_tag_counts()
-        except Exception as e:
-            logger.error(f"Failed to get tag counts: {e}")
+        except Exception:
             return {}
 
     # -- Web Features (Baseline) -----------------------------------------------
@@ -670,8 +647,7 @@ class AnalyzerService:
                 partial_features=set(partial_features or []),
                 browsers=browsers or self.DEFAULT_BROWSERS,
             )
-        except Exception as e:
-            logger.error(f"Failed to get polyfill suggestions: {e}")
+        except Exception:
             return []
 
     def generate_polyfills_file(

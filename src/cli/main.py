@@ -84,14 +84,6 @@ def _classify_files(paths: list[str]) -> tuple[list, list, list]:
     return html, css, js
 
 
-def _collect_files(target: str) -> list[str]:
-    """Return a single-element list if the target is a valid file."""
-    target_path = Path(target)
-    if target_path.is_file():
-        return [str(target_path)]
-    return []
-
-
 def _count_issues(report: dict) -> tuple[int, int]:
     """Tally unsupported (errors) and partial (warnings) across all browsers."""
     errors = 0

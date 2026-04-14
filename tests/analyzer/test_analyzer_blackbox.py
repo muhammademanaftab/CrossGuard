@@ -9,11 +9,13 @@ from unittest.mock import MagicMock
 
 from src.analyzer.compatibility import (
     CompatibilityAnalyzer,
-    CompatibilityIssue,
-    CompatibilityReport,
-    Severity,
+    SEVERITY_CRITICAL,
+    SEVERITY_HIGH,
+    SEVERITY_MEDIUM,
+    SEVERITY_LOW,
+    SEVERITY_INFO,
 )
-from src.analyzer.scorer import CompatibilityScorer, WeightedScore
+from src.analyzer.scorer import CompatibilityScorer
 from src.analyzer.version_ranges import (
     get_version_ranges,
     _get_status_text,
@@ -30,20 +32,20 @@ class TestAnalyze:
     @pytest.mark.blackbox
     def test_empty_features_score_100(self, analyzer, modern_browsers):
         report = analyzer.analyze(set(), modern_browsers)
-        assert report.overall_score == 100.0
-        assert report.features_analyzed == 0
+        assert report['overall_score'] == 100.0
+        assert report['features_analyzed'] == 0
 
     @pytest.mark.blackbox
     def test_well_supported_high_score(self, analyzer, modern_browsers, well_supported_features):
         report = analyzer.analyze(well_supported_features, modern_browsers)
-        assert report.overall_score >= 80.0
+        assert report['overall_score'] >= 80.0
 
     @pytest.mark.blackbox
     def test_adding_ie_lowers_score(self, analyzer, well_supported_features):
         modern = {'chrome': '120', 'firefox': '121'}
         with_ie = {'chrome': '120', 'firefox': '121', 'ie': '11'}
-        assert analyzer.analyze(well_supported_features, with_ie).overall_score < \
-               analyzer.analyze(well_supported_features, modern).overall_score
+        assert analyzer.analyze(well_supported_features, with_ie)['overall_score'] < \
+               analyzer.analyze(well_supported_features, modern)['overall_score']
 
 
 # ============================================================================
@@ -55,8 +57,8 @@ class TestSeverity:
 
     @pytest.mark.blackbox
     @pytest.mark.parametrize("status,total,expected", [
-        ({'chrome': 'n', 'firefox': 'n', 'safari': 'n'}, 3, Severity.CRITICAL),
-        ({'chrome': 'y', 'firefox': 'y', 'safari': 'y'}, 3, Severity.LOW),
+        ({'chrome': 'n', 'firefox': 'n', 'safari': 'n'}, 3, SEVERITY_CRITICAL),
+        ({'chrome': 'y', 'firefox': 'y', 'safari': 'y'}, 3, SEVERITY_LOW),
     ])
     def test_severity_classification(self, analyzer, status, total, expected):
         assert analyzer._calculate_severity(status, total) == expected
@@ -84,13 +86,13 @@ class TestDetailedIssuesAndAnalyzeFeature:
         """Excludes LOW/INFO, sorted CRITICAL first."""
         issues = analyzer.get_detailed_issues(mixed_support_features, legacy_browsers)
         for issue in issues:
-            assert issue.severity not in [Severity.LOW, Severity.INFO]
+            assert issue['severity'] not in [SEVERITY_LOW, SEVERITY_INFO]
 
     @pytest.mark.blackbox
     def test_known_feature_returns_populated_issue(self, analyzer, modern_browsers):
         issue = analyzer.analyze_feature('flexbox', modern_browsers)
-        assert isinstance(issue, CompatibilityIssue)
-        assert issue.feature_id == 'flexbox' and issue.feature_name != 'flexbox'
+        assert isinstance(issue, dict)
+        assert issue['feature_id'] == 'flexbox' and issue['feature_name'] != 'flexbox'
 
 
 # ============================================================================
@@ -100,11 +102,16 @@ class TestDetailedIssuesAndAnalyzeFeature:
 class TestSuggestWorkarounds:
 
     def _make_issue(self, support_status):
-        return CompatibilityIssue(
-            feature_id='flexbox', feature_name='Test', severity=Severity.MEDIUM,
-            browsers_affected=['ie'], support_status=support_status,
-            description='test', category='CSS',
-        )
+        return {
+            'feature_id': 'flexbox',
+            'feature_name': 'Test',
+            'severity': SEVERITY_MEDIUM,
+            'browsers_affected': ['ie'],
+            'support_status': support_status,
+            'description': 'test',
+            'category': 'CSS',
+            'workaround': None,
+        }
 
     @pytest.mark.blackbox
     def test_workaround_suggestions(self, analyzer):
@@ -154,9 +161,9 @@ class TestAnalyzerWithMockedDB:
     def test_mixed_support_correct_score(self):
         a = self._make_analyzer_with_mock({('flexbox', 'chrome'): 'y', ('flexbox', 'ie'): 'n'})
         report = a.analyze({'flexbox'}, {'chrome': '120', 'ie': '11'})
-        assert report.browser_scores['chrome'].score == 100.0
-        assert report.browser_scores['ie'].score == 0.0
-        assert report.overall_score == 50.0
+        assert report['browser_scores']['chrome']['score'] == 100.0
+        assert report['browser_scores']['ie']['score'] == 0.0
+        assert report['overall_score'] == 50.0
 
 
 # ============================================================================
@@ -187,7 +194,7 @@ class TestWeightedScore:
     @pytest.mark.blackbox
     def test_all_supported_weighted_100(self, scorer):
         result = scorer.calculate_weighted_score({'chrome': 'y', 'firefox': 'y'})
-        assert isinstance(result, WeightedScore) and result.weighted_score == 100.0
+        assert isinstance(result, dict) and result['weighted_score'] == 100.0
 
 
 
@@ -238,5 +245,3 @@ class TestStatusTextAndFormat:
     @pytest.mark.blackbox
     def test_known_status_code(self):
         assert _get_status_text('y') == 'Supported'
-
-

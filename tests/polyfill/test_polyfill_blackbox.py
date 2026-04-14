@@ -29,16 +29,16 @@ class TestGetRecommendations:
     def test_npm_feature_returns_npm_recommendation(self, service):
         recs = service.get_recommendations({'fetch'}, set(), {'ie': '11'})
         assert len(recs) == 1
-        assert recs[0].feature_id == 'fetch'
-        assert recs[0].polyfill_type == 'npm'
-        assert len(recs[0].packages) > 0
+        assert recs[0]['feature_id'] == 'fetch'
+        assert recs[0]['polyfill_type'] == 'npm'
+        assert len(recs[0]['packages']) > 0
 
     @pytest.mark.blackbox
     def test_css_fallback_feature_returns_fallback_with_code(self, service):
         recs = service.get_recommendations({'css-grid'}, set(), {'ie': '11'})
         assert len(recs) == 1
-        assert recs[0].polyfill_type == 'fallback'
-        assert recs[0].fallback_code is not None
+        assert recs[0]['polyfill_type'] == 'fallback'
+        assert recs[0]['fallback_code'] is not None
 
 
 

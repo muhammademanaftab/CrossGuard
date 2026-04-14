@@ -6,7 +6,14 @@ works correctly with real Can I Use data.
 
 import pytest
 
-from src.analyzer.compatibility import CompatibilityAnalyzer, CompatibilityReport, Severity
+from src.analyzer.compatibility import (
+    CompatibilityAnalyzer,
+    SEVERITY_CRITICAL,
+    SEVERITY_HIGH,
+    SEVERITY_MEDIUM,
+    SEVERITY_LOW,
+    SEVERITY_INFO,
+)
 from src.analyzer.scorer import CompatibilityScorer
 from src.parsers.css_parser import CSSParser
 from src.parsers.js_parser import JavaScriptParser
@@ -27,8 +34,8 @@ class TestParserToAnalyzerPipeline:
         features = CSSParser().parse_file(str(css_file))
         assert 'flexbox' in features
         report = analyzer.analyze(features, modern_browsers)
-        assert isinstance(report, CompatibilityReport)
-        assert report.overall_score > 50
+        assert isinstance(report, dict)
+        assert report['overall_score'] > 50
 
     @pytest.mark.integration
     def test_js_arrow_functions_detected_and_scored(self, analyzer, modern_browsers, tmp_path):
@@ -37,7 +44,7 @@ class TestParserToAnalyzerPipeline:
         features = JavaScriptParser().parse_file(str(js_file))
         assert 'arrow-functions' in features
         report = analyzer.analyze(features, modern_browsers)
-        assert report.features_analyzed > 0
+        assert report['features_analyzed'] > 0
 
     @pytest.mark.integration
     def test_html_dialog_detected_and_scored(self, analyzer, modern_browsers, tmp_path):
@@ -47,7 +54,7 @@ class TestParserToAnalyzerPipeline:
         features = HTMLParser().parse_file(str(html_file))
         assert 'dialog' in features
         report = analyzer.analyze(features, modern_browsers)
-        assert report.features_analyzed >= 1
+        assert report['features_analyzed'] >= 1
 
 
 # ============================================================================
@@ -77,10 +84,10 @@ class TestReportStructure:
         report = analyzer.analyze({'flexbox', 'css-grid'}, modern_browsers)
         for field in ('overall_score', 'browser_scores', 'issues', 'features_analyzed',
                       'critical_issues', 'high_issues', 'medium_issues', 'low_issues'):
-            assert hasattr(report, field)
-        assert 0 <= report.overall_score <= 100
-        for bs in report.browser_scores.values():
-            assert 0 <= bs.score <= 100
+            assert field in report
+        assert 0 <= report['overall_score'] <= 100
+        for bs in report['browser_scores'].values():
+            assert 0 <= bs['score'] <= 100
 
 
 # ============================================================================
@@ -98,10 +105,9 @@ class TestMultiFileAnalysis:
         js_file.write_text("const x = new Promise((r) => r());", encoding='utf-8')
         combined = CSSParser().parse_file(str(css_file)) | JavaScriptParser().parse_file(str(js_file))
         report = analyzer.analyze(combined, modern_browsers)
-        assert report.features_analyzed == len(combined)
+        assert report['features_analyzed'] == len(combined)
 
 
 # ============================================================================
 # SECTION 5: Version Ranges + Database Consistency
 # ============================================================================
-

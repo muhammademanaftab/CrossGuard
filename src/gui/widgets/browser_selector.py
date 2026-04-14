@@ -1,7 +1,6 @@
 """Browser selector with version dropdowns for picking target browsers."""
 
 import json
-from pathlib import Path
 from typing import Dict, List, Set, Callable, Optional
 
 import customtkinter as ctk

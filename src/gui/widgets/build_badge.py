@@ -1,9 +1,8 @@
 """CI-style build badge showing PASSING/WARNING/FAILING status."""
 
-from typing import Optional
 import customtkinter as ctk
 
-from ..theme import COLORS, SPACING, FONTS, ANIMATION
+from ..theme import COLORS, SPACING, ANIMATION
 
 
 class BuildBadge(ctk.CTkFrame):

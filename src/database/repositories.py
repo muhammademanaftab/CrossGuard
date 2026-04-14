@@ -1,7 +1,6 @@
 """CRUD repositories for analyses, settings, bookmarks, and tags."""
 
 import sqlite3
-import json
 from typing import List, Optional, Dict, Any
 from datetime import datetime
 

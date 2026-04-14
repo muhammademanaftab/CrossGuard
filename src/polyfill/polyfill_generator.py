@@ -1,14 +1,12 @@
 """Generates a ready-to-use polyfills.js file for the user's project."""
 
 from pathlib import Path
-from typing import List
+from typing import Dict, List
 from datetime import datetime
-
-from .polyfill_service import PolyfillRecommendation
 
 
 def generate_polyfills_file(
-    recommendations: List[PolyfillRecommendation],
+    recommendations: List[Dict],
     output_path: str
 ) -> str:
     """Write a polyfills.js file with all necessary imports. Returns the output path."""
@@ -31,8 +29,8 @@ def generate_polyfills_file(
 
     npm_packages = []
     for rec in recommendations:
-        if rec.polyfill_type == 'npm' and rec.packages:
-            npm_packages.append(rec.packages[0].npm_package)
+        if rec['polyfill_type'] == 'npm' and rec['packages']:
+            npm_packages.append(rec['packages'][0]['npm_package'])
 
     if npm_packages:
         lines.append("// Required packages:")
@@ -40,12 +38,12 @@ def generate_polyfills_file(
         lines.append("")
 
     for rec in recommendations:
-        if rec.polyfill_type == 'npm' and rec.packages:
-            lines.append(f"// {rec.feature_name}")
-            lines.append(rec.packages[0].import_statement)
+        if rec['polyfill_type'] == 'npm' and rec['packages']:
+            lines.append(f"// {rec['feature_name']}")
+            lines.append(rec['packages'][0]['import_statement'])
             lines.append("")
 
-    if not any(rec.polyfill_type == 'npm' for rec in recommendations):
+    if not any(rec['polyfill_type'] == 'npm' for rec in recommendations):
         lines.append("// No npm polyfills needed.")
         lines.append("// See CSS fallbacks in Cross Guard report for other recommendations.")
         lines.append("")
@@ -59,7 +57,7 @@ def generate_polyfills_file(
 
 
 def generate_polyfills_content(
-    recommendations: List[PolyfillRecommendation]
+    recommendations: List[Dict]
 ) -> str:
     """Same as generate_polyfills_file but returns the content string instead of writing."""
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -77,9 +75,9 @@ def generate_polyfills_content(
     ]
 
     for rec in recommendations:
-        if rec.polyfill_type == 'npm' and rec.packages:
-            lines.append(f"// {rec.feature_name}")
-            lines.append(rec.packages[0].import_statement)
+        if rec['polyfill_type'] == 'npm' and rec['packages']:
+            lines.append(f"// {rec['feature_name']}")
+            lines.append(rec['packages'][0]['import_statement'])
             lines.append("")
 
     return "\n".join(lines)

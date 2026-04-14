@@ -56,7 +56,7 @@ class TestCompatibilityAnalyzer:
     @pytest.mark.integration
     def test_ie11_marks_fetch_unsupported(self, analyzer):
         report = analyzer.analyze({'fetch'}, {'ie': '11'})
-        assert report.browser_scores['ie'].unsupported_count == 1
+        assert report['browser_scores']['ie']['unsupported_count'] == 1
 
 
 
@@ -69,8 +69,8 @@ class TestFullPipeline:
     def test_ie11_fetch_pipeline(self, analyzer, service, tmp_path):
         features = {'fetch', 'promises'}
         report = analyzer.analyze(features, {'ie': '11'})
-        ie = report.browser_scores['ie']
-        assert ie.unsupported_count + ie.partial_count == 2
+        ie = report['browser_scores']['ie']
+        assert ie['unsupported_count'] + ie['partial_count'] == 2
 
         recs = service.get_recommendations(features, set(), {'ie': '11'})
         assert len(recs) == 2
@@ -85,9 +85,9 @@ class TestFullPipeline:
         features = {'fetch', 'promises', 'array-includes', 'object-entries'}
         browsers = {b: LATEST_VERSIONS[b] for b in ('chrome', 'firefox', 'safari', 'edge')}
         report = analyzer.analyze(features, browsers)
-        assert report.overall_score >= 95
-        for browser, score in report.browser_scores.items():
-            assert score.unsupported_count == 0
+        assert report['overall_score'] >= 95
+        for browser, score in report['browser_scores'].items():
+            assert score['unsupported_count'] == 0
 
 
 # ---------------------------------------------------------------------------
@@ -118,5 +118,5 @@ class TestAPIServicePolyfills:
             partial_features=[], browsers={'ie': '11'},
         )
         assert len(recs) == 2
-        assert {r.feature_id for r in recs} == {'fetch', 'promises'}
+        assert {r['feature_id'] for r in recs} == {'fetch', 'promises'}
 

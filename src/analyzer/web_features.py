@@ -1,7 +1,6 @@
 """Web Features (Baseline) integration — maps Can I Use IDs to W3C Baseline status."""
 
 import json
-import os
 from typing import Dict, List, Optional
 from urllib.request import urlopen, Request
 from urllib.error import URLError

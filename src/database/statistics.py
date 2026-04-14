@@ -1,8 +1,7 @@
 """Aggregated statistics from analysis history."""
 
 import sqlite3
-from typing import Dict, List, Any, Optional, Tuple
-from datetime import datetime, timedelta
+from typing import Dict, List, Any, Optional
 
 from .connection import get_connection
 from src.utils.config import get_logger

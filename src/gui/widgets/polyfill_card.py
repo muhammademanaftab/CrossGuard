@@ -38,22 +38,22 @@ class PolyfillCard(ctk.CTkFrame):
             row.pack_propagate(False)
 
             ctk.CTkLabel(
-                row, text=rec.feature_name,
+                row, text=rec['feature_name'],
                 font=ctk.CTkFont(size=11, weight="bold"),
                 text_color=COLORS['text_primary'],
             ).pack(side="left", padx=SPACING['sm'])
 
-            if rec.packages:
-                pkg = rec.packages[0]
+            if rec['packages']:
+                pkg = rec['packages'][0]
                 ctk.CTkLabel(
-                    row, text=pkg.npm_package,
+                    row, text=pkg['npm_package'],
                     font=ctk.CTkFont(family=FONTS['family_mono'], size=10),
                     text_color=COLORS['text_muted'],
                 ).pack(side="left", padx=(SPACING['xs'], 0))
 
-                if pkg.size_kb:
+                if pkg.get('size_kb'):
                     ctk.CTkLabel(
-                        row, text=f"{pkg.size_kb} KB",
+                        row, text=f"{pkg['size_kb']} KB",
                         font=ctk.CTkFont(size=9), text_color=COLORS['text_disabled'],
                     ).pack(side="right", padx=SPACING['sm'])
 
@@ -64,14 +64,14 @@ class PolyfillCard(ctk.CTkFrame):
             row.pack_propagate(False)
 
             ctk.CTkLabel(
-                row, text=rec.feature_name,
+                row, text=rec['feature_name'],
                 font=ctk.CTkFont(size=11, weight="bold"),
                 text_color=COLORS['text_primary'],
             ).pack(side="left", padx=SPACING['sm'])
 
-            if rec.fallback_description:
+            if rec.get('fallback_description'):
                 ctk.CTkLabel(
-                    row, text=rec.fallback_description,
+                    row, text=rec['fallback_description'],
                     font=ctk.CTkFont(size=10),
                     text_color=COLORS['text_muted'],
                 ).pack(side="left", padx=(SPACING['xs'], 0))

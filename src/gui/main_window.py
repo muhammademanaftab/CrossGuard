@@ -1911,19 +1911,6 @@ class MainWindow(ctk.CTkFrame):
 
         self._run_analysis(self._last_files)
 
-    def _save_ai_key(self):
-        key = self._ai_key_var.get().strip()
-        self._analyzer_service.set_setting('ai_api_key', key)
-        if key:
-            show_info(self, "Saved", "AI API key saved. Fix suggestions will appear in analysis results.")
-        else:
-            show_info(self, "Cleared", "AI API key removed. Fix suggestions are disabled.")
-
-    def _clear_ai_key(self, entry_widget):
-        self._ai_key_var.set("")
-        self._analyzer_service.set_setting('ai_api_key', '')
-        show_info(self, "Cleared", "AI API key removed. Fix suggestions are disabled.")
-
     def _update_database(self):
         try:
             db_info = self._analyzer_service.get_database_info()
