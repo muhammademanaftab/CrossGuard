@@ -1,13 +1,21 @@
-"""Generate the Cross Guard UML class diagram as a PNG image."""
+"""Generate the Cross Guard UML class diagram as a PNG image.
+
+Arrow conventions (UML standard):
+  - Association:  solid line, no arrowhead          (knows about)
+  - Dependency:   dashed line, open arrow  --->     (uses temporarily)
+  - Composition:  solid line, filled diamond ◆──    (owns, dies together)
+  - Aggregation:  solid line, hollow diamond ◇──    (contains, can exist alone)
+  - Inheritance:  solid line, hollow triangle ──▷   (is a)
+"""
 
 import graphviz
 
 
 def class_box(name, attrs=None, methods=None, stereotype=None):
-    """UML 3-compartment box."""
+    """UML 3-compartment class box."""
     header = f"<b>{name}</b>"
     if stereotype:
-        header = f"&lt;&lt;{stereotype}&gt;&gt;<br/><b>{name}</b>"
+        header = f"<i>&lt;&lt;{stereotype}&gt;&gt;</i><br/><b>{name}</b>"
 
     label = '<<table border="0" cellborder="1" cellspacing="0" cellpadding="4">'
     label += f'<tr><td bgcolor="#e8e8e8" align="center">{header}</td></tr>'
@@ -27,11 +35,32 @@ def class_box(name, attrs=None, methods=None, stereotype=None):
 
 
 def ext_box(name, subtitle=None):
-    """External system box."""
+    """External system box (shaded, no compartments)."""
     text = f"<b>{name}</b>"
     if subtitle:
         text += f"<br/><i>{subtitle}</i>"
-    return f'<<table border="0" cellborder="1" cellspacing="0" cellpadding="6" bgcolor="#d9d9d9"><tr><td align="center">{text}</td></tr></table>>'
+    return (f'<<table border="0" cellborder="1" cellspacing="0" cellpadding="6" '
+            f'bgcolor="#d9d9d9"><tr><td align="center">{text}</td></tr></table>>')
+
+
+# ── Relationship helpers (UML-correct arrows) ──────
+
+def dependency(g, src, dst, label=''):
+    """Dashed arrow with open head: src - - -> dst  (uses/depends temporarily)."""
+    g.edge(src, dst, style='dashed', arrowhead='open', label=f'  {label}  ' if label else '')
+
+def composition(g, whole, part):
+    """Solid line, filled diamond on WHOLE side: whole ◆── part."""
+    g.edge(whole, part, arrowhead='none', arrowtail='diamond', dir='both')
+
+def aggregation(g, whole, part, label=''):
+    """Solid line, hollow diamond on WHOLE side: whole ◇── part."""
+    g.edge(whole, part, arrowhead='none', arrowtail='odiamond', dir='both',
+           label=f'  {label}  ' if label else '')
+
+def association(g, src, dst, label=''):
+    """Solid line, no arrowheads (bidirectional awareness)."""
+    g.edge(src, dst, arrowhead='none', label=f'  {label}  ' if label else '')
 
 
 def build():
@@ -43,7 +72,7 @@ def build():
             'rankdir': 'TB',
             'splines': 'true',
             'nodesep': '0.5',
-            'ranksep': '1.2',
+            'ranksep': '1.1',
             'fontname': 'Helvetica',
             'label': 'Cross Guard — UML Class Diagram\n\n',
             'labelloc': 't',
@@ -55,7 +84,11 @@ def build():
         edge_attr={'fontname': 'Helvetica', 'fontsize': '8'},
     )
 
-    # ── Layer 1: Frontends ──────────────────────────────
+    # ═══════════════════════════════════════════════════════
+    #  CLASS DEFINITIONS (26 classes + 4 external systems)
+    # ═══════════════════════════════════════════════════════
+
+    # ── Frontends ───────────────────────────────────────
 
     g.node('MainWindow', class_box('MainWindow',
         ['- _analyzer_service : AnalyzerService',
@@ -89,7 +122,7 @@ def build():
          '+ init_hooks(hook_type)'],
         stereotype='Click commands'))
 
-    # ── Layer 2: Data Contracts ─────────────────────────
+    # ── Data Contracts ──────────────────────────────────
 
     g.node('AnalysisRequest', class_box('AnalysisRequest',
         ['+ html_files : List[str]',
@@ -114,7 +147,7 @@ def build():
         ['+ from_dict(data) : AnalysisResult',
          '+ to_dict() : Dict']))
 
-    # ── Layer 2: Facade ─────────────────────────────────
+    # ── Facade ──────────────────────────────────────────
 
     g.node('AnalyzerService', class_box('AnalyzerService',
         ['- _analyzer : CrossGuardAnalyzer',
@@ -152,7 +185,7 @@ def build():
          '+ classify_file(path) : str'],
         stereotype='facade'))
 
-    # ── Layer 3: Orchestrator ───────────────────────────
+    # ── Orchestrator ────────────────────────────────────
 
     g.node('CrossGuardAnalyzer', class_box('CrossGuardAnalyzer',
         ['+ html_parser : HTMLParser',
@@ -175,7 +208,7 @@ def build():
          '- _generate_report(results, scores, browsers) : Dict'],
         stereotype='orchestrator'))
 
-    # ── Layer 3 side: Services ──────────────────────────
+    # ── Services ────────────────────────────────────────
 
     g.node('DatabaseUpdater', class_box('DatabaseUpdater',
         ['+ caniuse_dir : Path',
@@ -231,7 +264,7 @@ def build():
          '+ reload()'],
         stereotype='singleton'))
 
-    # ── Layer 4: Parsers ────────────────────────────────
+    # ── Parsers ─────────────────────────────────────────
 
     g.node('HTMLParser', class_box('HTMLParser',
         ['+ features_found : Set[str]',
@@ -278,7 +311,7 @@ def build():
          '+ reload()'],
         stereotype='singleton'))
 
-    # ── Layer 4: Compatibility Engine ───────────────────
+    # ── Compatibility Engine ────────────────────────────
 
     g.node('CompatibilityAnalyzer', class_box('CompatibilityAnalyzer',
         ['+ database : CanIUseDatabase'],
@@ -308,7 +341,7 @@ def build():
          '+ get_browser_versions(browser) : List[str]'],
         stereotype='singleton'))
 
-    # ── Layer 5: Database layer ─────────────────────────
+    # ── Database Layer ──────────────────────────────────
 
     g.node('AnalysisRepository', class_box('AnalysisRepository',
         ['- _conn : Connection'],
@@ -331,58 +364,38 @@ def build():
          '+ get_file_type_distribution() : Dict',
          '+ get_summary_statistics() : Dict']))
 
+    # ── Data Models ─────────────────────────────────────
+
     g.node('Analysis', class_box('Analysis',
-        ['+ id : int',
-         '+ file_name : str',
-         '+ file_path : str',
-         '+ file_type : str',
-         '+ overall_score : float',
-         '+ grade : str',
-         '+ total_features : int',
-         '+ analyzed_at : datetime',
-         '+ browsers_json : str',
-         '+ features : List[AnalysisFeature]'],
-        ['+ to_dict() : Dict',
-         '+ from_row(row) : Analysis',
+        ['+ id : int', '+ file_name : str', '+ file_path : str',
+         '+ file_type : str', '+ overall_score : float', '+ grade : str',
+         '+ total_features : int', '+ analyzed_at : datetime',
+         '+ browsers_json : str', '+ features : List[AnalysisFeature]'],
+        ['+ to_dict() : Dict', '+ from_row(row) : Analysis',
          '+ get_formatted_date() : str']))
 
     g.node('AnalysisFeature', class_box('AnalysisFeature',
-        ['+ id : int',
-         '+ analysis_id : int',
-         '+ feature_id : str',
-         '+ feature_name : str',
-         '+ category : str',
+        ['+ id : int', '+ analysis_id : int', '+ feature_id : str',
+         '+ feature_name : str', '+ category : str',
          '+ browser_results : List[BrowserResult]'],
-        ['+ to_dict() : Dict',
-         '+ from_row(row) : AnalysisFeature']))
+        ['+ to_dict() : Dict', '+ from_row(row) : AnalysisFeature']))
 
     g.node('BrowserResult', class_box('BrowserResult',
-        ['+ id : int',
-         '+ analysis_feature_id : int',
-         '+ browser : str',
-         '+ version : str',
-         '+ support_status : str'],
-        ['+ to_dict() : Dict',
-         '+ from_row(row) : BrowserResult']))
+        ['+ id : int', '+ analysis_feature_id : int',
+         '+ browser : str', '+ version : str', '+ support_status : str'],
+        ['+ to_dict() : Dict', '+ from_row(row) : BrowserResult']))
 
     g.node('Bookmark', class_box('Bookmark',
-        ['+ id : int',
-         '+ analysis_id : int',
-         '+ note : str',
-         '+ created_at : datetime',
-         '+ analysis : Analysis'],
-        ['+ to_dict() : Dict',
-         '+ from_row(row) : Bookmark']))
+        ['+ id : int', '+ analysis_id : int', '+ note : str',
+         '+ created_at : datetime', '+ analysis : Analysis'],
+        ['+ to_dict() : Dict', '+ from_row(row) : Bookmark']))
 
     g.node('Tag', class_box('Tag',
-        ['+ id : int',
-         '+ name : str',
-         '+ color : str',
+        ['+ id : int', '+ name : str', '+ color : str',
          '+ created_at : datetime'],
-        ['+ to_dict() : Dict',
-         '+ from_row(row) : Tag']))
+        ['+ to_dict() : Dict', '+ from_row(row) : Tag']))
 
-    # ── External systems ────────────────────────────────
+    # ── External Systems ────────────────────────────────
 
     g.node('SQLiteDB', ext_box('SQLite Database', 'crossguard.db'))
     g.node('CanIUseData', ext_box('Can I Use Data', 'data/caniuse/'))
@@ -390,68 +403,72 @@ def build():
     g.node('NPMRegistry', ext_box('NPM Registry', 'registry.npmjs.org'))
 
     # ═══════════════════════════════════════════════════════
-    #  EDGES
+    #  RELATIONSHIPS (UML-correct arrow types)
     # ═══════════════════════════════════════════════════════
 
+    # ── Composition: filled diamond ◆ (whole owns part) ──
+
+    composition(g, 'MainWindow', 'ExportManager')
+    composition(g, 'CrossGuardAnalyzer', 'HTMLParser')
+    composition(g, 'CrossGuardAnalyzer', 'CSSParser')
+    composition(g, 'CrossGuardAnalyzer', 'JSParser')
+    composition(g, 'CrossGuardAnalyzer', 'CompatibilityAnalyzer')
+    composition(g, 'CrossGuardAnalyzer', 'CompatibilityScorer')
+
+    # ── Aggregation: hollow diamond ◇ (contains, can exist alone) ──
+
+    aggregation(g, 'Analysis', 'AnalysisFeature', '1..*')
+    aggregation(g, 'AnalysisFeature', 'BrowserResult', '1..*')
+
+    # ── Dependency: dashed arrow ---> (uses/creates temporarily) ──
+
     # Frontends -> Facade
-    g.edge('MainWindow', 'ExportManager', arrowhead='diamond', dir='back', label=' composition')
-    g.edge('MainWindow', 'AnalyzerService', style='dashed', arrowhead='vee', label=' depends')
-    g.edge('CLI', 'AnalyzerService', style='dashed', arrowhead='vee', label=' depends')
-    g.edge('CLI', 'ConfigManager', style='dashed', arrowhead='vee', label=' loads config')
+    dependency(g, 'MainWindow', 'AnalyzerService', 'depends')
+    dependency(g, 'CLI', 'AnalyzerService', 'depends')
+    dependency(g, 'CLI', 'ConfigManager', 'loads config')
 
     # Facade -> Data contracts
-    g.edge('AnalyzerService', 'AnalysisRequest', style='dashed', arrowhead='vee', label=' accepts')
-    g.edge('AnalyzerService', 'AnalysisResult', style='dashed', arrowhead='vee', label=' returns')
+    dependency(g, 'AnalyzerService', 'AnalysisRequest', 'accepts')
+    dependency(g, 'AnalyzerService', 'AnalysisResult', 'returns')
 
-    # Facade -> Backend
-    g.edge('AnalyzerService', 'CrossGuardAnalyzer', style='dashed', arrowhead='vee', label=' creates')
-    g.edge('AnalyzerService', 'DatabaseUpdater', style='dashed', arrowhead='vee', label=' creates')
-    g.edge('AnalyzerService', 'WebFeaturesManager', style='dashed', arrowhead='vee', label=' creates')
-    g.edge('AnalyzerService', 'ConfigManager', style='dashed', arrowhead='vee', label=' uses')
-    g.edge('AnalyzerService', 'AnalysisRepository', style='dashed', arrowhead='vee', label=' uses')
-    g.edge('AnalyzerService', 'StatisticsService', style='dashed', arrowhead='vee', label=' uses')
-    g.edge('AnalyzerService', 'AIFixService', style='dashed', arrowhead='vee', label=' uses')
-    g.edge('AnalyzerService', 'PolyfillService', style='dashed', arrowhead='vee', label=' uses')
+    # Facade -> Backend (creates)
+    dependency(g, 'AnalyzerService', 'CrossGuardAnalyzer', 'creates')
+    dependency(g, 'AnalyzerService', 'DatabaseUpdater', 'creates')
+    dependency(g, 'AnalyzerService', 'WebFeaturesManager', 'creates')
 
-    # Orchestrator -> composed parts
-    g.edge('CrossGuardAnalyzer', 'HTMLParser', arrowhead='diamond', dir='back')
-    g.edge('CrossGuardAnalyzer', 'CSSParser', arrowhead='diamond', dir='back')
-    g.edge('CrossGuardAnalyzer', 'JSParser', arrowhead='diamond', dir='back')
-    g.edge('CrossGuardAnalyzer', 'CompatibilityAnalyzer', arrowhead='diamond', dir='back')
-    g.edge('CrossGuardAnalyzer', 'CompatibilityScorer', arrowhead='diamond', dir='back')
-    g.edge('CrossGuardAnalyzer', 'CanIUseDatabase', style='dashed', arrowhead='vee', label=' uses')
+    # Facade -> Backend (uses)
+    dependency(g, 'AnalyzerService', 'ConfigManager', 'uses')
+    dependency(g, 'AnalyzerService', 'AnalysisRepository', 'uses')
+    dependency(g, 'AnalyzerService', 'StatisticsService', 'uses')
+    dependency(g, 'AnalyzerService', 'AIFixService', 'uses')
+    dependency(g, 'AnalyzerService', 'PolyfillService', 'uses')
 
-    # Parsers -> CustomRulesLoader
-    g.edge('HTMLParser', 'CustomRulesLoader', style='dashed', arrowhead='vee', label=' loads rules')
-    g.edge('CSSParser', 'CustomRulesLoader', style='dashed', arrowhead='vee', label=' loads rules')
-    g.edge('JSParser', 'CustomRulesLoader', style='dashed', arrowhead='vee', label=' loads rules')
+    # Orchestrator -> dependencies
+    dependency(g, 'CrossGuardAnalyzer', 'CanIUseDatabase', 'uses')
+
+    # Parsers -> rules
+    dependency(g, 'HTMLParser', 'CustomRulesLoader', 'loads rules')
+    dependency(g, 'CSSParser', 'CustomRulesLoader', 'loads rules')
+    dependency(g, 'JSParser', 'CustomRulesLoader', 'loads rules')
 
     # Compatibility engine
-    g.edge('CompatibilityAnalyzer', 'CanIUseDatabase', style='dashed', arrowhead='vee', label=' queries')
-    g.edge('CanIUseDatabase', 'CanIUseData', style='dashed', arrowhead='vee', label=' reads')
+    dependency(g, 'CompatibilityAnalyzer', 'CanIUseDatabase', 'queries')
 
-    # DatabaseUpdater -> external
-    g.edge('DatabaseUpdater', 'CanIUseData', style='dashed', arrowhead='vee', label=' updates')
-    g.edge('DatabaseUpdater', 'NPMRegistry', style='dashed', arrowhead='vee', label=' fetches')
+    # ── Association: solid line (structural link) ──
 
-    # Database persistence
-    g.edge('AnalysisRepository', 'SQLiteDB', style='dashed', arrowhead='vee', label=' stored in')
-    g.edge('StatisticsService', 'SQLiteDB', style='dashed', arrowhead='vee', label=' queries')
-    g.edge('AnalysisRepository', 'Analysis', style='dashed', arrowhead='vee', label=' manages')
+    association(g, 'AnalysisRepository', 'Analysis', 'manages')
+    association(g, 'Bookmark', 'Analysis', 'references')
+    association(g, 'Analysis', 'Tag', '0..*')
+    association(g, 'PolyfillService', 'PolyfillLoader', 'uses')
 
-    # Data model chain (aggregation)
-    g.edge('Analysis', 'AnalysisFeature', arrowhead='odiamond', dir='back', label=' 1..*')
-    g.edge('AnalysisFeature', 'BrowserResult', arrowhead='odiamond', dir='back', label=' 1..*')
+    # ── Dependency to external systems ──
 
-    # Bookmark and Tag
-    g.edge('Bookmark', 'Analysis', style='dashed', arrowhead='vee', label=' references')
-    g.edge('Analysis', 'Tag', label=' 0..*', style='dashed', arrowhead='vee')
-
-    # Polyfill
-    g.edge('PolyfillService', 'PolyfillLoader', style='dashed', arrowhead='vee', label=' uses')
-
-    # AI -> external
-    g.edge('AIFixService', 'LLMAPIs', style='dashed', arrowhead='vee', label=' calls')
+    dependency(g, 'CanIUseDatabase', 'CanIUseData', 'reads')
+    dependency(g, 'DatabaseUpdater', 'CanIUseData', 'updates')
+    dependency(g, 'DatabaseUpdater', 'NPMRegistry', 'fetches')
+    dependency(g, 'AnalysisRepository', 'SQLiteDB', 'stored in')
+    dependency(g, 'StatisticsService', 'SQLiteDB', 'queries')
+    dependency(g, 'AIFixService', 'LLMAPIs', 'calls')
 
     # ═══════════════════════════════════════════════════════
     #  LAYOUT RANKS
