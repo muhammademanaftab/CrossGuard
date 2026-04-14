@@ -2,7 +2,6 @@
 
 from typing import Dict, List, Set, Optional, Tuple
 from pathlib import Path
-import json
 from datetime import datetime
 
 from ..parsers.html_parser import HTMLParser
@@ -40,7 +39,7 @@ class CrossGuardAnalyzer:
         self.css_feature_details = []
         self.js_feature_details = []
         self.html_feature_details = []
-        
+
     def run_analysis(
         self,
         html_files: Optional[List[str]] = None,
@@ -82,7 +81,7 @@ class CrossGuardAnalyzer:
         )
 
         return report
-    
+
     def analyze_single_file(
         self,
         filepath: str,
@@ -106,14 +105,14 @@ class CrossGuardAnalyzer:
                 'success': False,
                 'error': f"Unknown file type: {file_type}. Use 'html', 'css', or 'js'."
             }
-        
+
         self.all_features = self.html_features | self.js_features | self.css_features
 
         compatibility_results = self._check_compatibility(target_browsers)
         scores = self._calculate_scores(compatibility_results, target_browsers)
-        
+
         return self._generate_report(compatibility_results, scores, target_browsers)
-    
+
     def _reset_state(self):
         """Clear all state for a fresh analysis run."""
         self.html_features = set()
@@ -149,9 +148,9 @@ class CrossGuardAnalyzer:
                     'valid': False,
                     'error': f'File not found: {filepath}'
                 }
-        
+
         return {'valid': True}
-    
+
     def _parse_html_files(self, html_files: List[str]):
         for filepath in html_files:
             try:
@@ -190,7 +189,7 @@ class CrossGuardAnalyzer:
                 error_msg = f"Error parsing JS file {filepath}: {str(e)}"
                 self.errors.append(error_msg)
                 logger.error(error_msg)
-    
+
     def _check_compatibility(self, target_browsers: Dict[str, str]) -> Dict:
         """Look up each feature in the caniuse DB for every target browser."""
         results = {}
@@ -202,11 +201,11 @@ class CrossGuardAnalyzer:
                 'unsupported': [],
                 'unknown': []
             }
-            
+
             for feature in self.all_features:
                 try:
                     support_status = self.database.check_support(feature, browser, version)
-                    
+
                     if support_status == 'y':
                         browser_results['supported'].append(feature)
                     elif support_status in ['a', 'x']:
@@ -215,16 +214,16 @@ class CrossGuardAnalyzer:
                         browser_results['unsupported'].append(feature)
                     else:
                         browser_results['unknown'].append(feature)
-                        
+
                 except Exception as e:
                     browser_results['unknown'].append(feature)
                     if feature not in [w.split(':')[0] for w in self.warnings]:
                         self.warnings.append(f"{feature}: Not found in database")
-            
+
             results[browser] = browser_results
-        
+
         return results
-    
+
     def _calculate_scores(
         self,
         compatibility_results: Dict,
@@ -287,7 +286,7 @@ class CrossGuardAnalyzer:
             'grade': grade,
             'risk_level': risk_level
         }
-    
+
     def _generate_report(
         self,
         compatibility_results: Dict,
@@ -299,23 +298,23 @@ class CrossGuardAnalyzer:
         html_count = len(self.html_features)
         css_count = len(self.css_features)
         js_count = len(self.js_features)
-        
+
         # Features unsupported in at least one browser
         critical_issues = set()
         for browser, results in compatibility_results.items():
             critical_issues.update(results['unsupported'])
-        
+
         browser_details = {}
         for browser, results in compatibility_results.items():
             total = len(self.all_features)
             supported = len(results['supported'])
             partial = len(results['partial'])
             unsupported = len(results['unsupported'])
-            
+
             compatibility_pct = 0
             if total > 0:
                 compatibility_pct = ((supported + partial * 0.5) / total) * 100
-            
+
             browser_details[browser] = {
                 'version': target_browsers[browser],
                 'total_features': total,
@@ -327,13 +326,13 @@ class CrossGuardAnalyzer:
                 'unsupported_features': results['unsupported'],
                 'partial_features': results['partial']
             }
-        
+
         recommendations = self._generate_recommendations(
             critical_issues,
             compatibility_results,
             target_browsers
         )
-        
+
         report = {
             'success': True,
             'timestamp': datetime.now().isoformat(),
@@ -378,9 +377,9 @@ class CrossGuardAnalyzer:
             },
             'recommendations': recommendations
         }
-        
+
         return report
-    
+
     def _generate_recommendations(
         self,
         critical_issues: Set[str],
@@ -395,9 +394,9 @@ class CrossGuardAnalyzer:
                 f"{len(critical_issues)} features are not supported in some browsers. "
                 "Consider providing fallbacks or polyfills."
             )
-        
+
         partial_count = sum(
-            len(results['partial']) 
+            len(results['partial'])
             for results in compatibility_results.values()
         )
         if partial_count > 0:
@@ -405,26 +404,26 @@ class CrossGuardAnalyzer:
                 f"{partial_count} features have partial support. "
                 "Test thoroughly in target browsers."
             )
-        
+
         # Dedupe unknowns across browsers
         unknown_features = set()
         for results in compatibility_results.values():
             unknown_features.update(results['unknown'])
-        
+
         if unknown_features:
             num_browsers = len(target_browsers)
             num_features = len(unknown_features)
-            
+
             if num_features == 1:
                 feature_text = "feature"
             else:
                 feature_text = "features"
-            
+
             recommendations.append(
                 f"{num_features} {feature_text} not found in database across {num_browsers} browsers. "
                 "These may be universally supported or custom features."
             )
-        
+
         for browser, results in compatibility_results.items():
             unsupported = len(results['unsupported'])
             if unsupported > 5:
@@ -432,14 +431,14 @@ class CrossGuardAnalyzer:
                     f"{browser.capitalize()}: {unsupported} unsupported features detected. "
                     "Consider testing and providing alternatives."
                 )
-        
+
         if not critical_issues and partial_count == 0:
             recommendations.append(
                 "All features are well-supported across target browsers."
             )
-        
+
         return recommendations
-    
+
     def _get_default_browsers(self) -> Dict[str, str]:
         """Latest versions of the four major browsers."""
         return {
@@ -448,116 +447,6 @@ class CrossGuardAnalyzer:
             'safari': LATEST_VERSIONS['safari'],
             'edge': LATEST_VERSIONS['edge']
         }
-    
-    def export_report(self, report: Dict, output_file: str, format: str = 'json'):
-        """Write the report to disk as json, txt, or html."""
-        output_path = Path(output_file)
-        
-        try:
-            if format == 'json':
-                with open(output_path, 'w', encoding='utf-8') as f:
-                    json.dump(report, f, indent=2, ensure_ascii=False)
-                logger.info(f"Report exported to {output_path}")
-
-            elif format == 'txt':
-                with open(output_path, 'w', encoding='utf-8') as f:
-                    f.write(self._format_text_report(report))
-                logger.info(f"Report exported to {output_path}")
-
-            elif format == 'html':
-                with open(output_path, 'w', encoding='utf-8') as f:
-                    f.write(self._format_html_report(report))
-                logger.info(f"Report exported to {output_path}")
-
-            else:
-                logger.warning(f"Unknown export format: {format}")
-
-        except Exception as e:
-            logger.error(f"Error exporting report: {e}")
-    
-    def _format_text_report(self, report: Dict) -> str:
-        lines = []
-        lines.append("=" * 70)
-        lines.append("  CROSS GUARD COMPATIBILITY REPORT")
-        lines.append("=" * 70)
-        lines.append("")
-        
-        summary = report['summary']
-        lines.append("SUMMARY:")
-        lines.append(f"  Total Features: {summary['total_features']}")
-        lines.append(f"  HTML: {summary['html_features']}, CSS: {summary['css_features']}, JS: {summary['js_features']}")
-        lines.append(f"  Overall Grade: {summary['overall_grade']}")
-        lines.append(f"  Risk Level: {summary['risk_level']}")
-        lines.append("")
-        
-        lines.append("BROWSER COMPATIBILITY:")
-        for browser, details in report['browsers'].items():
-            lines.append(f"  {browser.capitalize()} {details['version']}:")
-            lines.append(f"    Compatibility: {details['compatibility_percentage']}%")
-            lines.append(f"    Supported: {details['supported']}, Partial: {details['partial']}, Unsupported: {details['unsupported']}")
-        lines.append("")
-        
-        lines.append("RECOMMENDATIONS:")
-        for rec in report['recommendations']:
-            lines.append(f"  {rec}")
-        lines.append("")
-        
-        lines.append("=" * 70)
-        
-        return "\n".join(lines)
-    
-    def _format_html_report(self, report: Dict) -> str:
-        html = f"""
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Cross Guard Compatibility Report</title>
-    <style>
-        body {{ font-family: Arial, sans-serif; margin: 20px; }}
-        h1 {{ color: #333; }}
-        .summary {{ background: #f0f0f0; padding: 15px; border-radius: 5px; }}
-        .browser {{ margin: 10px 0; padding: 10px; border-left: 3px solid #007bff; }}
-        .grade {{ font-size: 24px; font-weight: bold; }}
-        .recommendations {{ background: #fff3cd; padding: 15px; border-radius: 5px; }}
-    </style>
-</head>
-<body>
-    <h1>Cross Guard Compatibility Report</h1>
-    <div class="summary">
-        <h2>Summary</h2>
-        <p>Total Features: {report['summary']['total_features']}</p>
-        <p>Grade: <span class="grade">{report['summary']['overall_grade']}</span></p>
-        <p>Risk Level: {report['summary']['risk_level']}</p>
-    </div>
-    <h2>Browser Compatibility</h2>
-"""
-        
-        for browser, details in report['browsers'].items():
-            html += f"""
-    <div class="browser">
-        <h3>{browser.capitalize()} {details['version']}</h3>
-        <p>Compatibility: {details['compatibility_percentage']}%</p>
-        <p>Supported: {details['supported']}, Partial: {details['partial']}, Unsupported: {details['unsupported']}</p>
-    </div>
-"""
-        
-        html += """
-    <div class="recommendations">
-        <h2>Recommendations</h2>
-        <ul>
-"""
-        
-        for rec in report['recommendations']:
-            html += f"            <li>{rec}</li>\n"
-        
-        html += """
-        </ul>
-    </div>
-</body>
-</html>
-"""
-        
-        return html
 
 
 def run_analysis(

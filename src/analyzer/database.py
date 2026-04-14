@@ -1,12 +1,11 @@
 """Loads and queries the Can I Use database for feature support lookups."""
 
 import json
-import os
 from pathlib import Path
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Dict, List, Optional
 from functools import lru_cache
 
-from ..utils.config import CANIUSE_DB_PATH, CANIUSE_FEATURES_PATH, SUPPORT_STATUS, get_logger
+from ..utils.config import CANIUSE_DB_PATH, CANIUSE_FEATURES_PATH, get_logger
 
 logger = get_logger('analyzer.database')
 
@@ -157,61 +156,10 @@ class CanIUseDatabase:
         
         return 'u'
     
-    def check_multiple_browsers(self, feature_id: str, browsers: Dict[str, str]) -> Dict[str, str]:
-        """Check one feature across several browsers at once."""
-        results = {}
-        
-        for browser, version in browsers.items():
-            results[browser] = self.check_support(feature_id, browser, version)
-        
-        return results
-    
-    def search_features(self, query: str) -> List[str]:
-        """Search features by keyword, title, or partial ID match."""
-        self._ensure_loaded()
-
-        query = query.lower().strip()
-        results = set()
-        
-        if query in self.features:
-            results.add(query)
-        
-        if query in self.feature_index:
-            indexed = self.feature_index[query]
-            if isinstance(indexed, str):
-                results.add(indexed)
-            elif isinstance(indexed, list):
-                results.update(indexed)
-        
-        for feature_id in self.features.keys():
-            if query in feature_id.lower():
-                results.add(feature_id)
-        
-        for feature_id, feature_data in self.features.items():
-            if 'title' in feature_data and query in feature_data['title'].lower():
-                results.add(feature_id)
-            if 'description' in feature_data and query in feature_data['description'].lower():
-                results.add(feature_id)
-        
-        return list(results)
-    
     def get_all_features(self) -> List[str]:
         self._ensure_loaded()
 
         return list(self.features.keys())
-    
-    def get_feature_categories(self) -> Dict[str, List[str]]:
-        """Group all features by their caniuse category."""
-        categories = {}
-        
-        for feature_id, feature_data in self.features.items():
-            if 'categories' in feature_data:
-                for category in feature_data['categories']:
-                    if category not in categories:
-                        categories[category] = []
-                    categories[category].append(feature_id)
-        
-        return categories
     
     def get_feature_info(self, feature_id: str) -> Optional[Dict]:
         """Return a cleaned-up dict with title, description, spec URL, etc."""
@@ -245,20 +193,6 @@ class CanIUseDatabase:
         
         return list(first_feature['stats'][browser].keys())
     
-    def get_statistics(self) -> Dict:
-        if not self.loaded:
-            return {'loaded': False}
-        
-        categories = self.get_feature_categories()
-        
-        return {
-            'loaded': True,
-            'total_features': len(self.features),
-            'total_categories': len(categories),
-            'categories': {cat: len(features) for cat, features in categories.items()},
-            'index_size': len(self.feature_index)
-        }
-
 
 _database_instance = None
 

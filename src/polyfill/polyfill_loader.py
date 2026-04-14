@@ -81,18 +81,6 @@ class PolyfillLoader:
         polyfill = self.get_polyfill(feature_id)
         return polyfill is not None and polyfill.get('polyfillable', False)
 
-    def get_all_javascript_polyfills(self) -> Dict[str, Dict]:
-        return self._data.get('javascript', {}).copy()
-
-    def get_all_css_polyfills(self) -> Dict[str, Dict]:
-        return self._data.get('css', {}).copy()
-
-    def get_all_html_polyfills(self) -> Dict[str, Dict]:
-        return self._data.get('html', {}).copy()
-
-    def get_metadata(self) -> Dict[str, Any]:
-        return self._data.get('metadata', {}).copy()
-
     def reload(self):
         self._load_data()
 

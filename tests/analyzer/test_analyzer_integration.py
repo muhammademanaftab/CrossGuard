@@ -6,15 +6,7 @@ works correctly with real Can I Use data.
 
 import pytest
 
-from src.analyzer.compatibility import (
-    CompatibilityAnalyzer,
-    SEVERITY_CRITICAL,
-    SEVERITY_HIGH,
-    SEVERITY_MEDIUM,
-    SEVERITY_LOW,
-    SEVERITY_INFO,
-)
-from src.analyzer.scorer import CompatibilityScorer
+from src.analyzer.compatibility import CompatibilityAnalyzer
 from src.parsers.css_parser import CSSParser
 from src.parsers.js_parser import JavaScriptParser
 from src.parsers.html_parser import HTMLParser
@@ -58,22 +50,7 @@ class TestParserToAnalyzerPipeline:
 
 
 # ============================================================================
-# SECTION 2: Scoring End-to-End
-# ============================================================================
-
-class TestScoringEndToEnd:
-    """Tests that scoring aligns with expectations for real features."""
-
-    @pytest.mark.integration
-    def test_modern_features_grade_high(self, analyzer, modern_browsers, well_supported_features):
-        report = analyzer.analyze(well_supported_features, modern_browsers)
-        summary = analyzer.get_summary_statistics(report)
-        assert summary['grade'] in ['A+', 'A', 'A-', 'B+', 'B']
-
-
-
-# ============================================================================
-# SECTION 3: Report Structure Validation
+# SECTION 2: Report Structure Validation
 # ============================================================================
 
 class TestReportStructure:

@@ -10,10 +10,7 @@ from unittest.mock import MagicMock
 from src.analyzer.compatibility import (
     CompatibilityAnalyzer,
     SEVERITY_CRITICAL,
-    SEVERITY_HIGH,
-    SEVERITY_MEDIUM,
     SEVERITY_LOW,
-    SEVERITY_INFO,
 )
 from src.analyzer.scorer import CompatibilityScorer
 from src.analyzer.version_ranges import (
@@ -76,73 +73,6 @@ class TestAnalyzerGrade:
 
 
 # ============================================================================
-# SECTION 4: get_detailed_issues() and analyze_feature()
-# ============================================================================
-
-class TestDetailedIssuesAndAnalyzeFeature:
-
-    @pytest.mark.blackbox
-    def test_filters_and_sorts_issues(self, analyzer, legacy_browsers, mixed_support_features):
-        """Excludes LOW/INFO, sorted CRITICAL first."""
-        issues = analyzer.get_detailed_issues(mixed_support_features, legacy_browsers)
-        for issue in issues:
-            assert issue['severity'] not in [SEVERITY_LOW, SEVERITY_INFO]
-
-    @pytest.mark.blackbox
-    def test_known_feature_returns_populated_issue(self, analyzer, modern_browsers):
-        issue = analyzer.analyze_feature('flexbox', modern_browsers)
-        assert isinstance(issue, dict)
-        assert issue['feature_id'] == 'flexbox' and issue['feature_name'] != 'flexbox'
-
-
-# ============================================================================
-# SECTION 5: suggest_workarounds()
-# ============================================================================
-
-class TestSuggestWorkarounds:
-
-    def _make_issue(self, support_status):
-        return {
-            'feature_id': 'flexbox',
-            'feature_name': 'Test',
-            'severity': SEVERITY_MEDIUM,
-            'browsers_affected': ['ie'],
-            'support_status': support_status,
-            'description': 'test',
-            'category': 'CSS',
-            'workaround': None,
-        }
-
-    @pytest.mark.blackbox
-    def test_workaround_suggestions(self, analyzer):
-        workarounds = analyzer.suggest_workarounds(
-            self._make_issue({'chrome': 'y', 'ie': 'p'}))
-        assert any('polyfill' in w.lower() for w in workarounds) is True
-
-
-# ============================================================================
-# SECTION 6: Summary and Comparison
-# ============================================================================
-
-class TestSummaryAndComparison:
-
-    @pytest.mark.blackbox
-    def test_summary_structure(self, analyzer, modern_browsers, well_supported_features):
-        report = analyzer.analyze(well_supported_features, modern_browsers)
-        summary = analyzer.get_summary_statistics(report)
-        assert {'overall_score', 'grade', 'features_analyzed', 'total_issues',
-                'critical_issues', 'high_issues', 'medium_issues', 'low_issues',
-                'browsers_tested', 'best_browser', 'worst_browser'} == set(summary.keys())
-
-    @pytest.mark.blackbox
-    def test_browser_comparison_structure(self, analyzer, modern_browsers):
-        comparison = analyzer.get_browser_comparison({'flexbox', 'css-grid'}, modern_browsers)
-        assert set(comparison.keys()) == set(modern_browsers.keys())
-        for data in comparison.values():
-            assert set(data['features'].keys()) == {'flexbox', 'css-grid'}
-
-
-# ============================================================================
 # SECTION 7: Mocked Database Unit Tests
 # ============================================================================
 
@@ -198,23 +128,8 @@ class TestWeightedScore:
 
 
 
-# ============================================================================
-# SECTION 13: Progressive, Trend, and Compare
-# ============================================================================
-
-class TestProgressiveAndTrendScores:
-
-    @pytest.mark.blackbox
-    def test_modern_vs_legacy_split(self, scorer):
-        result = scorer.calculate_progressive_score(
-            {'chrome': 'y', 'firefox': 'y', 'ie': 'n'}, {'chrome', 'firefox'})
-        assert result['modern'] == 100.0 and result['legacy'] == 0.0
 
 
-
-# ============================================================================
-# SECTION 14: Market Share and Feature Importance
-# ============================================================================
 
 # ============================================================================
 # SECTION 15: Version Ranges

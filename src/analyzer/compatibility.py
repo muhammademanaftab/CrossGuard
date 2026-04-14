@@ -1,10 +1,9 @@
 """Checks detected features against target browsers and classifies issues by severity."""
 
-from typing import Dict, List, Set, Tuple, Optional
+from typing import Dict, List, Set
 
 from .database import get_database
 from .scorer import _score_to_grade
-from ..utils.config import SUPPORT_STATUS, SEVERITY_LEVELS
 
 # Severity constants (plain strings instead of enum)
 SEVERITY_CRITICAL = "critical"
@@ -88,37 +87,6 @@ class CompatibilityAnalyzer:
         total_score = sum(bs['score'] for bs in browser_scores.values())
         return total_score / len(browser_scores)
 
-    def analyze_feature(self, feature_id: str,
-                       target_browsers: Dict[str, str]) -> Dict:
-        """Check one feature across all browsers and return its issue."""
-        support_status = {}
-        browsers_affected = []
-
-        for browser, version in target_browsers.items():
-            status = self.database.check_support(feature_id, browser, version)
-            support_status[browser] = status
-
-            if status in ['n', 'u']:
-                browsers_affected.append(browser)
-
-        severity = self._calculate_severity(support_status, len(target_browsers))
-
-        feature_info = self.database.get_feature_info(feature_id)
-        feature_name = feature_info['title'] if feature_info else feature_id
-        description = feature_info['description'] if feature_info else "No description"
-        category = feature_info['categories'][0] if feature_info and feature_info['categories'] else "Unknown"
-
-        return {
-            'feature_id': feature_id,
-            'feature_name': feature_name,
-            'severity': severity,
-            'browsers_affected': browsers_affected,
-            'support_status': support_status,
-            'description': description,
-            'category': category,
-            'workaround': None,
-        }
-
     def _calculate_severity(self, support_status: Dict[str, str],
                            total_browsers: int) -> str:
         """More unsupported browsers = higher severity."""
@@ -134,85 +102,6 @@ class CompatibilityAnalyzer:
         if unsupported_count > 0 or partial_count > 0:
             return SEVERITY_MEDIUM
         return SEVERITY_LOW
-
-    def get_detailed_issues(self, features: Set[str],
-                           target_browsers: Dict[str, str]) -> List[Dict]:
-        """Return only medium+ issues, sorted critical-first."""
-        issues = []
-
-        for feature_id in features:
-            issue = self.analyze_feature(feature_id, target_browsers)
-            if issue['severity'] in [SEVERITY_CRITICAL, SEVERITY_HIGH, SEVERITY_MEDIUM]:
-                issues.append(issue)
-
-        severity_order = {
-            SEVERITY_CRITICAL: 0,
-            SEVERITY_HIGH: 1,
-            SEVERITY_MEDIUM: 2,
-            SEVERITY_LOW: 3,
-            SEVERITY_INFO: 4,
-        }
-
-        issues.sort(key=lambda x: severity_order[x['severity']])
-
-        return issues
-
-    def get_browser_comparison(self, features: Set[str],
-                              target_browsers: Dict[str, str]) -> Dict[str, Dict]:
-        """Feature support matrix: browser -> feature -> status."""
-        comparison = {}
-
-        for browser, version in target_browsers.items():
-            browser_data = {
-                'version': version,
-                'features': {}
-            }
-
-            for feature_id in features:
-                status = self.database.check_support(feature_id, browser, version)
-                feature_info = self.database.get_feature_info(feature_id)
-
-                browser_data['features'][feature_id] = {
-                    'status': status,
-                    'status_text': SUPPORT_STATUS.get(status, 'Unknown'),
-                    'name': feature_info['title'] if feature_info else feature_id
-                }
-
-            comparison[browser] = browser_data
-
-        return comparison
-
-    def suggest_workarounds(self, issue: Dict) -> List[str]:
-        """Suggest polyfills, prefixes, or notes from the DB for an issue."""
-        workarounds = []
-
-        if 'p' in issue['support_status'].values():
-            workarounds.append("Polyfill available - consider using a polyfill library")
-
-        if 'x' in issue['support_status'].values():
-            workarounds.append("Vendor prefix required - use autoprefixer or add prefixes manually")
-
-        feature = self.database.get_feature(issue['feature_id'])
-        if feature and 'notes' in feature:
-            workarounds.append(f"Note: {feature['notes']}")
-
-        return workarounds
-
-    def get_summary_statistics(self, report: Dict) -> Dict:
-        """Distill a report into a flat summary dict."""
-        return {
-            'overall_score': round(report['overall_score'], 2),
-            'grade': self._score_to_grade(report['overall_score']),
-            'features_analyzed': report['features_analyzed'],
-            'total_issues': len(report['issues']),
-            'critical_issues': report['critical_issues'],
-            'high_issues': report['high_issues'],
-            'medium_issues': report['medium_issues'],
-            'low_issues': report['low_issues'],
-            'browsers_tested': len(report['browser_scores']),
-            'best_browser': self._get_best_browser(report['browser_scores']),
-            'worst_browser': self._get_worst_browser(report['browser_scores']),
-        }
 
     def _score_to_grade(self, score: float) -> str:
         return _score_to_grade(score)

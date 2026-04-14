@@ -166,23 +166,6 @@ class AnalysisRepository:
 
         return [BrowserResult.from_row(row) for row in cursor.fetchall()]
 
-    def get_analyses_for_file(
-        self,
-        file_name: str,
-        limit: int = 10
-    ) -> List[Analysis]:
-        """History for a specific file, newest first."""
-        conn = self.conn
-
-        cursor = conn.execute("""
-            SELECT * FROM analyses
-            WHERE file_name = ?
-            ORDER BY analyzed_at DESC
-            LIMIT ?
-        """, (file_name, limit))
-
-        return [Analysis.from_row(row) for row in cursor.fetchall()]
-
     def delete_analysis(self, analysis_id: int) -> bool:
         """Delete an analysis. Cascade handles features and browser results."""
         conn = self.conn
@@ -226,23 +209,6 @@ class AnalysisRepository:
             cursor = conn.execute("SELECT COUNT(*) FROM analyses")
 
         return cursor.fetchone()[0]
-
-    def search_analyses(
-        self,
-        query: str,
-        limit: int = 20
-    ) -> List[Analysis]:
-        """Search by partial file name match."""
-        conn = self.conn
-
-        cursor = conn.execute("""
-            SELECT * FROM analyses
-            WHERE file_name LIKE ?
-            ORDER BY analyzed_at DESC
-            LIMIT ?
-        """, (f'%{query}%', limit))
-
-        return [Analysis.from_row(row) for row in cursor.fetchall()]
 
 
 def save_analysis_from_result(result: Dict[str, Any], file_info: Dict[str, str]) -> int:
