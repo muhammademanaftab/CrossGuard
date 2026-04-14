@@ -525,5 +525,5 @@ def build():
 
 if __name__ == '__main__':
     d = build()
-    path = d.render('uml_class_diagram', directory='docs', cleanup=True)
+    path = d.render('uml_class_diagram', directory='docs/diagrams/images', cleanup=True)
     print(f"Saved: {path}")

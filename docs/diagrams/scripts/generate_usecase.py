@@ -127,5 +127,5 @@ def build():
 
 if __name__ == '__main__':
     d = build()
-    path = d.render('usecase_diagram', directory='docs', cleanup=True)
+    path = d.render('usecase_diagram', directory='docs/diagrams/images', cleanup=True)
     print(f"Saved: {path}")
