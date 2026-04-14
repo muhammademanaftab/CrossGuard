@@ -7,12 +7,7 @@ from src.api.service import AnalyzerService
 from src.api.schemas import (
     AnalysisRequest,
     AnalysisResult,
-    FeatureSummary,
-    CompatibilityScore,
     BrowserCompatibility,
-    DetectedFeatures,
-    FeatureDetails,
-    UnrecognizedPatterns,
 )
 
 

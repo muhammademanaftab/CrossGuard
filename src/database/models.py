@@ -167,49 +167,6 @@ class Analysis:
 
 
 @dataclass
-class Setting:
-    """Key-value user preference."""
-    key: str
-    value: str
-    updated_at: Optional[datetime] = None
-
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            'key': self.key,
-            'value': self.value,
-            'updated_at': self.updated_at.isoformat() if self.updated_at else None,
-        }
-
-    @classmethod
-    def from_row(cls, row) -> 'Setting':
-        updated_at = None
-        if row['updated_at']:
-            try:
-                updated_at = datetime.fromisoformat(row['updated_at'])
-            except (ValueError, TypeError):
-                pass
-
-        return cls(
-            key=row['key'],
-            value=row['value'],
-            updated_at=updated_at,
-        )
-
-    def get_as_bool(self) -> bool:
-        return self.value.lower() in ('true', '1', 'yes', 'on')
-
-    def get_as_int(self) -> int:
-        try:
-            return int(self.value)
-        except (ValueError, TypeError):
-            return 0
-
-    def get_as_list(self) -> List[str]:
-        """Split comma-separated value into a list."""
-        return [v.strip() for v in self.value.split(',') if v.strip()]
-
-
-@dataclass
 class Bookmark:
     """A bookmarked analysis with an optional note."""
     analysis_id: int
@@ -287,31 +244,3 @@ class Tag:
         )
 
 
-@dataclass
-class AnalysisTag:
-    """Many-to-many link between an analysis and a tag."""
-    analysis_id: int
-    tag_id: int
-    created_at: Optional[datetime] = None
-
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            'analysis_id': self.analysis_id,
-            'tag_id': self.tag_id,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
-        }
-
-    @classmethod
-    def from_row(cls, row) -> 'AnalysisTag':
-        created_at = None
-        if row['created_at']:
-            try:
-                created_at = datetime.fromisoformat(row['created_at'])
-            except (ValueError, TypeError):
-                pass
-
-        return cls(
-            analysis_id=row['analysis_id'],
-            tag_id=row['tag_id'],
-            created_at=created_at,
-        )

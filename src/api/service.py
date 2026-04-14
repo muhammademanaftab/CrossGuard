@@ -7,7 +7,6 @@ from datetime import datetime
 from .schemas import (
     AnalysisRequest,
     AnalysisResult,
-    BaselineSummary,
     DatabaseInfo,
     DatabaseUpdateResult,
     ProgressCallback,
@@ -85,7 +84,7 @@ class AnalyzerService:
                 error=str(e)
             )
 
-    def _get_baseline_summary(self, result: AnalysisResult) -> Optional[BaselineSummary]:
+    def _get_baseline_summary(self, result: AnalysisResult) -> Optional[Dict]:
         """Compute Baseline summary for detected features."""
         try:
             wf = self._get_web_features()
@@ -94,13 +93,12 @@ class AnalyzerService:
 
             feature_ids = []
             if result.detected_features:
-                feature_ids = result.detected_features.all or []
+                feature_ids = result.detected_features.get('all', [])
 
             if not feature_ids:
                 return None
 
-            summary = wf.get_baseline_summary(feature_ids)
-            return BaselineSummary(**summary)
+            return wf.get_baseline_summary(feature_ids)
         except Exception:
             return None
 
@@ -695,10 +693,6 @@ class AnalyzerService:
             '.ts': 'js', '.tsx': 'js',
         }
         return ext_map.get(ext)
-
-    def is_ml_enabled(self) -> bool:
-        from src.utils.config import ML_ENABLED
-        return ML_ENABLED
 
     # -- Custom Rules ----------------------------------------------------------
 

@@ -14,10 +14,8 @@ from src.database.models import (
     Analysis,
     AnalysisFeature,
     BrowserResult,
-    Setting,
     Bookmark,
     Tag,
-    AnalysisTag,
 )
 from tests.database.conftest import save_n_analyses
 
@@ -67,10 +65,6 @@ class TestModelBehavior:
         a = Analysis(file_name="x.html", file_type="html", overall_score=0, grade="F", total_features=0)
         a.browsers = {"safari": "17", "chrome": "120"}
         assert a.browsers == {"safari": "17", "chrome": "120"}
-
-    @pytest.mark.blackbox
-    def test_setting_get_as_bool(self):
-        assert Setting(key="k", value="true").get_as_bool() is True
 
 
 # =============================================================================

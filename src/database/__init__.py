@@ -5,10 +5,8 @@ from .models import (
     Analysis,
     AnalysisFeature,
     BrowserResult,
-    Setting,
     Bookmark,
     Tag,
-    AnalysisTag,
 )
 from .repositories import (
     AnalysisRepository,
@@ -26,10 +24,8 @@ __all__ = [
     'Analysis',
     'AnalysisFeature',
     'BrowserResult',
-    'Setting',
     'Bookmark',
     'Tag',
-    'AnalysisTag',
     'AnalysisRepository',
     'SettingsRepository',
     'BookmarksRepository',

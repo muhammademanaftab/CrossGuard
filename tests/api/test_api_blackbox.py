@@ -13,7 +13,6 @@ from src.api.service import AnalyzerService
 from src.api.schemas import (
     AnalysisRequest,
     AnalysisResult,
-    BaselineSummary,
     ExportRequest,
 )
 
@@ -56,7 +55,7 @@ class TestAnalyze:
         result = service.analyze(request)
 
         assert result.success is True
-        assert result.summary.total_features == 5
+        assert result.summary['total_features'] == 5
         mock_instance.run_analysis.assert_called_once()
 
     @pytest.mark.blackbox

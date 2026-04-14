@@ -109,7 +109,7 @@ class TestBaselineEnrichment:
 
         assert result.success is True
         assert result.baseline_summary is not None
-        assert result.baseline_summary.widely_available == 2
+        assert result.baseline_summary['widely_available'] == 2
 
 
 

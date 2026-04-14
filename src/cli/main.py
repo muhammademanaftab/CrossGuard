@@ -273,7 +273,7 @@ def analyze(ctx, target, browsers, fmt, output, config_path,
         else:
             result_text = format_result(result_dict, fmt, color=cli_ctx.color)
 
-        score = result.scores.simple_score if result.scores else 0.0
+        score = result.scores['simple_score'] if result.scores else 0.0
         error_count, warning_count = _count_issues(result_dict)
 
         # --- AI Fix Suggestions (optional) ---

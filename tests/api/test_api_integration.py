@@ -41,8 +41,8 @@ class TestAnalyzeCSS:
         result = service.analyze_files(css_files=[path])
 
         assert result.success is True
-        assert result.summary.total_features > 0
-        assert result.scores.simple_score > 0
+        assert result.summary['total_features'] > 0
+        assert result.scores['simple_score'] > 0
 
 
 
@@ -58,7 +58,7 @@ class TestAnalyzeJS:
         result = service.analyze_files(js_files=[path])
 
         assert result.success is True
-        assert any('promise' in f for f in result.detected_features.js)
+        assert any('promise' in f for f in result.detected_features['js'])
 
 
 # ===================================================================
@@ -74,7 +74,7 @@ class TestAnalyzeHTML:
         result = service.analyze_files(html_files=[path])
 
         assert result.success is True
-        assert result.summary.html_features > 0
+        assert result.summary['html_features'] > 0
 
 
 # ===================================================================
@@ -96,7 +96,7 @@ class TestMixedFileAnalysis:
         )
 
         assert result.success is True
-        assert result.summary.total_features > 0
+        assert result.summary['total_features'] > 0
 
 
 # ===================================================================
