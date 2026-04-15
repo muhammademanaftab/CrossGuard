@@ -1,0 +1,113 @@
+@startuml
+
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName Helvetica
+skinparam defaultFontSize 11
+skinparam dpi 200
+
+skinparam sequence {
+    ArrowColor #333333
+    LifeLineBorderColor #444444
+    LifeLineBackgroundColor #F5F5F5
+    ParticipantBorderColor #444444
+    ParticipantBackgroundColor #E8E8E8
+    ParticipantFontSize 11
+    ActorBorderColor #333333
+}
+
+skinparam note {
+    BackgroundColor #FFFFF0
+    BorderColor #AAAAAA
+    FontSize 10
+}
+
+' ── Participants ──────────────────────────────
+
+actor "User" as U
+participant "MainWindow\n//or CLI//" as MW
+participant "AnalyzerService\n//<<facade>>//" as AS
+participant "CrossGuard\nAnalyzer" as CGA
+participant "Parser\n//HTML/CSS/JS//" as P
+participant "Compatibility\nAnalyzer" as CA
+participant "CanIUse\nDatabase" as DB
+participant "Compatibility\nScorer" as CS
+participant "Analysis\nRepository" as AR
+
+' ── Main Flow ─────────────────────────────────
+
+U -> MW : Upload files &\nclick Analyze
+
+activate MW
+MW -> AS : analyze_files(html, css, js, browsers)
+activate AS
+
+AS -> CGA : run_analysis(files, browsers)
+activate CGA
+
+== Parsing Phase ==
+
+CGA -> P : parse_file(path)
+activate P
+P -> P : parse_string(content)
+P --> CGA : Set[feature_ids]
+deactivate P
+
+note right of P
+  Repeated for each file.
+  HTML uses BeautifulSoup,
+  CSS uses tinycss2,
+  JS uses tree-sitter.
+end note
+
+== Compatibility Check Phase ==
+
+CGA -> CA : analyze(features, browsers)
+activate CA
+
+CA -> DB : check_support(feature, browser, version)
+activate DB
+DB --> CA : support_status (y / n / a / p)
+deactivate DB
+
+note right of DB
+  Repeated for each
+  feature x browser
+  combination.
+end note
+
+CA --> CGA : compatibility_report
+deactivate CA
+
+== Scoring Phase ==
+
+CGA -> CS : calculate_weighted_score(status)
+activate CS
+CS --> CGA : score (0-100) + grade (A+ to F)
+deactivate CS
+
+== Report Generation ==
+
+CGA -> CGA : _generate_report(results, scores, browsers)
+CGA --> AS : report_dict
+deactivate CGA
+
+AS -> AS : AnalysisResult.from_dict(report)
+
+' ── Save to Database (optional) ───────────────
+
+AS -> AR : save_analysis(result)
+activate AR
+AR --> AS : analysis_id
+deactivate AR
+
+AS --> MW : AnalysisResult
+deactivate AS
+
+' ── Display Results ───────────────────────────
+
+MW -> MW : _build_results_view()
+MW --> U : Show scores, issues,\nbrowser cards
+deactivate MW
+
+@enduml

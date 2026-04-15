@@ -3,77 +3,77 @@
 skinparam backgroundColor white
 skinparam shadowing false
 skinparam defaultFontName Helvetica
+skinparam defaultFontSize 12
 skinparam dpi 200
-skinparam padding 2
 
 skinparam actor {
     BackgroundColor white
     BorderColor #333333
-    FontSize 12
+    FontSize 13
 }
 
 skinparam usecase {
     BackgroundColor #EEEEEE
     BorderColor #444444
     FontSize 11
+    Padding 10
 }
 
 skinparam rectangle {
     BackgroundColor #FAFAFA
     BorderColor #333333
-    FontSize 15
-    RoundCorner 12
+    FontSize 16
+    RoundCorner 15
     FontStyle bold
 }
 
 skinparam database {
-    BackgroundColor #F0F0F0
+    BackgroundColor #E0E0E0
     BorderColor #555555
-    FontSize 10
+    FontSize 11
 }
 
 skinparam cloud {
-    BackgroundColor #F0F0F0
+    BackgroundColor #E0E0E0
     BorderColor #555555
-    FontSize 10
+    FontSize 11
 }
 
 left to right direction
 
-' ═══ ACTORS (LEFT) ═══
+' ══════════════════════════════════════
+'  ACTORS
+' ══════════════════════════════════════
 
-:User\n(GUI): as U
+:User: as U
+:Developer: as D
 
-' ═══ SYSTEM (CENTER) ═══
+' ══════════════════════════════════════
+'  SYSTEM
+' ══════════════════════════════════════
 
-rectangle "Cross Guard System" {
-
-    (Upload & Analyze Files) as UC1
-    (Select Target Browsers) as UC2
-    (View Results & Scores) as UC3
-    (Export Report) as UC4
-    (View History & Statistics) as UC5
-    (Bookmark & Tag Analyses) as UC6
-    (Get AI Fix Suggestions) as UC7
-    (Get Polyfill Recommendations) as UC8
-    (Manage Custom Rules) as UC9
-    (Update Database) as UC10
-    (Run CLI / CI Pipeline) as UC11
-    (Quality Gate & CI Config) as UC12
+rectangle " " {
+    (Analyze Files for\nBrowser Compatibility) as UC1
+    (View Results,\nScores & Issues) as UC2
+    (Export Reports) as UC3
+    (Browse History\n& Statistics) as UC4
+    (AI & Polyfill\nSuggestions) as UC5
+    (Configure Rules\n& Update Database) as UC6
+    (CI/CD Pipeline\n& Quality Gates) as UC7
 }
 
-' ═══ ACTORS (RIGHT) ═══
+' ══════════════════════════════════════
+'  EXTERNAL SYSTEMS
+' ══════════════════════════════════════
 
-:Developer\n(CLI / CI): as D
-
-' ═══ EXTERNAL SYSTEMS (BOTTOM) ═══
-
-database "Can I Use\nDatabase" as CIU
 database "SQLite" as SQL
+database "Can I Use DB" as CIU
 cloud "LLM API" as LLM
-cloud "NPM\nRegistry" as NPM
+cloud "NPM Registry" as NPM
 
-' ═══ USER --> USE CASES ═══
+' ══════════════════════════════════════
+'  USER (primary actor, left side)
+' ══════════════════════════════════════
 
 U -- UC1
 U -- UC2
@@ -81,28 +81,25 @@ U -- UC3
 U -- UC4
 U -- UC5
 U -- UC6
-U -- UC7
-U -- UC8
-U -- UC9
-U -- UC10
 
-' ═══ DEVELOPER --> USE CASES ═══
+' ══════════════════════════════════════
+'  DEVELOPER (secondary actor, right side)
+' ══════════════════════════════════════
 
 D -- UC1
-D -- UC4
-D -- UC5
-D -- UC10
-D -- UC11
-D -- UC12
+D -- UC3
+D -- UC6
+D -- UC7
 
-' ═══ USE CASES --> EXTERNAL SYSTEMS ═══
+' ══════════════════════════════════════
+'  EXTERNAL SYSTEM CONNECTIONS
+' ══════════════════════════════════════
 
 UC1 ..> CIU : Check\nSupport
 UC1 ..> SQL : Save\nResults
-UC5 ..> SQL : Query
-UC6 ..> SQL : Store
-UC7 ..> LLM : Generate\nFixes
-UC10 ..> NPM : Fetch\nLatest
-UC10 ..> CIU : Update
+UC4 ..> SQL : Query
+UC5 ..> LLM : Generate\nFixes
+UC6 ..> NPM : Fetch\nLatest
+UC6 ..> CIU : Update
 
 @enduml
