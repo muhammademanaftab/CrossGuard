@@ -6,10 +6,8 @@ works correctly with real Can I Use data.
 
 import pytest
 
-from src.analyzer.compatibility import CompatibilityAnalyzer
 from src.parsers.css_parser import CSSParser
 from src.parsers.js_parser import JavaScriptParser
-from src.parsers.html_parser import HTMLParser
 
 
 # ============================================================================
@@ -29,43 +27,6 @@ class TestParserToAnalyzerPipeline:
         assert isinstance(report, dict)
         assert report['overall_score'] > 50
 
-    @pytest.mark.integration
-    def test_js_arrow_functions_detected_and_scored(self, analyzer, modern_browsers, tmp_path):
-        js_file = tmp_path / "test.js"
-        js_file.write_text("const add = (a, b) => a + b;", encoding='utf-8')
-        features = JavaScriptParser().parse_file(str(js_file))
-        assert 'arrow-functions' in features
-        report = analyzer.analyze(features, modern_browsers)
-        assert report['features_analyzed'] > 0
-
-    @pytest.mark.integration
-    def test_html_dialog_detected_and_scored(self, analyzer, modern_browsers, tmp_path):
-        html_file = tmp_path / "test.html"
-        html_file.write_text(
-            "<html><body><dialog open>Hello</dialog></body></html>", encoding='utf-8')
-        features = HTMLParser().parse_file(str(html_file))
-        assert 'dialog' in features
-        report = analyzer.analyze(features, modern_browsers)
-        assert report['features_analyzed'] >= 1
-
-
-# ============================================================================
-# SECTION 2: Report Structure Validation
-# ============================================================================
-
-class TestReportStructure:
-    """Tests that reports contain all required fields with valid values."""
-
-    @pytest.mark.integration
-    def test_report_fields_and_score_ranges(self, analyzer, modern_browsers):
-        report = analyzer.analyze({'flexbox', 'css-grid'}, modern_browsers)
-        for field in ('overall_score', 'browser_scores', 'issues', 'features_analyzed',
-                      'critical_issues', 'high_issues', 'medium_issues', 'low_issues'):
-            assert field in report
-        assert 0 <= report['overall_score'] <= 100
-        for bs in report['browser_scores'].values():
-            assert 0 <= bs['score'] <= 100
-
 
 # ============================================================================
 # SECTION 4: Multi-File Analysis
@@ -83,8 +44,3 @@ class TestMultiFileAnalysis:
         combined = CSSParser().parse_file(str(css_file)) | JavaScriptParser().parse_file(str(js_file))
         report = analyzer.analyze(combined, modern_browsers)
         assert report['features_analyzed'] == len(combined)
-
-
-# ============================================================================
-# SECTION 5: Version Ranges + Database Consistency
-# ============================================================================

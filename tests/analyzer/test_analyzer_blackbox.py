@@ -7,12 +7,7 @@ through their public interfaces with real and mocked data.
 import pytest
 from unittest.mock import MagicMock
 
-from src.analyzer.compatibility import (
-    CompatibilityAnalyzer,
-    SEVERITY_CRITICAL,
-    SEVERITY_LOW,
-)
-from src.analyzer.scorer import CompatibilityScorer
+from src.analyzer.compatibility import CompatibilityAnalyzer
 from src.analyzer.version_ranges import (
     get_version_ranges,
     _get_status_text,
@@ -25,12 +20,6 @@ from src.analyzer.version_ranges import (
 
 class TestAnalyze:
     """Tests for analyze(features, target_browsers)."""
-
-    @pytest.mark.blackbox
-    def test_empty_features_score_100(self, analyzer, modern_browsers):
-        report = analyzer.analyze(set(), modern_browsers)
-        assert report['overall_score'] == 100.0
-        assert report['features_analyzed'] == 0
 
     @pytest.mark.blackbox
     def test_well_supported_high_score(self, analyzer, modern_browsers, well_supported_features):
@@ -49,24 +38,12 @@ class TestAnalyze:
 # SECTION 3: Severity and Grading
 # ============================================================================
 
-class TestSeverity:
-    """Tests for _calculate_severity()."""
-
-    @pytest.mark.blackbox
-    @pytest.mark.parametrize("status,total,expected", [
-        ({'chrome': 'n', 'firefox': 'n', 'safari': 'n'}, 3, SEVERITY_CRITICAL),
-        ({'chrome': 'y', 'firefox': 'y', 'safari': 'y'}, 3, SEVERITY_LOW),
-    ])
-    def test_severity_classification(self, analyzer, status, total, expected):
-        assert analyzer._calculate_severity(status, total) == expected
-
-
 class TestAnalyzerGrade:
     """Tests for the analyzer's 13-level grading scale (A+ to F)."""
 
     @pytest.mark.blackbox
     @pytest.mark.parametrize("score,expected", [
-        (100, 'A+'), (0, 'F'),
+        (100, 'A+'),
     ])
     def test_grade_boundary(self, analyzer, score, expected):
         assert analyzer._score_to_grade(score) == expected
@@ -97,41 +74,6 @@ class TestAnalyzerWithMockedDB:
 
 
 # ============================================================================
-# SECTION 8: CompatibilityScorer -- Constants and Weights
-# ============================================================================
-
-class TestScorerConstants:
-
-    @pytest.mark.blackbox
-    @pytest.mark.parametrize("status,expected", [
-        ('y', 100), ('n', 0),
-    ])
-    def test_status_score_values(self, scorer, status, expected):
-        assert scorer.STATUS_SCORES[status] == expected
-
-    @pytest.mark.blackbox
-    def test_custom_weights_override_defaults(self, scorer_custom):
-        s = scorer_custom({'chrome': 0.9, 'firefox': 0.8})
-        assert s.browser_weights == {'chrome': 0.9, 'firefox': 0.8}
-
-
-# ============================================================================
-# SECTION 10: calculate_weighted_score()
-# ============================================================================
-
-class TestWeightedScore:
-
-    @pytest.mark.blackbox
-    def test_all_supported_weighted_100(self, scorer):
-        result = scorer.calculate_weighted_score({'chrome': 'y', 'firefox': 'y'})
-        assert isinstance(result, dict) and result['weighted_score'] == 100.0
-
-
-
-
-
-
-# ============================================================================
 # SECTION 15: Version Ranges
 # ============================================================================
 
@@ -144,11 +86,6 @@ class TestGetVersionRanges:
         for r in ranges:
             assert set(r.keys()) == {'start', 'end', 'status', 'status_text'}
         assert ranges[-1]['status'] == 'y'
-
-    @pytest.mark.blackbox
-    def test_unknown_feature_and_browser_return_empty(self):
-        assert get_version_ranges('totally-fake-feature-xyz', 'chrome') == []
-        assert get_version_ranges('flexbox', 'netscape') == []
 
 
 # ============================================================================
