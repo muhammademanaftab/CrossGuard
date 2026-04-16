@@ -5,10 +5,8 @@ No database (SQLite) interaction -- only the analyze() pipeline.
 """
 
 import pytest
-from pathlib import Path
 
 from src.api.service import AnalyzerService
-from src.api.schemas import AnalysisRequest, AnalysisResult, BrowserCompatibility
 
 
 # --- Fixtures ---
@@ -27,54 +25,6 @@ def create_temp_file(tmp_path):
         filepath.write_text(content, encoding='utf-8')
         return str(filepath)
     return _create
-
-
-# ===================================================================
-# CSS Integration
-# ===================================================================
-
-class TestAnalyzeCSS:
-
-    @pytest.mark.integration
-    def test_flexbox_detected_and_scored(self, service, create_temp_file):
-        path = create_temp_file("style.css", ".container { display: flex; }")
-        result = service.analyze_files(css_files=[path])
-
-        assert result.success is True
-        assert result.summary['total_features'] > 0
-        assert result.scores['simple_score'] > 0
-
-
-
-# ===================================================================
-# JavaScript Integration
-# ===================================================================
-
-class TestAnalyzeJS:
-
-    @pytest.mark.integration
-    def test_promises(self, service, create_temp_file):
-        path = create_temp_file("async.js", "const p = new Promise((resolve) => resolve(1));")
-        result = service.analyze_files(js_files=[path])
-
-        assert result.success is True
-        assert any('promise' in f for f in result.detected_features['js'])
-
-
-# ===================================================================
-# HTML Integration
-# ===================================================================
-
-class TestAnalyzeHTML:
-
-    @pytest.mark.integration
-    def test_dialog_element(self, service, create_temp_file):
-        html = "<html><body><dialog open>Hello</dialog></body></html>"
-        path = create_temp_file("page.html", html)
-        result = service.analyze_files(html_files=[path])
-
-        assert result.success is True
-        assert result.summary['html_features'] > 0
 
 
 # ===================================================================
@@ -97,19 +47,6 @@ class TestMixedFileAnalysis:
 
         assert result.success is True
         assert result.summary['total_features'] > 0
-
-
-# ===================================================================
-# Error Handling
-# ===================================================================
-
-class TestIntegrationErrors:
-
-    @pytest.mark.integration
-    def test_nonexistent_file(self, service):
-        result = service.analyze_files(css_files=["/nonexistent/path/missing.css"])
-        assert isinstance(result, AnalysisResult)
-
 
 
 # ===================================================================

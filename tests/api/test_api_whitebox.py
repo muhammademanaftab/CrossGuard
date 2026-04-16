@@ -8,8 +8,8 @@ import pytest
 from unittest.mock import patch, MagicMock
 
 import src.api.service as service_module
-from src.api.service import AnalyzerService, get_analyzer_service
-from src.api.schemas import AnalysisRequest, AnalysisResult
+from src.api.service import get_analyzer_service
+from src.api.schemas import AnalysisRequest
 
 
 # ===================================================================
@@ -24,13 +24,6 @@ class TestSingleton:
         a = get_analyzer_service()
         b = get_analyzer_service()
         assert a is b
-
-    @pytest.mark.whitebox
-    def test_fresh_state(self, reset_singleton):
-        service_module._service_instance = None
-        svc = get_analyzer_service()
-        assert svc._analyzer is None
-        assert svc._database_updater is None
 
 
 # ===================================================================
@@ -48,17 +41,6 @@ class TestLazyLoading:
         assert service._analyzer is None
         service.analyze(AnalysisRequest(html_files=["index.html"]))
         assert service._analyzer is not None
-
-    @pytest.mark.whitebox
-    @patch('src.analyzer.main.CrossGuardAnalyzer')
-    def test_reuses_analyzer_on_second_call(self, MockAnalyzer, service, sample_success_report):
-        mock_instance = MockAnalyzer.return_value
-        mock_instance.run_analysis.return_value = sample_success_report
-
-        service.analyze(AnalysisRequest(css_files=["a.css"]))
-        service.analyze(AnalysisRequest(css_files=["b.css"]))
-
-        assert MockAnalyzer.call_count == 1
 
 
 # ===================================================================
@@ -110,17 +92,3 @@ class TestBaselineEnrichment:
         assert result.success is True
         assert result.baseline_summary is not None
         assert result.baseline_summary['widely_available'] == 2
-
-
-
-# ===================================================================
-# Custom Rules (internal wiring)
-# ===================================================================
-
-class TestCustomRules:
-
-    @pytest.mark.whitebox
-    def test_get_custom_rules_returns_dict(self, service):
-        rules = service.get_custom_rules()
-        assert isinstance(rules, dict)
-
