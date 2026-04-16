@@ -35,14 +35,14 @@ def build():
         format='png',
         engine='dot',
         graph_attr={
-            'rankdir': 'TB',
+            'rankdir': 'LR',
             'splines': 'true',
-            'nodesep': '1.0',
-            'ranksep': '1.3',
+            'nodesep': '0.4',
+            'ranksep': '0.8',
             'fontname': 'Helvetica',
             'label': '',
             'dpi': '200',
-            'pad': '0.4',
+            'pad': '0.3',
         },
         node_attr={'shape': 'plaintext', 'fontname': 'Helvetica', 'fontsize': '10'},
         edge_attr={'fontname': 'Helvetica', 'fontsize': '9'},
@@ -68,7 +68,7 @@ def build():
     g.node('LLMAPIs', en('LLM APIs', 'OpenAI / Anthropic'))
 
     # Relationship
-    g.edge('AIFixService', 'LLMAPIs', style='dashed', arrowhead='open', label='  calls  ')
+    g.edge('AIFixService', 'LLMAPIs', style='dashed', arrowhead='open', label='calls\n\n', minlen='2')
 
     return g
 

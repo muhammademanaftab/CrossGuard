@@ -35,14 +35,14 @@ def build():
         format='png',
         engine='dot',
         graph_attr={
-            'rankdir': 'TB',
+            'rankdir': 'LR',
             'splines': 'true',
-            'nodesep': '1.0',
-            'ranksep': '1.3',
+            'nodesep': '0.4',
+            'ranksep': '0.8',
             'fontname': 'Helvetica',
             'label': '',
             'dpi': '200',
-            'pad': '0.4',
+            'pad': '0.3',
         },
         node_attr={'shape': 'plaintext', 'fontname': 'Helvetica', 'fontsize': '10'},
         edge_attr={'fontname': 'Helvetica', 'fontsize': '9'},
@@ -67,8 +67,8 @@ def build():
     g.node('PolyfillMap', en('polyfill_map.json', 'src/polyfill/'))
 
     # Relationships
-    g.edge('PolyfillService', 'PolyfillLoader', arrowhead='none', label='  uses  ')
-    g.edge('PolyfillLoader', 'PolyfillMap', style='dashed', arrowhead='open', label='  reads  ')
+    g.edge('PolyfillService', 'PolyfillLoader', arrowhead='none', label='uses\n\n', minlen='2')
+    g.edge('PolyfillLoader', 'PolyfillMap', style='dashed', arrowhead='open', label='reads\n\n', minlen='2')
 
     return g
 

@@ -27,14 +27,14 @@ def build():
         format='png',
         engine='dot',
         graph_attr={
-            'rankdir': 'TB',
+            'rankdir': 'LR',
             'splines': 'true',
-            'nodesep': '1.0',
-            'ranksep': '1.3',
+            'nodesep': '0.3',
+            'ranksep': '0.7',
             'fontname': 'Helvetica',
             'label': '',
             'dpi': '200',
-            'pad': '0.4',
+            'pad': '0.3',
         },
         node_attr={'shape': 'plaintext', 'fontname': 'Helvetica', 'fontsize': '10'},
         edge_attr={'fontname': 'Helvetica', 'fontsize': '9'},
@@ -64,13 +64,17 @@ def build():
          '+ export_pdf(report)']))
 
     g.node('AnalyzerService', cn('AnalyzerService',
-        ['+ DEFAULT_BROWSERS : Dict'],
+        ['- _analyzer : CrossGuardAnalyzer',
+         '+ DEFAULT_BROWSERS : Dict'],
         ['+ analyze(request) : AnalysisResult',
          '+ get_analysis_history(limit) : List',
          '+ get_statistics() : Dict',
          '+ get_setting(key) : str',
          '+ set_setting(key, value) : bool',
-         '+ ...  (28 methods total)'],
+         '+ save_analysis_to_history(result) : int',
+         '+ add_bookmark(analysis_id, note) : bool',
+         '+ get_all_tags() : List',
+         '+ ...  (53 public methods total)'],
         stereotype='facade'))
 
     # ═══ RELATIONSHIPS ═══════════════════════════════════
@@ -79,14 +83,7 @@ def build():
     g.edge('MainWindow', 'ExportManager', arrowhead='none', arrowtail='diamond', dir='both')
 
     # MainWindow depends on AnalyzerService
-    g.edge('MainWindow', 'AnalyzerService', style='dashed', arrowhead='open', label='  depends  ')
-
-    # ═══ LAYOUT ══════════════════════════════════════════
-
-    with g.subgraph() as s:
-        s.attr(rank='same')
-        s.node('MainWindow')
-        s.node('ExportManager')
+    g.edge('MainWindow', 'AnalyzerService', style='dashed', arrowhead='open', label='depends\n\n', minlen='2')
 
     return g
 
