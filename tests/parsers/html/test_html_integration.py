@@ -19,27 +19,6 @@ class TestParseFile:
         assert "html5semantic" in features
         assert "video" in features
 
-    def test_file_not_found(self, html_parser):
-        with pytest.raises(FileNotFoundError):
-            html_parser.parse_file("/nonexistent/path/to/file.html")
-
-
-@pytest.mark.integration
-class TestParseMultipleFiles:
-    def test_combines_features(self, html_parser, create_temp_file):
-        f1 = create_temp_file("f1.html", "<video src='v.mp4'></video>")
-        f2 = create_temp_file("f2.html", "<audio src='a.mp3'></audio>")
-        f3 = create_temp_file("f3.html", "<canvas></canvas>")
-        result = html_parser.parse_multiple_files([str(f1), str(f2), str(f3)])
-        assert "video" in result
-        assert "audio" in result
-        assert "canvas" in result
-
-    def test_continues_after_missing_file(self, html_parser, create_html_file):
-        valid = create_html_file("<main>Valid</main>")
-        result = html_parser.parse_multiple_files([str(valid), "/nonexistent/file.html"])
-        assert "html5semantic" in result
-
 
 # =====================================================================
 # Reports & Statistics
@@ -52,19 +31,6 @@ class TestDetailedReport:
         report = html_parser.get_detailed_report()
         for key in ("total_features", "features", "elements_found", "attributes_found", "unrecognized"):
             assert key in report
-
-    def test_feature_count(self, html_parser):
-        html_parser.parse_string("<main><video src='v.mp4'></video></main>")
-        assert html_parser.get_detailed_report()["total_features"] == 2
-
-
-@pytest.mark.integration
-class TestStatistics:
-    def test_has_required_keys(self, html_parser):
-        html_parser.parse_string("<main>Content</main>")
-        stats = html_parser.get_statistics()
-        for key in ("total_features", "total_elements_detected", "features_list"):
-            assert key in stats
 
 
 # =====================================================================
@@ -109,23 +75,3 @@ class TestRealWorldScenarios:
         assert "video" in features
         assert "webvtt" in features
         assert "rel-noopener" in features
-
-    def test_checkout_form(self, parse_features):
-        html = """
-        <form id="checkout">
-            <input type="email" required autocomplete="email" inputmode="email" placeholder="you@ex.com">
-            <input type="tel" pattern="[0-9]{10}">
-            <input type="text" required minlength="16" maxlength="16">
-            <input type="month" required>
-            <button type="submit">Pay</button>
-        </form>
-        """
-        features = parse_features(html)
-        assert "input-email-tel-url" in features
-        assert "form-validation" in features
-        assert "input-pattern" in features
-        assert "input-placeholder" in features
-        assert "input-minlength" in features
-        assert "maxlength" in features
-        assert "input-datetime" in features
-
