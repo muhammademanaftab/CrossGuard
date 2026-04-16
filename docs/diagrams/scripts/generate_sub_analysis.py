@@ -51,7 +51,7 @@ def build():
          '+ DEFAULT_BROWSERS : Dict'],
         ['+ analyze(request) : AnalysisResult',
          '+ analyze_files(html, css, js, browsers) : AnalysisResult',
-         '+ ...  (53 public methods total)'],
+         '+ ...  (57 public methods total)'],
         stereotype='facade'))
 
     g.node('AnalysisResult', cn('AnalysisResult',

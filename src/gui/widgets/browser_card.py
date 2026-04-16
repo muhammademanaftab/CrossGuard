@@ -218,6 +218,7 @@ class BrowserCard(ctk.CTkFrame):
         partial_features: Optional[List[str]] = None,
         supported_features: Optional[List[str]] = None,
         all_features: Optional[List[str]] = None,
+        analyzer_service=None,
         **kwargs
     ):
         super().__init__(
@@ -239,6 +240,7 @@ class BrowserCard(ctk.CTkFrame):
         self.partial_features = partial_features or []
         self.supported_features = supported_features or []
         self.all_features = all_features or []
+        self._analyzer_service = analyzer_service
         self._details_visible = False
         self._version_ranges_loaded = False
 
@@ -437,9 +439,6 @@ class BrowserCard(ctk.CTkFrame):
             return
 
         try:
-            from src.analyzer.version_ranges import get_version_ranges
-            from src.utils.feature_names import get_feature_name
-
             self._vr_placeholder.destroy()
 
             browser_map = {
@@ -469,10 +468,14 @@ class BrowserCard(ctk.CTkFrame):
                 ).pack(anchor="w")
                 return
 
+            if self._analyzer_service is None:
+                from src.api import get_analyzer_service
+                self._analyzer_service = get_analyzer_service()
+
             for feature_id in features_to_show:
-                ranges = get_version_ranges(feature_id, browser_id)
+                ranges = self._analyzer_service.get_version_ranges(feature_id, browser_id)
                 if ranges:
-                    feature_name = get_feature_name(feature_id)
+                    feature_name = self._analyzer_service.get_feature_display_name(feature_id)
                     widget = VersionRangeWidget(
                         self.vr_content,
                         feature_id=feature_id,

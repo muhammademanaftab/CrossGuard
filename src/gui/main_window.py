@@ -509,9 +509,8 @@ class MainWindow(ctk.CTkFrame):
                         ctk.CTkLabel(frame, text="No version history needed.",
                                      font=ctk.CTkFont(size=10), text_color=COLORS['text_muted']).pack(anchor="w")
                         return frame
-                    from src.analyzer.version_ranges import get_version_ranges
                     for fid in problem_feats[:8]:
-                        ranges = get_version_ranges(fid, b_name)
+                        ranges = self._analyzer_service.get_version_ranges(fid, b_name)
                         if not ranges:
                             continue
                         r = ctk.CTkFrame(frame, fg_color=COLORS['bg_medium'], corner_radius=3, height=24)
@@ -1225,9 +1224,6 @@ class MainWindow(ctk.CTkFrame):
         if not browsers:
             return {'has_recommendations': False}
 
-        from src.polyfill import PolyfillService
-        polyfill_svc = PolyfillService()
-
         unsupported = set()
         partial = set()
         browser_versions = {}
@@ -1237,23 +1233,24 @@ class MainWindow(ctk.CTkFrame):
             unsupported.update(data.get('unsupported_features', []))
             partial.update(data.get('partial_features', []))
 
-        recommendations = polyfill_svc.get_recommendations(unsupported, partial, browser_versions)
+        recommendations = self._analyzer_service.get_polyfill_suggestions(
+            list(unsupported), list(partial), browser_versions)
 
         if not recommendations:
             return {'has_recommendations': False}
 
-        categorized = polyfill_svc.categorize_recommendations(recommendations)
+        categorized = self._analyzer_service.categorize_polyfill_recommendations(recommendations)
         npm_recs = categorized['npm']
         css_recs = categorized['fallback']
 
         return {
             'has_recommendations': True,
             'count': len(recommendations),
-            'install_command': polyfill_svc.get_aggregate_install_command(recommendations),
-            'imports': polyfill_svc.get_aggregate_imports(recommendations),
+            'install_command': self._analyzer_service.get_polyfill_install_command(recommendations),
+            'imports': self._analyzer_service.get_polyfill_imports(recommendations),
             'npm': npm_recs,
             'css': css_recs,
-            'total_size_kb': polyfill_svc.get_total_size_kb(recommendations),
+            'total_size_kb': self._analyzer_service.get_polyfill_total_size_kb(recommendations),
         }
 
     def _get_ai_fix_suggestions(self, browsers: Dict) -> dict:

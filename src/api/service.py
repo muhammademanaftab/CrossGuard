@@ -600,6 +600,10 @@ class AnalyzerService:
         from src.utils.feature_names import get_fix_suggestion
         return get_fix_suggestion(feature_id)
 
+    def get_version_ranges(self, feature_id: str, browser: str) -> List[Dict]:
+        from src.analyzer.version_ranges import get_version_ranges
+        return get_version_ranges(feature_id, browser)
+
     def get_ai_fix_suggestions(
         self,
         unsupported_features: List[str],
@@ -649,6 +653,22 @@ class AnalyzerService:
             )
         except Exception:
             return []
+
+    def categorize_polyfill_recommendations(self, recommendations: List[Any]) -> Dict:
+        from src.polyfill import PolyfillService
+        return PolyfillService().categorize_recommendations(recommendations)
+
+    def get_polyfill_install_command(self, recommendations: List[Any]) -> str:
+        from src.polyfill import PolyfillService
+        return PolyfillService().get_aggregate_install_command(recommendations)
+
+    def get_polyfill_imports(self, recommendations: List[Any]) -> List[str]:
+        from src.polyfill import PolyfillService
+        return PolyfillService().get_aggregate_imports(recommendations)
+
+    def get_polyfill_total_size_kb(self, recommendations: List[Any]) -> float:
+        from src.polyfill import PolyfillService
+        return PolyfillService().get_total_size_kb(recommendations)
 
     def generate_polyfills_file(
         self,
