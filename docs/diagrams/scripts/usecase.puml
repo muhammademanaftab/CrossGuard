@@ -3,19 +3,19 @@
 skinparam backgroundColor white
 skinparam shadowing false
 skinparam defaultFontName Helvetica
-skinparam defaultFontSize 12
+skinparam defaultFontSize 13
 skinparam dpi 200
 
 skinparam actor {
     BackgroundColor white
     BorderColor #333333
-    FontSize 13
+    FontSize 14
 }
 
 skinparam usecase {
     BackgroundColor #EEEEEE
     BorderColor #444444
-    FontSize 11
+    FontSize 12
     Padding 10
 }
 
@@ -30,13 +30,13 @@ skinparam rectangle {
 skinparam database {
     BackgroundColor #E0E0E0
     BorderColor #555555
-    FontSize 11
+    FontSize 12
 }
 
 skinparam cloud {
     BackgroundColor #E0E0E0
     BorderColor #555555
-    FontSize 11
+    FontSize 12
 }
 
 left to right direction
