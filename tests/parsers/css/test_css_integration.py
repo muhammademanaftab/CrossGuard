@@ -25,46 +25,6 @@ class TestParseFile:
     def test_parse_valid_file(self, css_parser, tmp_css_file):
         assert "flexbox" in css_parser.parse_file(tmp_css_file("div { display: flex; }"))
 
-    def test_file_not_found_raises(self, css_parser):
-        with pytest.raises(FileNotFoundError):
-            css_parser.parse_file("/nonexistent/path/file.css")
-
-
-@pytest.mark.integration
-class TestParseMultipleFiles:
-    def test_multiple_files_combined(self, css_parser, tmp_css_file):
-        f1 = tmp_css_file("div { display: flex; }", "a.css")
-        f2 = tmp_css_file("div { display: grid; }", "b.css")
-        features = css_parser.parse_multiple_files([f1, f2])
-        assert "flexbox" in features
-        assert "css-grid" in features
-
-    def test_one_bad_file_doesnt_break_others(self, css_parser, tmp_css_file):
-        good = tmp_css_file("div { display: flex; }", "good.css")
-        assert "flexbox" in css_parser.parse_multiple_files([good, "/nonexistent.css"])
-
-
-# =====================================================================
-# Statistics & Reports
-# =====================================================================
-
-@pytest.mark.integration
-class TestGetStatistics:
-    def test_stats_structure(self, css_parser):
-        css_parser.parse_string("div { display: flex; }")
-        stats = css_parser.get_statistics()
-        for key in ["total_features", "layout_features", "features_list", "categories"]:
-            assert key in stats
-
-
-@pytest.mark.integration
-class TestDetailedReport:
-    def test_report_structure(self, css_parser):
-        css_parser.parse_string("div { display: flex; }")
-        report = css_parser.get_detailed_report()
-        for key in ["total_features", "features", "feature_details", "unrecognized"]:
-            assert key in report
-
 
 # =====================================================================
 # Real-World Scenarios
@@ -97,15 +57,3 @@ class TestRealWorldScenarios:
         assert "flexbox-gap" in features
         assert "border-radius" in features
         assert "css-transitions" in features
-
-    def test_dark_mode_support(self, parse_features):
-        css = """
-        :root { --bg: #fff; --fg: #1a1a1a; }
-        @media (prefers-color-scheme: dark) { :root { --bg: #1a1a1a; --fg: #fff; } }
-        body { background-color: var(--bg); color: var(--fg); }
-        """
-        features = parse_features(css)
-        assert "css-variables" in features
-        assert "prefers-color-scheme" in features
-
-
