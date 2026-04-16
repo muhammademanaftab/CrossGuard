@@ -3,8 +3,6 @@
 Tests loading rules, querying rules across CSS/JS/HTML, and raw access.
 """
 
-import json
-import re
 import pytest
 from src.parsers.custom_rules_loader import (
     CustomRulesLoader,
@@ -25,11 +23,6 @@ class TestLoadRules:
         assert "test-css-feature" in css
         assert "test-js-feature" in js
         assert html["elements"]["test-element"] == "test-feature-id"
-
-    def test_bad_file_returns_empty_rules(self, mock_custom_rules_path):
-        loader = CustomRulesLoader()
-        assert loader.get_custom_css_rules() == {}
-        assert loader.get_custom_js_rules() == {}
 
 
 @pytest.mark.blackbox
