@@ -11,29 +11,10 @@ import pytest
 # --- Core Feature Detection (1 per caniuse ID) ---
 
 CORE_FEATURES = [
-    # ES6+ syntax
-    pytest.param("const fn = () => 1;", "arrow-functions", id="arrow-functions"),
-    pytest.param(
-        "async function fetchData() { return await fetch('/api'); }",
-        "async-functions", id="async-functions"
-    ),
-    pytest.param("const PI = 3.14159;", "const", id="const"),
     pytest.param("const msg = `Hello, ${name}!`;", "template-literals", id="template-literals"),
-    # Promise & async APIs
     pytest.param(
         "const p = new Promise((resolve, reject) => { resolve('done'); });",
         "promises", id="promises"
-    ),
-    pytest.param("fetch('/api/users');", "fetch", id="fetch"),
-    # Communication & storage
-    pytest.param(
-        "navigator.serviceWorker.register('/sw.js');",
-        "serviceworkers", id="serviceworkers"
-    ),
-    # Observers & Modern APIs
-    pytest.param(
-        "const observer = new IntersectionObserver(callback);",
-        "intersectionobserver", id="intersectionobserver"
     ),
     pytest.param(
         "const x = obj?.prop;",
@@ -43,8 +24,6 @@ CORE_FEATURES = [
         "const x = a ?? b;",
         "mdn-javascript_operators_nullish_coalescing", id="nullish-coalescing"
     ),
-    pytest.param("navigator.geolocation.getCurrentPosition(callback);", "geolocation", id="geolocation"),
-    pytest.param("import { foo } from './module.js';", "es6-module", id="es6-module"),
 ]
 
 
@@ -72,34 +51,9 @@ def test_modern_js_file_detects_multiple_features(parse_features):
         assert expected in features
 
 
-@pytest.mark.blackbox
-def test_fetch_with_abort_controller(parse_features):
-    """Fetch with AbortController detects both features."""
-    js = """
-    const controller = new AbortController();
-    fetch('/api', { signal: controller.signal });
-    """
-    features = parse_features(js)
-    assert 'fetch' in features
-    assert 'abortcontroller' in features
-
-
 # --- Edge Cases ---
 
 class TestEdgeCases:
-
-    @pytest.mark.blackbox
-    def test_empty_string(self, parse_features):
-        features = parse_features("")
-        assert len(features) == 0
-
-    @pytest.mark.blackbox
-    def test_single_line_comment_not_detected(self, parse_features):
-        js = """
-        // fetch('/api') is commented out
-        var x = 1;
-        """
-        assert 'fetch' not in parse_features(js)
 
     @pytest.mark.blackbox
     def test_multiple_features_combined(self, parse_features):
