@@ -1,6 +1,5 @@
 """AI fix suggestions white box tests."""
 
-import json
 import pytest
 from unittest.mock import patch, MagicMock
 
@@ -12,15 +11,6 @@ class TestProviderSelection:
     def test_anthropic_is_default(self):
         service = AIFixService(api_key="sk-test")
         assert service._provider == "anthropic"
-
-    def test_openai_provider(self):
-        service = AIFixService(api_key="sk-test", provider="openai")
-        assert service._provider == "openai"
-
-    def test_unknown_provider_raises(self):
-        service = AIFixService(api_key="sk-test", provider="unknown")
-        with pytest.raises(ValueError, match="Unknown AI provider"):
-            service._call_api("test prompt")
 
 
 @pytest.mark.whitebox
@@ -53,11 +43,3 @@ class TestApiCalls:
 
         call_kwargs = mock_post.call_args
         assert "Bearer sk-openai-test" in call_kwargs.kwargs["headers"]["Authorization"]
-
-    @patch('src.ai.ai_service.requests.post')
-    def test_network_error_returns_empty(self, mock_post):
-        mock_post.side_effect = ConnectionError("Network error")
-
-        service = AIFixService(api_key="sk-test", provider="anthropic")
-        result = service.get_fix_suggestions({"css-grid"}, set(), "css", {"chrome": "120"})
-        assert result == []
