@@ -7,7 +7,6 @@ import pytest
 
 from src.analyzer.database import CanIUseDatabase
 from src.analyzer.compatibility import CompatibilityAnalyzer
-from src.analyzer.scorer import CompatibilityScorer
 import src.analyzer.database as db_module
 
 
@@ -26,18 +25,8 @@ def caniuse_db():
 
 
 @pytest.fixture
-def fresh_db():
-    """Unloaded CanIUseDatabase instance for load-testing."""
-    return CanIUseDatabase()
-
-
-@pytest.fixture
 def reset_singleton():
-    """Save and restore the module-level singleton around the test.
-
-    Ensures tests that manipulate ``_database_instance`` don't leak state
-    to later tests that depend on the singleton.
-    """
+    """Save and restore the module-level singleton around the test."""
     original = db_module._database_instance
     yield
     db_module._database_instance = original
@@ -51,22 +40,6 @@ def analyzer():
     return CompatibilityAnalyzer()
 
 
-# ─── Scorer Fixtures ────────────────────────────────────────────────────
-
-@pytest.fixture
-def scorer():
-    """CompatibilityScorer with default weights."""
-    return CompatibilityScorer()
-
-
-@pytest.fixture
-def scorer_custom():
-    """Factory fixture: create a scorer with custom browser weights."""
-    def _make(weights):
-        return CompatibilityScorer(browser_weights=weights)
-    return _make
-
-
 # ─── Browser Fixtures ───────────────────────────────────────────────────
 
 @pytest.fixture
@@ -75,27 +48,9 @@ def modern_browsers():
     return {'chrome': '120', 'firefox': '121', 'safari': '17', 'edge': '120'}
 
 
-@pytest.fixture
-def legacy_browsers():
-    """Modern + IE 11 for testing fallback/severity."""
-    return {
-        'chrome': '120',
-        'firefox': '121',
-        'safari': '17',
-        'edge': '120',
-        'ie': '11',
-    }
-
-
 # ─── Feature Fixtures ───────────────────────────────────────────────────
 
 @pytest.fixture
 def well_supported_features():
     """Features with near-universal modern browser support."""
     return {'flexbox', 'css-grid', 'promises', 'arrow-functions'}
-
-
-@pytest.fixture
-def mixed_support_features():
-    """Mix of well-supported and poorly-supported features."""
-    return {'flexbox', 'css-grid', 'dialog', 'css-container-queries'}

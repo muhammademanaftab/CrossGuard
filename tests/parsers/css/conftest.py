@@ -16,18 +16,3 @@ def parse_features(css_parser):
     def _parse(css: str) -> set:
         return css_parser.parse_string(css)
     return _parse
-
-
-@pytest.fixture
-def get_detailed_report(css_parser):
-    """Parse CSS and return detailed report."""
-    def _report(css: str) -> dict:
-        css_parser.parse_string(css)
-        return css_parser.get_detailed_report()
-    return _report
-
-
-@pytest.fixture
-def minimal_css():
-    """Minimal valid CSS content."""
-    return "body { margin: 0; }"

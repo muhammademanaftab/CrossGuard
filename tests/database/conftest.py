@@ -5,16 +5,10 @@ All tests use in-memory SQLite — zero disk I/O, zero pollution of crossguard.d
 
 import sqlite3
 import pytest
-from datetime import datetime, timedelta
 
 from src.database.migrations import create_tables
 from src.database.models import Analysis, AnalysisFeature, BrowserResult
-from src.database.repositories import (
-    AnalysisRepository,
-    SettingsRepository,
-    BookmarksRepository,
-    TagsRepository,
-)
+from src.database.repositories import AnalysisRepository
 from src.database.statistics import StatisticsService
 
 
@@ -33,24 +27,6 @@ def db():
 def analysis_repo(db):
     """AnalysisRepository backed by in-memory DB."""
     return AnalysisRepository(conn=db)
-
-
-@pytest.fixture
-def settings_repo(db):
-    """SettingsRepository backed by in-memory DB."""
-    return SettingsRepository(conn=db)
-
-
-@pytest.fixture
-def bookmarks_repo(db):
-    """BookmarksRepository backed by in-memory DB."""
-    return BookmarksRepository(conn=db)
-
-
-@pytest.fixture
-def tags_repo(db):
-    """TagsRepository backed by in-memory DB."""
-    return TagsRepository(conn=db)
 
 
 @pytest.fixture
@@ -100,14 +76,6 @@ def sample_analysis():
         return analysis
 
     return _make
-
-
-@pytest.fixture
-def saved_analysis(analysis_repo, sample_analysis):
-    """Pre-saved analysis — returns (analysis_id, Analysis object)."""
-    analysis = sample_analysis()
-    aid = analysis_repo.save_analysis(analysis)
-    return aid, analysis
 
 
 def save_n_analyses(repo, factory, n, **overrides):

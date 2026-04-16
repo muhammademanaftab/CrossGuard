@@ -4,11 +4,7 @@ import pytest
 
 import src.api.service as service_module
 from src.api.service import AnalyzerService
-from src.api.schemas import (
-    AnalysisRequest,
-    AnalysisResult,
-    BrowserCompatibility,
-)
+from src.api.schemas import AnalysisResult
 
 
 # ─── Service Fixtures ──────────────────────────────────────────────────
@@ -25,14 +21,6 @@ def reset_singleton():
     original = service_module._service_instance
     yield
     service_module._service_instance = original
-
-
-# ─── Request Fixtures ──────────────────────────────────────────────────
-
-@pytest.fixture
-def empty_request():
-    """AnalysisRequest with no files."""
-    return AnalysisRequest()
 
 
 # ─── Report / Result Fixtures ──────────────────────────────────────────
@@ -97,18 +85,6 @@ def sample_success_report():
 
 
 @pytest.fixture
-def sample_failure_report():
-    """Failed analysis dict."""
-    return {'success': False, 'error': 'File not found: missing.css'}
-
-
-@pytest.fixture
 def sample_success_result(sample_success_report):
     """Pre-built AnalysisResult from the success report."""
     return AnalysisResult.from_dict(sample_success_report)
-
-
-@pytest.fixture
-def sample_failed_result():
-    """Pre-built failed AnalysisResult."""
-    return AnalysisResult(success=False, error='Something went wrong')
