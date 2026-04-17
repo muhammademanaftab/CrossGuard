@@ -130,5 +130,5 @@ def build():
 
 if __name__ == '__main__':
     d = build()
-    path = d.render('sub_parsers', directory='docs/diagrams/images', cleanup=True)
+    path = d.render('3.7_parsers', directory='docs/diagrams/images', cleanup=True)
     print(f"Saved: {path}")

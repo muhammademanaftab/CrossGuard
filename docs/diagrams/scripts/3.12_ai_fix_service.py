@@ -1,4 +1,4 @@
-"""Sub-diagram: Polyfill System (Section 3.13)."""
+"""Sub-diagram: AI Fix Suggestions (Section 3.14)."""
 
 import graphviz
 
@@ -31,7 +31,7 @@ def en(name, subtitle=None):
 
 def build():
     g = graphviz.Digraph(
-        'Polyfill',
+        'AIFix',
         format='png',
         engine='dot',
         graph_attr={
@@ -48,33 +48,32 @@ def build():
         edge_attr={'fontname': 'Helvetica', 'fontsize': '9'},
     )
 
-    g.node('PolyfillService', cn('PolyfillService',
-        ['- _loader : PolyfillLoader'],
-        ['+ get_recommendations(unsupported, partial, browsers) : List',
-         '+ get_aggregate_install_command(recs) : str',
-         '+ get_aggregate_imports(recs) : List',
-         '+ get_total_size_kb(recs) : float',
-         '+ categorize_recommendations(recs) : Dict']))
+    g.node('AIFixService', cn('AIFixService',
+        ['- _api_key : str',
+         '- _provider : str',
+         '- _model : str',
+         '- _max_features : int',
+         '- _priority : str',
+         '+ ANTHROPIC_URL : str',
+         '+ OPENAI_URL : str',
+         '+ DEFAULT_MODELS : Dict'],
+        ['+ is_available() : bool',
+         '+ get_fix_suggestions(features, type, browsers) : List',
+         '- _build_prompt(features, type) : str',
+         '- _call_api(prompt) : str',
+         '- _call_anthropic(prompt) : str',
+         '- _call_openai(prompt) : str',
+         '- _parse_response(raw, features) : List']))
 
-    g.node('PolyfillLoader', cn('PolyfillLoader',
-        ['- _data : Dict'],
-        ['+ get_polyfill(feature_id) : Dict',
-         '+ has_polyfill(feature_id) : bool',
-         '+ is_polyfillable(feature_id) : bool',
-         '+ reload()',
-         '- _load_data()'],
-        stereotype='singleton'))
+    g.node('LLMAPIs', en('LLM APIs', 'OpenAI / Anthropic'))
 
-    g.node('PolyfillMap', en('polyfill_map.json', 'src/polyfill/'))
-
-    # Relationships
-    g.edge('PolyfillService', 'PolyfillLoader', arrowhead='none', label='uses\n\n', minlen='2')
-    g.edge('PolyfillLoader', 'PolyfillMap', style='dashed', arrowhead='open', label='reads\n\n', minlen='2')
+    # Relationship
+    g.edge('AIFixService', 'LLMAPIs', style='dashed', arrowhead='open', label='calls\n\n', minlen='2')
 
     return g
 
 
 if __name__ == '__main__':
     d = build()
-    path = d.render('sub_polyfill', directory='docs/diagrams/images', cleanup=True)
+    path = d.render('3.12_ai_fix_service', directory='docs/diagrams/images', cleanup=True)
     print(f"Saved: {path}")

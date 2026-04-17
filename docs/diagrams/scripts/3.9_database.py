@@ -137,5 +137,5 @@ def build():
 
 if __name__ == '__main__':
     d = build()
-    path = d.render('sub_database', directory='docs/diagrams/images', cleanup=True)
+    path = d.render('3.9_database', directory='docs/diagrams/images', cleanup=True)
     print(f"Saved: {path}")

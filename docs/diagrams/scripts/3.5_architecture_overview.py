@@ -120,5 +120,5 @@ def build():
 
 if __name__ == '__main__':
     d = build()
-    path = d.render('uml_overview', directory='docs/diagrams/images', cleanup=True)
+    path = d.render('3.5_architecture_overview', directory='docs/diagrams/images', cleanup=True)
     print(f"Saved: {path}")
