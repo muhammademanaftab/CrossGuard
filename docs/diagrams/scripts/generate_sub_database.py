@@ -50,14 +50,17 @@ def build():
          '+ get_all_analyses(limit) : List',
          '+ get_analysis_by_id(id) : Analysis',
          '+ delete_analysis(id) : bool',
-         '+ clear_all() : int']))
+         '+ clear_all() : int',
+         '+ get_count(file_type) : int',
+         '+ ...  (7 public methods total)']))
 
     g.node('StatisticsService', cn('StatisticsService',
         ['- _conn : Connection'],
         ['+ get_average_score() : float',
          '+ get_score_trend(days) : List',
          '+ get_grade_distribution() : Dict',
-         '+ get_summary_statistics() : Dict']))
+         '+ get_summary_statistics() : Dict',
+         '+ ...  (13 public methods total)']))
 
     g.node('SQLiteDB', en('SQLite Database', 'crossguard.db'))
 

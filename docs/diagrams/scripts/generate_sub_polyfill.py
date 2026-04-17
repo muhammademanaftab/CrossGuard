@@ -53,7 +53,8 @@ def build():
         ['+ get_recommendations(unsupported, partial, browsers) : List',
          '+ get_aggregate_install_command(recs) : str',
          '+ get_aggregate_imports(recs) : List',
-         '+ get_total_size_kb(recs) : float']))
+         '+ get_total_size_kb(recs) : float',
+         '+ categorize_recommendations(recs) : Dict']))
 
     g.node('PolyfillLoader', cn('PolyfillLoader',
         ['- _data : Dict'],

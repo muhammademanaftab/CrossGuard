@@ -59,7 +59,8 @@ def build():
          '- _detect_attributes(soup)',
          '- _detect_attribute_values(soup)',
          '- _detect_special_patterns(soup)',
-         '- _find_unrecognized_patterns(soup)']))
+         '- _find_unrecognized_patterns(soup)',
+         '- ...  (17 private methods total)']))
 
     g.node('CSSParser', cn('CSSParser',
         ['+ features_found : Set[str]',
@@ -75,7 +76,8 @@ def build():
          '- _extract_components(rules) : Tuple',
          '- _build_matchable_text(decl, rules, sel) : str',
          '- _detect_features(css_content)',
-         '- _find_unrecognized_patterns_structured(decl, rules)']))
+         '- _find_unrecognized_patterns_structured(decl, rules)',
+         '- ...  (5 private methods total)']))
 
     g.node('JSParser', cn('JavaScriptParser',
         ['+ features_found : Set[str]',
@@ -95,7 +97,8 @@ def build():
          '- _detect_ast_api_features(root, src)',
          '- _build_matchable_text_from_ast(root, src) : str',
          '- _detect_features(js_content)',
-         '- _find_unrecognized_patterns(js_content)']))
+         '- _find_unrecognized_patterns(js_content)',
+         '- ...  (13 private methods total)']))
 
     g.node('CustomRulesLoader', cn('CustomRulesLoader',
         ['- _css_rules : Dict',

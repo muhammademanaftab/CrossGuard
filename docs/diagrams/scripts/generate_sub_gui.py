@@ -56,7 +56,8 @@ def build():
          '- _build_history_view()',
          '- _build_settings_view()',
          '- _on_files_dropped(files)',
-         '- _on_navigate(view_id)']))
+         '- _on_navigate(view_id)',
+         '- ...  (35 private methods total)']))
 
     g.node('ExportManager', cn('ExportManager',
         ['+ parent : CTk'],

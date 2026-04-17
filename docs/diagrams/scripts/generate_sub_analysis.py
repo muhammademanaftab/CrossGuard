@@ -74,12 +74,14 @@ def build():
          '+ scorer : CompatibilityScorer',
          '+ all_features : Set[str]'],
         ['+ run_analysis(html, css, js, browsers) : Dict',
+         '+ ...  (2 public methods total)',
          '- _parse_html_files(files)',
          '- _parse_css_files(files)',
          '- _parse_js_files(files)',
          '- _check_compatibility(browsers) : Dict',
          '- _calculate_scores(results, browsers) : Dict',
-         '- _generate_report(results, scores, browsers) : Dict'],
+         '- _generate_report(results, scores, browsers) : Dict',
+         '- ...  (10 private methods total)'],
         stereotype='orchestrator'))
 
     # ── Row 3: Parsers + Engine ─────────────────────────
@@ -87,28 +89,36 @@ def build():
     g.node('HTMLParser', cn('HTMLParser',
         ['+ features_found : Set[str]'],
         ['+ parse_file(path) : Set[str]',
-         '+ parse_string(html) : Set[str]']))
+         '+ parse_string(html) : Set[str]',
+         '+ ...  (6 public methods total)',
+         '- ...  (17 private methods total)']))
 
     g.node('CSSParser', cn('CSSParser',
         ['+ features_found : Set[str]'],
         ['+ parse_file(path) : Set[str]',
-         '+ parse_string(css) : Set[str]']))
+         '+ parse_string(css) : Set[str]',
+         '+ ...  (6 public methods total)',
+         '- ...  (5 private methods total)']))
 
     g.node('JSParser', cn('JavaScriptParser',
         ['+ features_found : Set[str]'],
         ['+ parse_file(path) : Set[str]',
-         '+ parse_string(js) : Set[str]']))
+         '+ parse_string(js) : Set[str]',
+         '+ ...  (6 public methods total)',
+         '- ...  (13 private methods total)']))
 
     g.node('CompatibilityAnalyzer', cn('CompatibilityAnalyzer',
         ['+ database : CanIUseDatabase'],
         ['+ analyze(features, browsers) : Dict',
-         '- _calculate_severity(status, total) : str']))
+         '- _calculate_severity(status, total) : str',
+         '- ...  (6 private methods total)']))
 
     g.node('CompatibilityScorer', cn('CompatibilityScorer',
         ['+ browser_weights : Dict',
          '+ STATUS_SCORES : Dict'],
         ['+ calculate_simple_score(status) : float',
-         '+ calculate_weighted_score(status) : Dict']))
+         '+ calculate_weighted_score(status) : Dict',
+         '+ ...  (3 public methods total)']))
 
     # ── Row 4: Database ─────────────────────────────────
 
@@ -117,7 +127,9 @@ def build():
          '+ loaded : bool'],
         ['+ load() : bool',
          '+ check_support(feature, browser, ver) : str',
-         '+ get_feature_info(feature_id) : Dict'],
+         '+ get_feature_info(feature_id) : Dict',
+         '+ ...  (6 public methods total)',
+         '- ...  (5 private methods total)'],
         stereotype='singleton'))
 
     # ═══ RELATIONSHIPS ═══════════════════════════════════

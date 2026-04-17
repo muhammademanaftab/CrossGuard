@@ -103,7 +103,8 @@ def build():
          '- _build_results_view()',
          '- _build_history_view()',
          '- _build_settings_view()',
-         '- _on_files_dropped(files)']))
+         '- _on_files_dropped(files)',
+         '- ...  (35 private methods total)']))
 
     g.node('ExportManager', class_box('ExportManager',
         ['+ parent : CTk'],
@@ -205,7 +206,8 @@ def build():
          '- _parse_js_files(files)',
          '- _check_compatibility(browsers) : Dict',
          '- _calculate_scores(results, browsers) : Dict',
-         '- _generate_report(results, scores, browsers) : Dict'],
+         '- _generate_report(results, scores, browsers) : Dict',
+         '- ...  (10 private methods total)'],
         stereotype='orchestrator'))
 
     # ── Services ────────────────────────────────────────
@@ -217,7 +219,8 @@ def build():
          '+ check_npm_update() : Dict',
          '+ download_npm_update(callback) : Dict',
          '+ get_database_info() : Dict',
-         '+ get_local_npm_version() : str']))
+         '+ get_local_npm_version() : str',
+         '+ ...  (8 public methods total)']))
 
     g.node('WebFeaturesManager', class_box('WebFeaturesManager',
         ['- _data : Dict',
@@ -225,7 +228,8 @@ def build():
         ['+ download() : bool',
          '+ has_data() : bool',
          '+ get_baseline_status(feature_id) : Dict',
-         '+ get_baseline_summary(features) : Dict']))
+         '+ get_baseline_summary(features) : Dict',
+         '+ ...  (5 public methods total)']))
 
     g.node('ConfigManager', class_box('ConfigManager',
         ['- _config : Dict',
@@ -236,7 +240,8 @@ def build():
          '+ ai_config : Dict (property)',
          '+ get(key, default) : Any',
          '+ to_dict() : Dict',
-         '+ create_default_config(dir) : str']))
+         '+ create_default_config(dir) : str',
+         '+ ...  (8 public methods total)']))
 
     g.node('AIFixService', class_box('AIFixService',
         ['- _api_key : str',
@@ -247,14 +252,16 @@ def build():
          '+ get_fix_suggestions(features, type, browsers) : List',
          '- _build_prompt(features, type) : str',
          '- _call_api(prompt) : str',
-         '- _parse_response(raw, features) : List']))
+         '- _parse_response(raw, features) : List',
+         '- ...  (5 private methods total)']))
 
     g.node('PolyfillService', class_box('PolyfillService',
         ['- _loader : PolyfillLoader'],
         ['+ get_recommendations(unsupported, partial, browsers) : List',
          '+ get_aggregate_install_command(recs) : str',
          '+ get_aggregate_imports(recs) : List',
-         '+ get_total_size_kb(recs) : float']))
+         '+ get_total_size_kb(recs) : float',
+         '+ categorize_recommendations(recs) : Dict']))
 
     g.node('PolyfillLoader', class_box('PolyfillLoader',
         ['- _data : Dict'],
@@ -277,7 +284,8 @@ def build():
          '+ parse_multiple_files(paths) : Set[str]',
          '+ get_detailed_report() : Dict',
          '+ get_statistics() : Dict',
-         '+ validate_html(content) : bool']))
+         '+ validate_html(content) : bool',
+         '- ...  (17 private methods total)']))
 
     g.node('CSSParser', class_box('CSSParser',
         ['+ features_found : Set[str]',
@@ -288,7 +296,8 @@ def build():
          '+ parse_multiple_files(paths) : Set[str]',
          '+ get_detailed_report() : Dict',
          '+ get_statistics() : Dict',
-         '+ validate_css(content) : bool']))
+         '+ validate_css(content) : bool',
+         '- ...  (5 private methods total)']))
 
     g.node('JSParser', class_box('JavaScriptParser',
         ['+ features_found : Set[str]',
@@ -299,7 +308,8 @@ def build():
          '+ parse_multiple_files(paths) : Set[str]',
          '+ get_detailed_report() : Dict',
          '+ get_statistics() : Dict',
-         '+ validate_javascript(content) : bool']))
+         '+ validate_javascript(content) : bool',
+         '- ...  (13 private methods total)']))
 
     g.node('CustomRulesLoader', class_box('CustomRulesLoader',
         ['- _css_rules : Dict',
@@ -318,7 +328,8 @@ def build():
         ['+ analyze(features, browsers) : Dict',
          '- _analyze_browser(features, browser, ver) : Dict',
          '- _calculate_overall_score(scores) : float',
-         '- _calculate_severity(status, total) : str']))
+         '- _calculate_severity(status, total) : str',
+         '- ...  (6 private methods total)']))
 
     g.node('CompatibilityScorer', class_box('CompatibilityScorer',
         ['+ browser_weights : Dict',
@@ -338,7 +349,8 @@ def build():
          '+ check_support(feature, browser, ver) : str',
          '+ get_all_features() : List[str]',
          '+ get_feature_info(feature_id) : Dict',
-         '+ get_browser_versions(browser) : List[str]'],
+         '+ get_browser_versions(browser) : List[str]',
+         '- ...  (5 private methods total)'],
         stereotype='singleton'))
 
     # ── Database Layer ──────────────────────────────────
@@ -350,7 +362,8 @@ def build():
          '+ get_analysis_by_id(id) : Analysis',
          '+ delete_analysis(id) : bool',
          '+ clear_all() : int',
-         '+ get_count(file_type) : int']))
+         '+ get_count(file_type) : int',
+         '+ ...  (7 public methods total)']))
 
     g.node('StatisticsService', class_box('StatisticsService',
         ['- _conn : Connection'],
@@ -362,7 +375,8 @@ def build():
          '+ get_top_problematic_features(limit) : List',
          '+ get_grade_distribution() : Dict',
          '+ get_file_type_distribution() : Dict',
-         '+ get_summary_statistics() : Dict']))
+         '+ get_summary_statistics() : Dict',
+         '+ ...  (13 public methods total)']))
 
     # ── Data Models ─────────────────────────────────────
 
