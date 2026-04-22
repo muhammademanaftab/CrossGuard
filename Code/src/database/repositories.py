@@ -11,8 +11,7 @@ from src.utils.config import get_logger
 logger = get_logger('database.repositories')
 
 
-class AnalysisRepository:
-    """CRUD for analysis records and their nested features/browser results."""
+class _BaseRepository:
 
     def __init__(self, conn: Optional[sqlite3.Connection] = None):
         self._conn = conn
@@ -23,8 +22,10 @@ class AnalysisRepository:
             return get_connection()
         return self._conn
 
+
+class AnalysisRepository(_BaseRepository):
+
     def save_analysis(self, analysis: Analysis) -> int:
-        """Save an analysis with all features and browser results in one transaction."""
         conn = self.conn
         cursor = conn.cursor()
 
@@ -95,7 +96,7 @@ class AnalysisRepository:
         offset: int = 0,
         file_type: Optional[str] = None
     ) -> List[Analysis]:
-        """Paginated list of analyses, newest first. Features not loaded."""
+        """Newest first, paginated. Features are not eager-loaded."""
         conn = self.conn
 
         if file_type:
@@ -120,7 +121,6 @@ class AnalysisRepository:
         analysis_id: int,
         include_features: bool = True
     ) -> Optional[Analysis]:
-        """Fetch one analysis, optionally with all nested features."""
         conn = self.conn
 
         cursor = conn.execute(
@@ -140,7 +140,6 @@ class AnalysisRepository:
         return analysis
 
     def _load_features(self, analysis_id: int) -> List[AnalysisFeature]:
-        """Load all features (with browser results) for an analysis."""
         conn = self.conn
 
         cursor = conn.execute("""
@@ -167,7 +166,7 @@ class AnalysisRepository:
         return [BrowserResult.from_row(row) for row in cursor.fetchall()]
 
     def delete_analysis(self, analysis_id: int) -> bool:
-        """Delete an analysis. Cascade handles features and browser results."""
+        """Cascade deletes nested features and browser results automatically"""
         conn = self.conn
 
         cursor = conn.execute(
@@ -185,7 +184,7 @@ class AnalysisRepository:
         return deleted
 
     def clear_all(self) -> int:
-        """Delete all analysis history. Returns count of deleted records."""
+        """Returns count of deleted records"""
         conn = self.conn
 
         cursor = conn.execute("SELECT COUNT(*) FROM analyses")
@@ -197,7 +196,6 @@ class AnalysisRepository:
         return count
 
     def get_count(self, file_type: Optional[str] = None) -> int:
-        """Total number of analyses, optionally filtered by type."""
         conn = self.conn
 
         if file_type:
@@ -277,20 +275,9 @@ def save_analysis_from_result(result: Dict[str, Any], file_info: Dict[str, str])
     return repo.save_analysis(analysis)
 
 
-class SettingsRepository:
-    """Key-value store for user preferences."""
-
-    def __init__(self, conn: Optional[sqlite3.Connection] = None):
-        self._conn = conn
-
-    @property
-    def conn(self) -> sqlite3.Connection:
-        if self._conn is None:
-            return get_connection()
-        return self._conn
+class SettingsRepository(_BaseRepository):
 
     def get(self, key: str, default: str = '') -> str:
-        """Get a setting value, or default if missing."""
         cursor = self.conn.execute(
             "SELECT value FROM settings WHERE key = ?",
             (key,)
@@ -327,24 +314,13 @@ class SettingsRepository:
             return default
 
     def get_as_list(self, key: str, default: List[str] = None) -> List[str]:
-        """Get a comma-separated setting as a list."""
         value = self.get(key, '')
         if not value:
             return default or []
         return [v.strip() for v in value.split(',') if v.strip()]
 
 
-class BookmarksRepository:
-    """CRUD for bookmarked analyses."""
-
-    def __init__(self, conn: Optional[sqlite3.Connection] = None):
-        self._conn = conn
-
-    @property
-    def conn(self) -> sqlite3.Connection:
-        if self._conn is None:
-            return get_connection()
-        return self._conn
+class BookmarksRepository(_BaseRepository):
 
     def add_bookmark(self, analysis_id: int, note: str = '') -> int:
         from .models import Bookmark
@@ -387,7 +363,6 @@ class BookmarksRepository:
         return None
 
     def get_all_bookmarks(self, limit: int = 50) -> List[Dict[str, Any]]:
-        """All bookmarks joined with their analysis data."""
         from .models import Bookmark, Analysis
 
         cursor = self.conn.execute("""
@@ -431,17 +406,7 @@ class BookmarksRepository:
         return cursor.fetchone()[0]
 
 
-class TagsRepository:
-    """CRUD for tags and many-to-many analysis-tag relationships."""
-
-    def __init__(self, conn: Optional[sqlite3.Connection] = None):
-        self._conn = conn
-
-    @property
-    def conn(self) -> sqlite3.Connection:
-        if self._conn is None:
-            return get_connection()
-        return self._conn
+class TagsRepository(_BaseRepository):
 
     def create_tag(self, name: str, color: str = '#58a6ff') -> int:
         cursor = self.conn.execute("""
@@ -495,7 +460,6 @@ class TagsRepository:
         return deleted
 
     def update_tag(self, tag_id: int, name: str = None, color: str = None) -> bool:
-        """Update name and/or color. Only touches fields that are provided."""
         updates = []
         params = []
 
@@ -515,8 +479,6 @@ class TagsRepository:
             params
         )
         return cursor.rowcount > 0
-
-    # --- Analysis-tag relationships ---
 
     def add_tag_to_analysis(self, analysis_id: int, tag_id: int) -> bool:
         try:
@@ -561,7 +523,6 @@ class TagsRepository:
         return [Analysis.from_row(row).to_dict() for row in cursor.fetchall()]
 
     def get_tag_counts(self) -> Dict[str, int]:
-        """How many analyses each tag is applied to."""
         cursor = self.conn.execute("""
             SELECT t.name, COUNT(at.analysis_id) as count
             FROM tags t

@@ -1,4 +1,4 @@
-"""Facade over the backend -- the only thing frontends should talk to."""
+"""Single backend facade — frontends (GUI and CLI) talk only to this."""
 
 from typing import Optional, Dict, List, Any
 from pathlib import Path
@@ -12,13 +12,19 @@ from .schemas import (
     ProgressCallback,
 )
 from src.utils.config import LATEST_VERSIONS, get_logger
+from src.database.repositories import (
+    AnalysisRepository,
+    SettingsRepository,
+    BookmarksRepository,
+    TagsRepository,
+    save_analysis_from_result,
+)
+from src.database.statistics import get_statistics_service
 
 logger = get_logger('api.service')
 
 
 class AnalyzerService:
-    """Single entry point for all analysis, history, export, and config operations."""
-
     DEFAULT_BROWSERS = {
         'chrome': LATEST_VERSIONS['chrome'],
         'firefox': LATEST_VERSIONS['firefox'],
@@ -53,7 +59,6 @@ class AnalyzerService:
         return self._web_features
 
     def analyze(self, request: AnalysisRequest) -> AnalysisResult:
-        """Run a compatibility analysis from an AnalysisRequest."""
         if not request.has_files():
             return AnalysisResult(
                 success=False,
@@ -85,7 +90,6 @@ class AnalyzerService:
             )
 
     def _get_baseline_summary(self, result: AnalysisResult) -> Optional[Dict]:
-        """Compute Baseline summary for detected features."""
         try:
             wf = self._get_web_features()
             if not wf.has_data():
@@ -109,7 +113,7 @@ class AnalyzerService:
         js_files: List[str] = None,
         target_browsers: Dict[str, str] = None
     ) -> AnalysisResult:
-        """Shorthand -- pass file lists directly instead of building an AnalysisRequest."""
+        """Convenience wrapper — avoids building an AnalysisRequest by hand."""
         request = AnalysisRequest(
             html_files=html_files or [],
             css_files=css_files or [],
@@ -196,7 +200,6 @@ class AnalyzerService:
             pass  # next analysis will pick it up anyway
 
     def reload_custom_rules(self):
-        """Reload custom rules from disk."""
         try:
             from src.parsers.custom_rules_loader import reload_custom_rules
             reload_custom_rules()
@@ -210,6 +213,18 @@ class AnalyzerService:
     def get_available_browsers(self) -> List[str]:
         return list(self.DEFAULT_BROWSERS.keys())
 
+    def _analysis_repo(self) -> AnalysisRepository:
+        return AnalysisRepository()
+
+    def _settings_repo(self) -> SettingsRepository:
+        return SettingsRepository()
+
+    def _bookmarks_repo(self) -> BookmarksRepository:
+        return BookmarksRepository()
+
+    def _tags_repo(self) -> TagsRepository:
+        return TagsRepository()
+
     # -- History ---------------------------------------------------------------
 
     def save_analysis_to_history(
@@ -219,14 +234,11 @@ class AnalyzerService:
         file_path: str = '',
         file_type: str = 'mixed'
     ) -> Optional[int]:
-        """Persist an analysis result to the SQLite history."""
         if not result.success:
             logger.warning("Cannot save failed analysis to history")
             return None
 
         try:
-            from src.database.repositories import save_analysis_from_result
-
             result_dict = result.to_dict()
             file_info = {
                 'file_name': file_name,
@@ -244,73 +256,46 @@ class AnalyzerService:
 
     def get_analysis_history(self, limit: int = 50, offset: int = 0) -> List[Dict[str, Any]]:
         try:
-            from src.database.repositories import AnalysisRepository
-
-            repo = AnalysisRepository()
-            analyses = repo.get_all_analyses(limit=limit, offset=offset)
-
+            analyses = self._analysis_repo().get_all_analyses(limit=limit, offset=offset)
             return [analysis.to_dict() for analysis in analyses]
-
         except Exception:
             return []
 
     def get_analysis_by_id(self, analysis_id: int) -> Optional[Dict[str, Any]]:
         try:
-            from src.database.repositories import AnalysisRepository
-
-            repo = AnalysisRepository()
-            analysis = repo.get_analysis_by_id(analysis_id, include_features=True)
-
+            analysis = self._analysis_repo().get_analysis_by_id(analysis_id, include_features=True)
             if analysis:
                 return analysis.to_dict()
             return None
-
         except Exception:
             return None
 
     def delete_from_history(self, analysis_id: int) -> bool:
         try:
-            from src.database.repositories import AnalysisRepository
-
-            repo = AnalysisRepository()
-            return repo.delete_analysis(analysis_id)
-
+            return self._analysis_repo().delete_analysis(analysis_id)
         except Exception:
             return False
 
     def clear_history(self) -> bool:
         try:
-            from src.database.repositories import AnalysisRepository
-
-            repo = AnalysisRepository()
-            count = repo.clear_all()
+            count = self._analysis_repo().clear_all()
             logger.info(f"Cleared {count} analyses from history")
             return True
-
         except Exception as e:
             logger.error(f"Failed to clear history: {e}")
             return False
 
     def get_history_count(self) -> int:
         try:
-            from src.database.repositories import AnalysisRepository
-
-            repo = AnalysisRepository()
-            return repo.get_count()
-
+            return self._analysis_repo().get_count()
         except Exception:
             return 0
 
     # -- Statistics ------------------------------------------------------------
 
     def get_statistics(self) -> Dict[str, Any]:
-        """Aggregated stats across all saved analyses."""
         try:
-            from src.database.statistics import get_statistics_service
-
-            service = get_statistics_service()
-            return service.get_summary_statistics()
-
+            return get_statistics_service().get_summary_statistics()
         except Exception as e:
             return {
                 'total_analyses': 0,
@@ -324,21 +309,13 @@ class AnalyzerService:
 
     def get_score_trend(self, days: int = 7) -> List[Dict[str, Any]]:
         try:
-            from src.database.statistics import get_statistics_service
-
-            service = get_statistics_service()
-            return service.get_score_trend(days)
-
+            return get_statistics_service().get_score_trend(days)
         except Exception:
             return []
 
     def get_top_problematic_features(self, limit: int = 5) -> List[Dict[str, Any]]:
         try:
-            from src.database.statistics import get_statistics_service
-
-            service = get_statistics_service()
-            return service.get_top_problematic_features(limit)
-
+            return get_statistics_service().get_top_problematic_features(limit)
         except Exception:
             return []
 
@@ -346,42 +323,32 @@ class AnalyzerService:
 
     def get_setting(self, key: str, default: str = '') -> str:
         try:
-            from src.database.repositories import SettingsRepository
-            repo = SettingsRepository()
-            return repo.get(key, default)
+            return self._settings_repo().get(key, default)
         except Exception:
             return default
 
     def set_setting(self, key: str, value: str) -> bool:
         try:
-            from src.database.repositories import SettingsRepository
-            repo = SettingsRepository()
-            repo.set(key, value)
+            self._settings_repo().set(key, value)
             return True
         except Exception:
             return False
 
     def get_all_settings(self) -> Dict[str, str]:
         try:
-            from src.database.repositories import SettingsRepository
-            repo = SettingsRepository()
-            return repo.get_all()
+            return self._settings_repo().get_all()
         except Exception:
             return {}
 
     def get_setting_as_bool(self, key: str, default: bool = False) -> bool:
         try:
-            from src.database.repositories import SettingsRepository
-            repo = SettingsRepository()
-            return repo.get_as_bool(key, default)
+            return self._settings_repo().get_as_bool(key, default)
         except Exception:
             return default
 
     def get_setting_as_list(self, key: str, default: List[str] = None) -> List[str]:
         try:
-            from src.database.repositories import SettingsRepository
-            repo = SettingsRepository()
-            return repo.get_as_list(key, default)
+            return self._settings_repo().get_as_list(key, default)
         except Exception:
             return default or []
 
@@ -389,26 +356,20 @@ class AnalyzerService:
 
     def add_bookmark(self, analysis_id: int, note: str = '') -> bool:
         try:
-            from src.database.repositories import BookmarksRepository
-            repo = BookmarksRepository()
-            repo.add_bookmark(analysis_id, note)
+            self._bookmarks_repo().add_bookmark(analysis_id, note)
             return True
         except Exception:
             return False
 
     def remove_bookmark(self, analysis_id: int) -> bool:
         try:
-            from src.database.repositories import BookmarksRepository
-            repo = BookmarksRepository()
-            return repo.remove_bookmark(analysis_id)
+            return self._bookmarks_repo().remove_bookmark(analysis_id)
         except Exception:
             return False
 
     def is_bookmarked(self, analysis_id: int) -> bool:
         try:
-            from src.database.repositories import BookmarksRepository
-            repo = BookmarksRepository()
-            return repo.is_bookmarked(analysis_id)
+            return self._bookmarks_repo().is_bookmarked(analysis_id)
         except Exception:
             return False
 
@@ -417,31 +378,24 @@ class AnalyzerService:
         if self.is_bookmarked(analysis_id):
             self.remove_bookmark(analysis_id)
             return False
-        else:
-            self.add_bookmark(analysis_id, note)
-            return True
+        self.add_bookmark(analysis_id, note)
+        return True
 
     def get_all_bookmarks(self, limit: int = 50) -> List[Dict[str, Any]]:
         try:
-            from src.database.repositories import BookmarksRepository
-            repo = BookmarksRepository()
-            return repo.get_all_bookmarks(limit)
+            return self._bookmarks_repo().get_all_bookmarks(limit)
         except Exception:
             return []
 
     def update_bookmark_note(self, analysis_id: int, note: str) -> bool:
         try:
-            from src.database.repositories import BookmarksRepository
-            repo = BookmarksRepository()
-            return repo.update_note(analysis_id, note)
+            return self._bookmarks_repo().update_note(analysis_id, note)
         except Exception:
             return False
 
     def get_bookmarks_count(self) -> int:
         try:
-            from src.database.repositories import BookmarksRepository
-            repo = BookmarksRepository()
-            return repo.get_count()
+            return self._bookmarks_repo().get_count()
         except Exception:
             return 0
 
@@ -449,80 +403,61 @@ class AnalyzerService:
 
     def create_tag(self, name: str, color: str = '#58a6ff') -> Optional[int]:
         try:
-            from src.database.repositories import TagsRepository
-            repo = TagsRepository()
-            return repo.create_tag(name, color)
+            return self._tags_repo().create_tag(name, color)
         except Exception:
             return None
 
     def get_all_tags(self) -> List[Dict[str, Any]]:
         try:
-            from src.database.repositories import TagsRepository
-            repo = TagsRepository()
-            return repo.get_all_tags()
+            return self._tags_repo().get_all_tags()
         except Exception:
             return []
 
     def delete_tag(self, tag_id: int) -> bool:
         try:
-            from src.database.repositories import TagsRepository
-            repo = TagsRepository()
-            return repo.delete_tag(tag_id)
+            return self._tags_repo().delete_tag(tag_id)
         except Exception:
             return False
 
     def update_tag(self, tag_id: int, name: str = None, color: str = None) -> bool:
         try:
-            from src.database.repositories import TagsRepository
-            repo = TagsRepository()
-            return repo.update_tag(tag_id, name, color)
+            return self._tags_repo().update_tag(tag_id, name, color)
         except Exception:
             return False
 
     def add_tag_to_analysis(self, analysis_id: int, tag_id: int) -> bool:
         try:
-            from src.database.repositories import TagsRepository
-            repo = TagsRepository()
-            return repo.add_tag_to_analysis(analysis_id, tag_id)
+            return self._tags_repo().add_tag_to_analysis(analysis_id, tag_id)
         except Exception:
             return False
 
     def remove_tag_from_analysis(self, analysis_id: int, tag_id: int) -> bool:
         try:
-            from src.database.repositories import TagsRepository
-            repo = TagsRepository()
-            return repo.remove_tag_from_analysis(analysis_id, tag_id)
+            return self._tags_repo().remove_tag_from_analysis(analysis_id, tag_id)
         except Exception:
             return False
 
     def get_tags_for_analysis(self, analysis_id: int) -> List[Dict[str, Any]]:
         try:
-            from src.database.repositories import TagsRepository
-            repo = TagsRepository()
-            return repo.get_tags_for_analysis(analysis_id)
+            return self._tags_repo().get_tags_for_analysis(analysis_id)
         except Exception:
             return []
 
     def get_analyses_by_tag(self, tag_id: int, limit: int = 50) -> List[Dict[str, Any]]:
         try:
-            from src.database.repositories import TagsRepository
-            repo = TagsRepository()
-            return repo.get_analyses_by_tag(tag_id, limit)
+            return self._tags_repo().get_analyses_by_tag(tag_id, limit)
         except Exception:
             return []
 
     def get_tag_counts(self) -> Dict[str, int]:
         try:
-            from src.database.repositories import TagsRepository
-            repo = TagsRepository()
-            return repo.get_tag_counts()
+            return self._tags_repo().get_tag_counts()
         except Exception:
             return {}
 
     # -- Web Features (Baseline) -----------------------------------------------
 
     def update_web_features(self) -> bool:
-        """Download fresh web-features data."""
         try:
             wf = self._get_web_features()
             return wf.download()
@@ -531,7 +466,6 @@ class AnalyzerService:
             return False
 
     def get_baseline_status(self, feature_id: str) -> Optional[Dict]:
-        """Look up Baseline status for a single feature."""
         try:
             wf = self._get_web_features()
             info = wf.get_baseline_status(feature_id)
@@ -548,7 +482,7 @@ class AnalyzerService:
     # -- Configuration ---------------------------------------------------------
 
     def load_config(self, config_path: Optional[str] = None) -> Dict:
-        """Load and merge config from file, CLI overrides, and defaults."""
+        """Merges file config, CLI overrides, and defaults — also updates DEFAULT_BROWSERS in place."""
         from src.config import load_config
         mgr = load_config(config_path=config_path, overrides=self._config)
         self._config = mgr.to_dict()
@@ -563,7 +497,7 @@ class AnalyzerService:
         analysis_id_or_result=None,
         output_path: Optional[str] = None,
     ) -> Any:
-        """Export as JSON. Returns enriched dict if no output_path, else the file path."""
+        """Returns enriched dict if no output_path given, otherwise writes to file and returns path."""
         report = self._resolve_report(analysis_id_or_result)
         from src.export.json_exporter import export_json
         return export_json(report, output_path=output_path)
@@ -613,7 +547,7 @@ class AnalyzerService:
         api_key: str = None,
         provider: str = "anthropic",
     ) -> List[Any]:
-        """Get AI-generated fix suggestions. Returns empty list if no API key."""
+        """Returns [] immediately if no API key is configured — never raises."""
         key = api_key or self.get_setting('ai_api_key', '')
         if not key:
             return []
@@ -679,7 +613,6 @@ class AnalyzerService:
         return generate_polyfills_file(recommendations, output_path)
 
     def classify_file(self, file_path: str) -> Optional[str]:
-        """Map a file extension to 'html', 'css', 'js', or None."""
         import os
         ext = os.path.splitext(file_path)[1].lower()
         ext_map = {
@@ -697,7 +630,7 @@ class AnalyzerService:
         return load_raw_custom_rules()
 
     def save_custom_rules(self, rules_data: Dict) -> bool:
-        """Save rules to disk and reset the analyzer so they take effect."""
+        """Resets the analyzer after saving so the next analysis picks up the new rules."""
         from src.parsers.custom_rules_loader import save_custom_rules
         result = save_custom_rules(rules_data)
         if result:
@@ -707,17 +640,14 @@ class AnalyzerService:
     def is_user_rule(
         self, category: str, feature_id: str, subtype: Optional[str] = None
     ) -> bool:
-        """Check if a rule was user-added (vs built-in)."""
         from src.parsers.custom_rules_loader import is_user_rule
         return is_user_rule(category, feature_id, subtype)
-
 
 
 _service_instance: Optional[AnalyzerService] = None
 
 
 def get_analyzer_service() -> AnalyzerService:
-    """Return the shared singleton instance."""
     global _service_instance
     if _service_instance is None:
         _service_instance = AnalyzerService()

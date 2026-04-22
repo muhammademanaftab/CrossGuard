@@ -8,7 +8,6 @@ from ..theme import COLORS, SPACING, ICONS
 
 
 class MessageDialog(ctk.CTkToplevel):
-    """Modal message dialog with icon and configurable buttons."""
 
     def __init__(
         self,
@@ -77,7 +76,6 @@ class MessageDialog(ctk.CTkToplevel):
         buttons_frame = ctk.CTkFrame(main_frame, fg_color="transparent")
         buttons_frame.pack(fill="x")
 
-        # First button is treated as primary (accent colored)
         for i, btn_text in enumerate(self._buttons):
             is_primary = i == 0
             btn = ctk.CTkButton(
@@ -128,7 +126,6 @@ class MessageDialog(ctk.CTkToplevel):
         self.destroy()
 
     def get_result(self) -> Optional[str]:
-        """Block until the dialog is closed, then return which button was clicked."""
         self.wait_window()
         return self.result
 
@@ -149,7 +146,6 @@ def show_error(parent, title: str, message: str) -> None:
 
 
 def ask_question(parent, title: str, message: str) -> bool:
-    """Returns True if Yes was clicked."""
     dialog = MessageDialog(
         parent,
         title,
@@ -162,7 +158,6 @@ def ask_question(parent, title: str, message: str) -> bool:
 
 
 class ProgressDialog(ctk.CTkToplevel):
-    """Modal progress bar dialog."""
 
     def __init__(
         self,

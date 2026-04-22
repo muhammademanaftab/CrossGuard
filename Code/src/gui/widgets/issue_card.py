@@ -7,7 +7,6 @@ from ..theme import COLORS, SPACING, ICONS
 
 
 class IssueCard(ctk.CTkFrame):
-    """Compact issue row: colored left border + feature name + baseline badge + browser badges."""
 
     BASELINE_COLORS = {
         'high': (COLORS['success'], 'Widely Available'),
@@ -35,23 +34,19 @@ class IssueCard(ctk.CTkFrame):
         self.pack_propagate(False)
         self.grid_columnconfigure(1, weight=1)
 
-        # Left color stripe (using a thin frame at absolute left)
         ctk.CTkFrame(
             self, fg_color=border_color, width=3, height=32, corner_radius=0
         ).place(x=0, y=0, relheight=1)
 
-        # Feature name
         ctk.CTkLabel(
             self, text=feature_name,
             font=ctk.CTkFont(size=11, weight="bold"),
             text_color=COLORS['text_primary'],
         ).place(x=12, rely=0.5, anchor="w")
 
-        # Right side: baseline badge + browser badges
         right = ctk.CTkFrame(self, fg_color="transparent")
         right.place(relx=1.0, rely=0.5, anchor="e", x=-8)
 
-        # Browser badges
         for browser in reversed(browsers):
             ctk.CTkLabel(
                 right,
@@ -62,7 +57,6 @@ class IssueCard(ctk.CTkFrame):
                 corner_radius=3,
             ).pack(side="right", padx=(2, 0))
 
-        # Baseline badge (before browser badges)
         if baseline_status and baseline_status in self.BASELINE_COLORS:
             badge_color, badge_text = self.BASELINE_COLORS[baseline_status]
             ctk.CTkLabel(
@@ -76,7 +70,6 @@ class IssueCard(ctk.CTkFrame):
 
 
 class IssuesSummary(ctk.CTkFrame):
-    """Collapsible container for compact issue rows, grouped by severity."""
 
     def __init__(self, master, issues: List[dict], expanded: bool = False, **kwargs):
         super().__init__(
@@ -92,7 +85,6 @@ class IssuesSummary(ctk.CTkFrame):
         critical = [i for i in self._issues if i.get('severity') == 'critical']
         warnings = [i for i in self._issues if i.get('severity') != 'critical']
 
-        # Header
         self._header = ctk.CTkFrame(self, fg_color="transparent", cursor="hand2")
         self._header.pack(fill="x", padx=SPACING['md'], pady=SPACING['sm'])
 
@@ -144,7 +136,6 @@ class IssuesSummary(ctk.CTkFrame):
         for child in self._header.winfo_children():
             child.bind("<Button-1>", lambda e=None: self._toggle_view())
 
-        # Issues container
         self._container = ctk.CTkFrame(self, fg_color="transparent")
 
         sorted_issues = sorted(self._issues, key=lambda i: 0 if i.get('severity') == 'critical' else 1)

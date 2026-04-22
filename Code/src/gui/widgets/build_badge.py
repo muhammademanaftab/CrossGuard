@@ -6,10 +6,6 @@ from ..theme import COLORS, SPACING, ANIMATION
 
 
 class BuildBadge(ctk.CTkFrame):
-    """GitHub-style status badge based on compatibility score.
-
-    >= 90%: PASSING (green), 70-89%: WARNING (yellow), < 70%: FAILING (red)
-    """
 
     def __init__(
         self,
@@ -206,7 +202,6 @@ class BuildBadge(ctk.CTkFrame):
                 self._animation_id = None
                 return
 
-            # Ease out cubic
             t = step / steps
             eased_t = 1 - pow(1 - t, 3)
             self._current_progress = start_progress + (target_progress - start_progress) * eased_t

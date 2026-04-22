@@ -8,7 +8,6 @@ import json
 
 @dataclass
 class BrowserResult:
-    """Support status for one browser on one feature."""
     browser: str
     support_status: str
     version: str = ''
@@ -37,7 +36,6 @@ class BrowserResult:
 
 @dataclass
 class AnalysisFeature:
-    """A detected Can I Use feature within an analysis."""
     feature_id: str
     category: str
     feature_name: str = ''
@@ -68,7 +66,6 @@ class AnalysisFeature:
 
 @dataclass
 class Analysis:
-    """A single file analysis with score, grade, and detected features."""
     file_name: str
     file_type: str
     overall_score: float
@@ -86,7 +83,6 @@ class Analysis:
 
     @property
     def browsers(self) -> Dict[str, str]:
-        """Parse browsers_json into a dict."""
         try:
             return json.loads(self.browsers_json)
         except (json.JSONDecodeError, TypeError):
@@ -117,7 +113,7 @@ class Analysis:
             try:
                 analyzed_at = datetime.fromisoformat(row['analyzed_at'])
             except (ValueError, TypeError):
-                # fallback for SQLite's default datetime format
+                # SQLite stores datetimes as "YYYY-MM-DD HH:MM:SS", not ISO 8601
                 try:
                     analyzed_at = datetime.strptime(
                         row['analyzed_at'],
@@ -139,7 +135,6 @@ class Analysis:
         )
 
     def get_formatted_date(self) -> str:
-        """Human-friendly relative date like 'Today 2:30 PM' or 'Jan 15, 2026'."""
         if not self.analyzed_at:
             return 'Unknown'
 
@@ -156,7 +151,6 @@ class Analysis:
             return self.analyzed_at.strftime('%b %d, %Y')
 
     def get_file_type_icon(self) -> str:
-        """Unicode icon for the file type."""
         icons = {
             'html': '\u25B6',
             'htm': '\u25B6',
@@ -168,7 +162,6 @@ class Analysis:
 
 @dataclass
 class Bookmark:
-    """A bookmarked analysis with an optional note."""
     analysis_id: int
     note: str = ''
     id: Optional[int] = None
@@ -209,7 +202,6 @@ class Bookmark:
 
 @dataclass
 class Tag:
-    """A named, colored label for categorizing analyses."""
     name: str
     color: str = '#58a6ff'
     id: Optional[int] = None

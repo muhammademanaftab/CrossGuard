@@ -10,7 +10,6 @@ logger = get_logger('database.statistics')
 
 
 class StatisticsService:
-    """Computes stats like averages, trends, and top problematic features."""
 
     def __init__(self, conn: Optional[sqlite3.Connection] = None):
         self._conn = conn
@@ -41,7 +40,6 @@ class StatisticsService:
         return round(result, 1) if result else 0.0
 
     def get_score_trend(self, days: int = 7) -> List[Dict[str, Any]]:
-        """Daily average scores over the last N days."""
         cursor = self.conn.execute("""
             SELECT DATE(analyzed_at) as date,
                    AVG(overall_score) as avg_score,
@@ -62,7 +60,6 @@ class StatisticsService:
         ]
 
     def get_top_problematic_features(self, limit: int = 5) -> List[Dict[str, Any]]:
-        """Features with the most unsupported browser results across all analyses."""
         cursor = self.conn.execute("""
             SELECT af.feature_name,
                    af.feature_id,
@@ -87,7 +84,6 @@ class StatisticsService:
         ]
 
     def get_most_analyzed_files(self, limit: int = 5) -> List[Dict[str, Any]]:
-        """Files ranked by how many times they've been analyzed."""
         cursor = self.conn.execute("""
             SELECT file_name,
                    file_type,
@@ -112,7 +108,6 @@ class StatisticsService:
         ]
 
     def get_browser_statistics(self) -> Dict[str, Dict[str, Any]]:
-        """Support/partial/unsupported counts and percentages per browser."""
         cursor = self.conn.execute("""
             SELECT browser,
                    SUM(CASE WHEN support_status = 'y' THEN 1 ELSE 0 END) as supported,
@@ -139,7 +134,6 @@ class StatisticsService:
         return stats
 
     def get_grade_distribution(self) -> Dict[str, int]:
-        """How many analyses got each letter grade."""
         cursor = self.conn.execute("""
             SELECT grade, COUNT(*) as count
             FROM analyses
@@ -150,7 +144,6 @@ class StatisticsService:
         return {row['grade']: row['count'] for row in cursor.fetchall()}
 
     def get_file_type_distribution(self) -> Dict[str, int]:
-        """Breakdown of analyzed file types (html, css, js)."""
         cursor = self.conn.execute("""
             SELECT file_type, COUNT(*) as count
             FROM analyses
@@ -160,7 +153,6 @@ class StatisticsService:
         return {row['file_type']: row['count'] for row in cursor.fetchall()}
 
     def get_recent_activity(self, days: int = 30) -> Dict[str, int]:
-        """Daily analysis counts for the last N days."""
         cursor = self.conn.execute("""
             SELECT DATE(analyzed_at) as date, COUNT(*) as count
             FROM analyses
@@ -172,7 +164,6 @@ class StatisticsService:
         return {row['date']: row['count'] for row in cursor.fetchall()}
 
     def get_summary_statistics(self) -> Dict[str, Any]:
-        """Everything in one call: counts, scores, distributions, top features."""
         total = self.get_total_analyses()
 
         if total == 0:
@@ -204,7 +195,6 @@ _stats_service: Optional[StatisticsService] = None
 
 
 def get_statistics_service() -> StatisticsService:
-    """Lazy singleton for the stats service."""
     global _stats_service
     if _stats_service is None:
         _stats_service = StatisticsService()

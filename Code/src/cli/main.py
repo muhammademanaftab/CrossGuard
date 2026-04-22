@@ -27,7 +27,7 @@ _KNOWN_BROWSERS = set(LATEST_VERSIONS.keys())
 
 
 def _parse_browsers(browsers_str: Optional[str]) -> Optional[dict]:
-    """Parse 'chrome:120,firefox:121' into a dict, with typo suggestions."""
+    """Parses 'chrome:120,firefox:121' — gives a close-match suggestion on unknown browser names."""
     if not browsers_str:
         return None
     result = {}
@@ -68,7 +68,6 @@ def _parse_browsers(browsers_str: Optional[str]) -> Optional[dict]:
 
 
 def _classify_files(paths: list[str]) -> tuple[list, list, list]:
-    """Bucket file paths by type (HTML, CSS, JS)."""
     html, css, js = [], [], []
     ext_map = {
         '.html': html, '.htm': html,
@@ -85,7 +84,6 @@ def _classify_files(paths: list[str]) -> tuple[list, list, list]:
 
 
 def _count_issues(report: dict) -> tuple[int, int]:
-    """Tally unsupported (errors) and partial (warnings) across all browsers."""
     errors = 0
     warnings = 0
     browsers = report.get('browsers', {})
@@ -97,7 +95,6 @@ def _count_issues(report: dict) -> tuple[int, int]:
 
 
 def _write_secondary_outputs(report: dict, **kwargs):
-    """Write any --output-sarif / --output-junit / etc. side files."""
     from src.export import export_sarif, export_junit, export_checkstyle, export_csv
 
     exporters = {
@@ -268,7 +265,6 @@ def analyze(ctx, target, browsers, fmt, output, config_path,
         score = result.scores['simple_score'] if result.scores else 0.0
         error_count, warning_count = _count_issues(result_dict)
 
-        # --- AI Fix Suggestions (optional) ---
         # Priority: CLI flag/env var > config file > SQLite settings
         ai_key = api_key or config.ai_config.get('api_key', '') or None
         ai_prov = (ai_provider
@@ -309,13 +305,11 @@ def analyze(ctx, target, browsers, fmt, output, config_path,
             result_dict['ai_suggestions'] = ai_data
 
             if fmt in ('json', 'sarif', 'junit', 'checkstyle', 'csv'):
-                # Re-format with embedded AI suggestions
                 if fmt in ('sarif', 'junit', 'checkstyle', 'csv'):
                     result_text = _format_ci_output(result_dict, fmt)
                 else:
                     result_text = format_result(result_dict, fmt, color=cli_ctx.color)
             else:
-                # Text formats: append as readable text
                 result_text += "\n\n--- AI Fix Suggestions ---\n"
                 for s in ai_suggestions:
                     result_text += f"\n{s.feature_name} ({s.feature_id}):\n"
@@ -369,7 +363,6 @@ def analyze(ctx, target, browsers, fmt, output, config_path,
 
 
 def _format_ci_output(report: dict, fmt: str) -> str:
-    """Run the right CI exporter and return its string output."""
     from src.export import export_sarif, export_junit, export_checkstyle, export_csv
 
     if fmt == 'sarif':

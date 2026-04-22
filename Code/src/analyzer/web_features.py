@@ -11,11 +11,10 @@ logger = get_logger('analyzer.web_features')
 
 
 class BaselineInfo:
-    """Baseline status for a single feature."""
     __slots__ = ('status', 'low_date', 'high_date')
 
     def __init__(self, status: str, low_date: Optional[str] = None, high_date: Optional[str] = None):
-        self.status = status       # "high", "low", "limited"
+        self.status = status       # "high" = widely available, "low" = newly, "limited" = not yet
         self.low_date = low_date
         self.high_date = high_date
 
@@ -24,26 +23,24 @@ class BaselineInfo:
 
 
 class WebFeaturesManager:
-    """Downloads, caches, and queries the web-features dataset."""
 
     def __init__(self):
         self._reverse_map: Optional[Dict[str, BaselineInfo]] = None
 
     def download(self) -> bool:
-        """Fetch the latest web-features data.json from unpkg and cache it."""
+        """Fetches from unpkg and caches locally"""
         try:
             req = Request(WEB_FEATURES_URL, headers={'Accept': 'application/json'})
             with urlopen(req, timeout=30) as resp:
                 data = resp.read()
 
-            # Validate it's valid JSON
-            json.loads(data)
+            json.loads(data)  # validate before writing to cache
 
             WEB_FEATURES_CACHE_DIR.mkdir(parents=True, exist_ok=True)
             with open(WEB_FEATURES_CACHE_PATH, 'wb') as f:
                 f.write(data)
 
-            self._reverse_map = None  # force rebuild
+            self._reverse_map = None  # force rebuild on next lookup
             logger.info("Web features data downloaded successfully")
             return True
 
@@ -52,7 +49,6 @@ class WebFeaturesManager:
             return False
 
     def _load_cache(self) -> Optional[dict]:
-        """Load the cached web-features data."""
         try:
             if WEB_FEATURES_CACHE_PATH.exists():
                 with open(WEB_FEATURES_CACHE_PATH, 'r') as f:
@@ -62,14 +58,13 @@ class WebFeaturesManager:
         return None
 
     def _build_reverse_map(self) -> Dict[str, BaselineInfo]:
-        """Build {caniuse_id: BaselineInfo} from the web-features data."""
         data = self._load_cache()
         if not data:
             return {}
 
         reverse_map: Dict[str, BaselineInfo] = {}
 
-        # web-features wraps features under a "features" key
+        # the web-features package wraps everything under a "features" key
         features = data.get('features', data) if isinstance(data, dict) else data
 
         for _feature_name, feature_data in features.items():
@@ -113,12 +108,10 @@ class WebFeaturesManager:
             self._reverse_map = self._build_reverse_map()
 
     def get_baseline_status(self, caniuse_id: str) -> Optional[BaselineInfo]:
-        """Look up the Baseline status for a single Can I Use feature ID."""
         self._ensure_loaded()
         return self._reverse_map.get(caniuse_id)
 
     def get_baseline_summary(self, feature_ids: List[str]) -> dict:
-        """Compute Baseline summary counts for a list of Can I Use feature IDs."""
         self._ensure_loaded()
 
         widely = 0
@@ -145,10 +138,8 @@ class WebFeaturesManager:
         }
 
     def has_data(self) -> bool:
-        """Check if cached web-features data exists."""
         return WEB_FEATURES_CACHE_PATH.exists()
 
     def get_feature_count(self) -> int:
-        """Number of Can I Use IDs with Baseline mappings."""
         self._ensure_loaded()
         return len(self._reverse_map)

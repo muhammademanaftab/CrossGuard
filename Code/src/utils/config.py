@@ -13,11 +13,9 @@ CANIUSE_FEATURES_PATH = CANIUSE_DIR / "features-json"
 DATABASE_PATH = PROJECT_ROOT / 'crossguard.db'
 DATABASE_HISTORY_LIMIT = 100
 
-# --- npm-based Can I Use updates ---
 NPM_REGISTRY_URL = "https://registry.npmjs.org/caniuse-db/latest"
 CANIUSE_PACKAGE_JSON = CANIUSE_DIR / "package.json"
 
-# --- Web Features (Baseline status) ---
 WEB_FEATURES_URL = "https://unpkg.com/web-features/data.json"
 WEB_FEATURES_CACHE_DIR = Path.home() / ".crossguard"
 WEB_FEATURES_CACHE_PATH = WEB_FEATURES_CACHE_DIR / "web_features.json"
@@ -70,8 +68,6 @@ SEVERITY_LEVELS = {
 APP_NAME = "Cross Guard"
 APP_VERSION = "1.0.0"
 
-# --- Logging ---
-
 LOG_LEVEL = os.environ.get('CROSSGUARD_LOG_LEVEL', 'INFO').upper()
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 LOG_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
@@ -83,8 +79,6 @@ LOG_BACKUP_COUNT = 3
 
 
 class CrossGuardLogger:
-    """Singleton that manages all logging for the app."""
-
     _instance: Optional['CrossGuardLogger'] = None
     _initialized: bool = False
 
@@ -107,7 +101,7 @@ class CrossGuardLogger:
         if root_logger.handlers:
             return
 
-        # stderr so we don't pollute piped CLI output
+        # Must use stderr — stdout is reserved for piped CLI output
         console_handler = logging.StreamHandler(sys.stderr)
         console_handler.setLevel(logging.INFO)
         console_handler.setFormatter(logging.Formatter(LOG_FORMAT, LOG_DATE_FORMAT))
@@ -128,17 +122,15 @@ class CrossGuardLogger:
 
             logging.getLogger('crossguard').addHandler(file_handler)
         except Exception:
-            pass  # Not critical — file logging is best-effort
+            pass  # file logging is best-effort; don't crash if the log dir is unwritable
 
     def get_logger(self, name: str) -> logging.Logger:
-        """Get a namespaced logger (e.g. 'parser.css')."""
         full_name = f'crossguard.{name}'
         if full_name not in self._loggers:
             self._loggers[full_name] = logging.getLogger(full_name)
         return self._loggers[full_name]
 
     def set_level(self, level: str):
-        """Change log level for all loggers at once."""
         log_level = getattr(logging, level.upper(), logging.INFO)
         logging.getLogger('crossguard').setLevel(log_level)
 
@@ -146,7 +138,7 @@ class CrossGuardLogger:
         self._setup_file_handler()
 
     def disable_console_output(self):
-        """Kill console output (useful in GUI mode)."""
+        # GUI mode — don't want log noise in the terminal the user launched from
         root_logger = logging.getLogger('crossguard')
         for handler in root_logger.handlers[:]:
             if isinstance(handler, logging.StreamHandler):
@@ -157,20 +149,16 @@ _logger_manager = CrossGuardLogger()
 
 
 def get_logger(name: str) -> logging.Logger:
-    """Main way to grab a logger anywhere in the app."""
     return _logger_manager.get_logger(name)
 
 
 def set_log_level(level: str):
-    """Set global log level (DEBUG, INFO, WARNING, ERROR, CRITICAL)."""
     _logger_manager.set_level(level)
 
 
 def enable_file_logging():
-    """Turn on rotating file logging."""
     _logger_manager.enable_file_logging()
 
 
 def disable_console_logging():
-    """Silence console log output."""
     _logger_manager.disable_console_output()

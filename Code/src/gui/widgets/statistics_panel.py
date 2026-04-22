@@ -7,7 +7,6 @@ from ..theme import COLORS, SPACING, ICONS, get_score_color
 
 
 class StatisticsPanel(ctk.CTkFrame):
-    """Shows analysis counts, score averages, and most-failed features."""
 
     def __init__(self, master, **kwargs):
         super().__init__(
@@ -109,7 +108,6 @@ class StatisticsPanel(ctk.CTkFrame):
         return value_label
 
     def set_statistics(self, stats: Dict[str, Any]):
-        """Refresh with new stats from get_statistics()."""
         self._stats = stats
 
         total = stats.get('total_analyses', 0)
@@ -176,7 +174,6 @@ class StatisticsPanel(ctk.CTkFrame):
 
 
 class CompactStatsBar(ctk.CTkFrame):
-    """One-line stats bar for inline display."""
 
     def __init__(self, master, **kwargs):
         super().__init__(

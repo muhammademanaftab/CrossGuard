@@ -1,4 +1,4 @@
-"""Singleton loader for polyfill mappings from polyfill_map.json."""
+"""Singleton polyfill map loader."""
 
 import json
 from pathlib import Path
@@ -12,7 +12,6 @@ POLYFILL_MAP_PATH = Path(__file__).parent / "polyfill_map.json"
 
 
 class PolyfillLoader:
-    """Loads and caches polyfill_map.json as a singleton."""
 
     _instance: Optional['PolyfillLoader'] = None
     _loaded: bool = False
@@ -31,7 +30,6 @@ class PolyfillLoader:
         self._load_data()
 
     def _load_data(self):
-        """Load mappings from disk, falling back to empty dicts on error."""
         if not POLYFILL_MAP_PATH.exists():
             logger.warning(f"Polyfill map not found at {POLYFILL_MAP_PATH}")
             self._data = {'javascript': {}, 'css': {}, 'html': {}}
@@ -56,7 +54,6 @@ class PolyfillLoader:
             self._data = {'javascript': {}, 'css': {}, 'html': {}}
 
     def get_polyfill(self, feature_id: str) -> Optional[Dict]:
-        """Look up polyfill info by Can I Use feature ID, or None."""
         if feature_id in self._data.get('javascript', {}):
             return self._data['javascript'][feature_id]
 
@@ -69,7 +66,6 @@ class PolyfillLoader:
         return None
 
     def has_polyfill(self, feature_id: str) -> bool:
-        """True if the feature has a polyfill or fallback available."""
         polyfill = self.get_polyfill(feature_id)
         if polyfill is None:
             return False
@@ -77,7 +73,7 @@ class PolyfillLoader:
         return polyfill.get('polyfillable', False) or 'fallback' in polyfill
 
     def is_polyfillable(self, feature_id: str) -> bool:
-        """True if the feature can be truly polyfilled (not just a CSS fallback)."""
+        """True if the feature can be truly polyfilled, not just a CSS fallback."""
         polyfill = self.get_polyfill(feature_id)
         return polyfill is not None and polyfill.get('polyfillable', False)
 
@@ -96,7 +92,6 @@ def get_polyfill_loader() -> PolyfillLoader:
 
 
 def load_polyfill_map() -> Dict:
-    """Load the raw polyfill map data for editing."""
     try:
         with open(POLYFILL_MAP_PATH, 'r', encoding='utf-8') as f:
             return json.load(f)
@@ -105,7 +100,6 @@ def load_polyfill_map() -> Dict:
 
 
 def save_polyfill_map(data: Dict) -> bool:
-    """Write updated polyfill data back to polyfill_map.json and reload cache."""
     try:
         with open(POLYFILL_MAP_PATH, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=2, ensure_ascii=False)

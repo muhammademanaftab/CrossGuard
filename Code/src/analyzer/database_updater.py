@@ -13,7 +13,6 @@ import json
 
 
 class DatabaseUpdater:
-    """Pulls the latest caniuse data from npm (preferred) or git (fallback)."""
 
     def __init__(self, caniuse_dir: Path):
         self.caniuse_dir = Path(caniuse_dir)
@@ -23,7 +22,6 @@ class DatabaseUpdater:
     # --- npm methods ---
 
     def get_local_npm_version(self) -> Optional[str]:
-        """Read the version from the local package.json (if it exists)."""
         try:
             if self.package_json_path.exists():
                 with open(self.package_json_path, 'r') as f:
@@ -33,7 +31,6 @@ class DatabaseUpdater:
         return None
 
     def check_npm_update(self) -> dict:
-        """Check npm registry for a newer caniuse-db version."""
         from src.utils.config import NPM_REGISTRY_URL
         try:
             req = Request(NPM_REGISTRY_URL, headers={'Accept': 'application/json'})
@@ -54,7 +51,6 @@ class DatabaseUpdater:
             return {'success': False, 'error': str(e)}
 
     def download_npm_update(self, progress_callback: Optional[Callable[[str, int], None]] = None) -> dict:
-        """Download and extract the latest caniuse-db from npm."""
         if progress_callback:
             progress_callback("Checking npm registry...", 5)
 
@@ -96,12 +92,10 @@ class DatabaseUpdater:
 
             self.caniuse_dir.mkdir(parents=True, exist_ok=True)
 
-            # Copy data.json
             src_data = os.path.join(package_dir, 'data.json')
             if os.path.exists(src_data):
                 shutil.copy2(src_data, str(self.data_json_path))
 
-            # Copy features-json/
             src_features = os.path.join(package_dir, 'features-json')
             dst_features = self.caniuse_dir / 'features-json'
             if os.path.isdir(src_features):
@@ -109,12 +103,11 @@ class DatabaseUpdater:
                     shutil.rmtree(str(dst_features))
                 shutil.copytree(src_features, str(dst_features))
 
-            # Copy package.json for version tracking
+            # keep package.json so we can compare versions next time
             src_pkg = os.path.join(package_dir, 'package.json')
             if os.path.exists(src_pkg):
                 shutil.copy2(src_pkg, str(self.package_json_path))
 
-            # Cleanup temp
             shutil.rmtree(tmp_dir, ignore_errors=True)
 
             if progress_callback:
@@ -130,7 +123,6 @@ class DatabaseUpdater:
             }
 
         except Exception as e:
-            # Cleanup on failure
             if 'tmp_dir' in locals():
                 shutil.rmtree(tmp_dir, ignore_errors=True)
             return {'success': False, 'message': 'npm download failed', 'error': str(e)}
@@ -154,7 +146,6 @@ class DatabaseUpdater:
         return git_dir.exists() and git_dir.is_dir()
 
     def update_via_git(self, progress_callback: Optional[Callable[[str, int], None]] = None) -> dict:
-        """Fetch + pull from origin/main. Returns success/failure dict."""
         try:
             if not self.check_git_available():
                 return {
@@ -263,13 +254,11 @@ class DatabaseUpdater:
             return {'error': str(e)}
 
     def update_database(self, progress_callback: Optional[Callable[[str, int], None]] = None) -> dict:
-        """Try npm first, fall back to git if npm fails."""
-        # Try npm first
+        """Tries npm first, falls back to git"""
         result = self.download_npm_update(progress_callback)
         if result.get('success'):
             return result
 
-        # Fall back to git
         if progress_callback:
             progress_callback("npm failed, trying git...", 10)
 

@@ -216,7 +216,7 @@ ProgressCallback = Optional[callable]
 
 @dataclass
 class ExportRequest:
-    format: str  # "json" or "pdf"
+    format: str
     analysis_id: Optional[int] = None
     result: Optional[AnalysisResult] = None
     output_path: Optional[str] = None

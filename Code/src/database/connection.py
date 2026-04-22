@@ -15,13 +15,12 @@ _lock = threading.Lock()
 
 
 def get_db_path() -> Path:
-    """Path to the SQLite database file."""
     from src.utils.config import PROJECT_ROOT
     return PROJECT_ROOT / _DB_NAME
 
 
 def get_connection() -> sqlite3.Connection:
-    """Get or create the singleton DB connection. Initializes tables on first call."""
+    """Returns the singleton connection, creating it on first call"""
     global _connection
 
     with _lock:
@@ -32,7 +31,7 @@ def get_connection() -> sqlite3.Connection:
             _connection = sqlite3.connect(
                 str(db_path),
                 check_same_thread=False,
-                isolation_level=None,  # autocommit
+                isolation_level=None,  # autocommit — repositories manage transactions manually
             )
 
             _connection.execute("PRAGMA foreign_keys = ON")
@@ -44,7 +43,6 @@ def get_connection() -> sqlite3.Connection:
 
 
 def close_connection():
-    """Close the DB connection. Call on app exit."""
     global _connection
 
     with _lock:
@@ -55,18 +53,15 @@ def close_connection():
 
 
 def _init_tables(conn: sqlite3.Connection):
-    """Run migrations to ensure tables exist."""
     from .migrations import create_tables
     create_tables(conn)
 
 
 def execute_query(query: str, params: tuple = ()) -> sqlite3.Cursor:
-    """Run a query and return the cursor."""
     conn = get_connection()
     return conn.execute(query, params)
 
 
 def execute_many(query: str, params_list: list) -> sqlite3.Cursor:
-    """Run a query with multiple parameter sets."""
     conn = get_connection()
     return conn.executemany(query, params_list)

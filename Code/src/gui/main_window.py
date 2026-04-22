@@ -45,7 +45,6 @@ from .export_manager import ExportManager
 
 
 class MainWindow(ctk.CTkFrame):
-    """VS Code-style layout: sidebar + swappable content views."""
 
     def __init__(self, master):
         super().__init__(master, fg_color=COLORS['bg_darkest'])
@@ -61,7 +60,6 @@ class MainWindow(ctk.CTkFrame):
         self._show_view("files")
 
     def _init_layout(self):
-        """Set up the grid: sidebar (col 0), header/content/statusbar (col 1)."""
         self.grid_columnconfigure(0, weight=0)
         self.grid_columnconfigure(1, weight=1)
         self.grid_rowconfigure(0, weight=0)
@@ -99,7 +97,6 @@ class MainWindow(ctk.CTkFrame):
         self._show_view(view_id)
 
     def _show_view(self, view_id: str):
-        """Destroy current view and build the requested one."""
         for widget in self.content_frame.winfo_children():
             widget.destroy()
 
@@ -186,7 +183,6 @@ class MainWindow(ctk.CTkFrame):
         )
         self.file_table.pack(fill="both", expand=True, pady=(0, SPACING['xl']))
 
-        # Restore files from before view switch
         if self._last_files:
             existing_files = [f for f in self._last_files if Path(f).exists()]
             if existing_files:
@@ -233,7 +229,6 @@ class MainWindow(ctk.CTkFrame):
         self._update_status()
 
     def _build_results_view(self):
-        """Results with progressive disclosure: badge hero, stats, issues, then collapsible details."""
         if not self.current_report:
             empty_frame = ctk.CTkFrame(self.content_frame, fg_color="transparent")
             empty_frame.place(relx=0.5, rely=0.5, anchor="center")
@@ -290,7 +285,6 @@ class MainWindow(ctk.CTkFrame):
 
         issues_count = self._count_issues(browsers)
 
-        # Build badge hero (always visible)
         build_badge = BuildBadge(scroll_frame)
         build_badge.pack(fill="x", pady=(0, SPACING['lg']))
         build_badge.set_data(
@@ -310,7 +304,6 @@ class MainWindow(ctk.CTkFrame):
             features_count=total_features
         )
 
-        # --- Issues & Fixes ---
         issues = self._extract_issues(browsers)
         if issues:
             issues_section = CollapsibleSection(
@@ -326,7 +319,6 @@ class MainWindow(ctk.CTkFrame):
             issues_summary = IssuesSummary(issues_content, issues=issues)
             issues_summary.pack(fill="x")
 
-            # AI Fix button inside the section
             ai_key = self._analyzer_service.get_setting('ai_api_key', '')
             if ai_key:
                 ctk.CTkFrame(issues_content, fg_color=COLORS['border'], height=1).pack(
@@ -354,7 +346,6 @@ class MainWindow(ctk.CTkFrame):
                     command=lambda e=None: self._on_ai_suggestions_click(browsers, scroll_frame),
                 ).pack(side="right")
 
-        # --- Recommendations (polyfills + text recs merged) ---
         polyfill_data = self._get_polyfill_recommendations(browsers)
         recommendations = report.get('recommendations', [])
         has_recs = polyfill_data['has_recommendations'] or recommendations
@@ -399,7 +390,6 @@ class MainWindow(ctk.CTkFrame):
                         anchor="w",
                     ).pack(side="left", padx=SPACING['sm'])
 
-        # --- Browser Support (collapsed) ---
         if browsers:
             browser_section = CollapsibleSection(
                 scroll_frame,
@@ -426,7 +416,6 @@ class MainWindow(ctk.CTkFrame):
                                     border_width=1, border_color=COLORS['border'])
                 card.pack(fill="x", pady=(0, SPACING['sm']))
 
-                # --- Header: name + bar + percentage ---
                 header_row = ctk.CTkFrame(card, fg_color="transparent")
                 header_row.pack(fill="x", padx=SPACING['md'], pady=(SPACING['sm'], SPACING['xs']))
 
@@ -451,7 +440,6 @@ class MainWindow(ctk.CTkFrame):
                     width=45, anchor="e",
                 ).pack(side="right")
 
-                # --- Tabs ---
                 tab_row = ctk.CTkFrame(card, fg_color="transparent")
                 tab_row.pack(fill="x", padx=SPACING['md'], pady=(0, SPACING['xs']))
 
@@ -527,12 +515,10 @@ class MainWindow(ctk.CTkFrame):
                                          text_color="#FFFFFF", fg_color=c, corner_radius=3).pack(side="left", padx=(2, 0))
                     return frame
 
-                # Pre-build tab frames
                 overview_frame = build_overview(tab_content, supported, partial_count, unsupported)
                 issues_frame = build_issues(tab_content, unsupported_list, partial_list)
                 versions_frame = build_versions(tab_content, unsupported_list, partial_list, browser_name)
 
-                # Use a list to hold mutable state for this card's tabs
                 _frames = {"overview": overview_frame, "issues": issues_frame, "versions": versions_frame}
                 _buttons = {}
 
@@ -563,10 +549,8 @@ class MainWindow(ctk.CTkFrame):
                     btn.pack(side="left", padx=(0, SPACING['xs']))
                     _buttons[tab_name] = btn
 
-                # Show overview by default
                 switcher("overview")
 
-        # Detected features
         feature_details = report.get('feature_details', {})
         if features and any([features.get('html'), features.get('css'), features.get('js')]):
             features_section = CollapsibleSection(
@@ -580,7 +564,6 @@ class MainWindow(ctk.CTkFrame):
 
             features_content = features_section.get_content_frame()
 
-            # Build per-feature support lookup from browser data
             feature_support = {}  # feature_id -> {browser: status}
             browser_names_ordered = list(browsers.keys())
             for b_name, b_data in browsers.items():
@@ -589,11 +572,9 @@ class MainWindow(ctk.CTkFrame):
                 for fid in b_data.get('partial_features', []):
                     feature_support.setdefault(fid, {})[b_name] = 'partial'
 
-            # Browser legend with letter badges (dynamic)
             legend_row = ctk.CTkFrame(features_content, fg_color="transparent")
             legend_row.pack(fill="x", pady=(0, SPACING['sm']))
 
-            # Build short labels: first letter, or first 2 if duplicates
             browser_labels = {}
             used_labels = set()
             for b_name in browser_names_ordered:
@@ -612,7 +593,6 @@ class MainWindow(ctk.CTkFrame):
                 ctk.CTkLabel(legend_row, text=b_name.title(), font=ctk.CTkFont(size=8),
                              text_color=COLORS['text_muted']).pack(side="left", padx=(1, SPACING['md']))
 
-            # Color meaning legend (right side)
             for label, color in [("Supported", COLORS['success']), ("Partial", COLORS['warning']), ("Unsupported", COLORS['danger'])]:
                 ctk.CTkLabel(
                     legend_row, text=label,
@@ -620,7 +600,6 @@ class MainWindow(ctk.CTkFrame):
                     text_color=color,
                 ).pack(side="right", padx=(SPACING['sm'], 0))
 
-            # Search
             search_var = ctk.StringVar()
             search_entry = ctk.CTkEntry(
                 features_content,
@@ -634,7 +613,6 @@ class MainWindow(ctk.CTkFrame):
             )
             search_entry.pack(fill="x", pady=(0, SPACING['sm']))
 
-            # Build detail maps
             all_feature_frames = []
             detail_maps = {}
             for lang in ('html', 'css', 'js'):
@@ -654,7 +632,6 @@ class MainWindow(ctk.CTkFrame):
                 if not feature_list:
                     continue
 
-                # Type header with collapse toggle
                 type_header = ctk.CTkFrame(features_content, fg_color="transparent", cursor="hand2")
                 type_header.pack(fill="x", pady=(SPACING['sm'], SPACING['xs']))
 
@@ -718,7 +695,6 @@ class MainWindow(ctk.CTkFrame):
                     row.pack(fill="x", pady=(0, 1))
                     row.pack_propagate(False)
 
-                    # Feature name
                     ctk.CTkLabel(
                         row, text=name,
                         font=ctk.CTkFont(size=10, weight="bold"),
@@ -726,7 +702,6 @@ class MainWindow(ctk.CTkFrame):
                         anchor="w",
                     ).pack(side="left", padx=(SPACING['sm'], 0))
 
-                    # Matched pattern
                     if match_text:
                         ctk.CTkLabel(
                             row, text=match_text,
@@ -735,7 +710,6 @@ class MainWindow(ctk.CTkFrame):
                             anchor="w",
                         ).pack(side="left", padx=(SPACING['sm'], 0))
 
-                    # Browser support letter badges (right side, dynamic)
                     badges_frame = ctk.CTkFrame(row, fg_color="transparent")
                     badges_frame.pack(side="right", padx=SPACING['sm'])
 
@@ -752,7 +726,6 @@ class MainWindow(ctk.CTkFrame):
                             width=16,
                         ).pack(side="left", padx=(1, 0))
 
-                    # Hover highlight
                     def on_enter(e, r=row):
                         r.configure(fg_color=COLORS['bg_medium'])
                     def on_leave(e, r=row):
@@ -772,7 +745,6 @@ class MainWindow(ctk.CTkFrame):
 
             search_var.trace_add("write", filter_features)
 
-            # Unrecognized patterns (same style as detected features above)
             unrecognized = report.get('unrecognized', {})
             if unrecognized and unrecognized.get('total', 0) > 0:
                 ctk.CTkFrame(features_content, fg_color=COLORS['border'], height=1).pack(fill="x", pady=SPACING['sm'])
@@ -810,7 +782,6 @@ class MainWindow(ctk.CTkFrame):
                             text_color=COLORS['text_muted'],
                         ).pack(side="right", padx=SPACING['sm'])
 
-        # Visualizations
         if browsers:
             viz_section = CollapsibleSection(
                 scroll_frame,
@@ -856,7 +827,6 @@ class MainWindow(ctk.CTkFrame):
             breakdown_chart.pack(fill="x", pady=(SPACING['sm'], 0))
             breakdown_chart.set_data(chart_data)
 
-        # Export actions
         actions_frame = ctk.CTkFrame(
             scroll_frame,
             fg_color=COLORS['bg_medium'],
@@ -1164,7 +1134,6 @@ class MainWindow(ctk.CTkFrame):
                 show_error(self.master, "Error", "Failed to clear history.")
 
     def _count_issues(self, browsers: Dict) -> int:
-        """Count unique unsupported/partial features across all browsers."""
         issues = set()
         for browser_data in browsers.values():
             for feature in browser_data.get('unsupported_features', []):
@@ -1174,7 +1143,6 @@ class MainWindow(ctk.CTkFrame):
         return len(issues)
 
     def _extract_issues(self, browsers: Dict) -> List[dict]:
-        """Group unsupported/partial features into issue dicts for IssuesSummary."""
         unsupported_map = {}
         partial_map = {}
 
@@ -1220,7 +1188,6 @@ class MainWindow(ctk.CTkFrame):
         return issues
 
     def _get_polyfill_recommendations(self, browsers: Dict) -> dict:
-        """Build polyfill recommendations from unsupported/partial features."""
         if not browsers:
             return {'has_recommendations': False}
 
@@ -1254,7 +1221,6 @@ class MainWindow(ctk.CTkFrame):
         }
 
     def _get_ai_fix_suggestions(self, browsers: Dict) -> dict:
-        """Get AI fix suggestions for unsupported features."""
         if not browsers:
             return {'has_suggestions': False, 'count': 0, 'suggestions': []}
 
@@ -1289,10 +1255,8 @@ class MainWindow(ctk.CTkFrame):
         }
 
     def _on_ai_suggestions_click(self, browsers: Dict, scroll_frame):
-        """Called when user clicks 'Get AI Suggestions' button. Runs API in background thread."""
         import threading
 
-        # Replace button with loading indicator
         for w in self._ai_placeholder.winfo_children():
             w.destroy()
 
@@ -1323,7 +1287,6 @@ class MainWindow(ctk.CTkFrame):
 
         animate_dots()
 
-        # Run API call in background thread
         def fetch():
             ai_data = self._get_ai_fix_suggestions(browsers)
             # Schedule UI update back on main thread
@@ -1332,7 +1295,6 @@ class MainWindow(ctk.CTkFrame):
         threading.Thread(target=fetch, daemon=True).start()
 
     def _show_ai_results(self, ai_data: dict):
-        """Render AI suggestions after background fetch completes."""
         self._ai_loading = False
 
         for w in self._ai_placeholder.winfo_children():
@@ -1358,7 +1320,6 @@ class MainWindow(ctk.CTkFrame):
             ).pack(anchor="w")
 
     def _generate_polyfills_file(self, filename: str):
-        """Save a polyfills.js file with all necessary imports."""
         if not self.current_report:
             show_warning(self, "No Analysis", "Please run an analysis first.")
             return
@@ -1491,7 +1452,6 @@ class MainWindow(ctk.CTkFrame):
             text_color=COLORS['text_muted'],
         ).pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['lg']))
 
-        # --- AI Fix Suggestions settings ---
         OPENAI_MODELS = ["gpt-4o-mini", "gpt-4o", "gpt-4-turbo", "gpt-3.5-turbo"]
         ANTHROPIC_MODELS = ["claude-sonnet-4-20250514", "claude-haiku-4-5-20251001", "claude-opus-4-20250514"]
 
@@ -1521,20 +1481,17 @@ class MainWindow(ctk.CTkFrame):
             row.pack(fill="x", pady=(0, SPACING['sm']))
             return row
 
-        # API Key
         r = make_row(ai_inner)
         ctk.CTkLabel(r, text="API Key", font=ctk.CTkFont(size=11), text_color=COLORS['text_secondary'], width=lbl_width).pack(side="left")
         current_key = self._analyzer_service.get_setting('ai_api_key', '')
         self._ai_key_var = ctk.StringVar(value=current_key)
         ctk.CTkEntry(r, textvariable=self._ai_key_var, show="*", placeholder_text="sk-...", height=30).pack(side="left", fill="x", expand=True, padx=(SPACING['sm'], 0))
 
-        # Provider
         r = make_row(ai_inner)
         ctk.CTkLabel(r, text="Provider", font=ctk.CTkFont(size=11), text_color=COLORS['text_secondary'], width=lbl_width).pack(side="left")
         current_provider = self._analyzer_service.get_setting('ai_provider', 'anthropic')
         self._ai_provider_var = ctk.StringVar(value=current_provider)
 
-        # Model dropdown (updates when provider changes)
         model_r = make_row(ai_inner)
         ctk.CTkLabel(model_r, text="Model", font=ctk.CTkFont(size=11), text_color=COLORS['text_secondary'], width=lbl_width).pack(side="left")
         current_model = self._analyzer_service.get_setting('ai_model', '')
@@ -1559,7 +1516,6 @@ class MainWindow(ctk.CTkFrame):
             command=on_provider_change,
         ).pack(side="left", padx=(SPACING['sm'], 0))
 
-        # Max features
         r = make_row(ai_inner)
         ctk.CTkLabel(r, text="Max Features", font=ctk.CTkFont(size=11), text_color=COLORS['text_secondary'], width=lbl_width).pack(side="left")
         current_limit = self._analyzer_service.get_setting('ai_max_features', '10')
@@ -1572,7 +1528,6 @@ class MainWindow(ctk.CTkFrame):
         ).pack(side="left", padx=(SPACING['sm'], 0))
         ctk.CTkLabel(r, text="features sent per API request", font=ctk.CTkFont(size=9), text_color=COLORS['text_muted']).pack(side="left", padx=(SPACING['sm'], 0))
 
-        # Priority
         r = make_row(ai_inner)
         ctk.CTkLabel(r, text="Priority", font=ctk.CTkFont(size=11), text_color=COLORS['text_secondary'], width=lbl_width).pack(side="left")
         current_priority = self._analyzer_service.get_setting('ai_priority', 'unsupported_first')
@@ -1584,7 +1539,6 @@ class MainWindow(ctk.CTkFrame):
         ).pack(side="left", padx=(SPACING['sm'], 0))
         ctk.CTkLabel(r, text="which features to send first", font=ctk.CTkFont(size=9), text_color=COLORS['text_muted']).pack(side="left", padx=(SPACING['sm'], 0))
 
-        # --- Save All / Clear buttons ---
         btn_row = ctk.CTkFrame(ai_inner, fg_color="transparent")
         btn_row.pack(fill="x", pady=(SPACING['sm'], 0))
 

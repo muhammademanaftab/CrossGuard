@@ -7,7 +7,6 @@ from ..theme import COLORS, SPACING, get_score_color, get_grade_color
 
 
 class QuickStatsBar(ctk.CTkFrame):
-    """Compact horizontal bar: [Score] | [Grade] | [Browsers] | [Features]."""
 
     def __init__(
         self,
@@ -115,7 +114,6 @@ class QuickStatsBar(ctk.CTkFrame):
         return {'value_label': value_label, 'label_label': label_label, 'frame': frame}
 
     def _create_separator(self, parent, after_column: int):
-        """Thin vertical line between stat columns."""
         sep = ctk.CTkFrame(
             parent,
             fg_color=COLORS['border'],
@@ -130,7 +128,6 @@ class QuickStatsBar(ctk.CTkFrame):
         browsers_count: int,
         features_count: int
     ):
-        """Update all four stats at once."""
         self._score = score
         self._grade = grade
         self._browsers_count = browsers_count
@@ -152,7 +149,6 @@ class QuickStatsBar(ctk.CTkFrame):
 
 
 class StatCard(ctk.CTkFrame):
-    """Standalone stat card for flexible layouts."""
 
     def __init__(
         self,

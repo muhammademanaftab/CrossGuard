@@ -1,11 +1,11 @@
 """Checks detected features against target browsers and classifies issues by severity."""
 
+from collections import Counter
 from typing import Dict, List, Set
 
 from .database import get_database
-from .scorer import _score_to_grade
 
-# Severity constants (plain strings instead of enum)
+# plain strings instead of an enum to keep the serialized report format stable
 SEVERITY_CRITICAL = "critical"
 SEVERITY_HIGH = "high"
 SEVERITY_MEDIUM = "medium"
@@ -14,13 +14,11 @@ SEVERITY_INFO = "info"
 
 
 class CompatibilityAnalyzer:
-    """Checks features against the caniuse DB and produces scored reports."""
 
     def __init__(self):
         self.database = get_database()
 
     def analyze(self, features: Set[str], target_browsers: Dict[str, str]) -> Dict:
-        """Run a full compatibility check and return a scored report."""
         issues = []
         browser_scores = {}
 
@@ -30,25 +28,21 @@ class CompatibilityAnalyzer:
 
         overall_score = self._calculate_overall_score(browser_scores)
 
-        critical_count = sum(1 for issue in issues if issue['severity'] == SEVERITY_CRITICAL)
-        high_count = sum(1 for issue in issues if issue['severity'] == SEVERITY_HIGH)
-        medium_count = sum(1 for issue in issues if issue['severity'] == SEVERITY_MEDIUM)
-        low_count = sum(1 for issue in issues if issue['severity'] == SEVERITY_LOW)
+        severity_counts = Counter(issue['severity'] for issue in issues)
 
         return {
             'overall_score': overall_score,
             'browser_scores': browser_scores,
             'issues': issues,
             'features_analyzed': len(features),
-            'critical_issues': critical_count,
-            'high_issues': high_count,
-            'medium_issues': medium_count,
-            'low_issues': low_count,
+            'critical_issues': severity_counts[SEVERITY_CRITICAL],
+            'high_issues': severity_counts[SEVERITY_HIGH],
+            'medium_issues': severity_counts[SEVERITY_MEDIUM],
+            'low_issues': severity_counts[SEVERITY_LOW],
         }
 
     def _analyze_browser(self, features: Set[str], browser: str,
                         version: str, issues: List[Dict]) -> Dict:
-        """Score one browser and collect any issues into the shared list."""
         supported = 0
         partial = 0
         unsupported = 0
@@ -56,7 +50,7 @@ class CompatibilityAnalyzer:
         for feature_id in features:
             status = self.database.check_support(feature_id, browser, version)
 
-            if status in ['y', 'a']:  # 'a' = almost supported, counts as full
+            if status in ['y', 'a']:  # 'a' = almost; caniuse treats it as full support
                 supported += 1
             elif status in ['x', 'p']:
                 partial += 1
@@ -80,7 +74,6 @@ class CompatibilityAnalyzer:
         }
 
     def _calculate_overall_score(self, browser_scores: Dict[str, Dict]) -> float:
-        """Average of all per-browser scores."""
         if not browser_scores:
             return 0.0
 
@@ -89,7 +82,6 @@ class CompatibilityAnalyzer:
 
     def _calculate_severity(self, support_status: Dict[str, str],
                            total_browsers: int) -> str:
-        """More unsupported browsers = higher severity."""
         unsupported_count = sum(1 for status in support_status.values()
                                if status in ['n', 'u'])
         partial_count = sum(1 for status in support_status.values()
@@ -103,19 +95,8 @@ class CompatibilityAnalyzer:
             return SEVERITY_MEDIUM
         return SEVERITY_LOW
 
-    def _score_to_grade(self, score: float) -> str:
-        return _score_to_grade(score)
-
-    def _get_best_browser(self, browser_scores: Dict[str, Dict]) -> str:
+    def _extreme_browser(self, browser_scores: Dict[str, Dict], fn) -> str:
         if not browser_scores:
             return "None"
-
-        best = max(browser_scores.values(), key=lambda x: x['score'])
-        return f"{best['browser']} ({best['score']:.1f}%)"
-
-    def _get_worst_browser(self, browser_scores: Dict[str, Dict]) -> str:
-        if not browser_scores:
-            return "None"
-
-        worst = min(browser_scores.values(), key=lambda x: x['score'])
-        return f"{worst['browser']} ({worst['score']:.1f}%)"
+        b = fn(browser_scores.values(), key=lambda x: x['score'])
+        return f"{b['browser']} ({b['score']:.1f}%)"

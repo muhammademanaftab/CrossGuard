@@ -1,4 +1,4 @@
-"""AI fix suggestion card for the results view."""
+"""AI fix suggestion card."""
 
 from typing import List
 import customtkinter as ctk
@@ -7,7 +7,6 @@ from ..theme import COLORS, SPACING
 
 
 class AIFixCard(ctk.CTkFrame):
-    """Displays AI-generated fix suggestions for unsupported features."""
 
     def __init__(self, master, suggestions: List, **kwargs):
         super().__init__(master, fg_color="transparent", **kwargs)
@@ -29,7 +28,6 @@ class AIFixCard(ctk.CTkFrame):
         inner = ctk.CTkFrame(card, fg_color="transparent")
         inner.pack(fill="x", padx=SPACING['md'], pady=SPACING['md'])
 
-        # --- Top row: feature name + id badge ---
         top_row = ctk.CTkFrame(inner, fg_color="transparent")
         top_row.pack(fill="x", pady=(0, SPACING['sm']))
 
@@ -48,7 +46,6 @@ class AIFixCard(ctk.CTkFrame):
             corner_radius=4,
         ).pack(side="left", padx=(SPACING['sm'], 0))
 
-        # --- Suggestion text ---
         ctk.CTkLabel(
             inner, text=suggestion.suggestion,
             font=ctk.CTkFont(size=12),
@@ -56,14 +53,12 @@ class AIFixCard(ctk.CTkFrame):
             wraplength=600, justify="left", anchor="w",
         ).pack(fill="x", pady=(0, SPACING['sm']))
 
-        # --- Code example ---
         if suggestion.code_example:
             code_outer = ctk.CTkFrame(
                 inner, fg_color=COLORS['bg_darkest'], corner_radius=6,
             )
             code_outer.pack(fill="x")
 
-            # "Code" label
             code_header = ctk.CTkFrame(code_outer, fg_color="transparent")
             code_header.pack(fill="x", padx=SPACING['sm'], pady=(SPACING['xs'], 0))
 

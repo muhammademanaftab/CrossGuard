@@ -7,7 +7,6 @@ from ..theme import COLORS, SIDEBAR, ICONS, SPACING
 
 
 class SidebarItem(ctk.CTkFrame):
-    """Single nav item with icon, tooltip, and active indicator."""
 
     def __init__(
         self,
@@ -33,7 +32,6 @@ class SidebarItem(ctk.CTkFrame):
         self.pack_propagate(False)
         self.grid_propagate(False)
 
-        # Left accent bar when active
         self.indicator = ctk.CTkFrame(
             self,
             width=3,
@@ -123,7 +121,6 @@ class SidebarItem(ctk.CTkFrame):
 
 
 class Sidebar(ctk.CTkFrame):
-    """VS Code-style sidebar with icon rail and bottom help link."""
 
     def __init__(
         self,
@@ -193,7 +190,6 @@ class Sidebar(ctk.CTkFrame):
             item.pack(fill="x")
             self._items[view_id] = item
 
-        # Push help to the bottom
         spacer = ctk.CTkFrame(self, fg_color="transparent")
         spacer.pack(fill="both", expand=True)
 

@@ -9,7 +9,6 @@ from ..theme import COLORS, SPACING, ICONS, get_file_type_color, enable_smooth_s
 
 
 class FileTableRow(ctk.CTkFrame):
-    """Single row in the file table."""
 
     def __init__(
         self,
@@ -53,8 +52,7 @@ class FileTableRow(ctk.CTkFrame):
             return f"{size_bytes} B"
         elif size_bytes < 1024 * 1024:
             return f"{size_bytes / 1024:.1f} KB"
-        else:
-            return f"{size_bytes / (1024 * 1024):.1f} MB"
+        return f"{size_bytes / (1024 * 1024):.1f} MB"
 
     def _init_ui(self):
         self.grid_columnconfigure(0, weight=0, minsize=40)
@@ -197,7 +195,6 @@ class FileTableRow(ctk.CTkFrame):
 
 
 class FileTableHeader(ctk.CTkFrame):
-    """Sortable column headers for the file table."""
 
     def __init__(
         self,
@@ -281,7 +278,6 @@ class FileTableHeader(ctk.CTkFrame):
         if self.on_sort:
             self.on_sort(column, self._sort_ascending)
 
-        # Rebuild to update sort indicators
         self._init_ui()
 
     def _toggle_select_all(self):
@@ -300,7 +296,6 @@ class FileTableHeader(ctk.CTkFrame):
 
 
 class FileTable(ctk.CTkFrame):
-    """Table widget for displaying and managing uploaded files."""
 
     def __init__(
         self,
@@ -393,8 +388,7 @@ class FileTable(ctk.CTkFrame):
                 return str(path_obj.parent).lower()
             return path_obj.name.lower()
 
-        sorted_files = sorted(self._files, key=get_sort_key, reverse=not self._sort_ascending)
-        return sorted_files
+        return sorted(self._files, key=get_sort_key, reverse=not self._sort_ascending)
 
     def _rebuild_rows(self):
         for widget in self.rows_container.winfo_children():

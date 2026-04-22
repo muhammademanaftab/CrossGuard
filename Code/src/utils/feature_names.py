@@ -382,7 +382,7 @@ def get_feature_name(
     feature_maps: Optional[Dict] = None,
     caniuse_data: Optional[Dict] = None
 ) -> str:
-    """Resolve a feature ID to a readable name. Tries our map, then feature_maps, then Can I Use, then title-cases the ID."""
+    """Tries our static map first, then feature_maps, then Can I Use titles, then falls back to title-casing the ID."""
     if feature_id in FEATURE_NAMES:
         return FEATURE_NAMES[feature_id]
 
@@ -402,7 +402,6 @@ def get_feature_name(
 
 
 def _id_to_title(feature_id: str) -> str:
-    """Turn something like 'css-grid' into 'CSS Grid'."""
     prefixes = {
         'css-': 'CSS ',
         'js-': 'JavaScript ',
@@ -420,13 +419,12 @@ def _id_to_title(feature_id: str) -> str:
 
     result = result.replace('-', ' ')
 
-    # Split camelCase into separate words
     import re
     result = re.sub(r'([a-z])([A-Z])', r'\1 \2', result)
 
     result = result.title()
 
-    # Keep well-known acronyms uppercase
+    # title() lowercases the interior of acronyms like "API" → "Api", so fix them back
     acronyms = ['Api', 'Css', 'Html', 'Js', 'Dom', 'Svg', 'Url', 'Uri', 'Xhr', 'Ajax', 'Json', 'Xml']
     for acronym in acronyms:
         result = result.replace(acronym, acronym.upper())
@@ -435,12 +433,10 @@ def _id_to_title(feature_id: str) -> str:
 
 
 def get_fix_suggestion(feature_id: str) -> Optional[str]:
-    """Return a fix suggestion for the given feature, or None."""
     return FIX_SUGGESTIONS.get(feature_id)
 
 
 def get_severity(support_status: str) -> str:
-    """Map a Can I Use support code to a severity level."""
     if support_status in ('n', 'u'):
         return 'critical'
     elif support_status in ('a', 'p', 'd'):

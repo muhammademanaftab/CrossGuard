@@ -9,7 +9,6 @@ from ..theme import COLORS, SPACING, get_score_color, ANIMATION
 
 
 class CircularProgress(ctk.CTkCanvas):
-    """Canvas-based circular progress ring with ease-out animation."""
 
     def __init__(
         self,
@@ -46,7 +45,6 @@ class CircularProgress(ctk.CTkCanvas):
         x1 = self._size - padding
         y1 = self._size - padding
 
-        # Background track
         self.create_arc(
             x0, y0, x1, y1,
             start=90,
@@ -57,7 +55,6 @@ class CircularProgress(ctk.CTkCanvas):
             tags="background"
         )
 
-        # Filled arc
         if self._progress > 0:
             color = get_score_color(self._progress)
             extent = -(self._progress / 100.0) * 360
@@ -81,7 +78,6 @@ class CircularProgress(ctk.CTkCanvas):
             self._draw()
 
     def _animate_to(self, target: float, duration: int = None):
-        """Smooth ease-out cubic animation to target value."""
         if duration is None:
             duration = ANIMATION['progress']
 
@@ -118,7 +114,6 @@ class CircularProgress(ctk.CTkCanvas):
 
 
 class ScoreCard(ctk.CTkFrame):
-    """Card with circular progress ring, grade letter, and score percentage."""
 
     def __init__(
         self,
@@ -171,7 +166,6 @@ class ScoreCard(ctk.CTkFrame):
         )
         self.progress_widget.place(relx=0.5, rely=0.5, anchor="center")
 
-        # Grade letter sits in the center of the ring
         self.grade_label = ctk.CTkLabel(
             progress_container,
             text=self._grade,
@@ -197,7 +191,6 @@ class ScoreCard(ctk.CTkFrame):
         self.label_widget.pack(pady=(0, SPACING['xl']))
 
     def _init_compact_ui(self):
-        """Horizontal layout with smaller ring."""
         container = ctk.CTkFrame(self, fg_color="transparent")
         container.pack(fill="x", padx=SPACING['md'], pady=SPACING['md'])
 
@@ -253,7 +246,6 @@ class ScoreCard(ctk.CTkFrame):
         grade: Optional[str] = None,
         animate: bool = True
     ):
-        """Update score and optionally the grade letter."""
         self._score = score
         self.score_label.configure(text=f"{score:.1f}%")
 

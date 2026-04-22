@@ -7,7 +7,6 @@ from ..theme import COLORS, SPACING, LOGO_SIMPLE
 
 
 class HeaderBar(ctk.CTkFrame):
-    """App header with branding on the left and action buttons on the right."""
 
     def __init__(
         self,
@@ -80,7 +79,6 @@ class HeaderBar(ctk.CTkFrame):
 
     def set_subtitle(self, subtitle: Optional[str]):
         self._subtitle = subtitle
-        # Would need UI rebuild to properly show/hide subtitle
 
     def add_action_button(
         self,

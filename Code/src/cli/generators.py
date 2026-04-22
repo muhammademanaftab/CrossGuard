@@ -70,7 +70,6 @@ TEMPLATES = {
 
 
 def generate_ci_config(provider: str) -> str:
-    """Return a YAML config snippet for github or gitlab."""
     if provider not in ('github', 'gitlab'):
         raise ValueError(f"Unsupported CI provider: {provider}. "
                          f"Supported: github, gitlab")
@@ -78,7 +77,6 @@ def generate_ci_config(provider: str) -> str:
 
 
 def generate_hooks_config(hook_type: str) -> str:
-    """Return a YAML hooks snippet (only pre-commit for now)."""
     if hook_type != 'pre-commit':
         raise ValueError(f"Unsupported hook type: {hook_type}. "
                          f"Supported: pre-commit")

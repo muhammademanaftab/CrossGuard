@@ -27,8 +27,8 @@ class AIFixService:
                  model: str = None, max_features: int = 10, priority: str = "unsupported_first"):
         self._api_key = api_key or ""
         self._provider = provider
-        self._model = model  # None = use default for provider
-        self._max_features = max_features  # 0 = no limit (send all)
+        self._model = model  # None means fall back to DEFAULT_MODELS for the provider
+        self._max_features = max_features  # 0 = no limit
         self._priority = priority  # "unsupported_first" or "all_equal"
 
     def is_available(self) -> bool:
@@ -48,7 +48,6 @@ class AIFixService:
         if not all_features:
             return []
 
-        # Prioritize and limit features
         if self._priority == "unsupported_first":
             ordered = sorted(unsupported_features) + sorted(partial_features - unsupported_features)
         else:
@@ -56,7 +55,6 @@ class AIFixService:
 
         limited = ordered[:self._max_features] if self._max_features > 0 else ordered
 
-        # Build context for the LLM
         feature_list = []
         for fid in limited:
             name = get_feature_name(fid)
@@ -157,10 +155,9 @@ Example response format:
     def _parse_response(
         self, raw: str, features: List[Dict]
     ) -> List[AIFixSuggestion]:
-        # Extract JSON from response (LLM sometimes wraps in markdown)
         text = raw.strip()
         if text.startswith("```"):
-            # Strip markdown code fences
+            # LLMs often wrap the response in markdown code fences
             lines = text.split("\n")
             lines = [l for l in lines if not l.strip().startswith("```")]
             text = "\n".join(lines)
@@ -169,7 +166,6 @@ Example response format:
         if not isinstance(items, list):
             return []
 
-        # Build lookup for browser info
         feature_map = {f["id"]: f for f in features}
 
         suggestions = []

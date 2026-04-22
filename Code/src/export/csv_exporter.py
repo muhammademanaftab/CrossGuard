@@ -13,7 +13,6 @@ def export_csv(
     report: Dict,
     output_path: Optional[str] = None,
 ) -> Union[str, None]:
-    """Write CSV to file, or return CSV string if no path given."""
     if not report:
         raise ValueError("No analysis report to export")
 
@@ -23,7 +22,6 @@ def export_csv(
 
     file_path = report.get('file_path', 'unknown')
 
-    # Build AI suggestion lookup
     ai_map = {}
     for s in report.get('ai_suggestions') or []:
         ai_map[s['feature_id']] = s

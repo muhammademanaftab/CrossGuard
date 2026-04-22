@@ -1,4 +1,4 @@
-"""Browser compatibility card with stacked bar chart and version range details."""
+"""Browser compatibility card."""
 
 from typing import List, Optional, Dict
 
@@ -8,7 +8,6 @@ from ..theme import COLORS, SPACING, ICONS, get_score_color, ANIMATION
 
 
 class StackedBarWidget(ctk.CTkCanvas):
-    """Horizontal stacked bar showing supported/partial/unsupported breakdown."""
 
     def __init__(
         self,
@@ -122,7 +121,6 @@ class StackedBarWidget(ctk.CTkCanvas):
                 self._animation_id = None
                 return
 
-            # Ease out cubic
             t = step / steps
             self._animation_progress = 1 - pow(1 - t, 3)
             self._draw()
@@ -133,7 +131,6 @@ class StackedBarWidget(ctk.CTkCanvas):
 
 
 class VersionRangeWidget(ctk.CTkFrame):
-    """Shows Can I Use-style version support ranges for a single feature."""
 
     STATUS_COLORS = {
         'y': COLORS['success'],
@@ -203,7 +200,6 @@ class VersionRangeWidget(ctk.CTkFrame):
 
 
 class BrowserCard(ctk.CTkFrame):
-    """Compact browser compatibility card with collapsible version range details."""
 
     def __init__(
         self,
@@ -280,7 +276,6 @@ class BrowserCard(ctk.CTkFrame):
         stats_frame = ctk.CTkFrame(self, fg_color="transparent")
         stats_frame.pack(fill="x", padx=SPACING['md'], pady=(0, SPACING['md']))
 
-        # Colored dots with counts
         stats_data = [
             (COLORS['success'], f"{self.supported}"),
             (COLORS['warning'], f"{self.partial}"),
@@ -318,7 +313,6 @@ class BrowserCard(ctk.CTkFrame):
             )
             self.toggle_btn.pack(side="right")
 
-        # Hidden by default
         self.details_frame = ctk.CTkFrame(
             self,
             fg_color="transparent",
@@ -434,7 +428,6 @@ class BrowserCard(ctk.CTkFrame):
         self._vr_placeholder.pack(anchor="w")
 
     def _load_version_ranges(self):
-        """Fetch and render version range data for each detected feature."""
         if self._version_ranges_loaded:
             return
 
@@ -480,7 +473,7 @@ class BrowserCard(ctk.CTkFrame):
                         self.vr_content,
                         feature_id=feature_id,
                         feature_name=feature_name[:20] + "..." if len(feature_name) > 20 else feature_name,
-                        ranges=ranges[-4:],  # most recent 4 ranges
+                        ranges=ranges[-4:],
                     )
                     widget.pack(fill="x", pady=1)
 

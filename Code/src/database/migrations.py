@@ -115,7 +115,7 @@ CREATE TABLE IF NOT EXISTS schema_version (
 
 
 def create_tables(conn: Optional[sqlite3.Connection] = None):
-    """Create all tables and run any pending migrations."""
+    """Creates tables and applies any pending schema migrations"""
     if conn is None:
         from .connection import get_connection
         conn = get_connection()
@@ -198,7 +198,7 @@ def _migrate_to_v2(conn: sqlite3.Connection):
 
 
 def drop_tables(conn: Optional[sqlite3.Connection] = None):
-    """Drop all tables. Destroys all data!"""
+    """Drops all tables — destroys all data"""
     if conn is None:
         from .connection import get_connection
         conn = get_connection()
@@ -207,7 +207,7 @@ def drop_tables(conn: Optional[sqlite3.Connection] = None):
 
     conn.execute("PRAGMA foreign_keys = OFF")
 
-    # reverse dependency order
+    # drop in reverse dependency order so FK constraints don't fire
     conn.execute("DROP TABLE IF EXISTS analysis_tags")
     conn.execute("DROP TABLE IF EXISTS tags")
     conn.execute("DROP TABLE IF EXISTS bookmarks")
@@ -223,7 +223,7 @@ def drop_tables(conn: Optional[sqlite3.Connection] = None):
 
 
 def reset_database(conn: Optional[sqlite3.Connection] = None):
-    """Drop and recreate everything. Destroys all data!"""
+    """Drops and recreates everything — destroys all data"""
     if conn is None:
         from .connection import get_connection
         conn = get_connection()
@@ -235,7 +235,7 @@ def reset_database(conn: Optional[sqlite3.Connection] = None):
 
 
 def get_schema_version(conn: Optional[sqlite3.Connection] = None) -> int:
-    """Current schema version, or 0 if not initialized."""
+    """Returns 0 if the schema_version table doesn't exist yet"""
     if conn is None:
         from .connection import get_connection
         conn = get_connection()
@@ -249,7 +249,7 @@ def get_schema_version(conn: Optional[sqlite3.Connection] = None) -> int:
 
 
 def get_table_info(conn: Optional[sqlite3.Connection] = None) -> dict:
-    """Row counts per table. Returns -1 for tables that don't exist."""
+    """Row counts per table; returns -1 for tables that don't exist yet"""
     if conn is None:
         from .connection import get_connection
         conn = get_connection()

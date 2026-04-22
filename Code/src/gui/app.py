@@ -13,7 +13,6 @@ ICON_ICO_PATH = Path(__file__).parent / "assets" / "icon.ico"
 
 
 class CTkDnD(ctk.CTk, TkinterDnD.DnDWrapper):
-    """CTk root window with drag-and-drop mixed in."""
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -21,7 +20,6 @@ class CTkDnD(ctk.CTk, TkinterDnD.DnDWrapper):
 
 
 def main():
-    """Launch the Cross Guard application."""
     configure_ctk_theme()
 
     app = CTkDnD()
@@ -35,7 +33,7 @@ def main():
             icon_image = Image.open(ICON_PATH)
             icon_photo = ImageTk.PhotoImage(icon_image)
             app.iconphoto(True, icon_photo)
-            app._icon_photo = icon_photo  # prevent GC from killing the photo
+            app._icon_photo = icon_photo  # Tk will GC the photo object if we don't hold a reference
 
             # macOS dock icon -- needs PyObjC
             try:
@@ -51,7 +49,7 @@ def main():
             except Exception:
                 pass
 
-        # .ico for Windows
+        # Windows icon
         if ICON_ICO_PATH.exists():
             try:
                 app.iconbitmap(str(ICON_ICO_PATH))

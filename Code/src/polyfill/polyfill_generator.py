@@ -1,4 +1,4 @@
-"""Generates a ready-to-use polyfills.js file for the user's project."""
+"""Polyfills.js file generator."""
 
 from pathlib import Path
 from typing import Dict, List
@@ -9,7 +9,6 @@ def generate_polyfills_file(
     recommendations: List[Dict],
     output_path: str
 ) -> str:
-    """Write a polyfills.js file with all necessary imports. Returns the output path."""
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     lines = [
@@ -59,7 +58,6 @@ def generate_polyfills_file(
 def generate_polyfills_content(
     recommendations: List[Dict]
 ) -> str:
-    """Same as generate_polyfills_file but returns the content string instead of writing."""
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
     lines = [

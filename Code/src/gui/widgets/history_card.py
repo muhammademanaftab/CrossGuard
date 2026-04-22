@@ -7,7 +7,6 @@ from ..theme import COLORS, SPACING, ICONS, get_score_color, get_file_type_color
 
 
 class HistoryCard(ctk.CTkFrame):
-    """Clickable card for a single analysis history entry."""
 
     def __init__(
         self,
@@ -107,14 +106,12 @@ class HistoryCard(ctk.CTkFrame):
         )
         details_label.pack(anchor="w")
 
-        # Show up to 3 tags
         if self._tags:
             tags_frame = ctk.CTkFrame(info_frame, fg_color="transparent")
             tags_frame.pack(anchor="w", pady=(SPACING['xs'], 0))
 
             for tag in self._tags[:3]:
                 tag_color = tag.get('color', '#58a6ff')
-                # Darken the color for the background
                 try:
                     hex_c = tag_color.lstrip('#')
                     r, g, b = int(hex_c[0:2], 16), int(hex_c[2:4], 16), int(hex_c[4:6], 16)
@@ -209,7 +206,6 @@ class HistoryCard(ctk.CTkFrame):
             return str(date_str)[:16]
 
     def _bind_events(self):
-        """Wire up click and hover on the card and its children."""
         self.bind("<Button-1>", self._handle_click)
         self.bind("<Enter>", self._on_enter)
         self.bind("<Leave>", self._on_leave)
@@ -266,7 +262,6 @@ class HistoryCard(ctk.CTkFrame):
             )
 
     def set_bookmarked(self, is_bookmarked: bool):
-        """Update state without triggering the callback."""
         self._is_bookmarked = is_bookmarked
         self._update_bookmark_appearance()
 
@@ -276,7 +271,6 @@ class HistoryCard(ctk.CTkFrame):
 
 
 class EmptyHistoryCard(ctk.CTkFrame):
-    """Placeholder shown when there's no analysis history yet."""
 
     def __init__(self, master, **kwargs):
         super().__init__(

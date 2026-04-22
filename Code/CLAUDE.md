@@ -48,8 +48,7 @@ Input File (HTML/CSS/JS)
 - **JS Parsing**: tree-sitter 0.21.3 + tree-sitter-languages 1.10.2 (AST-based), with regex fallback
 - **Data Source**: Can I Use database (local JSON copy, updatable)
 - **Database**: SQLite (analysis history, bookmarks, tags, settings)
-- **ML**: scikit-learn (optional risk prediction module)
-- **Distribution**: pyproject.toml with optional deps (gui, cli, ml)
+- **Distribution**: pyproject.toml with optional deps (gui, cli)
 
 ## Key Features
 
@@ -59,21 +58,20 @@ Input File (HTML/CSS/JS)
 3. **Custom Rules**: User-defined feature detection rules via JSON or GUI editor
 4. **Polyfill Suggestions**: Recommends polyfills for unsupported features
 5. **AI Fix Suggestions**: Optional LLM-powered code fix suggestions (OpenAI/Anthropic) for unsupported features
-6. **ML Risk Prediction**: Optional machine learning module that predicts compatibility risk levels
 
 ### GUI
-7. **Drag-and-Drop Upload**: Upload files via drag-and-drop or file picker
-8. **Results Dashboard**: Score cards, browser cards, issue cards with collapsible details
-9. **Analysis History**: Browse, bookmark, and tag past analyses
-10. **Statistics Panel**: Aggregated insights (score trends, top problematic features)
-11. **Custom Rules Manager**: Visual editor for adding/editing detection rules
+6. **Drag-and-Drop Upload**: Upload files via drag-and-drop or file picker
+7. **Results Dashboard**: Score cards, browser cards, issue cards with collapsible details
+8. **Analysis History**: Browse, bookmark, and tag past analyses
+9. **Statistics Panel**: Aggregated insights (score trends, top problematic features)
+10. **Custom Rules Manager**: Visual editor for adding/editing detection rules
 
 ### CLI & CI/CD
-12. **6 Export Formats**: JSON, PDF, SARIF 2.1.0, JUnit XML, Checkstyle XML, CSV
-13. **Quality Gates**: `--fail-on-score`, `--fail-on-errors`, `--fail-on-warnings` (exit 1 on failure)
-14. **CI Config Generation**: Auto-generate GitHub Actions, GitLab CI, or pre-commit hook configs
-15. **Stdin Support**: Pipe file content via `--stdin --stdin-filename`
-16. **Config File**: `crossguard.config.json` or `package.json` "crossguard" key
+11. **6 Export Formats**: JSON, PDF, SARIF 2.1.0, JUnit XML, Checkstyle XML, CSV
+12. **Quality Gates**: `--fail-on-score`, `--fail-on-errors`, `--fail-on-warnings` (exit 1 on failure)
+13. **CI Config Generation**: Auto-generate GitHub Actions, GitLab CI, or pre-commit hook configs
+14. **Stdin Support**: Pipe file content via `--stdin --stdin-filename`
+15. **Config File**: `crossguard.config.json` or `package.json` "crossguard" key
 
 ## How to Run
 
@@ -188,7 +186,6 @@ src/
 │       ├── history_card.py     # Analysis history item
 │       ├── issue_card.py
 │       ├── messagebox.py
-│       ├── ml_risk_card.py
 │       ├── polyfill_card.py    # Polyfill recommendations
 │       ├── quick_stats.py
 │       ├── rules_manager.py    # Custom rules UI
@@ -198,13 +195,6 @@ src/
 │       ├── status_bar.py
 │       ├── tag_widget.py
 │       └── version_range_card.py
-├── ml/                     # Machine learning (risk prediction)
-│   ├── feature_extractor.py
-│   ├── model_evaluator.py
-│   ├── model_trainer.py
-│   ├── risk_labels.py
-│   ├── risk_predictor.py
-│   └── visualizations.py
 ├── polyfill/               # Polyfill recommendations
 │   ├── polyfill_generator.py   # Generate polyfill suggestions
 │   ├── polyfill_loader.py  # Load polyfill mapping data
@@ -221,9 +211,7 @@ src/
 │   └── custom_rules_loader.py  # Singleton loader for custom rules
 └── utils/                  # Utilities
     ├── config.py           # Logging configuration and constants
-    ├── exceptions.py       # Custom exception hierarchy (8 exception types)
-    ├── feature_names.py    # Human-readable feature names
-    └── types.py            # Type definitions
+    └── feature_names.py    # Human-readable feature names
 
 data/
 └── caniuse/                # Can I Use database (local copy, updatable via CLI)
@@ -313,7 +301,6 @@ run_gui.py                  # GUI entry point
 | **Lazy Loading** | `AnalyzerService._get_analyzer()` | Backend loaded only on first use for fast startup |
 | **Layered Config** | `src/config/config_manager.py` | Precedence: CLI flags > config file > package.json > defaults |
 | **Data Contracts** | `src/api/schemas.py` | Typed dataclasses define all frontend-backend communication |
-| **Custom Exception Hierarchy** | `src/utils/exceptions.py` | `CrossGuardError` base with typed subclasses per module |
 
 ### Layer Separation
 

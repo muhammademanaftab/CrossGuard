@@ -1,4 +1,4 @@
-"""Thin GUI shell around src.export -- just file dialogs and error toasts."""
+"""File dialogs and error toasts around src.export."""
 
 import traceback
 from tkinter import filedialog
@@ -8,13 +8,11 @@ from .widgets.messagebox import show_info, show_warning, show_error
 
 
 class ExportManager:
-    """Wraps export with file dialogs and error handling."""
 
     def __init__(self, parent):
         self.parent = parent
 
     def export_json(self, report: Dict) -> None:
-        """Show save dialog and export report as JSON."""
         if not report:
             show_warning(self.parent, "No Report", "No analysis report to export.")
             return
@@ -44,7 +42,6 @@ class ExportManager:
                 )
 
     def export_pdf(self, report: Dict) -> None:
-        """Show save dialog and export report as PDF."""
         if not report:
             show_warning(self.parent, "No Report", "No analysis report to export.")
             return

@@ -1,4 +1,4 @@
-"""Native CustomTkinter chart widgets for data visualization."""
+"""Native CTk chart widgets."""
 
 from typing import Dict
 import customtkinter as ctk
@@ -7,10 +7,7 @@ from ..theme import COLORS, SPACING
 from .browser_card import StackedBarWidget
 
 
-# --- Browser Compatibility Bars (replaces radar + bar chart) ---
-
 class BrowserRadarChart(ctk.CTkFrame):
-    """Browser compatibility overview with stacked bars per browser."""
 
     def __init__(self, master, **kwargs):
         super().__init__(master, fg_color=COLORS['bg_medium'], corner_radius=8, **kwargs)
@@ -27,7 +24,6 @@ class BrowserRadarChart(ctk.CTkFrame):
         self._draw()
 
     def _draw(self, **kwargs):
-        # Remove old rows (keep the title label)
         if not hasattr(self, '_data'):
             return
         for w in self.winfo_children()[1:]:
@@ -45,7 +41,6 @@ class BrowserRadarChart(ctk.CTkFrame):
             row = ctk.CTkFrame(self, fg_color="transparent")
             row.pack(fill="x", padx=SPACING['md'], pady=(0, SPACING['sm']))
 
-            # Browser name
             ctk.CTkLabel(
                 row, text=name.title(),
                 font=ctk.CTkFont(size=11, weight="bold"),
@@ -53,12 +48,10 @@ class BrowserRadarChart(ctk.CTkFrame):
                 width=70, anchor="w",
             ).pack(side="left")
 
-            # Stacked bar
             bar = StackedBarWidget(row, height=16, bg_color=COLORS['bg_medium'])
             bar.pack(side="left", fill="x", expand=True, padx=SPACING['sm'])
             bar.set_values(supported, partial, unsupported, animate=False)
 
-            # Percentage
             if pct >= 80:
                 pct_color = COLORS['success']
             elif pct >= 50:
@@ -73,7 +66,6 @@ class BrowserRadarChart(ctk.CTkFrame):
                 width=45, anchor="e",
             ).pack(side="right")
 
-        # Legend row
         legend = ctk.CTkFrame(self, fg_color="transparent")
         legend.pack(fill="x", padx=SPACING['md'], pady=(SPACING['xs'], SPACING['md']))
 
@@ -91,10 +83,7 @@ class BrowserRadarChart(ctk.CTkFrame):
             w.destroy()
 
 
-# --- Feature Distribution (replaces donut chart) ---
-
 class FeatureDistributionChart(ctk.CTkFrame):
-    """Feature type breakdown with progress bars for HTML/CSS/JS."""
 
     def __init__(self, master, **kwargs):
         super().__init__(master, fg_color=COLORS['bg_medium'], corner_radius=8, **kwargs)
@@ -118,7 +107,6 @@ class FeatureDistributionChart(ctk.CTkFrame):
         for w in self._content.winfo_children():
             w.destroy()
 
-        # Total
         ctk.CTkLabel(
             self._content,
             text=f"{total} features detected",
@@ -139,7 +127,6 @@ class FeatureDistributionChart(ctk.CTkFrame):
             row = ctk.CTkFrame(self._content, fg_color="transparent")
             row.pack(fill="x", pady=(0, SPACING['xs']))
 
-            # Label row: dot + name + count
             label_row = ctk.CTkFrame(row, fg_color="transparent")
             label_row.pack(fill="x")
 
@@ -159,7 +146,6 @@ class FeatureDistributionChart(ctk.CTkFrame):
                 text_color=COLORS['text_muted'],
             ).pack(side="right")
 
-            # Progress bar
             bar_bg = ctk.CTkFrame(row, fg_color=COLORS['bg_light'], height=6, corner_radius=3)
             bar_bg.pack(fill="x", pady=(2, 0))
             bar_bg.pack_propagate(False)
@@ -174,10 +160,7 @@ class FeatureDistributionChart(ctk.CTkFrame):
             w.destroy()
 
 
-# --- Compatibility Bar Chart (replaces matplotlib stacked bars) ---
-
 class CompatibilityBarChart(ctk.CTkFrame):
-    """Support summary with stat blocks for supported/partial/unsupported totals."""
 
     def __init__(self, master, **kwargs):
         super().__init__(master, fg_color=COLORS['bg_medium'], corner_radius=8, **kwargs)
@@ -198,7 +181,6 @@ class CompatibilityBarChart(ctk.CTkFrame):
         if not browsers_data:
             return
 
-        # Aggregate across all browsers
         total_supported = 0
         total_partial = 0
         total_unsupported = 0
@@ -210,7 +192,6 @@ class CompatibilityBarChart(ctk.CTkFrame):
 
         grand_total = total_supported + total_partial + total_unsupported
 
-        # Three stat blocks in a row
         stats_row = ctk.CTkFrame(self._content, fg_color="transparent")
         stats_row.pack(fill="x")
         stats_row.grid_columnconfigure(0, weight=1)
@@ -254,8 +235,7 @@ class CompatibilityBarChart(ctk.CTkFrame):
             w.destroy()
 
 
-# --- Keep ScoreGaugeChart and SupportStatusChart as stubs for backward compatibility ---
-
+# Stubs kept for backward compatibility
 class ScoreGaugeChart(ctk.CTkFrame):
     def __init__(self, master, **kwargs):
         super().__init__(master, fg_color="transparent", **kwargs)

@@ -49,7 +49,6 @@ class HTMLParser:
         self._attribute_values = {**HTML_ATTRIBUTE_VALUES, **HTML_MEDIA_TYPE_VALUES, **HTML_CSP_ATTRIBUTES, **custom_attr_values}
 
     def parse_file(self, filepath: str) -> Set[str]:
-        """Parse an HTML file and return detected Can I Use feature IDs."""
         filepath = Path(filepath)
 
         if not filepath.exists():
@@ -67,7 +66,6 @@ class HTMLParser:
             raise ValueError(f"Error parsing HTML file: {e}")
 
     def parse_string(self, html_content: str) -> Set[str]:
-        """Parse an HTML string and return detected feature IDs."""
         self.features_found = set()
         self.elements_found = []
         self.attributes_found = []
@@ -363,7 +361,6 @@ class HTMLParser:
                 self.features_found.add('xhtml')
 
     def _find_unrecognized_patterns(self, soup: BeautifulSoup):
-        """Find HTML elements/attributes that don't match any known rule."""
         # Universally-supported elements we can safely ignore
         basic_elements = {
             'html', 'head', 'body', 'title', 'meta', 'link', 'script', 'style',

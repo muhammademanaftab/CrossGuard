@@ -25,7 +25,6 @@ class CSSParser:
         self._all_features = {**ALL_CSS_FEATURES, **get_custom_css_rules()}
 
     def parse_file(self, filepath: str) -> Set[str]:
-        """Parse a CSS file and return detected feature IDs."""
         filepath = Path(filepath)
 
         if not filepath.exists():
@@ -43,7 +42,6 @@ class CSSParser:
             raise ValueError(f"Error parsing CSS file: {e}")
 
     def parse_string(self, css_content: str) -> Set[str]:
-        """Parse CSS string using tinycss2 AST, then regex-match for features."""
         self.features_found = set()
         self.feature_details = []
         self.unrecognized_patterns = set()
@@ -70,7 +68,6 @@ class CSSParser:
         List[Tuple[str, str]],
         List[str]
     ]:
-        """Walk tinycss2 AST and collect declarations, @-rules, and selectors."""
         declarations = []
         at_rules_list = []
         selectors = []
@@ -123,7 +120,6 @@ class CSSParser:
         self, content, selector_text,
         declarations, at_rules_list, selectors
     ):
-        """Extract declarations and nested rules from a block's content tokens."""
         block_id = self._block_counter
         self._block_counter += 1
         parsed = tinycss2.parse_blocks_contents(content)
@@ -155,11 +151,7 @@ class CSSParser:
                     selectors.extend(sub_s)
 
     def _build_matchable_text(self, declarations, at_rules, selectors) -> str:
-        """Reconstruct text from AST components for regex feature matching.
-
-        Preserves block boundaries so patterns like flexbox-gap that use
-        [^}]* to match within a single block continue to work.
-        """
+        # Block boundaries are preserved so [^}]* patterns (e.g. flexbox-gap) can't match across rules.
         parts = []
 
         # Group by block_id to keep separate blocks separate
@@ -192,7 +184,6 @@ class CSSParser:
         return '\n'.join(parts)
 
     def _detect_features(self, css_content: str):
-        """Match regex patterns from feature maps against the reconstructed text."""
         for feature_id, feature_info in self._all_features.items():
             patterns = feature_info.get('patterns', [])
             matched_properties = []
@@ -222,7 +213,6 @@ class CSSParser:
                 })
 
     def _find_unrecognized_patterns_structured(self, declarations, at_rules):
-        """Find CSS properties and @-rules not covered by any feature rule."""
         # Universally-supported properties we don't need to flag
         basic_properties = {
             'color', 'background', 'background-color', 'background-image',
@@ -403,7 +393,6 @@ class CSSParser:
         }
 
     def validate_css(self, css_content: str) -> bool:
-        """Check if content looks like valid CSS."""
         if not css_content or not css_content.strip():
             return False
 

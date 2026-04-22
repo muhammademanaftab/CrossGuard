@@ -8,17 +8,12 @@ def export_junit(
     report: Dict,
     output_path: Optional[str] = None,
 ) -> Union[str, None]:
-    """Write JUnit XML to file, or return XML string if no path given.
-
-    Structure: one testsuite per browser, one testcase per feature.
-    Unsupported = failure, partial = failure with type="partial".
-    """
+    """One testsuite per browser, one testcase per feature — both unsupported and partial map to failures."""
     if not report:
         raise ValueError("No analysis report to export")
 
     testsuites = ET.Element('testsuites', name='CrossGuard')
 
-    # Build AI suggestion lookup
     ai_map = {}
     for s in report.get('ai_suggestions') or []:
         ai_map[s['feature_id']] = s

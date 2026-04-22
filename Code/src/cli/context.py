@@ -1,5 +1,3 @@
-"""CLI context — shared state passed to all subcommands."""
-
 import os
 import sys
 from dataclasses import dataclass
@@ -7,7 +5,6 @@ from dataclasses import dataclass
 
 @dataclass
 class CliContext:
-    """Shared state for all CLI commands (verbosity, color, timing)."""
     verbosity: int = 1
     color: bool = True
     timing: bool = False

@@ -48,7 +48,6 @@ TYPE_COLORS = {
 
 
 def export_pdf(report: Dict, output_path: str) -> str:
-    """Write report as a styled PDF."""
     if not report:
         raise ValueError("No analysis report to export")
     _create_pdf(report, output_path)
@@ -89,7 +88,6 @@ def _section_header(text):
 
 
 def _executive_verdict(score, grade, critical, browsers):
-    """Generate a 1-2 sentence summary verdict."""
     if score >= 90:
         return f"Your code has excellent cross-browser compatibility (Grade {grade}). All tested features are well-supported."
     if score >= 75:
@@ -106,7 +104,6 @@ def _executive_verdict(score, grade, critical, browsers):
 
 
 def _build_issue_list(browsers):
-    """Build a sorted, enriched list of issues from browser data."""
     from src.utils.feature_names import get_feature_name, get_fix_suggestion
 
     unsupported_map = {}
@@ -226,7 +223,6 @@ def _build_executive_summary(report):
 
     verdict = _executive_verdict(score, grade, critical, browsers)
 
-    # Find worst browser
     worst_line = ""
     if browsers:
         worst_name, worst_data = min(browsers.items(), key=lambda x: x[1].get('compatibility_percentage', 100))
@@ -239,7 +235,6 @@ def _build_executive_summary(report):
     bullet_style = ParagraphStyle('ESL', fontName='Helvetica', fontSize=9, textColor=_hex('text_dark'),
                                    leading=13, leftIndent=12, bulletIndent=4)
 
-    # Type breakdown
     type_parts = []
     if html_c: type_parts.append(f"{html_c} HTML")
     if css_c: type_parts.append(f"{css_c} CSS")
@@ -261,7 +256,6 @@ def _build_executive_summary(report):
     for b in bullets:
         rows.append([Paragraph(f"\u2022 {b}", bullet_style)])
 
-    # Risk badge
     risk_colors = {'low': COLORS['success'], 'medium': COLORS['warning'],
                    'high': COLORS['danger'], 'critical': COLORS['danger'], 'none': COLORS['success']}
     rc = risk_colors.get(risk.lower(), COLORS['neutral'])
@@ -300,7 +294,6 @@ def _build_score_section(scores, summary):
     critical = summary.get('critical_issues', 0) or 0
     sc = _score_color(score)
 
-    # Donut chart
     d = Drawing(170, 140)
     d.add(Wedge(85, 78, 52, 0, 360, fillColor=_hex('bg_light'), strokeColor=None))
     if score > 0:
@@ -311,7 +304,6 @@ def _build_score_section(scores, summary):
     d.add(String(85, 70, f"Grade {grade}", fontSize=11, fontName='Helvetica-Bold',
                   fillColor=_hex('text_dark'), textAnchor='middle'))
 
-    # Grade explanation
     grade_key = grade if grade in GRADE_INFO else grade[0] if grade and grade[0] in GRADE_INFO else 'F'
     range_str, desc = GRADE_INFO.get(grade_key, ('', ''))
     grade_text = f"<b>Grade {grade}</b> ({range_str}): {desc}" if range_str else f"<b>Grade {grade}</b>"
@@ -328,7 +320,6 @@ def _build_score_section(scores, summary):
         ('RIGHTPADDING', (0, 0), (-1, -1), 8),
     ]))
 
-    # Stat boxes
     def _stat(label, value, vc=None):
         vc = vc or _hex('text_dark')
         t = Table([
@@ -361,7 +352,6 @@ def _build_score_section(scores, summary):
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
     ]))
 
-    # Right column
     right_col = Table([
         [grade_card],
         [Spacer(1, SP_HALF)],
@@ -389,7 +379,6 @@ def _build_analysis_scope(report):
     total = summary.get('total_features', 0) or 0
     now = datetime.now().strftime('%Y-%m-%d %H:%M')
 
-    # Determine file type
     html_c = summary.get('html_features', 0) or 0
     css_c = summary.get('css_features', 0) or 0
     js_c = summary.get('js_features', 0) or 0
@@ -478,7 +467,6 @@ def _build_browser_section(browsers):
         drawing.add(String(bar_x + max_w + 8, y + 3, f"{pct:.1f}%",
                             fontSize=8, fontName='Helvetica-Bold', fillColor=_score_color(pct)))
 
-    # Legend
     lx = bar_x
     for label, color in [("Supported", COLORS['success']), ("Partial", COLORS['warning']),
                           ("Unsupported", COLORS['danger'])]:
@@ -487,7 +475,6 @@ def _build_browser_section(browsers):
                             fillColor=colors.HexColor(COLORS['neutral'])))
         lx += 75
 
-    # Table
     header = ['Browser', 'Version', 'Compat %', 'Supported', 'Partial', 'Unsupported']
     data = [header]
     for name, details in browsers.items():
@@ -541,9 +528,7 @@ def _build_feature_distribution(summary, baseline):
 
     elements = []
 
-    # Feature distribution
     if len(active) <= 1 and total > 0:
-        # Single type -- text only
         tname = active[0][0] if active else "unknown"
         elements.append(Paragraph(
             f"All {total} detected features are <b>{tname}</b> features.",
@@ -568,7 +553,6 @@ def _build_feature_distribution(summary, baseline):
             lx += 70
         elements.append(d)
 
-    # Baseline
     if baseline:
         widely = baseline.get('widely_available', 0) or 0
         newly = baseline.get('newly_available', 0) or 0
@@ -602,7 +586,6 @@ def _build_feature_distribution(summary, baseline):
     if not elements:
         return []
 
-    # Wrap all content in a bordered card
     from reportlab.platypus import KeepTogether
     card_rows = [[e] for e in elements]
     card = Table(card_rows, colWidths=[7.3 * inch])
@@ -795,7 +778,6 @@ def _build_recommendations(recommendations, report):
     body = ParagraphStyle('RB', fontName='Helvetica', fontSize=9, textColor=_hex('text_dark'), leading=13)
     num = ParagraphStyle('RN', fontName='Helvetica-Bold', fontSize=9, textColor=_hex('primary'))
 
-    # Enhance with feature-specific fixes
     recs = list(recommendations)
     issues = _build_issue_list(report.get('browsers', {}))
     for issue in issues[:5]:

@@ -38,7 +38,6 @@ class CustomRulesLoader:
         self._load_rules()
 
     def _load_rules(self):
-        """Load custom rules from JSON file."""
         if not CUSTOM_RULES_PATH.exists():
             logger.debug("No custom_rules.json found, using built-in rules only")
             return
@@ -106,7 +105,6 @@ class CustomRulesLoader:
         return self._html_rules.copy()
 
     def reload(self):
-        """Reload rules from disk."""
         self._css_rules = {}
         self._js_rules = {}
         self._html_rules = {
@@ -145,7 +143,6 @@ def reload_custom_rules():
 
 
 def is_user_rule(category: str, feature_id: str, subtype: str = None) -> bool:
-    """Check if a rule came from custom_rules.json (not built-in)."""
     loader = get_custom_rules_loader()
 
     if category == 'css':
@@ -155,16 +152,14 @@ def is_user_rule(category: str, feature_id: str, subtype: str = None) -> bool:
     elif category == 'html':
         if subtype:
             return feature_id in loader._html_rules.get(subtype, {})
-        else:
-            for subcat in ['elements', 'attributes', 'input_types', 'attribute_values']:
-                if feature_id in loader._html_rules.get(subcat, {}):
-                    return True
-            return False
+        for subcat in ['elements', 'attributes', 'input_types', 'attribute_values']:
+            if feature_id in loader._html_rules.get(subcat, {}):
+                return True
+        return False
     return False
 
 
 def save_custom_rules(rules_data: dict) -> bool:
-    """Save custom rules to JSON file and reload."""
     try:
         with open(CUSTOM_RULES_PATH, 'w', encoding='utf-8') as f:
             json.dump(rules_data, f, indent=2)
@@ -177,7 +172,6 @@ def save_custom_rules(rules_data: dict) -> bool:
 
 
 def load_raw_custom_rules() -> dict:
-    """Load the raw JSON content of custom_rules.json."""
     try:
         if CUSTOM_RULES_PATH.exists():
             with open(CUSTOM_RULES_PATH, 'r', encoding='utf-8') as f:

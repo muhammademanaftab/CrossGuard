@@ -1,5 +1,3 @@
-"""Terminal output formatters (table, JSON, summary)."""
-
 import json
 from typing import Any, Dict, List
 
@@ -7,7 +5,6 @@ import click
 
 
 def _grade_color(grade: str, color: bool) -> str:
-    """Colorize a letter grade when color is on."""
     if not color:
         return grade
     mapping = {
@@ -21,7 +18,6 @@ def _grade_color(grade: str, color: bool) -> str:
 
 
 def _score_color(score: float, color: bool) -> str:
-    """Green/cyan/yellow/red based on score threshold."""
     text = f"{score:.1f}%"
     if not color:
         return text
@@ -35,7 +31,6 @@ def _score_color(score: float, color: bool) -> str:
 
 
 def _status_text(status: str, color: bool) -> str:
-    """Colorize supported/partial/unsupported labels."""
     if not color:
         return status
     mapping = {
@@ -48,7 +43,6 @@ def _status_text(status: str, color: bool) -> str:
 
 
 def _risk_color(risk: str, color: bool) -> str:
-    """Colorize risk level, bold for critical."""
     if not color:
         return risk
     mapping = {
@@ -61,7 +55,6 @@ def _risk_color(risk: str, color: bool) -> str:
 
 
 def _baseline_color(text: str, status: str, color: bool) -> str:
-    """Colorize Baseline status labels."""
     if not color:
         return text
     mapping = {'high': 'green', 'low': 'cyan', 'limited': 'yellow'}
@@ -69,7 +62,6 @@ def _baseline_color(text: str, status: str, color: bool) -> str:
 
 
 def format_result(result: Dict, fmt: str = 'table', *, color: bool = False) -> str:
-    """Route to the right formatter (table/json/summary)."""
     if fmt == 'json':
         return format_json(result)
     elif fmt == 'summary':
@@ -78,12 +70,10 @@ def format_result(result: Dict, fmt: str = 'table', *, color: bool = False) -> s
 
 
 def format_json(result: Dict) -> str:
-    """Pretty-print as JSON."""
     return json.dumps(result, indent=2, ensure_ascii=False)
 
 
 def format_summary(result: Dict, *, color: bool = False) -> str:
-    """One-line grade + score + feature count."""
     if not result.get('success'):
         return f"Error: {result.get('error', 'Unknown error')}"
 
@@ -103,7 +93,6 @@ def format_summary(result: Dict, *, color: bool = False) -> str:
 
 
 def format_table(result: Dict, *, color: bool = False) -> str:
-    """Full report with scores, browser breakdown, and recommendations."""
     if not result.get('success'):
         return f"Error: {result.get('error', 'Unknown error')}"
 
@@ -195,7 +184,6 @@ def format_table(result: Dict, *, color: bool = False) -> str:
 
 
 def format_history(analyses: List[Dict], *, color: bool = False) -> str:
-    """History list with ID, date, file, grade, score."""
     if not analyses:
         return "No analysis history found."
 
@@ -218,7 +206,6 @@ def format_history(analyses: List[Dict], *, color: bool = False) -> str:
 
 
 def format_stats(stats: Dict, *, color: bool = False) -> str:
-    """Aggregated stats: totals, averages, top issues."""
     lines: List[str] = []
     lines.append("Cross Guard Statistics")
     lines.append("=" * 40)

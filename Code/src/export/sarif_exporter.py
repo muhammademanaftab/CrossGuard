@@ -105,12 +105,10 @@ def _single_file_results(report: Dict):
 
 
 def _to_rule_id(feature_name: str) -> str:
-    """Turn a feature name into a valid SARIF rule ID (lowercase, dashes)."""
     return feature_name.lower().replace(' ', '-').replace('/', '-')
 
 
 def _ensure_rule(rules: Dict[str, Dict], rule_id: str, feature_name: str):
-    """Register a SARIF rule if we haven't seen this feature yet."""
     if rule_id not in rules:
         rules[rule_id] = {
             "id": rule_id,

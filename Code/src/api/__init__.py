@@ -1,4 +1,4 @@
-"""Public API for Cross Guard -- frontends import from here."""
+"""Frontends import exclusively from here — nothing else in src/ is public."""
 
 from .service import AnalyzerService, get_analyzer_service
 from .schemas import (

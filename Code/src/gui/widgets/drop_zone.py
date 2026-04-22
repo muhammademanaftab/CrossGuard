@@ -11,7 +11,6 @@ from ..theme import COLORS, SPACING, ICONS
 
 
 class DropZone(ctk.CTkFrame):
-    """Drop files here or click to browse. Validates extensions before accepting."""
 
     def __init__(
         self,
@@ -81,7 +80,6 @@ class DropZone(ctk.CTkFrame):
             )
             self.secondary_label.pack(pady=(SPACING['xs'], 0))
 
-        # Make the whole area clickable, including nested children
         self.bind("<Button-1>", self._on_click)
         for child in self.winfo_children():
             child.bind("<Button-1>", self._on_click)

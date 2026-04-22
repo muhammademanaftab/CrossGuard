@@ -39,7 +39,7 @@ class TestAnalyze:
 class TestHistory:
 
     @pytest.mark.blackbox
-    @patch('src.database.repositories.save_analysis_from_result')
+    @patch('src.api.service.save_analysis_from_result')
     def test_save_success(self, mock_save, service, sample_success_result):
         mock_save.return_value = 42
         aid = service.save_analysis_to_history(sample_success_result, file_name='test.css')
@@ -53,7 +53,7 @@ class TestHistory:
 class TestSettings:
 
     @pytest.mark.blackbox
-    @patch('src.database.repositories.SettingsRepository')
+    @patch('src.api.service.SettingsRepository')
     def test_set_setting(self, MockRepo, service):
         assert service.set_setting('theme', 'dark') is True
         MockRepo.return_value.set.assert_called_once_with('theme', 'dark')
@@ -62,7 +62,7 @@ class TestSettings:
 class TestBookmarks:
 
     @pytest.mark.blackbox
-    @patch('src.database.repositories.BookmarksRepository')
+    @patch('src.api.service.BookmarksRepository')
     def test_toggle_bookmark_adds_when_not_bookmarked(self, MockRepo, service):
         repo_instance = MockRepo.return_value
         repo_instance.is_bookmarked.return_value = False

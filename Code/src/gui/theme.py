@@ -1,88 +1,76 @@
 """Dark theme config -- charcoal + cyan, GitHub-inspired."""
 
 COLORS = {
-    # Backgrounds (darkest to lightest)
-    'bg_darkest': '#0d1117',    # GitHub-style darkest (window bg)
-    'bg_dark': '#161b22',       # Main background
-    'bg_medium': '#21262d',     # Cards/panels
-    'bg_light': '#30363d',      # Borders/hover states
-    'bg_elevated': '#1c2128',   # Elevated surfaces (modals, dropdowns)
+    'bg_darkest': '#0d1117',
+    'bg_dark': '#161b22',
+    'bg_medium': '#21262d',
+    'bg_light': '#30363d',
+    'bg_elevated': '#1c2128',
 
-    # Accent (cyan/teal)
-    'accent': '#58a6ff',        # Primary cyan accent
-    'accent_bright': '#79c0ff', # Hover/highlight state
-    'accent_dim': '#388bfd',    # Pressed/active state
-    'accent_muted': '#1a3a5c',   # Muted accent (no alpha)
-    'accent_glow': '#152d47',    # Glow effect (no alpha)
+    'accent': '#58a6ff',
+    'accent_bright': '#79c0ff',
+    'accent_dim': '#388bfd',
+    'accent_muted': '#1a3a5c',
+    'accent_glow': '#152d47',
 
-    # Legacy aliases
     'primary': '#58a6ff',
     'primary_dark': '#388bfd',
     'primary_light': '#79c0ff',
 
-    # Text
-    'text_primary': '#f0f6fc',   # Bright white (main text)
-    'text_secondary': '#c9d1d9', # Light gray (secondary text)
-    'text_muted': '#8b949e',     # Gray (dimmed text)
-    'text_disabled': '#6e7681',  # Dark gray (disabled)
-    'text_link': '#58a6ff',      # Link color (cyan)
+    'text_primary': '#f0f6fc',
+    'text_secondary': '#c9d1d9',
+    'text_muted': '#8b949e',
+    'text_disabled': '#6e7681',
+    'text_link': '#58a6ff',
 
-    # Status
-    'success': '#3fb950',        # Green - supported/success
-    'success_dark': '#238636',   # Dark green (hover)
-    'success_muted': '#1a3d24',   # Muted green (no alpha)
+    'success': '#3fb950',
+    'success_dark': '#238636',
+    'success_muted': '#1a3d24',
 
-    'warning': '#d29922',        # Amber - partial/warning
-    'warning_dark': '#9e6a03',   # Dark amber (hover)
-    'warning_muted': '#3d3314',   # Muted amber (no alpha)
+    'warning': '#d29922',
+    'warning_dark': '#9e6a03',
+    'warning_muted': '#3d3314',
 
-    'danger': '#f85149',         # Red - unsupported/error
-    'danger_dark': '#da3633',    # Dark red (hover)
-    'danger_muted': '#4a1e1c',    # Muted red (no alpha)
+    'danger': '#f85149',
+    'danger_dark': '#da3633',
+    'danger_muted': '#4a1e1c',
 
-    'info': '#58a6ff',           # Cyan - info
-    'info_dark': '#388bfd',      # Dark cyan
+    'info': '#58a6ff',
+    'info_dark': '#388bfd',
 
-    # Borders
-    'border': '#30363d',         # Default border (subtle)
-    'border_light': '#3d444d',   # Light border
-    'border_focus': '#58a6ff',   # Focus border (accent)
-    'border_muted': '#21262d',   # Very subtle border
+    'border': '#30363d',
+    'border_light': '#3d444d',
+    'border_focus': '#58a6ff',
+    'border_muted': '#21262d',
 
-    # Interactive
-    'input_bg': '#0d1117',       # Input background (darkest)
-    'hover_bg': '#30363d',       # Hover state background
-    'selected_bg': '#388bfd',    # Selected item background
-    'active_bg': '#1f6feb',      # Active/pressed background
+    'input_bg': '#0d1117',
+    'hover_bg': '#30363d',
+    'selected_bg': '#388bfd',
+    'active_bg': '#1f6feb',
 
-    # Drop zone
     'drop_zone_normal': '#161b22',
     'drop_zone_hover': '#1c2128',
     'drop_zone_active': '#0d419d',
     'drop_zone_border': '#30363d',
     'drop_zone_border_active': '#58a6ff',
 
-    # File type badges
-    'html_color': '#e34c26',     # HTML orange
-    'css_color': '#264de4',      # CSS blue
-    'js_color': '#f7df1e',       # JS yellow
+    'html_color': '#e34c26',
+    'css_color': '#264de4',
+    'js_color': '#f7df1e',
 
-    # Sidebar
     'sidebar_bg': '#0d1117',
-    'sidebar_active': '#1a3a5c',       # Active item background (blended color, no alpha)
+    'sidebar_active': '#1a3a5c',
     'sidebar_hover': '#21262d',
     'sidebar_indicator': '#58a6ff',
 
-    # Table
     'table_header_bg': '#161b22',
     'table_row_even': '#0d1117',
     'table_row_odd': '#161b22',
     'table_row_hover': '#21262d',
-    'table_row_selected': '#1a3552',  # Selected row (no alpha)
+    'table_row_selected': '#1a3552',
 
-    # Card surfaces
-    'card_bg': '#21262d',            # Card background (same as bg_medium)
-    'surface': '#30363d',            # Surface elements inside cards (same as bg_light)
+    'card_bg': '#21262d',
+    'surface': '#30363d',
 }
 
 FONTS = {
@@ -140,44 +128,38 @@ SIDEBAR = {
 }
 
 ICONS = {
-    # Navigation
-    'files': '\u2630',           # ☰ Trigram - hamburger menu (3 lines)
-    'project': '\u25A3',         # ▣ Square with inner square (project/folder)
-    'results': '\u25CF',         # ● Black circle (simple, distinct)
-    'settings': '\u2699',        # ⚙ Gear
-    'help': '?',                 # Simple question mark
+    'files': '\u2630',
+    'project': '\u25A3',
+    'results': '\u25CF',
+    'settings': '\u2699',
+    'help': '?',
 
-    # File types
-    'html': '\u25B6',            # ▶ Play triangle
-    'css': '\u25C6',             # ◆ Black diamond
-    'js': '\u2605',              # ★ Black star
-    'file': '\u25A0',            # ■ Black square
+    'html': '\u25B6',
+    'css': '\u25C6',
+    'js': '\u2605',
+    'file': '\u25A0',
 
-    # Actions
-    'add': '\u002B',             # Plus
-    'remove': '\u2212',          # Minus
-    'delete': '\u2715',          # Multiplication X
-    'check': '\u2713',           # Check mark
-    'close': '\u2715',           # X
-    'refresh': '\u21BB',         # Clockwise arrow
-    'export': '\u2913',          # Downwards arrow
-    'upload': '\u2912',          # Upwards arrow
+    'add': '\u002B',
+    'remove': '\u2212',
+    'delete': '\u2715',
+    'check': '\u2713',
+    'close': '\u2715',
+    'refresh': '\u21BB',
+    'export': '\u2913',
+    'upload': '\u2912',
 
-    # Status
-    'success': '\u2713',         # Check mark
-    'warning': '\u26A0',         # Warning sign
-    'error': '\u2715',           # X
-    'info': '\u2139',            # Information source
+    'success': '\u2713',
+    'warning': '\u26A0',
+    'error': '\u2715',
+    'info': '\u2139',
 
-    # Arrows
-    'arrow_left': '\u2190',      # Left arrow
-    'arrow_right': '\u2192',     # Right arrow
-    'arrow_up': '\u2191',        # Up arrow
-    'arrow_down': '\u2193',      # Down arrow
-    'chevron_right': '\u203A',   # Single right guillemet
-    'chevron_down': '\u2304',    # Down arrowhead
+    'arrow_left': '\u2190',
+    'arrow_right': '\u2192',
+    'arrow_up': '\u2191',
+    'arrow_down': '\u2193',
+    'chevron_right': '\u203A',
+    'chevron_down': '\u2304',
 
-    # Misc
     'folder': '\U0001F4C1',
     'folder_open': '\U0001F4C2',
     'search': '\u2315',
@@ -188,14 +170,12 @@ ICONS = {
     'tree': '\u251C',
     'project': '\U0001F4C1',
 
-    # History / Stats
     'history': '\u25D4',
     'statistics': '\u2261',
     'clock': '\u25F4',
     'trash': '\u2716',
     'clear': '\u2718',
 
-    # Bookmarks / Tags
     'bookmark': '\u2606',
     'bookmark_filled': '\u2605',
     'tag': '\u2302',
@@ -214,26 +194,23 @@ LOGO_ASCII = """
 """
 
 def get_color(name: str, fallback: str = '#ffffff') -> str:
-    """Look up a color by name, with fallback."""
     return COLORS.get(name, fallback)
 
 
 def get_score_color(score: float) -> str:
-    """Map a 0-100 score to a green/yellow/red color."""
     if score >= 90:
         return COLORS['success']
     elif score >= 75:
-        return '#56d364'  # Light green
+        return '#56d364'
     elif score >= 60:
         return COLORS['warning']
     elif score >= 40:
-        return '#f0883e'  # Orange
+        return '#f0883e'
     else:
         return COLORS['danger']
 
 
 def get_grade_color(grade: str) -> str:
-    """Map a letter grade (A-F) to a color."""
     grade_colors = {
         'A': COLORS['success'],
         'B': '#56d364',
@@ -245,7 +222,6 @@ def get_grade_color(grade: str) -> str:
 
 
 def get_file_type_color(file_type: str) -> str:
-    """Get the brand color for a file type (HTML orange, CSS blue, JS yellow)."""
     type_colors = {
         'html': COLORS['html_color'],
         'htm': COLORS['html_color'],
@@ -275,7 +251,6 @@ def enable_smooth_scrolling(scrollable_frame, scroll_speed: float = 1.0):
     try:
         canvas = scrollable_frame._parent_canvas
     except AttributeError:
-        # Fallback: dig through children for the canvas
         for child in scrollable_frame.winfo_children():
             if child.winfo_class() == 'Canvas':
                 canvas = child
@@ -294,14 +269,13 @@ def enable_smooth_scrolling(scrollable_frame, scroll_speed: float = 1.0):
         canvas.yview_scroll(int(delta), "units")
 
     def _on_linux_scroll(event):
-        """Linux uses Button-4/5 instead of MouseWheel."""
+        # Linux uses Button-4/5 instead of MouseWheel
         if event.num == 4:
             canvas.yview_scroll(-1, "units")
         elif event.num == 5:
             canvas.yview_scroll(1, "units")
 
     def _bind_to_widget(widget):
-        """Recursively bind scroll events to a widget tree."""
         if platform.system() == 'Linux':
             widget.bind('<Button-4>', _on_linux_scroll, add='+')
             widget.bind('<Button-5>', _on_linux_scroll, add='+')
@@ -316,12 +290,10 @@ def enable_smooth_scrolling(scrollable_frame, scroll_speed: float = 1.0):
 
     _bind_to_widget(scrollable_frame)
 
-    # Canvas itself also needs bindings
     if platform.system() == 'Linux':
         canvas.bind('<Button-4>', _on_linux_scroll, add='+')
         canvas.bind('<Button-5>', _on_linux_scroll, add='+')
     else:
         canvas.bind('<MouseWheel>', _on_mousewheel, add='+')
 
-    # Re-bind when new children appear
     scrollable_frame.bind('<Configure>', _bind_all_children, add='+')

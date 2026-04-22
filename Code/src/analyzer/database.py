@@ -11,7 +11,6 @@ logger = get_logger('analyzer.database')
 
 
 class CanIUseDatabase:
-    """Loads caniuse JSON data into memory and provides fast lookups."""
 
     def __init__(self):
         self.data = None
@@ -20,7 +19,6 @@ class CanIUseDatabase:
         self.loaded = False
         
     def load(self) -> bool:
-        """Load data.json and individual feature files, then build the search index."""
         try:
             logger.info(f"Loading Can I Use database from {CANIUSE_DB_PATH}...")
             with open(CANIUSE_DB_PATH, 'r', encoding='utf-8') as f:
@@ -44,7 +42,6 @@ class CanIUseDatabase:
             return False
     
     def _load_feature_files(self):
-        """Load per-feature JSON files from the features-json directory."""
         features_path = Path(CANIUSE_FEATURES_PATH)
 
         if not features_path.exists():
@@ -58,13 +55,12 @@ class CanIUseDatabase:
             try:
                 with open(feature_file, 'r', encoding='utf-8') as f:
                     feature_data = json.load(f)
-                    feature_id = feature_file.stem  # filename without .json
+                    feature_id = feature_file.stem
                     self.features[feature_id] = feature_data
             except Exception as e:
                 logger.warning(f"Could not load {feature_file.name}: {e}")
     
     def _build_index(self):
-        """Build a keyword index mapping words/IDs to feature IDs for fast search."""
         logger.debug("Building search index...")
 
         for feature_id, feature_data in self.features.items():
@@ -98,13 +94,12 @@ class CanIUseDatabase:
             self.load()
 
     def get_feature(self, feature_id: str) -> Optional[Dict]:
-        """Return raw feature data dict, or None if not found."""
         self._ensure_loaded()
         
         return self.features.get(feature_id)
     
     def check_support(self, feature_id: str, browser: str, version: str) -> str:
-        """Return support status char: y/a/n/p/u/x/d."""
+        """Returns a single status char: y/a/n/p/u/x/d"""
         feature = self.get_feature(feature_id)
         
         if not feature or 'stats' not in feature:
@@ -120,18 +115,17 @@ class CanIUseDatabase:
         if version in browser_stats:
             return self._parse_support_status(browser_stats[version])
 
-        # Fall back to closest available version
+        # exact version not in DB — fall back to nearest
         return self._find_closest_version_support(browser_stats, version)
     
     def _parse_support_status(self, status: str) -> str:
-        """Extract the primary status char from compound strings like 'a x #2'."""
+        """Strips note flags like 'a x #2' down to the primary char"""
         if not status:
             return 'u'
         
         return status.strip()[0]
     
     def _find_closest_version_support(self, browser_stats: Dict, target_version: str) -> str:
-        """When exact version isn't in the DB, find the nearest one."""
         try:
             target_num = float(target_version)
         except ValueError:
@@ -142,7 +136,7 @@ class CanIUseDatabase:
         
         for version in browser_stats.keys():
             try:
-                version_num = float(version.split('-')[0])  # Handle ranges like "15.2-15.3"
+                version_num = float(version.split('-')[0])  # ranges like "15.2-15.3"
                 diff = abs(version_num - target_num)
                 
                 if diff < min_diff:
@@ -162,7 +156,6 @@ class CanIUseDatabase:
         return list(self.features.keys())
     
     def get_feature_info(self, feature_id: str) -> Optional[Dict]:
-        """Return a cleaned-up dict with title, description, spec URL, etc."""
         feature = self.get_feature(feature_id)
         
         if not feature:
@@ -181,11 +174,10 @@ class CanIUseDatabase:
     
     @lru_cache(maxsize=1000)
     def get_browser_versions(self, browser: str) -> List[str]:
-        """All known versions for a browser (pulled from the first feature's stats)."""
         if not self.features:
             return []
-        
-        # All features share the same browser version list
+
+        # all features share the same browser version list in the caniuse schema
         first_feature = next(iter(self.features.values()))
         
         if 'stats' not in first_feature or browser not in first_feature['stats']:
@@ -198,7 +190,6 @@ _database_instance = None
 
 
 def get_database() -> CanIUseDatabase:
-    """Return the singleton DB instance, loading it on first call."""
     global _database_instance
     
     if _database_instance is None:
@@ -209,7 +200,7 @@ def get_database() -> CanIUseDatabase:
 
 
 def reload_database() -> CanIUseDatabase:
-    """Discard the cached instance and reload from disk (e.g. after an update)."""
+    """Discards the cached instance and reloads from disk — call after an update"""
     global _database_instance
     
     logger.info("Reloading database from disk...")

@@ -1,4 +1,4 @@
-"""Polyfill recommendation card -- clean, compact, no emojis."""
+"""Polyfill recommendation card."""
 
 from typing import List, Callable, Optional
 import re
@@ -8,7 +8,6 @@ from ..theme import COLORS, SPACING, FONTS, ICONS
 
 
 class PolyfillCard(ctk.CTkFrame):
-    """Clean polyfill recommendations list."""
 
     def __init__(
         self,
@@ -31,7 +30,6 @@ class PolyfillCard(ctk.CTkFrame):
         self._init_ui()
 
     def _init_ui(self):
-        # NPM packages
         for rec in self._npm:
             row = ctk.CTkFrame(self, fg_color=COLORS['bg_dark'], corner_radius=4, height=32)
             row.pack(fill="x", pady=(0, 1))
@@ -57,7 +55,6 @@ class PolyfillCard(ctk.CTkFrame):
                         font=ctk.CTkFont(size=9), text_color=COLORS['text_disabled'],
                     ).pack(side="right", padx=SPACING['sm'])
 
-        # CSS fallbacks
         for rec in self._css:
             row = ctk.CTkFrame(self, fg_color=COLORS['bg_dark'], corner_radius=4, height=32)
             row.pack(fill="x", pady=(0, 1))
@@ -76,7 +73,6 @@ class PolyfillCard(ctk.CTkFrame):
                     text_color=COLORS['text_muted'],
                 ).pack(side="left", padx=(SPACING['xs'], 0))
 
-        # Install command (single compact row at bottom if available)
         if self._install_command:
             cmd_row = ctk.CTkFrame(self, fg_color=COLORS['bg_darkest'], corner_radius=4)
             cmd_row.pack(fill="x", pady=(SPACING['sm'], 0))
@@ -95,7 +91,6 @@ class PolyfillCard(ctk.CTkFrame):
             copy_btn.configure(command=lambda b=copy_btn: self._copy(b))
             copy_btn.pack(side="right", padx=SPACING['xs'], pady=SPACING['xs'])
 
-        # Generate polyfills.js button
         if self._on_generate_file and self._npm:
             gen_row = ctk.CTkFrame(self, fg_color="transparent")
             gen_row.pack(fill="x", pady=(SPACING['xs'], 0))

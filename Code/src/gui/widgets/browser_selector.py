@@ -34,7 +34,6 @@ DEFAULT_SELECTED = {'chrome', 'firefox', 'safari', 'edge'}
 
 
 def get_available_browsers() -> Dict[str, Dict]:
-    """Load all browsers from the Can I Use database with their versions."""
     try:
         from src.utils.config import CANIUSE_DB_PATH
 
@@ -77,7 +76,6 @@ def get_available_browsers() -> Dict[str, Dict]:
 
 
 class BrowserSelector(ctk.CTkFrame):
-    """Browser selector with checkboxes and version dropdowns."""
 
     def __init__(
         self,
@@ -108,7 +106,6 @@ class BrowserSelector(ctk.CTkFrame):
         self._init_ui()
 
     def _init_ui(self):
-        # --- Header ---
         header_frame = ctk.CTkFrame(self, fg_color="transparent")
         header_frame.pack(fill="x", padx=SPACING['md'], pady=SPACING['md'])
 
@@ -131,7 +128,6 @@ class BrowserSelector(ctk.CTkFrame):
         )
         self._toggle_btn.pack(side="right")
 
-        # --- Quick select buttons ---
         quick_frame = ctk.CTkFrame(self, fg_color="transparent")
         quick_frame.pack(fill="x", padx=SPACING['md'], pady=(0, SPACING['sm']))
 
@@ -144,12 +140,10 @@ class BrowserSelector(ctk.CTkFrame):
                 width=90 if text != "Clear" else 60, height=26, command=cmd,
             ).pack(side="left", padx=(0, SPACING['xs']))
 
-        # --- Compact view (badges with versions) ---
         self._compact_frame = ctk.CTkFrame(self, fg_color="transparent")
         self._compact_frame.pack(fill="x", padx=SPACING['md'], pady=(0, SPACING['md']))
         self._update_compact_view()
 
-        # --- Expanded browser list (hidden initially) ---
         self._expanded_frame = ctk.CTkFrame(self, fg_color="transparent")
         self._create_browser_list()
 
@@ -174,7 +168,6 @@ class BrowserSelector(ctk.CTkFrame):
             version = self._selected_versions.get(browser_id, browser.get('latest_version', ''))
             latest = browser.get('latest_version', '')
 
-            # Show version in badge, mark if not latest
             version_text = f"v{version}" if version != latest else "latest"
             badge_color = COLORS['bg_light'] if version == latest else COLORS['info']
 
@@ -218,7 +211,6 @@ class BrowserSelector(ctk.CTkFrame):
             list_frame.pack(fill="x", padx=SPACING['md'], pady=(0, SPACING['sm']))
 
             for browser_id, browser in sorted(browsers, key=lambda x: x[1]['name']):
-                # One row per browser: [checkbox] [name] ... [version dropdown]
                 row = ctk.CTkFrame(list_frame, fg_color=COLORS['bg_dark'], corner_radius=4, height=36)
                 row.pack(fill="x", pady=1)
                 row.pack_propagate(False)
@@ -241,7 +233,6 @@ class BrowserSelector(ctk.CTkFrame):
 
                 self._checkboxes[browser_id] = checkbox
 
-                # Version dropdown on the right
                 all_versions = browser.get('all_versions', [])
                 latest = browser.get('latest_version', 'latest')
 
@@ -273,7 +264,6 @@ class BrowserSelector(ctk.CTkFrame):
                 self._version_menus[browser_id] = version_menu
 
     def _on_version_change(self, browser_id: str, value: str):
-        """Handle version dropdown change."""
         browser = self._browsers.get(browser_id, {})
         latest = browser.get('latest_version', 'latest')
 
@@ -383,7 +373,6 @@ class BrowserSelector(ctk.CTkFrame):
         self._notify_change()
 
     def get_selected_browsers(self) -> Dict[str, str]:
-        """Returns {browser_id: version} for all selected browsers."""
         result = {}
         for browser_id in self._selected:
             browser = self._browsers.get(browser_id, {})

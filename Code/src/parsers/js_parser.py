@@ -45,7 +45,6 @@ class JavaScriptParser:
         self._all_features = {**ALL_JS_FEATURES, **get_custom_js_rules()}
 
     def parse_file(self, filepath: str) -> Set[str]:
-        """Parse a JS file and return detected feature IDs."""
         filepath = Path(filepath)
 
         if not filepath.exists():
@@ -63,16 +62,12 @@ class JavaScriptParser:
             raise ValueError(f"Error parsing JavaScript file: {e}")
 
     def parse_string(self, js_content: str) -> Set[str]:
-        """Parse JS string. Uses tree-sitter AST when available, regex otherwise."""
         self.features_found = set()
         self.feature_details = []
         self.unrecognized_patterns = set()
         self._matched_apis = set()
 
-        # Must run before string removal -- these ARE string literals
         self._detect_directives(js_content)
-
-        # Event names live inside string args, so detect before stripping
         self._detect_event_listeners(js_content)
 
         tree = self._parse_with_tree_sitter(js_content)
@@ -102,7 +97,7 @@ class JavaScriptParser:
         return self.features_found
 
     def _detect_directives(self, js_content: str):
-        """Detect "use strict" and "use asm" before string removal."""
+        # Must run before string removal -- these ARE string literals
         directives = [
             ('use-strict', [r'["\']use strict["\']'], 'ECMAScript 5 Strict Mode'),
             ('asmjs', [r'["\']use asm["\']'], 'asm.js'),
@@ -123,11 +118,7 @@ class JavaScriptParser:
                     continue
 
     def _detect_event_listeners(self, js_content: str):
-        """Detect event listeners before string removal.
-
-        Event names like 'unhandledrejection' are inside string args and
-        would be lost after stripping string content.
-        """
+        # Event names live inside string args and would be lost after stripping string content.
         event_features = {
             'unhandledrejection': ('unhandledrejection', 'unhandledrejection event'),
             'rejectionhandled': ('unhandledrejection', 'rejectionhandled event'),
@@ -169,11 +160,7 @@ class JavaScriptParser:
                     })
 
     def _remove_comments_and_strings(self, js_content: str) -> str:
-        """Strip comments and string content to prevent false positives.
-
-        Keeps quote delimiters and template literal structure (backticks + ${x})
-        so template-literal detection still works.
-        """
+        # Keeps quote delimiters and backtick/${x} structure so template-literal detection still works.
         result = []
         i = 0
         length = len(js_content)
@@ -255,7 +242,6 @@ class JavaScriptParser:
     # --- Tree-sitter AST methods ---
 
     def _parse_with_tree_sitter(self, js_content: str):
-        """Try to parse with tree-sitter. Returns tree or None."""
         if not _TREE_SITTER_AVAILABLE or _JS_PARSER is None:
             return None
         try:
@@ -266,7 +252,6 @@ class JavaScriptParser:
             return None
 
     def _add_ast_feature(self, feature_id: str, api_name: str, description: str):
-        """Record a feature found via AST, merging into existing details."""
         self.features_found.add(feature_id)
         for detail in self.feature_details:
             if detail['feature'] == feature_id:
@@ -280,7 +265,6 @@ class JavaScriptParser:
         })
 
     def _detect_ast_syntax_features(self, root_node, source_bytes: bytes):
-        """Tier 1: detect features by AST node type (zero false positives)."""
         stack = [root_node]
         while stack:
             node = stack.pop()
@@ -344,7 +328,6 @@ class JavaScriptParser:
                 stack.append(child)
 
     def _detect_ast_api_features(self, root_node, source_bytes: bytes):
-        """Tier 2: detect API features from constructors, calls, members, identifiers."""
         stack = [root_node]
         while stack:
             node = stack.pop()
@@ -408,12 +391,7 @@ class JavaScriptParser:
                 stack.append(child)
 
     def _build_matchable_text_from_ast(self, root_node, source_bytes: bytes) -> str:
-        """Build regex-matchable text from AST with comments/strings stripped.
-
-        Comments become spaces (preserving line structure).
-        Strings keep delimiters, content removed.
-        Template literals keep backticks and ${x} markers.
-        """
+        # Comments → spaces (preserving line structure), strings → empty delimiters, template literals → backticks with ${x} markers.
         source_text = source_bytes.decode('utf-8', errors='replace')
         length = len(source_text)
 
@@ -467,7 +445,6 @@ class JavaScriptParser:
         return ''.join(parts)
 
     def _process_template_string(self, node, source_text: str, replacements: list):
-        """Keep backtick delimiters and ${x} markers, strip literal text."""
         start = node.start_byte
         end = node.end_byte
         text = source_text[start:end]
@@ -505,7 +482,6 @@ class JavaScriptParser:
         replacements.append((start, end, ''.join(result)))
 
     def _detect_features(self, js_content: str):
-        """Match regex patterns from feature maps against cleaned text."""
         for feature_id, feature_info in self._all_features.items():
             patterns = feature_info.get('patterns', [])
             matched_apis = []
@@ -539,7 +515,6 @@ class JavaScriptParser:
                             self._matched_apis.add(part)
 
     def _extract_api_name(self, pattern: str) -> str:
-        """Try to extract a human-readable API name from a regex pattern."""
         cleaned = pattern.replace('\\b', '').replace('\\s*', '').replace('\\s+', ' ')
         cleaned = cleaned.replace('\\(', '(').replace('\\)', ')')
         cleaned = cleaned.replace('\\.', '.').replace('\\[', '[').replace('\\]', ']')
@@ -558,7 +533,6 @@ class JavaScriptParser:
         return ''
 
     def _find_unrecognized_patterns(self, js_content: str):
-        """Find JS APIs/methods not matched by any feature rule."""
         # Universally supported -- no need to flag
         basic_patterns = {
             'function', 'return', 'if', 'else', 'for', 'while', 'do',
@@ -953,7 +927,6 @@ class JavaScriptParser:
         }
 
     def validate_javascript(self, js_content: str) -> bool:
-        """Quick check if content looks like JavaScript."""
         js_patterns = [
             r'\bfunction\b',
             r'\bconst\b',

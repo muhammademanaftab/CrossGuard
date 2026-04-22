@@ -8,6 +8,7 @@ import pytest
 from unittest.mock import MagicMock
 
 from src.analyzer.compatibility import CompatibilityAnalyzer
+from src.analyzer.scorer import _score_to_grade
 from src.analyzer.version_ranges import (
     get_version_ranges,
     _get_status_text,
@@ -46,7 +47,7 @@ class TestAnalyzerGrade:
         (100, 'A+'),
     ])
     def test_grade_boundary(self, analyzer, score, expected):
-        assert analyzer._score_to_grade(score) == expected
+        assert _score_to_grade(score) == expected
 
 
 # ============================================================================

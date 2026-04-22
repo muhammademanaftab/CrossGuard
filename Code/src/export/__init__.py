@@ -1,5 +1,3 @@
-"""Report export in multiple formats (JSON, PDF, SARIF, JUnit, Checkstyle, CSV)."""
-
 from .json_exporter import export_json
 from .pdf_exporter import export_pdf
 from .sarif_exporter import export_sarif

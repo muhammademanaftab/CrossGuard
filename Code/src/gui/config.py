@@ -1,4 +1,4 @@
-"""GUI-level config. Theme stuff lives in theme.py; this is app settings + re-exports."""
+"""App-level settings. Theme constants live in theme.py -- this re-exports them for old import paths."""
 
 from pathlib import Path
 
@@ -12,7 +12,6 @@ LOGO_PATH = GUI_DIR / "logo.png"
 EXPORT_FORMATS = ['PDF', 'JSON']
 DEFAULT_EXPORT_FORMAT = 'PDF'
 
-# Re-exports so old imports from config still work
 
 from .theme import (
     COLORS,

@@ -4,7 +4,7 @@ from typing import Dict
 
 
 def _score_to_grade(score: float) -> str:
-    """Map a 0-100 score to a 13-level letter grade (A+ through F)."""
+    """13-level scale: A+ down to F, matching academic grade boundaries"""
     if score >= 97:
         return 'A+'
     elif score >= 93:
@@ -34,20 +34,18 @@ def _score_to_grade(score: float) -> str:
 
 
 class CompatibilityScorer:
-    """Multiple ways to score browser compatibility results."""
 
     DEFAULT_WEIGHTS = {
         'chrome': 1.0,
         'firefox': 1.0,
         'safari': 1.0,
         'edge': 1.0,
-        'ie': 0.5,  # legacy browser, matters less
+        'ie': 0.5,  # lower weight — legacy, mostly dead
         'opera': 0.7
     }
 
-    # How much each caniuse status is "worth" out of 100
     STATUS_SCORES = {
-        'y': 100, 'a': 100,  # 'a' = almost supported, treated as full
+        'y': 100, 'a': 100,  # 'a' = almost; treated as full to match caniuse UX
         'x': 70,   # needs vendor prefix
         'p': 50,   # partial
         'd': 30,   # disabled by default
@@ -58,18 +56,13 @@ class CompatibilityScorer:
         self.browser_weights = browser_weights or self.DEFAULT_WEIGHTS.copy()
 
     def calculate_simple_score(self, support_status: Dict[str, str]) -> float:
-        """Plain average across all browsers."""
         if not support_status:
             return 0.0
 
-        total_score = 0
-        for status in support_status.values():
-            total_score += self.STATUS_SCORES.get(status, 0)
-
+        total_score = sum(self.STATUS_SCORES.get(s, 0) for s in support_status.values())
         return total_score / len(support_status)
 
     def calculate_weighted_score(self, support_status: Dict[str, str]) -> Dict:
-        """Score weighted by browser importance."""
         if not support_status:
             return {'total_score': 0.0, 'weighted_score': 0.0, 'breakdown': {}, 'weights': {}}
 
@@ -93,11 +86,10 @@ class CompatibilityScorer:
             'total_score': simple_score,
             'weighted_score': weighted_score,
             'breakdown': breakdown,
-            'weights': {b: self.browser_weights.get(b, 1.0) for b in support_status.keys()},
+            'weights': {b: self.browser_weights.get(b, 1.0) for b in support_status},
         }
 
     def calculate_compatibility_index(self, support_status: Dict[str, str]) -> Dict[str, any]:
-        """All-in-one index: score, grade, risk level, and counts."""
         if not support_status:
             return {
                 'score': 0,
@@ -116,22 +108,20 @@ class CompatibilityScorer:
         total = len(support_status)
 
         score = self.calculate_simple_score(support_status)
-        support_percentage = (supported / total * 100) if total > 0 else 0
+        support_percentage = (supported / total * 100) if total else 0
 
-        if unsupported == 0 and partial == 0:
+        if not unsupported and not partial:
             risk_level = 'none'
-        elif unsupported == 0:
+        elif not unsupported:
             risk_level = 'low'
         elif unsupported < total / 2:
             risk_level = 'medium'
         else:
             risk_level = 'high'
 
-        grade = self._score_to_grade(score)
-
         return {
             'score': round(score, 2),
-            'grade': grade,
+            'grade': _score_to_grade(score),
             'supported_count': supported,
             'partial_count': partial,
             'unsupported_count': unsupported,
@@ -139,6 +129,3 @@ class CompatibilityScorer:
             'support_percentage': round(support_percentage, 2),
             'risk_level': risk_level
         }
-
-    def _score_to_grade(self, score: float) -> str:
-        return _score_to_grade(score)

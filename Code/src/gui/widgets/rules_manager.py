@@ -332,7 +332,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
         for cat, btn in self._tab_buttons.items():
             btn.configure(fg_color=COLORS['accent'] if cat == category else COLORS['bg_medium'])
 
-        # Swap the filter dropdown to match the tab
         self._category_dropdown.pack_forget()
         self._html_type_dropdown.pack_forget()
         self._polyfill_type_dropdown.pack_forget()
@@ -401,7 +400,7 @@ class RulesManagerDialog(ctk.CTkToplevel):
         elif self._selected_category == "polyfills":
             return self._get_polyfill_rules()
         else:
-            rules = self._get_html_rules(search, html_type_filter)
+            return self._get_html_rules(search, html_type_filter)
 
         return rules
 
@@ -487,7 +486,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
             self._render_css_js_rules_list(rules)
 
     def _render_css_js_rules_list(self, rules: List[Tuple[str, dict, bool, str]]):
-        # Custom rules first, then alphabetical
         rules.sort(key=lambda r: (0 if r[2] else 1, r[0].lower()))
 
         for feature_id, rule_data, is_custom, category in rules:
@@ -1227,8 +1225,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
                 self._refresh_rules_list()
                 self._show_details_placeholder()
 
-    # --- Polyfills tab ---
-
     def _get_polyfill_rules(self) -> List[Tuple[str, dict, bool, str]]:
         """Get filtered polyfill entries. Returns (feature_id, data, False, type_key) tuples."""
         rules = []
@@ -1250,7 +1246,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
         return rules
 
     def _render_polyfill_rules_list(self, rules: List[Tuple[str, dict, bool, str]]):
-        """Render polyfill entries grouped by type."""
         by_type = {}
         for fid, data, _, type_key in rules:
             if type_key not in by_type:
@@ -1320,7 +1315,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
         self._selected_rule_id = feature_id
         label_map = {'javascript': 'JavaScript', 'css': 'CSS', 'html': 'HTML'}
 
-        # Title
         ctk.CTkLabel(
             self._details_frame,
             text=data.get('name', feature_id),
@@ -1328,7 +1322,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
             text_color=COLORS['text_primary'],
         ).pack(anchor="w", pady=(0, 10))
 
-        # Info
         ctk.CTkLabel(
             self._details_frame,
             text=f"Feature ID: {feature_id}",
@@ -1353,7 +1346,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
             text_color=status_color,
         ).pack(anchor="w", pady=(0, 15))
 
-        # Packages
         packages = data.get('packages', [])
         if packages:
             ctk.CTkLabel(
@@ -1420,7 +1412,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
                         text_color=COLORS['text_disabled'],
                     ).pack(anchor="w", pady=(4, 0))
 
-        # Fallback
         fallback = data.get('fallback')
         if fallback:
             ctk.CTkLabel(
@@ -1453,7 +1444,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
                 code_box.insert("1.0", fallback['code'])
                 code_box.configure(state="disabled")
 
-        # Edit / Delete
         btn_frame = ctk.CTkFrame(self._details_frame, fg_color="transparent")
         btn_frame.pack(fill="x", pady=(20, 0))
 
@@ -1484,7 +1474,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
             text_color=COLORS['text_primary'],
         ).pack(anchor="w", pady=(0, 20))
 
-        # Feature ID
         ctk.CTkLabel(
             self._details_frame, text="Feature ID (Can I Use)*:",
             font=ctk.CTkFont(size=12), text_color=COLORS['text_secondary'],
@@ -1499,7 +1488,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
         if edit_id:
             id_entry.insert(0, edit_id)
 
-        # Display Name
         ctk.CTkLabel(
             self._details_frame, text="Display Name*:",
             font=ctk.CTkFont(size=12), text_color=COLORS['text_secondary'],
@@ -1514,7 +1502,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
         if edit_data:
             name_entry.insert(0, edit_data.get('name', ''))
 
-        # Type
         ctk.CTkLabel(
             self._details_frame, text="Type*:",
             font=ctk.CTkFont(size=12), text_color=COLORS['text_secondary'],
@@ -1529,7 +1516,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
             button_hover_color=COLORS['accent_dim'], dropdown_fg_color=COLORS['bg_medium'],
         ).pack(anchor="w", pady=(0, 12))
 
-        # Polyfillable
         poly_var = ctk.BooleanVar(value=edit_data.get('polyfillable', True) if edit_data else True)
         ctk.CTkCheckBox(
             self._details_frame, text="Polyfillable (NPM package available)",
@@ -1537,7 +1523,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
             fg_color=COLORS['accent'], hover_color=COLORS['accent_dim'],
         ).pack(anchor="w", pady=(0, 15))
 
-        # --- Package fields ---
         ctk.CTkLabel(
             self._details_frame, text="Package Info",
             font=ctk.CTkFont(size=12, weight="bold"), text_color=COLORS['text_muted'],
@@ -1596,7 +1581,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
         )
         note_entry.pack(fill="x")
 
-        # --- Fallback fields ---
         ctk.CTkLabel(
             self._details_frame, text="CSS Fallback (optional)",
             font=ctk.CTkFont(size=12, weight="bold"), text_color=COLORS['text_muted'],
@@ -1626,7 +1610,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
         )
         fb_code_text.pack(fill="x", pady=(0, 15))
 
-        # Pre-fill edit data
         if edit_data:
             packages = edit_data.get('packages', [])
             if packages:
@@ -1643,7 +1626,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
                 fb_desc_entry.insert(0, fallback.get('description', ''))
                 fb_code_text.insert("1.0", fallback.get('code', ''))
 
-        # Buttons
         btn_frame = ctk.CTkFrame(self._details_frame, fg_color="transparent")
         btn_frame.pack(fill="x", pady=(5, 0))
 
@@ -1688,7 +1670,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
 
         entry = {"name": name, "polyfillable": polyfillable}
 
-        # Build packages list
         if npm_pkg:
             pkg = {"name": npm_pkg, "npm": npm_pkg}
             if import_stmt:
@@ -1702,7 +1683,6 @@ class RulesManagerDialog(ctk.CTkToplevel):
                 pkg["note"] = note
             entry["packages"] = [pkg]
 
-        # Build fallback
         if fb_desc or fb_code:
             entry["fallback"] = {"type": "css"}
             if fb_desc:

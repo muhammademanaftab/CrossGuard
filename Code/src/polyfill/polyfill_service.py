@@ -1,4 +1,4 @@
-"""Generates polyfill recommendations from compatibility results."""
+"""Polyfill recommendation service."""
 
 from typing import Dict, List, Set, Optional
 
@@ -6,7 +6,6 @@ from .polyfill_loader import get_polyfill_loader
 
 
 class PolyfillService:
-    """Turns compatibility issues into actionable polyfill recommendations."""
 
     def __init__(self):
         self._loader = get_polyfill_loader()
@@ -17,7 +16,6 @@ class PolyfillService:
         partial_features: Set[str],
         browsers: Dict[str, str]
     ) -> List[Dict]:
-        """Build recommendations for all unsupported/partial features."""
         recommendations = []
         all_problem_features = unsupported_features | partial_features
 
@@ -68,11 +66,9 @@ class PolyfillService:
         self,
         recommendations: List[Dict]
     ) -> str:
-        """Build a single `npm install` command for all recommended packages."""
         packages = set()
         for rec in recommendations:
             if rec['polyfill_type'] == 'npm' and rec['packages']:
-                # first package is the recommended one
                 packages.add(rec['packages'][0]['npm_package'])
 
         if not packages:
@@ -84,7 +80,6 @@ class PolyfillService:
         self,
         recommendations: List[Dict]
     ) -> List[str]:
-        """Collect import statements for all npm polyfill packages."""
         imports = []
         for rec in recommendations:
             if rec['polyfill_type'] == 'npm' and rec['packages']:
@@ -95,7 +90,6 @@ class PolyfillService:
         self,
         recommendations: List[Dict]
     ) -> float:
-        """Sum up estimated bundle size (KB) of all recommended polyfills."""
         total = 0.0
         for rec in recommendations:
             if rec['polyfill_type'] == 'npm' and rec['packages']:
@@ -108,7 +102,6 @@ class PolyfillService:
         self,
         recommendations: List[Dict]
     ) -> Dict[str, List[Dict]]:
-        """Split recommendations into 'npm' vs 'fallback' buckets."""
         result = {
             'npm': [],
             'fallback': []

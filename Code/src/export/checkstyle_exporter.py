@@ -8,11 +8,7 @@ def export_checkstyle(
     report: Dict,
     output_path: Optional[str] = None,
 ) -> Union[str, None]:
-    """Write Checkstyle XML to file, or return XML string if no path given.
-
-    Each unsupported feature becomes an <error severity="error">,
-    each partial feature becomes <error severity="warning">.
-    """
+    """Unsupported → severity="error", partial → severity="warning"; returns string if no path given."""
     if not report:
         raise ValueError("No analysis report to export")
 
@@ -22,7 +18,6 @@ def export_checkstyle(
 
     file_elem = ET.SubElement(root, 'file', name=file_path)
 
-    # Build AI suggestion lookup
     ai_map = {}
     for s in report.get('ai_suggestions') or []:
         ai_map[s['feature_id']] = s

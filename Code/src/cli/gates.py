@@ -14,7 +14,6 @@ class ThresholdConfig:
 
 @dataclass
 class GateResult:
-    """Pass/fail plus a list of failure reasons."""
     passed: bool
     failures: List[str] = field(default_factory=list)
 
@@ -25,7 +24,6 @@ def evaluate_gates(
     warning_count: int,
     config: ThresholdConfig,
 ) -> GateResult:
-    """Check score/error/warning counts against thresholds."""
     failures: List[str] = []
 
     if config.min_score is not None and score < config.min_score:
@@ -43,4 +41,4 @@ def evaluate_gates(
             f"Warning count {warning_count} exceeds maximum allowed {config.max_warnings}"
         )
 
-    return GateResult(passed=len(failures) == 0, failures=failures)
+    return GateResult(passed=not failures, failures=failures)

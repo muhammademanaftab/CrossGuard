@@ -17,8 +17,6 @@ diagrams/
 | Thesis § | Image | Generator |
 |---|---|---|
 | 3.5 | `3.5_architecture_overview.png` | `3.5_architecture_overview.py` |
-| 3.5 | `3.5_architecture_detailed.png` | `3.5_architecture_detailed.py` |
-| 3.5 | `3.5_class_diagram_full.png` (Appendix) | `3.5_class_diagram_full.py` |
 | 3.6 | `3.6_analysis_pipeline.png` | `3.6_analysis_pipeline.py` |
 | 3.7 | `3.7_parsers.png` | `3.7_parsers.py` |
 | 3.9 | `3.9_database.png` | `3.9_database.py` |
@@ -36,8 +34,6 @@ All Graphviz diagrams (the `.py` generators):
 ```bash
 # From project root
 python docs/diagrams/scripts/3.5_architecture_overview.py
-python docs/diagrams/scripts/3.5_architecture_detailed.py
-python docs/diagrams/scripts/3.5_class_diagram_full.py
 python docs/diagrams/scripts/3.6_analysis_pipeline.py
 python docs/diagrams/scripts/3.7_parsers.py
 python docs/diagrams/scripts/3.9_database.py
@@ -56,6 +52,5 @@ plantuml -tpng docs/diagrams/scripts/3.16_sequence.puml  -o ../images/
 
 ## Where each diagram goes in the thesis
 
-- **Main chapter:** `3.5_architecture_overview`, `3.5_architecture_detailed`, plus all section-specific diagrams (3.6–3.18).
-- **Appendix:** `3.5_class_diagram_full` — the full reference with every attribute and method.
+- **Main chapter:** `3.5_architecture_overview` plus all section-specific diagrams (3.6–3.18).
 - **Reading companion:** `uml_explained.md` — prose explanation of every class, arrow, and relationship.

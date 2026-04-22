@@ -8,7 +8,6 @@ from ..theme import COLORS, SPACING, ICONS
 
 
 class StatusBar(ctk.CTkFrame):
-    """Thin bar at the bottom with status dot, file count, and timestamps."""
 
     def __init__(
         self,
@@ -35,7 +34,6 @@ class StatusBar(ctk.CTkFrame):
         container = ctk.CTkFrame(self, fg_color="transparent")
         container.pack(fill="both", expand=True, padx=SPACING['md'])
 
-        # Left: status dot + message
         left_frame = ctk.CTkFrame(container, fg_color="transparent")
         left_frame.pack(side="left", fill="y")
 
@@ -55,7 +53,6 @@ class StatusBar(ctk.CTkFrame):
         )
         self.status_label.pack(side="left")
 
-        # Center: file count
         center_frame = ctk.CTkFrame(container, fg_color="transparent")
         center_frame.pack(side="left", fill="y", padx=SPACING['xl'])
 
@@ -67,7 +64,6 @@ class StatusBar(ctk.CTkFrame):
         )
         self.file_count_label.pack(side="left")
 
-        # Right: last analysis timestamp
         right_frame = ctk.CTkFrame(container, fg_color="transparent")
         right_frame.pack(side="right", fill="y")
 
@@ -84,15 +80,13 @@ class StatusBar(ctk.CTkFrame):
             return "No files selected"
         elif self._file_count == 1:
             return "1 file selected"
-        else:
-            return f"{self._file_count} files selected"
+        return f"{self._file_count} files selected"
 
     def _format_last_analysis(self) -> str:
         if self._last_analysis is None:
             return "Last analysis: Never"
-        else:
-            time_str = self._last_analysis.strftime("%H:%M")
-            return f"Last analysis: {time_str}"
+        time_str = self._last_analysis.strftime("%H:%M")
+        return f"Last analysis: {time_str}"
 
     def set_status(self, message: str, status_type: str = "normal"):
         """Update the status message and dot color (normal/success/warning/error/info)."""

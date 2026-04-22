@@ -7,7 +7,6 @@ from ..theme import COLORS, ICONS
 
 
 class BookmarkButton(ctk.CTkButton):
-    """Star icon button that toggles between bookmarked/unbookmarked states."""
 
     def __init__(
         self,
@@ -71,13 +70,11 @@ class BookmarkButton(ctk.CTkButton):
         pass
 
     def set_state(self, is_bookmarked: bool):
-        """Update state without triggering the callback."""
         self._is_bookmarked = is_bookmarked
         self._update_appearance()
 
 
 class BookmarkIndicator(ctk.CTkLabel):
-    """Read-only bookmark icon for use in cards/lists."""
 
     def __init__(
         self,

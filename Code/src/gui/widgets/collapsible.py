@@ -7,7 +7,6 @@ from ..theme import COLORS, SPACING, ICONS
 
 
 class CollapsibleSection(ctk.CTkFrame):
-    """Click-to-expand section with chevron indicator and optional badge."""
 
     def __init__(
         self,
@@ -139,7 +138,6 @@ class CollapsibleSection(ctk.CTkFrame):
         return self._expanded
 
     def get_content_frame(self) -> ctk.CTkFrame:
-        """Returns the frame where child widgets should be added."""
         return self.content_frame
 
     def set_title(self, title: str):

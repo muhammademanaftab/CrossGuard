@@ -6,7 +6,7 @@ from typing import Dict, List
 
 
 def get_version_ranges(feature_id: str, browser: str) -> List[Dict]:
-    """Collapse per-version support data into contiguous status ranges."""
+    """Collapses per-version support entries into contiguous status ranges"""
     db_path = Path(__file__).parent.parent.parent / "data" / "caniuse" / "data.json"
 
     with open(db_path, 'r', encoding='utf-8') as f:
@@ -23,7 +23,7 @@ def get_version_ranges(feature_id: str, browser: str) -> List[Dict]:
     versions = []
     for version, status in browser_stats.items():
         try:
-            if version == "TP":  # Safari Technology Preview
+            if version == "TP":  # Safari Technology Preview — sort last
                 sort_key = 9999
             elif "-" in version:
                 sort_key = float(version.split("-")[0])
@@ -35,14 +35,13 @@ def get_version_ranges(feature_id: str, browser: str) -> List[Dict]:
 
     versions.sort(key=lambda x: x[0])
 
-    # Merge consecutive versions with the same status into ranges
     ranges = []
     current_status = None
     start_version = None
     prev_version = None
 
     for _, version, status in versions:
-        base_status = status.split()[0] if status else 'u'  # strip notes like "#1"
+        base_status = status.split()[0] if status else 'u'  # caniuse appends notes like "#1"
 
         if base_status != current_status:
             if current_status is not None:
@@ -71,7 +70,7 @@ def _get_status_text(status: str) -> str:
     status_map = {
         'y': 'Supported',
         'n': 'Not Supported',
-        'a': 'Supported',  # "almost" = full per caniuse
+        'a': 'Supported',  # "almost" maps to Supported to match caniuse site display
         'p': 'Partial Support',
         'x': 'Requires Prefix',
         'u': 'Unknown',
@@ -81,7 +80,6 @@ def _get_status_text(status: str) -> str:
 
 
 def get_all_browser_ranges(feature_id: str) -> Dict[str, List[Dict]]:
-    """Version ranges for every browser we track."""
     browsers = [
         'chrome', 'firefox', 'safari', 'edge', 'opera', 'ie',
         'android', 'ios_saf', 'samsung', 'op_mini', 'op_mob'
@@ -115,7 +113,7 @@ def format_ranges_for_display(feature_id: str, browser: str) -> str:
 
 
 def get_support_summary(feature_id: str) -> Dict[str, Dict]:
-    """Per-browser summary: current status, supported-since version, and full ranges."""
+    """Current status + supported-since version + full ranges, per browser"""
     browsers = ['chrome', 'firefox', 'safari', 'edge', 'opera', 'ie']
 
     result = {}

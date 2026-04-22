@@ -26,15 +26,13 @@ CONFIG_FILENAME = 'crossguard.config.json'
 
 
 class ConfigManager:
-    """Handles config loading, merging, and access."""
-
     def __init__(self, config_path: Optional[str] = None, overrides: Optional[Dict] = None):
         self._config: Dict[str, Any] = {}
         self._config_path: Optional[Path] = None
         self._load(config_path, overrides)
 
     def _load(self, config_path: Optional[str], overrides: Optional[Dict]):
-        """Precedence: overrides > file > defaults."""
+        # Precedence: overrides > file > defaults
         self._config = _deep_copy(DEFAULT_CONFIG)
 
         file_config = self._load_from_file(config_path)
@@ -45,7 +43,6 @@ class ConfigManager:
             _deep_merge(self._config, overrides)
 
     def _load_from_file(self, config_path: Optional[str]) -> Optional[Dict]:
-        """Try explicit path, then crossguard.config.json, then package.json fallback."""
         if config_path:
             path = Path(config_path)
             if path.is_file():
@@ -58,7 +55,6 @@ class ConfigManager:
             self._config_path = found
             return _read_json(found)
 
-        # Last resort: "crossguard" key in package.json
         pkg_config = _load_from_package_json(Path.cwd())
         if pkg_config is not None:
             return pkg_config
@@ -93,7 +89,6 @@ class ConfigManager:
 
     @staticmethod
     def create_default_config(directory: str = '.') -> str:
-        """Write a fresh crossguard.config.json to the given directory."""
         path = Path(directory) / CONFIG_FILENAME
         with open(path, 'w', encoding='utf-8') as f:
             json.dump(DEFAULT_CONFIG, f, indent=2)
@@ -104,17 +99,15 @@ def load_config(
     config_path: Optional[str] = None,
     overrides: Optional[Dict] = None,
 ) -> ConfigManager:
-    """Shortcut to create a ConfigManager."""
     return ConfigManager(config_path=config_path, overrides=overrides)
 
 
 def get_default_config() -> Dict[str, Any]:
-    """Get the built-in defaults as a dict."""
     return _deep_copy(DEFAULT_CONFIG)
 
 
 def _find_config_file(start: Path) -> Optional[Path]:
-    """Walk up from start looking for crossguard.config.json."""
+    """Walk up from the start directory looking for crossguard.config.json."""
     current = start.resolve()
     for _ in range(10):  # cap depth so we don't crawl forever
         candidate = current / CONFIG_FILENAME
@@ -136,7 +129,7 @@ def _read_json(path: Path) -> Optional[Dict]:
 
 
 def _load_from_package_json(start: Path) -> Optional[Dict]:
-    """Walk up looking for a package.json with a "crossguard" key."""
+    """Walk up looking for a package.json that has a "crossguard" key."""
     current = start.resolve()
     for _ in range(10):
         candidate = current / 'package.json'
@@ -156,7 +149,6 @@ def _deep_copy(d: Dict) -> Dict:
 
 
 def _deep_merge(base: Dict, override: Dict):
-    """Recursively merge override into base, mutating base."""
     for key, value in override.items():
         if key in base and isinstance(base[key], dict) and isinstance(value, dict):
             _deep_merge(base[key], value)
