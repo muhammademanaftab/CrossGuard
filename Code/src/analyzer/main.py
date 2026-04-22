@@ -24,20 +24,7 @@ class CrossGuardAnalyzer:
         self.database = get_database()
         self.compatibility_analyzer = CompatibilityAnalyzer()
         self.scorer = CompatibilityScorer()
-
-        self.html_features = set()
-        self.js_features = set()
-        self.css_features = set()
-        self.all_features = set()
-        self.errors = []
-        self.warnings = []
-        self.unrecognized_html = set()
-        self.unrecognized_css = set()
-        self.unrecognized_js = set()
-        # which source properties/APIs matched which caniuse feature ID
-        self.css_feature_details = []
-        self.js_feature_details = []
-        self.html_feature_details = []
+        self._reset_state()
 
     def run_analysis(
         self,
@@ -120,6 +107,7 @@ class CrossGuardAnalyzer:
         self.unrecognized_html = set()
         self.unrecognized_css = set()
         self.unrecognized_js = set()
+        # which source properties/APIs matched which caniuse feature ID
         self.css_feature_details = []
         self.js_feature_details = []
         self.html_feature_details = []
@@ -146,44 +134,31 @@ class CrossGuardAnalyzer:
 
         return {'valid': True}
 
-    def _parse_html_files(self, html_files: List[str]):
-        for filepath in html_files:
+    def _parse_files(self, label: str, files: List[str], parser,
+                     feature_set: set, unrecognized_set: set, details_list: list):
+        for filepath in files:
             try:
-                features = self.html_parser.parse_file(filepath)
-                self.html_features.update(features)
-                self.unrecognized_html.update(self.html_parser.unrecognized_patterns)
-                self.html_feature_details.extend(self.html_parser.feature_details)
-                logger.info(f"Parsed HTML: {Path(filepath).name} ({len(features)} features)")
+                features = parser.parse_file(filepath)
+                feature_set.update(features)
+                unrecognized_set.update(parser.unrecognized_patterns)
+                details_list.extend(parser.feature_details)
+                logger.info(f"Parsed {label}: {Path(filepath).name} ({len(features)} features)")
             except Exception as e:
-                error_msg = f"Error parsing HTML file {filepath}: {str(e)}"
+                error_msg = f"Error parsing {label} file {filepath}: {str(e)}"
                 self.errors.append(error_msg)
                 logger.error(error_msg)
+
+    def _parse_html_files(self, html_files: List[str]):
+        self._parse_files('HTML', html_files, self.html_parser,
+                          self.html_features, self.unrecognized_html, self.html_feature_details)
 
     def _parse_css_files(self, css_files: List[str]):
-        for filepath in css_files:
-            try:
-                features = self.css_parser.parse_file(filepath)
-                self.css_features.update(features)
-                self.unrecognized_css.update(self.css_parser.unrecognized_patterns)
-                self.css_feature_details.extend(self.css_parser.feature_details)
-                logger.info(f"Parsed CSS: {Path(filepath).name} ({len(features)} features)")
-            except Exception as e:
-                error_msg = f"Error parsing CSS file {filepath}: {str(e)}"
-                self.errors.append(error_msg)
-                logger.error(error_msg)
+        self._parse_files('CSS', css_files, self.css_parser,
+                          self.css_features, self.unrecognized_css, self.css_feature_details)
 
     def _parse_js_files(self, js_files: List[str]):
-        for filepath in js_files:
-            try:
-                features = self.js_parser.parse_file(filepath)
-                self.js_features.update(features)
-                self.unrecognized_js.update(self.js_parser.unrecognized_patterns)
-                self.js_feature_details.extend(self.js_parser.feature_details)
-                logger.info(f"Parsed JS: {Path(filepath).name} ({len(features)} features)")
-            except Exception as e:
-                error_msg = f"Error parsing JS file {filepath}: {str(e)}"
-                self.errors.append(error_msg)
-                logger.error(error_msg)
+        self._parse_files('JS', js_files, self.js_parser,
+                          self.js_features, self.unrecognized_js, self.js_feature_details)
 
     def _check_compatibility(self, target_browsers: Dict[str, str]) -> Dict:
         results = {}

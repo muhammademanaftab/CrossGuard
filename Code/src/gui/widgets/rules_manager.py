@@ -1014,7 +1014,7 @@ class RulesManagerDialog(ctk.CTkToplevel):
 
         ctk.CTkLabel(
             self._details_frame,
-            text=f"Edit HTML Rule",
+            text="Edit HTML Rule",
             font=ctk.CTkFont(size=16, weight="bold"),
             text_color=COLORS['text_primary'],
         ).pack(anchor="w", pady=(0, 20))

@@ -4,6 +4,18 @@ from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Tuple
 
+from reportlab.lib import colors
+from reportlab.lib.colors import HexColor
+from reportlab.lib.enums import TA_CENTER
+from reportlab.lib.pagesizes import letter
+from reportlab.lib.styles import ParagraphStyle
+from reportlab.lib.units import inch
+from reportlab.platypus import (
+    Paragraph, Spacer, Table, TableStyle, HRFlowable,
+    SimpleDocTemplate, KeepTogether,
+)
+from reportlab.graphics.shapes import Drawing, String, Wedge, Circle, Rect
+
 # --- Constants ---
 
 COLORS = {
@@ -20,7 +32,6 @@ COLORS = {
 
 SP = 10       # Standard spacing
 SP_HALF = 5   # Tight spacing
-SP_DOUBLE = 20  # Major break
 
 MAX_ROWS = 12  # Table truncation limit
 
@@ -57,12 +68,10 @@ def export_pdf(report: Dict, output_path: str) -> str:
 # --- Helpers ---
 
 def _hex(key):
-    from reportlab.lib.colors import HexColor
     return HexColor(COLORS[key]) if key in COLORS else HexColor(key)
 
 
 def _score_color(score):
-    from reportlab.lib.colors import HexColor
     if score >= 90: return HexColor('#16a34a')
     if score >= 75: return HexColor('#059669')
     if score >= 60: return HexColor('#d97706')
@@ -70,7 +79,6 @@ def _score_color(score):
 
 
 def _score_bg(score):
-    from reportlab.lib.colors import HexColor
     if score >= 90: return HexColor('#f0fdf4')
     if score >= 75: return HexColor('#ecfdf5')
     if score >= 60: return HexColor('#fffbeb')
@@ -78,8 +86,6 @@ def _score_bg(score):
 
 
 def _section_header(text):
-    from reportlab.platypus import Paragraph
-    from reportlab.lib.styles import ParagraphStyle
     return Paragraph(text, ParagraphStyle(
         f'H_{id(text)}', fontName='Helvetica-Bold', fontSize=13,
         textColor=_hex('bg_white'), backColor=_hex('header_bg'),
@@ -149,8 +155,6 @@ def _build_issue_list(browsers):
 # --- Page Footer ---
 
 def _draw_page(canvas, doc):
-    from reportlab.lib.pagesizes import letter
-    from reportlab.lib.units import inch
     w, h = letter
     canvas.saveState()
     canvas.setStrokeColor(_hex('neutral'))
@@ -166,12 +170,6 @@ def _draw_page(canvas, doc):
 # --- Section Builders ---
 
 def _build_header(report):
-    from reportlab.platypus import Paragraph, Spacer, Table, TableStyle
-    from reportlab.lib.styles import ParagraphStyle
-    from reportlab.lib.enums import TA_CENTER
-    from reportlab.lib.units import inch
-    from reportlab.lib import colors
-
     fname = Path(report.get('file_path', '')).name if report.get('file_path') else ''
     now = datetime.now().strftime('%B %d, %Y at %H:%M')
     n_browsers = len(report.get('browsers', {}))
@@ -204,10 +202,6 @@ def _build_header(report):
 
 
 def _build_executive_summary(report):
-    from reportlab.platypus import Paragraph, Spacer, Table, TableStyle
-    from reportlab.lib.styles import ParagraphStyle
-    from reportlab.lib.units import inch
-
     scores = report.get('scores', {})
     summary = report.get('summary', {})
     browsers = report.get('browsers', {})
@@ -280,13 +274,6 @@ def _build_executive_summary(report):
 
 
 def _build_score_section(scores, summary):
-    from reportlab.platypus import Table, TableStyle, Paragraph, Spacer
-    from reportlab.lib.styles import ParagraphStyle
-    from reportlab.lib.enums import TA_CENTER
-    from reportlab.lib.units import inch
-    from reportlab.lib import colors
-    from reportlab.graphics.shapes import Drawing, String, Wedge, Circle
-
     score = float(scores.get('weighted_score', 0) or 0)
     grade = str(scores.get('grade', 'N/A') or 'N/A')
     risk = str(scores.get('risk_level', 'none') or 'none')
@@ -369,10 +356,6 @@ def _build_score_section(scores, summary):
 
 
 def _build_analysis_scope(report):
-    from reportlab.platypus import Table, TableStyle, Paragraph, Spacer
-    from reportlab.lib.styles import ParagraphStyle
-    from reportlab.lib.units import inch
-
     fname = Path(report.get('file_path', '')).name if report.get('file_path') else 'N/A'
     summary = report.get('summary', {})
     browsers = report.get('browsers', {})
@@ -416,11 +399,6 @@ def _build_analysis_scope(report):
 
 
 def _build_browser_section(browsers):
-    from reportlab.platypus import Table, TableStyle, Spacer
-    from reportlab.graphics.shapes import Drawing, String, Rect
-    from reportlab.lib.units import inch
-    from reportlab.lib import colors
-
     if not browsers:
         return []
 
@@ -512,12 +490,6 @@ def _build_browser_section(browsers):
 
 
 def _build_feature_distribution(summary, baseline):
-    from reportlab.platypus import Table, TableStyle, Spacer, Paragraph
-    from reportlab.lib.styles import ParagraphStyle
-    from reportlab.graphics.shapes import Drawing, String, Rect
-    from reportlab.lib.units import inch
-    from reportlab.lib import colors
-
     html_c = summary.get('html_features', 0) or 0
     css_c = summary.get('css_features', 0) or 0
     js_c = summary.get('js_features', 0) or 0
@@ -586,7 +558,6 @@ def _build_feature_distribution(summary, baseline):
     if not elements:
         return []
 
-    from reportlab.platypus import KeepTogether
     card_rows = [[e] for e in elements]
     card = Table(card_rows, colWidths=[7.3 * inch])
     card.setStyle(TableStyle([
@@ -601,11 +572,6 @@ def _build_feature_distribution(summary, baseline):
 
 
 def _build_issues_section(browsers):
-    from reportlab.platypus import Table, TableStyle, Paragraph, Spacer
-    from reportlab.lib.styles import ParagraphStyle
-    from reportlab.lib.units import inch
-    from reportlab.lib import colors
-
     issues = _build_issue_list(browsers)
     if not issues:
         return []
@@ -655,10 +621,6 @@ def _build_issues_section(browsers):
 
 
 def _build_browser_details(browsers):
-    from reportlab.platypus import Table, TableStyle, Paragraph, Spacer
-    from reportlab.lib.styles import ParagraphStyle
-    from reportlab.lib.units import inch
-    from reportlab.lib import colors
     from src.utils.feature_names import get_feature_name
 
     has_issues = any(d.get('unsupported_features') or d.get('partial_features') for d in browsers.values())
@@ -712,10 +674,6 @@ def _build_browser_details(browsers):
 
 
 def _build_feature_details(feature_details):
-    from reportlab.platypus import Table, TableStyle, Paragraph, Spacer
-    from reportlab.lib.styles import ParagraphStyle
-    from reportlab.lib.units import inch
-    from reportlab.lib import colors
     from src.utils.feature_names import get_feature_name
 
     if not feature_details:
@@ -767,9 +725,6 @@ def _build_feature_details(feature_details):
 
 
 def _build_recommendations(recommendations, report):
-    from reportlab.platypus import Table, TableStyle, Paragraph, Spacer
-    from reportlab.lib.styles import ParagraphStyle
-    from reportlab.lib.units import inch
     from src.utils.feature_names import get_feature_name, get_fix_suggestion
 
     if not recommendations:
@@ -801,11 +756,6 @@ def _build_recommendations(recommendations, report):
 
 
 def _build_ai_suggestions(ai_suggestions):
-    from reportlab.platypus import Table, TableStyle, Paragraph, Spacer
-    from reportlab.lib.styles import ParagraphStyle
-    from reportlab.lib.units import inch
-    from reportlab.lib import colors
-
     if not ai_suggestions:
         return []
 
@@ -846,9 +796,6 @@ def _build_ai_suggestions(ai_suggestions):
 
 
 def _build_footer():
-    from reportlab.platypus import Paragraph, Spacer, HRFlowable
-    from reportlab.lib.styles import ParagraphStyle
-    from reportlab.lib.enums import TA_CENTER
     return [
         Spacer(1, SP_HALF),
         HRFlowable(width="100%", thickness=0.5, color=_hex('neutral')),
@@ -862,10 +809,6 @@ def _build_footer():
 # --- Orchestrator ---
 
 def _create_pdf(report, file_path):
-    from reportlab.lib.pagesizes import letter
-    from reportlab.platypus import SimpleDocTemplate
-    from reportlab.lib.units import inch
-
     doc = SimpleDocTemplate(file_path, pagesize=letter,
                             rightMargin=0.6 * inch, leftMargin=0.6 * inch,
                             topMargin=0.6 * inch, bottomMargin=0.55 * inch)

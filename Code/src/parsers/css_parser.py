@@ -14,6 +14,55 @@ from ..utils.config import get_logger
 logger = get_logger('parsers.css')
 
 
+# Universally-supported properties we don't need to flag
+_BASIC_PROPERTIES = frozenset({
+    'color', 'background', 'background-color', 'background-image',
+    'background-position', 'background-repeat', 'background-size',
+    'background-attachment', 'background-origin', 'background-clip',
+    'opacity',
+    'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
+    'padding', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left',
+    'border', 'border-width', 'border-style', 'border-color',
+    'border-top', 'border-right', 'border-bottom', 'border-left',
+    'border-top-width', 'border-right-width', 'border-bottom-width', 'border-left-width',
+    'border-top-style', 'border-right-style', 'border-bottom-style', 'border-left-style',
+    'border-top-color', 'border-right-color', 'border-bottom-color', 'border-left-color',
+    'border-radius', 'border-top-left-radius', 'border-top-right-radius',
+    'border-bottom-left-radius', 'border-bottom-right-radius',
+    'box-shadow', 'box-sizing',
+    'fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin',
+    'width', 'height', 'min-width', 'max-width', 'min-height', 'max-height',
+    'font', 'font-family', 'font-size', 'font-weight', 'font-style',
+    'font-variant', 'text-align', 'text-decoration', 'text-shadow',
+    'line-height', 'letter-spacing', 'word-spacing', 'text-indent',
+    'text-transform', 'white-space', 'word-wrap', 'word-break',
+    'display', 'position', 'top', 'right', 'bottom', 'left',
+    'float', 'clear', 'overflow', 'overflow-x', 'overflow-y',
+    'visibility', 'z-index', 'clip',
+    'flex', 'flex-direction', 'flex-wrap', 'flex-flow',
+    'flex-grow', 'flex-shrink', 'flex-basis',
+    'justify-content', 'align-items', 'align-content', 'align-self',
+    'order', 'gap', 'row-gap', 'column-gap',
+    'animation', 'animation-name', 'animation-duration', 'animation-timing-function',
+    'animation-delay', 'animation-iteration-count', 'animation-direction',
+    'animation-fill-mode', 'animation-play-state', 'animation-timeline',
+    'animation-range', 'animation-range-start', 'animation-range-end',
+    'transition', 'transition-property', 'transition-duration',
+    'transition-timing-function', 'transition-delay',
+    'transform', 'transform-origin', 'transform-style', 'perspective',
+    'cursor', 'outline', 'outline-width', 'outline-style', 'outline-color',
+    'outline-offset', 'list-style', 'list-style-type', 'list-style-position',
+    'list-style-image', 'vertical-align', 'content', 'quotes',
+    'counter-reset', 'counter-increment',
+    'table-layout', 'border-collapse', 'border-spacing', 'caption-side',
+    'empty-cells',
+    'direction', 'unicode-bidi', 'speak', 'resize', 'pointer-events',
+    'user-select', 'appearance', 'accent-color',
+    'src', 'font-display',
+    'object-fit', 'object-position',
+})
+
+
 class CSSParser:
     """Extracts Can I Use feature IDs from CSS files."""
 
@@ -36,10 +85,10 @@ class CSSParser:
 
             return self.parse_string(css_content)
 
-        except UnicodeDecodeError:
-            raise ValueError(f"File is not valid UTF-8: {filepath}")
+        except UnicodeDecodeError as e:
+            raise ValueError(f"File is not valid UTF-8: {filepath}") from e
         except Exception as e:
-            raise ValueError(f"Error parsing CSS file: {e}")
+            raise ValueError(f"Error parsing CSS file: {e}") from e
 
     def parse_string(self, css_content: str) -> Set[str]:
         self.features_found = set()
@@ -213,60 +262,12 @@ class CSSParser:
                 })
 
     def _find_unrecognized_patterns_structured(self, declarations, at_rules):
-        # Universally-supported properties we don't need to flag
-        basic_properties = {
-            'color', 'background', 'background-color', 'background-image',
-            'background-position', 'background-repeat', 'background-size',
-            'background-attachment', 'background-origin', 'background-clip',
-            'opacity',
-            'margin', 'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
-            'padding', 'padding-top', 'padding-right', 'padding-bottom', 'padding-left',
-            'border', 'border-width', 'border-style', 'border-color',
-            'border-top', 'border-right', 'border-bottom', 'border-left',
-            'border-top-width', 'border-right-width', 'border-bottom-width', 'border-left-width',
-            'border-top-style', 'border-right-style', 'border-bottom-style', 'border-left-style',
-            'border-top-color', 'border-right-color', 'border-bottom-color', 'border-left-color',
-            'border-radius', 'border-top-left-radius', 'border-top-right-radius',
-            'border-bottom-left-radius', 'border-bottom-right-radius',
-            'box-shadow', 'box-sizing',
-            'fill', 'stroke', 'stroke-width', 'stroke-linecap', 'stroke-linejoin',
-            'width', 'height', 'min-width', 'max-width', 'min-height', 'max-height',
-            'font', 'font-family', 'font-size', 'font-weight', 'font-style',
-            'font-variant', 'text-align', 'text-decoration', 'text-shadow',
-            'line-height', 'letter-spacing', 'word-spacing', 'text-indent',
-            'text-transform', 'white-space', 'word-wrap', 'word-break',
-            'display', 'position', 'top', 'right', 'bottom', 'left',
-            'float', 'clear', 'overflow', 'overflow-x', 'overflow-y',
-            'visibility', 'z-index', 'clip',
-            'flex', 'flex-direction', 'flex-wrap', 'flex-flow',
-            'flex-grow', 'flex-shrink', 'flex-basis',
-            'justify-content', 'align-items', 'align-content', 'align-self',
-            'order', 'gap', 'row-gap', 'column-gap',
-            'animation', 'animation-name', 'animation-duration', 'animation-timing-function',
-            'animation-delay', 'animation-iteration-count', 'animation-direction',
-            'animation-fill-mode', 'animation-play-state', 'animation-timeline',
-            'animation-range', 'animation-range-start', 'animation-range-end',
-            'transition', 'transition-property', 'transition-duration',
-            'transition-timing-function', 'transition-delay',
-            'transform', 'transform-origin', 'transform-style', 'perspective',
-            'cursor', 'outline', 'outline-width', 'outline-style', 'outline-color',
-            'outline-offset', 'list-style', 'list-style-type', 'list-style-position',
-            'list-style-image', 'vertical-align', 'content', 'quotes',
-            'counter-reset', 'counter-increment',
-            'table-layout', 'border-collapse', 'border-spacing', 'caption-side',
-            'empty-cells',
-            'direction', 'unicode-bidi', 'speak', 'resize', 'pointer-events',
-            'user-select', 'appearance', 'accent-color',
-            'src', 'font-display',
-            'object-fit', 'object-position',
-        }
-
         found_properties = set(prop for prop, _, _, _ in declarations)
 
         for prop in found_properties:
             prop_lower = prop.lower()
 
-            if prop_lower in basic_properties:
+            if prop_lower in _BASIC_PROPERTIES:
                 continue
             if prop_lower.startswith('--'):
                 continue

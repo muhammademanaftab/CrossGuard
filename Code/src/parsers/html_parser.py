@@ -23,6 +23,61 @@ from ..utils.config import get_logger
 logger = get_logger('parsers.html')
 
 
+# Universally-supported elements we can safely ignore
+_BASIC_ELEMENTS = frozenset({
+    'html', 'head', 'body', 'title', 'meta', 'link', 'script', 'style',
+    'div', 'span', 'p', 'a', 'img', 'br', 'hr',
+    'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+    'ul', 'ol', 'li', 'dl', 'dt', 'dd',
+    'table', 'tr', 'td', 'th', 'thead', 'tbody', 'tfoot', 'caption', 'colgroup', 'col',
+    'form', 'input', 'button', 'select', 'option', 'optgroup', 'textarea', 'label', 'fieldset', 'legend',
+    'iframe', 'object', 'embed', 'param',
+    'strong', 'em', 'b', 'i', 'u', 's', 'small', 'big', 'sub', 'sup',
+    'code', 'pre', 'blockquote', 'q', 'cite', 'abbr', 'acronym',
+    'ins', 'del', 'dfn', 'kbd', 'samp', 'var', 'address',
+    'noscript', 'map', 'area', 'base',
+    'header', 'footer', 'nav', 'article', 'section', 'aside', 'main',
+    'figure', 'figcaption', 'time', 'mark', 'wbr',
+})
+
+# Universally-supported attributes
+_BASIC_ATTRIBUTES = frozenset({
+    'id', 'class', 'style', 'title', 'lang', 'dir',
+    'href', 'src', 'alt', 'name', 'value', 'type',
+    'width', 'height', 'border', 'align', 'valign',
+    'colspan', 'rowspan', 'cellpadding', 'cellspacing',
+    'action', 'method', 'enctype', 'target', 'rel',
+    'disabled', 'readonly', 'checked', 'selected', 'multiple',
+    'maxlength', 'size', 'rows', 'cols', 'tabindex', 'accesskey',
+    'onclick', 'onsubmit', 'onchange', 'onload', 'onerror',
+    'onmouseover', 'onmouseout', 'onfocus', 'onblur', 'onkeydown', 'onkeyup',
+    'onkeypress', 'ondblclick', 'onmousedown', 'onmouseup', 'onmousemove',
+    'onreset', 'onselect', 'oninput', 'onfocusin', 'onfocusout',
+    'charset', 'content', 'http-equiv', 'media',
+    'for', 'form', 'accept', 'accept-charset',
+    'usemap', 'ismap', 'coords', 'shape',
+    'xmlns', 'xml:lang', 'role', 'aria-label', 'aria-hidden',
+    'controls', 'autoplay', 'loop', 'muted', 'preload', 'poster',
+    'playsinline', 'crossorigin',
+    'frameborder', 'scrolling', 'allowfullscreen', 'sandbox',
+    'async', 'defer', 'integrity', 'nonce', 'referrerpolicy',
+    'placeholder', 'pattern', 'min', 'max', 'step', 'list',
+    'autocomplete', 'autofocus', 'required', 'novalidate',
+    'hidden', 'spellcheck', 'translate', 'contenteditable', 'draggable',
+    # Non-standard WebKit search input attrs (no CIU mapping)
+    'autosave', 'incremental', 'results',
+    # SVG attributes (well-supported, part of SVG spec)
+    'd', 'fill', 'fill-rule', 'fill-opacity', 'stroke', 'stroke-width',
+    'stroke-linecap', 'stroke-linejoin', 'stroke-opacity', 'stroke-dasharray',
+    'viewbox', 'viewBox', 'preserveaspectratio', 'preserveAspectRatio',
+    'cx', 'cy', 'r', 'rx', 'ry', 'x', 'y', 'x1', 'y1', 'x2', 'y2',
+    'points', 'transform', 'path', 'xmlns:xlink', 'xlink:href',
+    'clip-path', 'clip-rule', 'mask', 'opacity', 'filter',
+    'stop-color', 'stop-opacity', 'offset', 'gradientunits', 'gradientUnits',
+    'patternunits', 'patternUnits', 'spreadmethod', 'spreadMethod',
+})
+
+
 class HTMLParser:
     """Extracts Can I Use feature IDs from HTML files."""
 
@@ -60,10 +115,10 @@ class HTMLParser:
 
             return self.parse_string(html_content)
 
-        except UnicodeDecodeError:
-            raise ValueError(f"File is not valid UTF-8: {filepath}")
+        except UnicodeDecodeError as e:
+            raise ValueError(f"File is not valid UTF-8: {filepath}") from e
         except Exception as e:
-            raise ValueError(f"Error parsing HTML file: {e}")
+            raise ValueError(f"Error parsing HTML file: {e}") from e
 
     def parse_string(self, html_content: str) -> Set[str]:
         self.features_found = set()
@@ -361,60 +416,6 @@ class HTMLParser:
                 self.features_found.add('xhtml')
 
     def _find_unrecognized_patterns(self, soup: BeautifulSoup):
-        # Universally-supported elements we can safely ignore
-        basic_elements = {
-            'html', 'head', 'body', 'title', 'meta', 'link', 'script', 'style',
-            'div', 'span', 'p', 'a', 'img', 'br', 'hr',
-            'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
-            'ul', 'ol', 'li', 'dl', 'dt', 'dd',
-            'table', 'tr', 'td', 'th', 'thead', 'tbody', 'tfoot', 'caption', 'colgroup', 'col',
-            'form', 'input', 'button', 'select', 'option', 'optgroup', 'textarea', 'label', 'fieldset', 'legend',
-            'iframe', 'object', 'embed', 'param',
-            'strong', 'em', 'b', 'i', 'u', 's', 'small', 'big', 'sub', 'sup',
-            'code', 'pre', 'blockquote', 'q', 'cite', 'abbr', 'acronym',
-            'ins', 'del', 'dfn', 'kbd', 'samp', 'var', 'address',
-            'noscript', 'map', 'area', 'base',
-            'header', 'footer', 'nav', 'article', 'section', 'aside', 'main',
-            'figure', 'figcaption', 'time', 'mark', 'wbr',
-        }
-
-        # Universally-supported attributes
-        basic_attributes = {
-            'id', 'class', 'style', 'title', 'lang', 'dir',
-            'href', 'src', 'alt', 'name', 'value', 'type',
-            'width', 'height', 'border', 'align', 'valign',
-            'colspan', 'rowspan', 'cellpadding', 'cellspacing',
-            'action', 'method', 'enctype', 'target', 'rel',
-            'disabled', 'readonly', 'checked', 'selected', 'multiple',
-            'maxlength', 'size', 'rows', 'cols', 'tabindex', 'accesskey',
-            'onclick', 'onsubmit', 'onchange', 'onload', 'onerror',
-            'onmouseover', 'onmouseout', 'onfocus', 'onblur', 'onkeydown', 'onkeyup',
-            'onkeypress', 'ondblclick', 'onmousedown', 'onmouseup', 'onmousemove',
-            'onreset', 'onselect', 'oninput', 'onfocusin', 'onfocusout',
-            'charset', 'content', 'http-equiv', 'media',
-            'for', 'form', 'accept', 'accept-charset',
-            'usemap', 'ismap', 'coords', 'shape',
-            'xmlns', 'xml:lang', 'role', 'aria-label', 'aria-hidden',
-            'controls', 'autoplay', 'loop', 'muted', 'preload', 'poster',
-            'playsinline', 'crossorigin',
-            'frameborder', 'scrolling', 'allowfullscreen', 'sandbox',
-            'async', 'defer', 'integrity', 'nonce', 'referrerpolicy',
-            'placeholder', 'pattern', 'min', 'max', 'step', 'list',
-            'autocomplete', 'autofocus', 'required', 'novalidate',
-            'hidden', 'spellcheck', 'translate', 'contenteditable', 'draggable',
-            # Non-standard WebKit search input attrs (no CIU mapping)
-            'autosave', 'incremental', 'results',
-            # SVG attributes (well-supported, part of SVG spec)
-            'd', 'fill', 'fill-rule', 'fill-opacity', 'stroke', 'stroke-width',
-            'stroke-linecap', 'stroke-linejoin', 'stroke-opacity', 'stroke-dasharray',
-            'viewbox', 'viewBox', 'preserveaspectratio', 'preserveAspectRatio',
-            'cx', 'cy', 'r', 'rx', 'ry', 'x', 'y', 'x1', 'y1', 'x2', 'y2',
-            'points', 'transform', 'path', 'xmlns:xlink', 'xlink:href',
-            'clip-path', 'clip-rule', 'mask', 'opacity', 'filter',
-            'stop-color', 'stop-opacity', 'offset', 'gradientunits', 'gradientUnits',
-            'patternunits', 'patternUnits', 'spreadmethod', 'spreadMethod',
-        }
-
         all_elements = soup.find_all()
 
         found_element_names = set()
@@ -423,7 +424,7 @@ class HTMLParser:
                 found_element_names.add(elem.name.lower())
 
         for elem_name in found_element_names:
-            if elem_name in basic_elements:
+            if elem_name in _BASIC_ELEMENTS:
                 continue
             if elem_name in self._elements:
                 continue
@@ -438,7 +439,7 @@ class HTMLParser:
                     found_attributes.add(attr_name.lower())
 
         for attr_name in found_attributes:
-            if attr_name in basic_attributes:
+            if attr_name in _BASIC_ATTRIBUTES:
                 continue
             if attr_name.startswith('data-'):
                 continue
