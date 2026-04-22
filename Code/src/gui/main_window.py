@@ -230,36 +230,7 @@ class MainWindow(ctk.CTkFrame):
 
     def _build_results_view(self):
         if not self.current_report:
-            empty_frame = ctk.CTkFrame(self.content_frame, fg_color="transparent")
-            empty_frame.place(relx=0.5, rely=0.5, anchor="center")
-
-            empty_label = ctk.CTkLabel(
-                empty_frame,
-                text="No Analysis Results",
-                font=ctk.CTkFont(size=18, weight="bold"),
-                text_color=COLORS['text_muted'],
-            )
-            empty_label.pack()
-
-            hint_label = ctk.CTkLabel(
-                empty_frame,
-                text="Add files and run an analysis to see results",
-                font=ctk.CTkFont(size=13),
-                text_color=COLORS['text_disabled'],
-            )
-            hint_label.pack(pady=(SPACING['sm'], 0))
-
-            go_btn = ctk.CTkButton(
-                empty_frame,
-                text="Go to Files",
-                font=ctk.CTkFont(size=13),
-                width=120,
-                height=36,
-                fg_color=COLORS['accent'],
-                hover_color=COLORS['accent_dim'],
-                command=lambda: self._show_view("files"),
-            )
-            go_btn.pack(pady=(SPACING['lg'], 0))
+            self._build_results_empty_state()
             return
 
         report = self.current_report
@@ -273,10 +244,50 @@ class MainWindow(ctk.CTkFrame):
         scroll_frame.pack(fill="both", expand=True, padx=SPACING['xl'], pady=SPACING['xl'])
         enable_smooth_scrolling(scroll_frame)
 
+        self._build_results_score_section(scroll_frame, report)
+        self._build_results_issues_section(scroll_frame, report)
+        self._build_results_recommendations_section(scroll_frame, report)
+        self._build_results_browsers_section(scroll_frame, report)
+        self._build_results_features_section(scroll_frame, report)
+        self._build_results_viz_section(scroll_frame, report)
+        self._build_results_actions_section(scroll_frame, report)
+
+    def _build_results_empty_state(self):
+        empty_frame = ctk.CTkFrame(self.content_frame, fg_color="transparent")
+        empty_frame.place(relx=0.5, rely=0.5, anchor="center")
+
+        empty_label = ctk.CTkLabel(
+            empty_frame,
+            text="No Analysis Results",
+            font=ctk.CTkFont(size=18, weight="bold"),
+            text_color=COLORS['text_muted'],
+        )
+        empty_label.pack()
+
+        hint_label = ctk.CTkLabel(
+            empty_frame,
+            text="Add files and run an analysis to see results",
+            font=ctk.CTkFont(size=13),
+            text_color=COLORS['text_disabled'],
+        )
+        hint_label.pack(pady=(SPACING['sm'], 0))
+
+        go_btn = ctk.CTkButton(
+            empty_frame,
+            text="Go to Files",
+            font=ctk.CTkFont(size=13),
+            width=120,
+            height=36,
+            fg_color=COLORS['accent'],
+            hover_color=COLORS['accent_dim'],
+            command=lambda: self._show_view("files"),
+        )
+        go_btn.pack(pady=(SPACING['lg'], 0))
+
+    def _build_results_score_section(self, scroll_frame, report):
         scores = report.get('scores', {})
         summary = report.get('summary', {})
         browsers = report.get('browsers', {})
-        features = report.get('features', {})
 
         weighted_score = scores.get('weighted_score', 0)
         grade = scores.get('grade', 'N/A')
@@ -304,6 +315,8 @@ class MainWindow(ctk.CTkFrame):
             features_count=total_features
         )
 
+    def _build_results_issues_section(self, scroll_frame, report):
+        browsers = report.get('browsers', {})
         issues = self._extract_issues(browsers)
         if issues:
             issues_section = CollapsibleSection(
@@ -346,6 +359,8 @@ class MainWindow(ctk.CTkFrame):
                     command=lambda e=None: self._on_ai_suggestions_click(browsers, scroll_frame),
                 ).pack(side="right")
 
+    def _build_results_recommendations_section(self, scroll_frame, report):
+        browsers = report.get('browsers', {})
         polyfill_data = self._get_polyfill_recommendations(browsers)
         recommendations = report.get('recommendations', [])
         has_recs = polyfill_data['has_recommendations'] or recommendations
@@ -390,6 +405,9 @@ class MainWindow(ctk.CTkFrame):
                         anchor="w",
                     ).pack(side="left", padx=SPACING['sm'])
 
+    def _build_results_browsers_section(self, scroll_frame, report):
+        browsers = report.get('browsers', {})
+        browsers_count = len(browsers)
         if browsers:
             browser_section = CollapsibleSection(
                 scroll_frame,
@@ -551,6 +569,11 @@ class MainWindow(ctk.CTkFrame):
 
                 switcher("overview")
 
+    def _build_results_features_section(self, scroll_frame, report):
+        summary = report.get('summary', {})
+        browsers = report.get('browsers', {})
+        features = report.get('features', {})
+        total_features = summary.get('total_features', 0)
         feature_details = report.get('feature_details', {})
         if features and any([features.get('html'), features.get('css'), features.get('js')]):
             features_section = CollapsibleSection(
@@ -782,6 +805,9 @@ class MainWindow(ctk.CTkFrame):
                             text_color=COLORS['text_muted'],
                         ).pack(side="right", padx=SPACING['sm'])
 
+    def _build_results_viz_section(self, scroll_frame, report):
+        summary = report.get('summary', {})
+        browsers = report.get('browsers', {})
         if browsers:
             viz_section = CollapsibleSection(
                 scroll_frame,
@@ -827,6 +853,7 @@ class MainWindow(ctk.CTkFrame):
             breakdown_chart.pack(fill="x", pady=(SPACING['sm'], 0))
             breakdown_chart.set_data(chart_data)
 
+    def _build_results_actions_section(self, scroll_frame, report):
         actions_frame = ctk.CTkFrame(
             scroll_frame,
             fg_color=COLORS['bg_medium'],
@@ -1370,6 +1397,13 @@ class MainWindow(ctk.CTkFrame):
             text_color=COLORS['text_primary'],
         ).pack(anchor="w", pady=(0, SPACING['xl']))
 
+        self._build_settings_database_section(container)
+        self._build_settings_rules_section(container)
+        self._build_settings_ai_section(container)
+        self._build_settings_preferences_section(container)
+        self._build_settings_about_section(container)
+
+    def _build_settings_database_section(self, container):
         db_section = ctk.CTkFrame(
             container,
             fg_color=COLORS['bg_medium'],
@@ -1414,6 +1448,7 @@ class MainWindow(ctk.CTkFrame):
             text_color=COLORS['text_muted'],
         ).pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['lg']))
 
+    def _build_settings_rules_section(self, container):
         rules_section = ctk.CTkFrame(
             container,
             fg_color=COLORS['bg_medium'],
@@ -1452,6 +1487,7 @@ class MainWindow(ctk.CTkFrame):
             text_color=COLORS['text_muted'],
         ).pack(anchor="w", padx=SPACING['lg'], pady=(0, SPACING['lg']))
 
+    def _build_settings_ai_section(self, container):
         OPENAI_MODELS = ["gpt-4o-mini", "gpt-4o", "gpt-4-turbo", "gpt-3.5-turbo"]
         ANTHROPIC_MODELS = ["claude-sonnet-4-20250514", "claude-haiku-4-5-20251001", "claude-opus-4-20250514"]
 
@@ -1565,6 +1601,7 @@ class MainWindow(ctk.CTkFrame):
             command=lambda e=None: [self._ai_key_var.set(""), self._analyzer_service.set_setting('ai_api_key', ''), show_info(self, "Cleared", "API key removed.")],
         ).pack(side="left", padx=(SPACING['sm'], 0))
 
+    def _build_settings_preferences_section(self, container):
         prefs_section = ctk.CTkFrame(
             container,
             fg_color=COLORS['bg_medium'],
@@ -1698,6 +1735,7 @@ class MainWindow(ctk.CTkFrame):
             )
             cb.pack(side="left", padx=(0, SPACING['lg']))
 
+    def _build_settings_about_section(self, container):
         about_section = ctk.CTkFrame(
             container,
             fg_color=COLORS['bg_medium'],

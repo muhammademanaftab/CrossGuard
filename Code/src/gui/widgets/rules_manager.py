@@ -114,6 +114,51 @@ class RulesManagerDialog(ctk.CTkToplevel):
 
         self._search_var.trace_add('write', lambda *args: self._refresh_rules_list())
 
+    def _form_field(
+        self,
+        label: str,
+        placeholder: str = "",
+        initial: str = "",
+        *,
+        textbox: bool = False,
+        textbox_height: int = 100,
+        bottom_pad: int = 15,
+    ):
+        """Label + entry (or textbox) pair, matching the form styling used across all rules forms."""
+        ctk.CTkLabel(
+            self._details_frame,
+            text=label,
+            font=ctk.CTkFont(size=12),
+            text_color=COLORS['text_secondary'],
+        ).pack(anchor="w", pady=(0, 5))
+
+        if textbox:
+            widget = ctk.CTkTextbox(
+                self._details_frame,
+                font=ctk.CTkFont(size=11, family="Courier"),
+                height=textbox_height,
+                fg_color=COLORS['input_bg'],
+                border_color=COLORS['border'],
+                border_width=1,
+            )
+            widget.pack(fill="x", pady=(0, bottom_pad))
+            if initial:
+                widget.insert("1.0", initial)
+        else:
+            widget = ctk.CTkEntry(
+                self._details_frame,
+                placeholder_text=placeholder,
+                font=ctk.CTkFont(size=12),
+                height=36,
+                fg_color=COLORS['input_bg'],
+                border_color=COLORS['border'],
+            )
+            widget.pack(fill="x", pady=(0, bottom_pad))
+            if initial:
+                widget.insert(0, initial)
+
+        return widget
+
     def _center_on_parent(self):
         self.update_idletasks()
         parent_x = self.parent.winfo_rootx()
@@ -801,81 +846,30 @@ class RulesManagerDialog(ctk.CTkToplevel):
             text_color=COLORS['text_primary'],
         ).pack(anchor="w", pady=(0, 20))
 
-        ctk.CTkLabel(
-            self._details_frame,
-            text="Feature ID (Can I Use ID)*:",
-            font=ctk.CTkFont(size=12),
-            text_color=COLORS['text_secondary'],
-        ).pack(anchor="w", pady=(0, 5))
-
-        id_entry = ctk.CTkEntry(
-            self._details_frame,
-            placeholder_text="e.g., css-container-queries",
-            font=ctk.CTkFont(size=12),
-            height=36,
-            fg_color=COLORS['input_bg'],
-            border_color=COLORS['border'],
+        id_entry = self._form_field(
+            "Feature ID (Can I Use ID)*:",
+            placeholder="e.g., css-container-queries",
+            initial=edit_id or "",
         )
-        id_entry.pack(fill="x", pady=(0, 15))
-        if edit_id:
-            id_entry.insert(0, edit_id)
 
-        ctk.CTkLabel(
-            self._details_frame,
-            text="Description:",
-            font=ctk.CTkFont(size=12),
-            text_color=COLORS['text_secondary'],
-        ).pack(anchor="w", pady=(0, 5))
-
-        desc_entry = ctk.CTkEntry(
-            self._details_frame,
-            placeholder_text="e.g., CSS Container Queries",
-            font=ctk.CTkFont(size=12),
-            height=36,
-            fg_color=COLORS['input_bg'],
-            border_color=COLORS['border'],
+        desc_entry = self._form_field(
+            "Description:",
+            placeholder="e.g., CSS Container Queries",
+            initial=(edit_data.get('description', '') if edit_data else ''),
         )
-        desc_entry.pack(fill="x", pady=(0, 15))
-        if edit_data and edit_data.get('description'):
-            desc_entry.insert(0, edit_data['description'])
 
-        ctk.CTkLabel(
-            self._details_frame,
-            text="Patterns (regex, one per line)*:",
-            font=ctk.CTkFont(size=12),
-            text_color=COLORS['text_secondary'],
-        ).pack(anchor="w", pady=(0, 5))
-
-        patterns_text = ctk.CTkTextbox(
-            self._details_frame,
-            font=ctk.CTkFont(size=11, family="Courier"),
-            height=100,
-            fg_color=COLORS['input_bg'],
-            border_color=COLORS['border'],
-            border_width=1,
+        patterns_text = self._form_field(
+            "Patterns (regex, one per line)*:",
+            textbox=True,
+            initial=("\n".join(edit_data['patterns']) if edit_data and edit_data.get('patterns') else ''),
         )
-        patterns_text.pack(fill="x", pady=(0, 15))
-        if edit_data and edit_data.get('patterns'):
-            patterns_text.insert("1.0", "\n".join(edit_data['patterns']))
 
-        ctk.CTkLabel(
-            self._details_frame,
-            text="Keywords (comma-separated, optional):",
-            font=ctk.CTkFont(size=12),
-            text_color=COLORS['text_secondary'],
-        ).pack(anchor="w", pady=(0, 5))
-
-        keywords_entry = ctk.CTkEntry(
-            self._details_frame,
-            placeholder_text="e.g., container, @container",
-            font=ctk.CTkFont(size=12),
-            height=36,
-            fg_color=COLORS['input_bg'],
-            border_color=COLORS['border'],
+        keywords_entry = self._form_field(
+            "Keywords (comma-separated, optional):",
+            placeholder="e.g., container, @container",
+            initial=(", ".join(edit_data['keywords']) if edit_data and edit_data.get('keywords') else ''),
+            bottom_pad=20,
         )
-        keywords_entry.pack(fill="x", pady=(0, 20))
-        if edit_data and edit_data.get('keywords'):
-            keywords_entry.insert(0, ", ".join(edit_data['keywords']))
 
         btn_frame = ctk.CTkFrame(self._details_frame, fg_color="transparent")
         btn_frame.pack(fill="x")
@@ -944,39 +938,16 @@ class RulesManagerDialog(ctk.CTkToplevel):
         )
         type_dropdown.pack(anchor="w", pady=(0, 15))
 
-        ctk.CTkLabel(
-            self._details_frame,
-            text="Name*:",
-            font=ctk.CTkFont(size=12),
-            text_color=COLORS['text_secondary'],
-        ).pack(anchor="w", pady=(0, 5))
-
-        name_entry = ctk.CTkEntry(
-            self._details_frame,
-            placeholder_text="e.g., popover (or attr:value for Attribute Values)",
-            font=ctk.CTkFont(size=12),
-            height=36,
-            fg_color=COLORS['input_bg'],
-            border_color=COLORS['border'],
+        name_entry = self._form_field(
+            "Name*:",
+            placeholder="e.g., popover (or attr:value for Attribute Values)",
         )
-        name_entry.pack(fill="x", pady=(0, 15))
 
-        ctk.CTkLabel(
-            self._details_frame,
-            text="Can I Use Feature ID*:",
-            font=ctk.CTkFont(size=12),
-            text_color=COLORS['text_secondary'],
-        ).pack(anchor="w", pady=(0, 5))
-
-        feature_entry = ctk.CTkEntry(
-            self._details_frame,
-            placeholder_text="e.g., popover-api",
-            font=ctk.CTkFont(size=12),
-            height=36,
-            fg_color=COLORS['input_bg'],
-            border_color=COLORS['border'],
+        feature_entry = self._form_field(
+            "Can I Use Feature ID*:",
+            placeholder="e.g., popover-api",
+            bottom_pad=20,
         )
-        feature_entry.pack(fill="x", pady=(0, 20))
 
         btn_frame = ctk.CTkFrame(self._details_frame, fg_color="transparent")
         btn_frame.pack(fill="x")
@@ -1026,39 +997,13 @@ class RulesManagerDialog(ctk.CTkToplevel):
             text_color=COLORS['text_muted'],
         ).pack(anchor="w", pady=(0, 15))
 
-        ctk.CTkLabel(
-            self._details_frame,
-            text="Name*:",
-            font=ctk.CTkFont(size=12),
-            text_color=COLORS['text_secondary'],
-        ).pack(anchor="w", pady=(0, 5))
+        name_entry = self._form_field("Name*:", initial=name)
 
-        name_entry = ctk.CTkEntry(
-            self._details_frame,
-            font=ctk.CTkFont(size=12),
-            height=36,
-            fg_color=COLORS['input_bg'],
-            border_color=COLORS['border'],
+        feature_entry = self._form_field(
+            "Can I Use Feature ID*:",
+            initial=feature_id,
+            bottom_pad=20,
         )
-        name_entry.pack(fill="x", pady=(0, 15))
-        name_entry.insert(0, name)
-
-        ctk.CTkLabel(
-            self._details_frame,
-            text="Can I Use Feature ID*:",
-            font=ctk.CTkFont(size=12),
-            text_color=COLORS['text_secondary'],
-        ).pack(anchor="w", pady=(0, 5))
-
-        feature_entry = ctk.CTkEntry(
-            self._details_frame,
-            font=ctk.CTkFont(size=12),
-            height=36,
-            fg_color=COLORS['input_bg'],
-            border_color=COLORS['border'],
-        )
-        feature_entry.pack(fill="x", pady=(0, 20))
-        feature_entry.insert(0, feature_id)
 
         btn_frame = ctk.CTkFrame(self._details_frame, fg_color="transparent")
         btn_frame.pack(fill="x")
@@ -1474,33 +1419,19 @@ class RulesManagerDialog(ctk.CTkToplevel):
             text_color=COLORS['text_primary'],
         ).pack(anchor="w", pady=(0, 20))
 
-        ctk.CTkLabel(
-            self._details_frame, text="Feature ID (Can I Use)*:",
-            font=ctk.CTkFont(size=12), text_color=COLORS['text_secondary'],
-        ).pack(anchor="w", pady=(0, 5))
-
-        id_entry = ctk.CTkEntry(
-            self._details_frame, placeholder_text="e.g., fetch",
-            font=ctk.CTkFont(size=12), height=36,
-            fg_color=COLORS['input_bg'], border_color=COLORS['border'],
+        id_entry = self._form_field(
+            "Feature ID (Can I Use)*:",
+            placeholder="e.g., fetch",
+            initial=edit_id or "",
+            bottom_pad=12,
         )
-        id_entry.pack(fill="x", pady=(0, 12))
-        if edit_id:
-            id_entry.insert(0, edit_id)
 
-        ctk.CTkLabel(
-            self._details_frame, text="Display Name*:",
-            font=ctk.CTkFont(size=12), text_color=COLORS['text_secondary'],
-        ).pack(anchor="w", pady=(0, 5))
-
-        name_entry = ctk.CTkEntry(
-            self._details_frame, placeholder_text="e.g., Fetch API",
-            font=ctk.CTkFont(size=12), height=36,
-            fg_color=COLORS['input_bg'], border_color=COLORS['border'],
+        name_entry = self._form_field(
+            "Display Name*:",
+            placeholder="e.g., Fetch API",
+            initial=(edit_data.get('name', '') if edit_data else ''),
+            bottom_pad=12,
         )
-        name_entry.pack(fill="x", pady=(0, 12))
-        if edit_data:
-            name_entry.insert(0, edit_data.get('name', ''))
 
         ctk.CTkLabel(
             self._details_frame, text="Type*:",
@@ -1528,29 +1459,18 @@ class RulesManagerDialog(ctk.CTkToplevel):
             font=ctk.CTkFont(size=12, weight="bold"), text_color=COLORS['text_muted'],
         ).pack(anchor="w", pady=(0, 8))
 
-        ctk.CTkLabel(
-            self._details_frame, text="NPM Package:",
-            font=ctk.CTkFont(size=12), text_color=COLORS['text_secondary'],
-        ).pack(anchor="w", pady=(0, 5))
-
-        npm_entry = ctk.CTkEntry(
-            self._details_frame, placeholder_text="e.g., whatwg-fetch",
-            font=ctk.CTkFont(size=12), height=36,
-            fg_color=COLORS['input_bg'], border_color=COLORS['border'],
+        npm_entry = self._form_field(
+            "NPM Package:",
+            placeholder="e.g., whatwg-fetch",
+            bottom_pad=10,
         )
-        npm_entry.pack(fill="x", pady=(0, 10))
 
-        ctk.CTkLabel(
-            self._details_frame, text="Import Statement:",
-            font=ctk.CTkFont(size=12), text_color=COLORS['text_secondary'],
-        ).pack(anchor="w", pady=(0, 5))
-
-        import_text = ctk.CTkTextbox(
-            self._details_frame, font=ctk.CTkFont(size=11, family="Courier"),
-            height=60, fg_color=COLORS['input_bg'],
-            border_color=COLORS['border'], border_width=1,
+        import_text = self._form_field(
+            "Import Statement:",
+            textbox=True,
+            textbox_height=60,
+            bottom_pad=10,
         )
-        import_text.pack(fill="x", pady=(0, 10))
 
         size_note_frame = ctk.CTkFrame(self._details_frame, fg_color="transparent")
         size_note_frame.pack(fill="x", pady=(0, 10))
@@ -1586,29 +1506,17 @@ class RulesManagerDialog(ctk.CTkToplevel):
             font=ctk.CTkFont(size=12, weight="bold"), text_color=COLORS['text_muted'],
         ).pack(anchor="w", pady=(10, 8))
 
-        ctk.CTkLabel(
-            self._details_frame, text="Fallback Description:",
-            font=ctk.CTkFont(size=12), text_color=COLORS['text_secondary'],
-        ).pack(anchor="w", pady=(0, 5))
-
-        fb_desc_entry = ctk.CTkEntry(
-            self._details_frame, placeholder_text="e.g., Use Flexbox as fallback",
-            font=ctk.CTkFont(size=12), height=36,
-            fg_color=COLORS['input_bg'], border_color=COLORS['border'],
+        fb_desc_entry = self._form_field(
+            "Fallback Description:",
+            placeholder="e.g., Use Flexbox as fallback",
+            bottom_pad=10,
         )
-        fb_desc_entry.pack(fill="x", pady=(0, 10))
 
-        ctk.CTkLabel(
-            self._details_frame, text="Fallback CSS Code:",
-            font=ctk.CTkFont(size=12), text_color=COLORS['text_secondary'],
-        ).pack(anchor="w", pady=(0, 5))
-
-        fb_code_text = ctk.CTkTextbox(
-            self._details_frame, font=ctk.CTkFont(size=11, family="Courier"),
-            height=80, fg_color=COLORS['input_bg'],
-            border_color=COLORS['border'], border_width=1,
+        fb_code_text = self._form_field(
+            "Fallback CSS Code:",
+            textbox=True,
+            textbox_height=80,
         )
-        fb_code_text.pack(fill="x", pady=(0, 15))
 
         if edit_data:
             packages = edit_data.get('packages', [])
