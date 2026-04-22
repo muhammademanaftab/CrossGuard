@@ -1,0 +1,46 @@
+\chapter{Introduction}
+\label{ch:intro}
+
+\section{Motivation}
+\label{sec:motivation}
+
+Modern web development relies on three core technologies: HTML for page structure, CSS for styling, and JavaScript for interactivity. Together, these technologies power nearly every website on the internet. However, the browsers that users rely on to view these websites do not all support the same features. A CSS property that works perfectly in Google Chrome might look completely different in Apple Safari. A JavaScript method that runs without issues in Mozilla Firefox might throw an error in Microsoft Edge. These differences exist because each browser is developed by a different company with its own release schedule, and new web features are adopted at different speeds.
+
+This problem is not limited to obscure or experimental features. Even widely used capabilities such as CSS Grid, CSS Flexbox gap, or the JavaScript Fetch API have gone through periods where support varied significantly across browsers. For developers, this means that writing code is only half the job. The other half is making sure that the code actually works for all users, regardless of which browser they happen to use.
+
+The most common way to check browser support today is through a website called Can I Use \cite{caniuse}. It maintains a large database of web platform features and shows which browsers support each one. However, Can I Use is designed for looking up one feature at a time. A typical website might rely on dozens of CSS properties, several HTML elements, and many JavaScript APIs. Checking each one individually takes time, and it is easy to miss something, especially when new features are added gradually during development.
+
+The idea behind Cross Guard came from practical experience during the Computer Science BSc programme at Eötvös Loránd University (ELTE) in Budapest. Several web-based projects were developed as part of the programme, ranging from simple interactive pages to more complex applications using TypeScript, JavaScript, and PHP. In several of these projects, features that worked correctly in Chrome during development would break when tested in Safari or Firefox. Each time, the problem had to be traced back to the specific feature causing the issue, looked up on Can I Use, and then resolved either by finding an alternative, adding a polyfill \cite{sharp2010polyfill}, or accepting that the feature would not work in that browser. This process was repetitive and time-consuming, and it often happened late in the project when fixing things was more difficult.
+
+Existing tools help with parts of this problem but none of them fully address it. Linters such as ESLint catch syntax errors and enforce coding standards but do not check browser support. Online validators verify that code follows web standards but do not consider real-world compatibility. Tools like BrowserStack or Selenium allow testing in real browsers but require the application to be running and take time to set up. None of these tools offer a quick, automated way to scan source code and identify compatibility issues before the code is even deployed.
+
+This gap is what motivated the development of Cross Guard: a tool that reads HTML, CSS, and JavaScript source files, automatically detects which web platform features they use, checks each one against the Can I Use database, and produces a clear report showing which features are supported, which ones might cause problems, and what the developer can do about it. All of this happens locally on the developer's computer, without needing to run the application or send any files over the internet.
+
+\section{Goals}
+\label{sec:goals}
+
+The primary goal of Cross Guard is to automate the process of checking browser compatibility for web source code. Instead of requiring developers to look up each feature one by one on Can I Use, the tool does this work automatically and presents the results in an organized report. The specific goals of the project are the following:
+
+\begin{enumerate}
+    \item The first goal is accurate feature detection. Cross Guard reads HTML, CSS, and JavaScript files and identifies the web platform features they use, including elements, attributes, properties, selectors, at-rules, API calls, constructors, and modern syntax features.
+    \item The second goal is reliable compatibility checking. Each detected feature is looked up in a local copy of the Can I Use database to determine whether it is supported, partially supported, or unsupported in the target browsers. This lookup happens entirely offline.
+    \item The third goal is clear and useful reporting. The tool calculates a weighted compatibility score from 0 to 100, assigns a letter grade from A to F, and breaks down results by browser and severity so that the most critical problems are easy to spot.
+    \item The fourth goal is to provide two separate interfaces. A desktop GUI built with Python and CustomTkinter is designed for interactive use, while a command line interface built with Click is designed for automation and CI/CD pipelines. Both interfaces use the same backend, so the results are always identical.
+    \item The fifth goal is to support multiple export formats including JSON, PDF, SARIF, JUnit XML, Checkstyle XML, and CSV so that results can be used in different contexts, from scripts to CI systems to spreadsheets.
+    \item The sixth goal is to provide actionable suggestions for fixing issues, including polyfill recommendations from an internal database and optional AI-generated code fixes using language model APIs from OpenAI or Anthropic.
+\end{enumerate}
+
+Finally, the tool aims to be extensible. Developers can create custom detection rules for project-specific patterns, and analysis results are stored in a local SQLite database for reviewing past analyses and tracking compatibility over time.
+
+\section{Scope of the Project}
+\label{sec:scope}
+
+Cross Guard is a static analysis tool \cite{binkley2007sca}. It examines source code by reading and parsing it, without running it. The tool does not open a browser, does not start a web server, and does not execute any of the code it analyzes. This makes the tool fast, lightweight, and easy to use. A developer can check a file in seconds without needing to set up any kind of test environment.
+
+The tool works with three types of web source files. HTML files are parsed using BeautifulSoup4 with the lxml backend, which handles messy or incomplete markup. CSS files are parsed using tinycss2, which converts stylesheets into an abstract syntax tree for structured analysis. JavaScript files are parsed using tree-sitter, which builds a full AST and is complemented by a regex-based fallback layer for broader coverage. The details of each parser's detection logic are described in Chapter~\ref{ch:impl}.
+
+The desktop GUI provides a complete visual workflow including file upload, browser selection, a results dashboard with scores and issue breakdowns, analysis history, custom rule management, and report export. The full set of GUI features is described in Chapter~\ref{ch:user}. The command line interface provides the same analysis capabilities through terminal commands, with additional support for quality gates, multiple output formats, and CI/CD configuration generation, also detailed in Chapter~\ref{ch:user}.
+
+There are clear boundaries to what Cross Guard does. It does not execute JavaScript code, so it cannot detect features used only conditionally at runtime. It does not render pages in a browser, so it cannot identify visual rendering differences. It does not perform network analysis or test server-side code. The analysis is limited to what can be determined from the source code alone, which is a deliberate trade-off that keeps the tool fast and simple to use.
+
+The application is written in Python and can be installed as a Python package with optional components for the GUI, the CLI, or both. All analysis results are stored in a local SQLite database created automatically on first run. The Can I Use database is included with the installation and can be refreshed at any time using a built-in update command. An optional AI module is available for generating code fix suggestions but requires the user to supply their own API key. This feature is entirely separate from the core analysis and does not affect any other part of the tool.

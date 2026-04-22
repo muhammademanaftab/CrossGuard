@@ -1,0 +1,572 @@
+\chapter{Developer Documentation}
+\label{ch:impl}
+
+\section{Problem Specification}
+\label{sec:problem-spec}
+
+Modern web development relies on a wide range of HTML, CSS, and JavaScript features. However, browser support for these features is not uniform. A feature that works correctly in one browser may be unsupported or only partially supported in another. For example, CSS Container Queries work in recent Chrome and Safari but not in older versions, and \texttt{<dialog>} is unsupported in Internet Explorer entirely. Developers often check compatibility manually using the Can I Use website~\cite{caniuse}, which works well for individual features but becomes slow and error prone when applied to large projects with many files. Cross Guard solves this problem by automatically analyzing source code~\cite{binkley2007sca} and checking browser compatibility. The tool performs the following steps during each analysis:
+
+\begin{enumerate}
+    \item Parse HTML, CSS, and JavaScript files to detect web platform features.
+    \item Look up each detected feature in the Can I Use database.
+    \item Check support status across the selected target browsers.
+    \item Calculate a weighted compatibility score from 0 to 100.
+    \item Assign a letter grade from A+ to F.
+    \item Produce a detailed report showing supported, partially supported, and unsupported features.
+\end{enumerate}
+
+Cross Guard provides two ways to use the system. The desktop GUI is intended for interactive use, while the command line interface is designed for automation and CI/CD pipelines. Both interfaces use the same backend through a shared service facade, which means the analysis results are identical regardless of how the tool is accessed. Results can be exported in several formats including JSON, PDF, SARIF, JUnit XML, Checkstyle XML, and CSV.
+
+\section{Tools and Methods Used}
+\label{sec:tools-methods}
+
+\subsection{Parsing Libraries}
+
+The system uses three separate parsers, one for each web language, because HTML, CSS, and JavaScript have very different structures. Each parser uses a specialized library suited to its language:
+
+\begin{compactitem}
+    \item HTML is parsed with BeautifulSoup4~\cite{bs4docs} (lxml backend), which converts markup into a DOM tree and handles messy or incomplete HTML well.
+    \item CSS is parsed with tinycss2~\cite{tinycss2}, which builds an Abstract Syntax Tree (AST)~\cite{aho2006compilers} so the system can understand the actual structure of rules and properties instead of just searching text.
+    \item JavaScript is parsed with tree-sitter~\cite{treesitter}, which builds a full AST and supports a three-tier detection strategy for syntax features, API calls, and operators.
+\end{compactitem}
+
+The detailed internal workflow of each parser is described in Section~\ref{sec:parser-flows}.
+
+\subsection{Compatibility Checking, Storage, and Export}
+
+Beyond parsing, Cross Guard relies on three additional subsystems. Detected features are looked up in a local copy of the Can I Use database to check browser support, and a scoring algorithm calculates a weighted compatibility score (0--100) and assigns a letter grade (A+ to F); details are given in Section~\ref{sec:scoring}. Analysis results, bookmarks, tags, and settings are stored in an SQLite database using repository classes, as explained in Section~\ref{sec:database}. Finally, results can be exported in six formats: JSON, PDF, SARIF, JUnit XML, Checkstyle XML, and CSV, with details in Section~\ref{sec:export}.
+
+\section{Can I Use Database}
+\label{sec:caniuse-db}
+
+Cross Guard relies on a local copy of the Can I Use~\cite{caniuse} compatibility database. This database contains detailed information about browser support for web platform features. The important files within the database include \texttt{data.json}, which contains the main compatibility tables, \texttt{features-json}, which contains detailed feature descriptions, and \texttt{region-usage-json}, which contains browser usage statistics by region. The database can be updated using the \texttt{update-db} CLI command or from the Settings page in the GUI. Keeping the database up to date ensures that the analysis results reflect the latest browser support information.
+
+\section{Frameworks and Libraries}
+\label{sec:frameworks}
+
+Cross Guard is implemented in Python and uses several supporting libraries. The main tools and libraries are the following:
+
+\begin{compactitem}
+    \item \textbf{Python 3.9+}~\cite{python39} -- the core programming language used to build the system.
+    \item \textbf{CustomTkinter 5.2+} -- desktop GUI framework with a modern dark theme.
+    \item \textbf{TkinterDnD2 0.3+} -- adds drag-and-drop file upload support to the GUI.
+    \item \textbf{Click 8.1+}~\cite{clickdocs} -- used to build the CLI with nested commands and options.
+    \item \textbf{SQLite}~\cite{sqlitedocs} -- persistent storage of analysis history and settings.
+    \item \textbf{reportlab 4.0+} -- PDF report generation.
+    \item \textbf{requests 2.31+} -- HTTP client for database updates and AI API calls.
+    \item \textbf{matplotlib 3.8+} -- chart generation for statistics.
+    \item \textbf{pytest 7.0+} -- automated testing.
+    \item \textbf{Git} -- version control.
+\end{compactitem}
+\newpage
+\section{System Architecture}
+\label{sec:architecture}
+
+The system follows a layered architecture~\cite{martin2017cleanarch} that separates the user interfaces from the backend logic. The GUI and CLI sit at the top layer and communicate with the backend through the \texttt{AnalyzerService} class. This class acts as a facade, hiding all the complexity behind a single entry point. It is implemented in \texttt{src/api/service.py} and both frontends access it through the \texttt{get\_analyzer\_service()} factory function. The following class diagram shows how the main classes connect:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{cg_architecture}
+    \caption{System architecture class diagram}
+    \label{fig:architecture}
+\end{figure}
+
+Looking at the diagram from top to bottom, \texttt{MainWindow} and \texttt{CLI} are the two frontends at the top. Both depend on \texttt{AnalyzerService} (dashed arrows), making it the only class they interact with. \texttt{AnalyzerService} creates \texttt{CrossGuardAnalyzer}, the orchestrator that coordinates the full analysis. \texttt{CrossGuardAnalyzer} owns three parsers (\texttt{HTMLParser}, \texttt{CSSParser}, \texttt{JavaScriptParser}) through composition, meaning it creates them and they cannot exist without it. These parsers extract web features from source code. \texttt{CanIUseDatabase}, a singleton, provides the browser support data used for compatibility checking.
+
+On the right side, \texttt{AnalyzerService} also uses three additional services: \texttt{AIFixService} calls external LLM APIs to generate code fix suggestions, \texttt{PolyfillService} recommends polyfill packages for unsupported features, and \texttt{AnalysisRepository} saves analysis results to the SQLite database.
+
+The external systems at the bottom (Can I Use Data, LLM APIs, SQLite Database) are resources outside the application.
+
+This layered design offers several benefits. Each layer has a clear responsibility, making the code easier to understand and maintain. Each layer can be tested on its own. Most importantly, the GUI and CLI always produce identical results because they share the same backend. All logging goes to stderr so that piped CLI output stays clean.
+
+The GUI never imports from the parsers, analyzer, or database layers directly. It only talks to \texttt{AnalyzerService}, keeping it fully decoupled from the backend. The following sections examine each group of classes from this diagram in detail.
+
+\section{Full Analysis Flow}
+\label{sec:analysis-flow}
+
+The analysis process begins differently depending on which interface the user is using, but both paths converge at the same point.
+
+In the GUI, users add files by dragging them into the window or using the file picker. The selected files appear in a table, and a browser selector allows the user to choose which browsers to check against. When the user clicks Analyze, \texttt{MainWindow} collects the file paths and browser selections, sorts the files by type (HTML, CSS, or JavaScript), and calls \texttt{self.\_analyzer\_service.analyze\_files()}. A progress dialog indicates that the analysis is running.
+
+In the CLI, the user runs a command such as \texttt{crossguard analyze style.css}. A helper function sorts the files by type, and the command calls \texttt{analyzer\_service.analyze\_files()} with the same kind of input as the GUI. From this point on, both interfaces follow the exact same path. The following diagram shows the classes involved in this pipeline and how they connect.
+
+The process begins with \texttt{AnalyzerService}. It receives an \texttt{AnalysisRequest}, a simple object holding the list of files and the target browsers, for example, \texttt{AnalysisRequest(html\_files=[], css\_files=["style.css"], js\_files=[], target\_browsers=\{"chrome": 120, "firefox": 121\})}. The service then creates a \texttt{CrossGuardAnalyzer} to carry out the actual work. The diagram below shows how \texttt{CrossGuardAnalyzer} coordinates the parsers, compatibility checker, and scorer to produce the final result:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{cg_pipeline}
+    \caption{Full analysis pipeline}
+    \label{fig:pipeline}
+\end{figure}
+
+\texttt{CrossGuardAnalyzer} serves as the orchestrator. As shown in the diagram, it owns five components through composition. The three parsers on the left (\texttt{HTMLParser}, \texttt{CSSParser}, \texttt{JavaScriptParser}) each take a source file and return a set of feature IDs. For example, if a CSS file contains \texttt{display: grid}, the \texttt{CSSParser} returns \texttt{css-grid} in its result set. The \texttt{run\_analysis()} method calls \texttt{\_parse\_html\_files()}, \texttt{\_parse\_css\_files()}, and \texttt{\_parse\_js\_files()} to collect all detected features.
+
+Once all features have been collected, the orchestrator passes them to \texttt{CompatibilityAnalyzer}. This class queries \texttt{CanIUseDatabase}, a singleton at the bottom of the diagram, to check whether each feature is supported in each target browser. For every feature and browser combination, it returns a status: supported, partially supported, or not supported.
+
+\texttt{CompatibilityScorer} then takes these results and calculates a score from 0 to 100 along with a letter grade from A+ to F. The methods \texttt{calculate\_simple\_score()} and \texttt{calculate\_weighted\_score()} handle this computation.
+
+Finally, the orchestrator assembles everything into a report through \texttt{\_generate\_report()}. \texttt{AnalyzerService} wraps this into an \texttt{AnalysisResult}, shown at the top right of the diagram, and returns it to whichever frontend requested it.
+
+Back in the GUI, \texttt{MainWindow} saves the result and switches to the Results page. This page displays the score, a pass/fail badge, per-browser support cards, a list of issues grouped by severity, and polyfill suggestions. Users can also bookmark the result, add tags, or export it as a report.
+
+In the CLI, the same result is printed to the terminal as a table, JSON, SARIF, or another format the user selected.
+
+The parser is the most critical part of this pipeline because it determines which features get checked. Each language requires a different detection approach. The next section explains how each parser works internally.
+
+\section{Parser Flow Diagrams}
+\label{sec:parser-flows}
+
+All three parsers share the same goal: read source code, detect web features, and return a set of Can I Use feature IDs. They all expose the same public methods (\texttt{parse\_file}, \texttt{parse\_string}, \texttt{get\_detailed\_report}) and store results in the same fields (\texttt{features\_found}, \texttt{feature\_details}, \texttt{unrecognized\_patterns}). This means the rest of the system can use any parser the same way without caring which language it handles. The difference is in the private methods each parser uses internally, which are explained in the subsections below. All three parsers also load user-defined rules from \texttt{CustomRulesLoader}, a singleton that reads custom detection rules from a JSON file. This lets users extend what the parsers can detect without changing any code.
+The following diagram shows all three parsers and the \texttt{CustomRulesLoader} they depend on:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{cg_parsers}
+    \caption{Parser class hierarchy}
+    \label{fig:parsers}
+\end{figure}
+
+The subsequent sections provide a detailed examination of the internal workflows for each individual parser.
+
+\subsection{HTML Parser Flow}
+
+The HTML parser is implemented in the \texttt{HTMLParser} class in \texttt{src/parsers/html\_parser.py}. When the class is initialized, it loads the built-in feature maps from \texttt{src/parsers/html\_feature\_maps.py} and merges them with any user-defined rules. These maps are simple Python dictionaries that link HTML constructs to Can I Use feature IDs. For example, \texttt{HTML\_ELEMENTS} maps \texttt{"dialog"} to \texttt{"dialog"}, \texttt{HTML\_INPUT\_TYPES} maps \texttt{"date"} to \texttt{"input-datetime"}, and \texttt{HTML\_ATTRIBUTE\_VALUES} maps the pair \texttt{("loading", "lazy")} to \texttt{"loading-lazy-attr"}.
+
+When \texttt{parse\_string()} is executed, the HTML content is passed to BeautifulSoup, which converts it into a DOM tree. The parser then runs a sequence of detection methods. \texttt{\_detect\_elements()} iterates through the elements dictionary and uses \texttt{soup.find\_all(name)} to check if each tag exists (e.g. \texttt{soup.find\_all("dialog")} returns every \texttt{<dialog>} in the file, which adds \texttt{dialog} to the feature set). \texttt{\_detect\_input\_types()} locates all input elements and reads their \texttt{type} attribute (e.g. \texttt{<input type="date">} adds \texttt{input-datetime}). \texttt{\_detect\_attributes()} visits every element and checks its attributes against the attribute dictionary. \texttt{\_detect\_attribute\_values()} compares attribute values against the \texttt{(attribute, value)} mappings (e.g. \texttt{<img loading="lazy">} matches the pair \texttt{(loading, lazy)} and adds \texttt{loading-lazy-attr}).
+
+Some features require additional logic beyond dictionary lookups. These are handled by \texttt{\_detect\_special\_patterns()}, which includes custom checks for cases such as custom elements with hyphenated names (\texttt{<my-widget></my-widget>}), SVG fragment identifiers where \texttt{href} contains \texttt{.svg\#} (\texttt{<use href="icons.svg\#star">}), data URIs, and different values of the \texttt{link rel} attribute such as \texttt{preload}, \texttt{prefetch}, and \texttt{dns-prefetch} (\texttt{<link rel="preload" href="style.css">}). Each detection method adds the matched feature ID to \texttt{self.features\_found} and records the match in \texttt{self.\_feature\_matches} for reporting.
+
+After detection is complete, \texttt{\_find\_unrecognized\_patterns()} identifies any elements or attributes that are not present in the feature maps and are not part of a set of basic elements such as \texttt{div}, \texttt{span}, \texttt{p}, and \texttt{body}. These are shown in the GUI so developers can see which parts of their code were not analyzed.
+
+The final result is the set stored in \texttt{self.features\_found}, returned to the analyzer along with \texttt{feature\_details}, which lists the matched elements and attributes for each feature.
+
+\subsection{CSS Parser Flow}
+
+The CSS parser is implemented in the \texttt{CSSParser} class in \texttt{src/parsers/css\_parser.py}. Unlike the HTML parser, it does not rely on dictionary lookups. Instead, it uses regular expression patterns defined in \texttt{src/parsers/css\_feature\_maps.py}. Each feature entry contains patterns that describe the CSS syntax associated with that feature. For example, the flexbox entry includes a pattern for \texttt{"display: flex"}, and the \texttt{css-grid} entry includes patterns for \texttt{"display: grid"} and related grid properties.
+
+When \texttt{parse\_string()} is executed, \texttt{tinycss2.parse\_stylesheet()} converts the CSS text into an abstract syntax tree. This AST contains different node types. \texttt{QualifiedRule} nodes represent standard rules with selectors and declaration blocks (e.g. \texttt{.container \{ display: flex; \}}). \texttt{AtRule} nodes represent rules that begin with \texttt{@}, such as \texttt{@media}, \texttt{@supports}, \texttt{@keyframes}, and \texttt{@font-face} (e.g. \texttt{@media (min-width: 768px) \{ \ldots \}}). The \texttt{\_extract\_components()} method traverses the AST and collects three lists: declarations, which hold the property-value pair together with the selector and block ID they belong to (e.g. \texttt{display: flex} inside selector \texttt{.container}, block ID \texttt{0}); at-rules, which include their keyword and prelude (e.g. \texttt{@media (min-width: 768px)} $\to$ keyword \texttt{media}, prelude \texttt{(min-width: 768px)}); and selectors.
+
+After extracting the components, \texttt{\_build\_matchable\_text()} reconstructs a clean version of the CSS as text. This version preserves block structure using curly braces so that context-dependent patterns still work. For example, the flexbox-gap feature is only detected when \texttt{"display: flex"} and \texttt{"gap"} appear within the same rule, such as \texttt{.container \{display: flex; gap: 10px; \}}. The reconstructed text is then passed to \texttt{\_detect\_features()}, which iterates over all feature patterns and applies \texttt{re.search()} to find matches. When a match is found, the feature ID is added to \texttt{self.features\_found}, and the matched properties are recorded in \texttt{feature\_details}.
+
+This two-step approach improves accuracy. The AST processing step ensures that comments, string values, and whitespace are handled correctly before regex matching begins. The \texttt{\_find\_unrecognized\_patterns\_structured()} method then reports any declarations or at-rules that did not match any feature pattern (e.g. \texttt{.x \{ -{}-custom-var: 10px; \}} is flagged because \texttt{-{}-custom-var} is not in any feature map).
+
+\subsection{JavaScript Parser Flow}
+
+The JavaScript parser is implemented in the \texttt{JavaScriptParser} class in \texttt{src/parsers/js\_parser.py}. JavaScript detection is more complex than HTML or CSS because it includes many types of features such as syntax constructs (\texttt{let x = 1}), API calls (\texttt{fetch(url)}), constructors (\texttt{new Promise(...)}), member access (\texttt{navigator.clipboard}), and operators (\texttt{??}). The parser uses tree-sitter to build a full AST and applies a three-tier detection strategy. All mappings are defined in \texttt{src/parsers/js\_feature\_maps.py}.
+
+When \texttt{parse\_string()} is executed, the parser first handles patterns that must be detected before further processing. \texttt{\_detect\_directives()} searches for \texttt{"use strict"} and \texttt{"use asm"} in the raw source text, since these appear inside string literals that are removed later, for example, a file starting with \texttt{"use strict";} is both a real string and a directive, so it must be captured before string-stripping runs. \texttt{\_detect\_event\_listeners()} also runs at this stage (e.g. \texttt{element.addEventListener("click", handler)} adds the \texttt{addeventlistener} feature). After that, \texttt{\_parse\_with\_tree\_sitter()} builds the AST. If tree-sitter is not available, the parser falls back to a regex-based approach that removes comments and runs pattern matching on the remaining text.
+
+The first tier, \texttt{\_detect\_ast\_syntax\_features()}, traverses the AST and checks node types against the \texttt{AST\_SYNTAX\_NODE\_MAP}. It detects features that have dedicated AST node types, which makes detection very reliable. For example, an \texttt{optional\_chain} node corresponds to the optional-chaining feature ID, a \texttt{spread\_element} node corresponds to the broader ES6 feature, and a \texttt{private\_property\_identifier} node corresponds to the private class fields feature.
+
+The second tier, \texttt{\_detect\_ast\_api\_features()}, examines specific node types and matches them against lookup dictionaries. \texttt{new\_expression} nodes are checked against \texttt{AST\_NEW\_EXPRESSION\_MAP}, so \texttt{new Promise()} maps to \texttt{promises}. \texttt{call\_expression} nodes are checked against \texttt{AST\_CALL\_EXPRESSION\_MAP}, so \texttt{fetch()} maps to \texttt{fetch} and \texttt{structuredClone()} maps to its feature ID. \texttt{member\_expression} nodes are checked against \texttt{AST\_MEMBER\_EXPRESSION\_MAP} for patterns such as \texttt{navigator.clipboard}. Identifier nodes are checked against \texttt{AST\_IDENTIFIER\_MAP} for global objects like \texttt{Proxy} and \texttt{WeakMap}.
+
+The third tier, \texttt{\_detect\_features()}, applies regex patterns to a cleaned version of the source code produced by \texttt{\_build\_matchable\_text\_from\_ast()}. This method walks the AST, replaces comments with spaces, and removes the contents of string literals while keeping the surrounding structure intact. The cleaned text is then scanned with regex patterns to detect features that the AST tiers miss, such as complex method chains or patterns spread across multiple tokens. Because the text is cleaned first, matches inside comments or string values are avoided. For example, \texttt{const msg = "use fetch here"; fetch(url);} becomes \texttt{const msg = ""; fetch(url);}, so only the real \texttt{fetch(url)} call is matched and the word \texttt{"fetch"} inside the string is ignored.
+
+All three tiers contribute to the same \texttt{self.features\_found} set. The result is returned to the analyzer along with \texttt{feature\_details}, which records the matched APIs and the detection category, whether syntax, API, or regex. This layered design combines the precision of AST-based detection with the broader coverage of regex matching, providing better results than either approach alone.
+
+\section{Scoring and Grading System}
+\label{sec:scoring}
+
+The compatibility score is computed by the \texttt{CompatibilityScorer} class in \texttt{src/analyzer/scorer.py}. For each detected feature, the scorer retrieves its Can I Use support status across all target browsers and assigns a numeric value. The simple score is calculated as the average of all feature scores across all browsers, while the weighted score applies browser-specific importance weights, configurable but defaulting to 1.0 for Chrome, Firefox, Safari, and Edge, 0.7 for Opera, and 0.5 for Internet Explorer. The weighted score is computed as:
+
+\[
+\mathit{weighted\_score} = \frac{\sum_i \mathit{score}_i \times \mathit{weight}_i}{\sum_i \mathit{weight}_i}
+\]
+
+For example, if Chrome scores 100 (weight 1.0) and Opera scores 50 (weight 0.7), the result is $(100 \times 1.0 + 50 \times 0.7) / (1.0 + 0.7) \approx 79.4$. The final score is mapped to a 13-level letter grading scale, ranging from A+ to F. The grade boundaries are defined as follows: A+ ($\geq$97), A (93--96), A$-$ (90--92), B+ (87--89), B (83--86), B$-$ (80--82), C+ (77--79), C (73--76), C$-$ (70--72), D+ (67--69), D (63--66), D$-$ (60--62), and F (below 60).
+
+The following table shows the numeric value assigned to each Can I Use status code:
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|c|l|c|}
+        \hline
+        \textbf{Status Code} & \textbf{Description} & \textbf{Score} \\
+        \hline \hline
+        y & Fully supported & 100 \\
+        \hline
+        a & Almost supported & 100 \\
+        \hline
+        x & Requires vendor prefix & 70 \\
+        \hline
+        p & Partial support & 50 \\
+        \hline
+        d & Disabled by default & 30 \\
+        \hline
+        n & Not supported & 0 \\
+        \hline
+        u & Unknown & 0 \\
+        \hline
+    \end{tabular}
+    \caption{Can I Use status codes and their numeric scores}
+    \label{tab:status-scores}
+\end{table}
+
+A risk level is also determined by the \texttt{calculate\_compatibility\_index()} method based on unsupported features. It is categorized as \texttt{none} if no unsupported or partial features exist, \texttt{low} if only partial support issues are found, \texttt{medium} if some features are unsupported in fewer than half the browsers, and \texttt{high} if more than half of the browsers lack support (e.g. 3 of 5 target browsers don't support \texttt{css-container-queries} $\to$ high risk).
+
+\section{Database Design}
+\label{sec:database}
+
+Cross Guard uses SQLite to store analysis history and user data. The database file (\texttt{crossguard.db}) is created automatically the first time the application runs. Schema versioning ensures that any database updates are applied automatically on startup, so users never need to run migration scripts manually.
+
+The database connection is managed by a singleton in \texttt{src/database/connection.py}, meaning only one connection exists throughout the entire runtime. All database operations pass through repository classes defined in \texttt{src/database/repositories.py}: \texttt{AnalysisRepository} for analysis records, \texttt{SettingsRepository} for key-value settings, \texttt{BookmarksRepository} for bookmarked analyses, and \texttt{TagsRepository} for colored labels. The following diagram shows the database layer and how the data is structured:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{cg_database}
+    \caption{Database layer and data model}
+    \label{fig:database}
+\end{figure}
+
+At the top of the diagram are the two classes that read and write data. \texttt{AnalysisRepository} handles all basic operations: saving, loading, finding by ID, and deleting records. \texttt{StatisticsService} queries the same database to provide metrics such as average scores, score trends, and grade distribution.
+
+In the center is the \texttt{Analysis} class, the main data model. Each \texttt{Analysis} stores the file name, file type, overall score, grade, number of features detected, and when it was performed (e.g. \texttt{Analysis(file\_name="style.css", file\_type="css", overall\_score=85.3, grade="B", total\_features=12)}).
+
+The hollow diamond arrows show how the data nests. One \texttt{Analysis} contains one or more \texttt{AnalysisFeatures} (marked $1..*$). Each \texttt{AnalysisFeature} represents a single detected web feature. Each \texttt{AnalysisFeature} then contains one or more \texttt{BrowserResults} (also $1..*$). A \texttt{BrowserResult} records whether a specific browser supports that feature, for example ``Chrome 120: supported'' or ``Safari 17: not supported''. This three-level nesting mirrors the database tables and their foreign key relationships.
+
+On the left, \texttt{Bookmark} references an \texttt{Analysis} through a solid line. Users can bookmark any analysis and attach a note. On the right, \texttt{Tag} has a $0..*$ relationship with \texttt{Analysis}, meaning one analysis can have multiple labels and one label can apply to multiple analyses.
+
+All five data model classes share the same methods: \texttt{to\_dict()} for JSON export and \texttt{from\_row()} for creating objects from database rows.
+
+The database schema is organized into two versions. V1 tables (\texttt{analyses}, \texttt{analysis\_features}, \texttt{browser\_results}) handle core analysis storage. V2 tables (\texttt{settings}, \texttt{bookmarks}, \texttt{tags}, \texttt{analysis\_tags}, \texttt{schema\_version}) add user features. All foreign keys use \texttt{ON DELETE CASCADE}, so deleting an analysis removes all its related data automatically.
+
+\section{Export Formats}
+\label{sec:export}
+
+Cross Guard supports six export formats for analysis results. Each format serves a different use case.
+
+JSON provides machine-readable output with full analysis metadata, suitable for processing by other tools or scripts. PDF produces a professional report containing score cards and browser breakdowns. SARIF 2.1.0~\cite{sarif210} integrates with GitHub Code Scanning, allowing compatibility issues to appear as inline annotations in pull requests. JUnit XML is compatible with CI systems such as Jenkins and GitLab CI for test reporting. Checkstyle XML integrates with static analysis tools such as SonarQube. CSV provides spreadsheet-friendly tabular output for reporting and data analysis.
+
+Each exporter receives an analysis report object and writes the formatted output to a file. The SARIF format is especially useful in automated workflows because GitHub recognizes it natively and can display compatibility issues directly inside pull request reviews.
+
+\section{Polyfill Recommendations}
+\label{sec:polyfill}
+
+A polyfill is a piece of code that provides modern functionality on older browsers that do not natively support it~\cite{sharp2010polyfill}. When a feature is not supported in a target browser, Cross Guard can recommend a polyfill or a CSS fallback as a workaround. The polyfill system is made up of three parts: \texttt{PolyfillService}, which generates the recommendations; \texttt{PolyfillLoader}, a singleton responsible for loading and caching the mapping data; and \texttt{polyfill\_map.json}, the data file where all mappings are stored.
+
+The mapping file \texttt{polyfill\_map.json} is organized into three groups: \texttt{javascript}, \texttt{css}, and \texttt{html}. Each entry is keyed by its Can I Use feature ID and includes a feature name, a polyfillable flag, and either a list of npm packages or a CSS fallback. A typical entry looks like this:
+
+\begin{lstlisting}[caption={Polyfill map entry for the \texttt{promises} feature}, label=src:polyfill-json, basicstyle=\ttfamily\small, breaklines=true]
+"promises": {
+  "name": "Promises",
+  "polyfillable": true,
+  "packages": [{
+    "npm": "core-js",
+    "import": "import 'core-js/stable';",
+    "size_kb": 35
+  }]
+}
+\end{lstlisting}
+
+Each package entry contains the npm package name, an import statement, an optional CDN link, the size in kilobytes, and a short note. Some features offer multiple options. For example, the promises feature includes both \texttt{core-js} (full-featured) and \texttt{es6-promise} (smaller and lighter). When a feature cannot be polyfilled with JavaScript, a fallback object is used instead, containing a description and a code snippet built around \texttt{@supports}. For example, \texttt{css-grid} provides a Flexbox fallback wrapped in \texttt{@supports (display: grid)}:
+
+\begin{lstlisting}[caption={CSS Grid fallback using \texttt{@supports}}, label=src:css-fallback, basicstyle=\ttfamily\small, breaklines=true]
+.container { display: flex; }
+@supports (display: grid) {
+  .container { display: grid; }
+}
+\end{lstlisting}
+
+The following diagram shows how these three parts connect:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{cg_polyfill}
+    \caption{Polyfill system components}
+    \label{fig:polyfill}
+\end{figure}
+
+\texttt{PolyfillLoader} follows the singleton pattern, meaning the JSON file is read only once through the private \texttt{\_load\_data()} method and stored in \texttt{\_data}. Its public methods handle straightforward lookups in a way that \texttt{get\_polyfill(feature\_id)} returns the mapping for a given feature, or \texttt{None} if no match is found; \texttt{has\_polyfill()} checks whether any polyfill or fallback is available; and \texttt{is\_polyfillable()} checks specifically for JavaScript polyfills.
+
+\texttt{PolyfillService} is the class responsible for building recommendations. Its main method, \texttt{get\_recommendations()}, accepts the sets of unsupported and partially supported features, merges them, and checks each one against the loader. If a JavaScript polyfill is available, it produces an ``npm'' recommendation containing the relevant package details. If only a CSS fallback exists, it produces a ``fallback'' recommendation with the description and code example. Each recommendation also records which browsers are affected.
+
+The service includes several helper methods to make results easier to work with. \texttt{get\_aggregate\_install\_command()} combines all npm packages into a single install command (e.g. \texttt{npm install core-js smoothscroll-polyfill}). \texttt{get\_aggregate\_imports()} collects all import statements (e.g. \texttt{["import 'core-js/stable';", "import 'smoothscroll-polyfill';"]}). \texttt{get\_total\_size\_kb()} sums up the package sizes to give an estimate of bundle impact. A separate function, \texttt{generate\_polyfills\_file()} in \texttt{polyfill\_generator.py}, can produce a ready-to-use \texttt{polyfills.js} file containing all the import statements. In the GUI, this is triggered by clicking the ``Generate polyfills.js'' button. Not every feature can be polyfilled. Many newer CSS properties and browser APIs lack reliable workarounds. In those cases, no recommendation is provided, and the developer must either choose an alternative approach or accept that the feature will not work in certain browsers.
+
+\section{AI Fix Suggestions}
+\label{sec:ai-fixes}
+
+Cross Guard includes an optional AI module that generates code fix suggestions for unsupported browser features. Unlike the polyfill system, which relies on a fixed mapping file, these suggestions are produced dynamically by a large language model based on the specific features and browsers identified during each analysis. \texttt{AIFixService} is the only class in this module. It stores the API key, provider name, model, and a limit on how many features to process in a single request. The public method \texttt{get\_fix\_suggestions()} manages the full flow, while a set of private methods handle the internal steps: building the prompt, calling the API, and parsing the response.
+
+The API key can come from several sources, checked in this order: the CLI \texttt{-{}-api-key} flag, the \texttt{CROSSGUARD\_AI\_KEY} environment variable, the \texttt{crossguard.config.json} file, or the SQLite settings table configured from the GUI Settings page. If no key is found, the feature stays hidden and the rest of the application continues to work exactly the same.
+
+In the GUI, a ``Get AI Suggestions'' button appears in the Issues section of the results dashboard. The API call only happens when the user clicks this button, not during the analysis itself, which avoids unnecessary API calls and keeps analysis fast. The request runs in a background thread so the interface stays responsive while waiting for a response. In the CLI, the \texttt{-{}-api-key} and \texttt{-{}-ai-provider} flags enable AI suggestions. When provided, an ``AI Fix Suggestions'' section is appended to the end of the output.
+
+The following diagram shows how \texttt{AIFixService} connects to the external LLM APIs:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{cg_ai}
+    \caption{AI fix service and external APIs}
+    \label{fig:ai}
+\end{figure}
+
+\subsection{How the Prompt Works}
+
+\texttt{\_build\_prompt()} constructs the prompt sent to the language model. It includes the names and Can I Use IDs of the problematic features, their support status across browsers, and the type of file being analyzed. To avoid timeouts, each request is capped at the 10 highest-priority features, with unsupported features taking precedence over partially supported ones. The model is instructed to return a structured JSON array so the response can be parsed automatically. Here is an example prompt for a CSS file with two unsupported features:
+
+\begin{lstlisting}[caption={Example AI fix-suggestion prompt}, label=src:ai-prompt, basicstyle=\ttfamily\small, breaklines=true]
+You are a web compatibility expert. The following CSS
+features have browser support issues. For each feature,
+suggest a specific code fix or fallback using widely
+supported alternatives.
+
+Features:
+- CSS Container Queries (css-container-queries):
+    unsupported in Chrome 148, Firefox 151, Edge 145, Safari TP
+- CSS Filter Effects (css-filter-function):
+    unsupported in Chrome 148, Firefox 151, Edge 145
+
+Respond ONLY with a JSON array. Each item must have:
+"feature_id", "suggestion", and "code_example".
+\end{lstlisting}
+
+The \texttt{\_call\_api()} method sends this prompt to whichever provider is configured. Internally, \texttt{\_call\_anthropic()} and \texttt{\_call\_openai()} handle the different API formats. The \texttt{\_parse\_response()} method then validates the returned JSON, strips any markdown code fences the model may have added, and filters out any feature IDs that were not part of the original request. The result is a list of suggestions, each containing the feature name, a short explanation of the fix, and a code example.
+
+For the example above, the system would typically return two suggestions, one recommending media queries with \texttt{min-width} as a fallback for container queries, and another suggesting \texttt{opacity} or \texttt{background-color} in place of CSS filter effects, each accompanied by a ready-to-use code snippet.
+
+\subsection{Security}
+
+The API key is never logged, included in exported reports, or stored in analysis history. In the GUI Settings page, the key input field uses password masking, and users can remove the key at any time using a Clear button. Only the generated suggestion text is stored and displayed, not the raw API response or any authentication data.
+
+\section{GUI Structure}
+\label{sec:gui}
+
+The GUI is built with CustomTkinter~\cite{customtkinter}, a library that gives Python's Tkinter a modern dark appearance. All GUI code lives in \texttt{src/gui/}. The application starts from \texttt{src/gui/app.py}, which creates the main window, applies the theme from \texttt{src/gui/theme.py}, and opens it on screen.
+
+The GUI's central class is \texttt{MainWindow}. It stores references to the layout components (\texttt{sidebar}, \texttt{header}, \texttt{content\_frame}, \texttt{status\_bar}), the backend connection (\texttt{\_analyzer\_service}), the latest analysis result (\texttt{current\_report}), and which page is currently active (\texttt{\_current\_view}). Report export is handled by a companion class, \texttt{ExportManager}.
+
+The GUI never runs any analysis or accesses the database directly. On startup, it gets a shared \texttt{AnalyzerService} instance by calling \texttt{get\_analyzer\_service()}. Any time it needs something, whether running an analysis, loading history, or saving a setting, it calls a method on this service. The GUI never imports from the parser, analyzer, or database code, which means the backend could be completely rewritten without breaking the interface.
+
+The following diagram shows how the GUI classes connect to the backend:
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{cg_gui}
+    \caption{GUI class structure}
+    \label{fig:gui}
+\end{figure}
+
+The application has four pages: Files, Results, History, and Settings. Each page has its own build method: \texttt{\_build\_files\_view()}, \texttt{\_build\_results\_view()}, \texttt{\_build\_history\_view()}, and \texttt{\_build\_settings\_view()}. Only one page is visible at a time. When the user clicks something in the sidebar, \texttt{\_show\_view()} clears the screen and calls the matching build method to draw the new page from scratch.
+
+Each page is composed of smaller widgets from \texttt{src/gui/widgets/}. Components like the score card, browser cards, issue cards, polyfill cards, and tag chips are all separate classes. Each widget manages its own layout and simply needs to be given the data to display (e.g. \texttt{ScoreCard(parent, score=85, grade="B")} produces a card showing the score and grade without the caller needing to know how it's laid out).
+
+State handling is straightforward. There is no global store and no event system. When an analysis finishes, \texttt{MainWindow} saves the result in \texttt{self.current\_report} as a plain dictionary and switches to the Results page. For Settings, input fields are tied to CustomTkinter variables. When the user clicks Save, the values are sent to the backend through \texttt{set\_setting()}. The next time Settings opens, the values are read back with \texttt{get\_setting()}.
+
+Buttons use the \texttt{command} parameter to call a function when clicked. Drag and drop is handled by the \texttt{DropZone} widget using TkinterDnD2. Some tasks, like AI suggestions, take too long to run directly, so they run in a background thread. When the response returns, \texttt{self.after(0, ...)} updates the screen from the main thread, since CustomTkinter widgets can only be modified by the thread that created them. A \texttt{ProgressDialog} shows a spinner while the user waits.
+
+Data from the backend comes back as feature IDs like \texttt{css-grid} or \texttt{fetch}. The GUI calls helper functions to turn these into readable labels like ``CSS Grid Layout'' and never stores these mappings itself, it always asks the backend.
+
+\texttt{ExportManager} handles report export through two methods: \texttt{export\_json()} and \texttt{export\_pdf()}. It is created inside \texttt{MainWindow} and uses the parent window reference to show file save dialogs.
+
+\section{CLI Commands}
+\label{sec:cli}
+
+The CLI is in \texttt{src/cli/main.py} and is built with Click. In Click, each command is a regular Python function with a \texttt{@cli.command()} decorator on top. The main entry point is a Click group called \texttt{cli}. When the user runs a command, Click figures out which function to call, reads the flags, and passes them in as arguments. The \texttt{cli} group has global options (\texttt{-v}, \texttt{-q}, \texttt{-{}-no-color}, \texttt{-{}-timing}) that apply to all commands. Click stores these in a context object that gets passed down, so every command knows the current settings. All log messages go to stderr, not stdout, so the actual output stays clean when piped into other tools.
+
+\subsection{Input Handling}
+
+Three small helper functions get the input ready before analysis starts. \texttt{\_parse\_browsers()} takes a string like \texttt{"chrome:120,firefox:121"} and turns it into a Python dictionary (\texttt{\{"chrome": 120, "firefox": 121\}}). If the user misspells a browser name (e.g. \texttt{chorme}), \texttt{difflib.get\_close\_matches()} suggests the closest match (\texttt{chrome}). \texttt{\_classify\_files()} sorts file paths into HTML, CSS, and JS lists based on their extension. \texttt{\_count\_issues()} goes through the result and counts how many features are unsupported or partially supported, which is needed later for quality gates. Every command creates an \texttt{AnalyzerService} and talks to it directly. The CLI never touches the parsers, analyzer, or database on its own. For example, \texttt{analyze} calls \texttt{service.analyze\_files()}, \texttt{history} calls \texttt{service.get\_analysis\_history()}, and \texttt{stats} calls \texttt{service.get\_statistics()}. They all follow the same pattern: call one service method, then hand the result to a formatter.
+
+\subsection{Formatting Results}
+
+The \texttt{analyze} command first converts the \texttt{AnalysisResult} into a plain dictionary with \texttt{result.to\_dict()}. What happens next depends on the \texttt{-{}-format} flag. For human-readable formats like table and summary, \texttt{format\_result()} in \texttt{src/cli/formatters.py} builds a formatted string with color codes for the terminal. The \texttt{-{}-no-color} flag turns colors off. For machine-readable formats like SARIF, JUnit, Checkstyle, and CSV, the matching exporter from \texttt{src/export/} takes the dictionary and produces the right output.
+
+The result is either printed to the terminal with \texttt{click.echo()} or saved to a file if \texttt{-{}-output} is set. The CLI can also write multiple files from one run using flags like \texttt{-{}-output-sarif} and \texttt{-{}-output-junit}.
+
+\subsection{Quality Gates}
+
+Once the output is done, \texttt{evaluate\_gates()} in \texttt{src/cli/gates.py} checks the score and issue counts against the thresholds set by \texttt{-{}-fail-on-score}, \texttt{-{}-fail-on-errors}, and \texttt{-{}-fail-on-warnings}. If any gate fails, the reasons are printed to stderr and the CLI exits with code \texttt{1} (e.g. \texttt{crossguard analyze src/ -{}-fail-on-score 80} exits with code \texttt{1} if the file scores \texttt{75}).
+
+\section{Use Case Diagram}
+\label{sec:usecase}
+
+The system supports two types of users. The User represents a web developer working through the desktop GUI. This actor can perform six actions: analyzing files for browser compatibility, viewing results with scores and issues, browsing history and statistics, getting AI-powered fix suggestions and polyfill recommendations, exporting reports in formats like PDF and JSON, and configuring custom detection rules or updating the database.
+
+The Developer represents someone using the CLI or integrating Cross Guard into a CI/CD pipeline. This actor connects to four use cases: analyzing files, exporting reports in machine-readable formats like SARIF, JUnit XML, Checkstyle XML, and CSV, configuring rules and updating the database, and running the CI/CD pipeline with quality gates that can fail a build if the compatibility score drops below a threshold.
+
+Both actors share access to the analysis and export features because both frontends use the same \texttt{AnalyzerService} backend, ensuring results are always identical regardless of which interface is used. The diagram also shows the four external systems that the use cases depend on. The dashed arrows indicate these connections: analyzing files checks browser support against the Can I Use Database and saves results to SQLite, browsing history queries SQLite, AI suggestions call the LLM API (OpenAI or Anthropic) to generate fixes, and updating the database fetches the latest data from the NPM Registry.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{cg_usecase}
+    \caption{Use case diagram}
+    \label{fig:usecase}
+\end{figure}
+\newpage    
+
+\section{Sequence Diagram}
+\label{sec:sequence}
+
+The following sequence describes what happens when a file is analyzed.
+
+\begin{compactenum}
+    \item The user uploads a file through the GUI or passes a file path to the CLI.
+    \item The frontend creates an \texttt{AnalysisRequest} and sends it to \texttt{AnalyzerService}.
+    \item Based on the file extension, the appropriate parser is called.
+    \item The parser reads the source code and extracts all web platform features.
+    \item The analyzer looks up each feature in the Can I Use database.
+    \item The scorer calculates a weighted score and assigns a letter grade.
+    \item If auto-save is enabled, the results are stored in the SQLite database.
+    \item An \texttt{AnalysisResult} is returned to the frontend for display.
+\end{compactenum}
+
+The diagram below illustrates this sequence in detail, including the exact method calls between components. It is split into four phases: parsing, compatibility checking, scoring, and report generation. Notes indicate where steps repeat for multiple files or feature-browser combinations.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.85\textwidth]{cg_sequence}
+    \caption{Sequence diagram of a file analysis}
+    \label{fig:sequence}
+\end{figure}
+\newpage
+\section{Design Patterns}
+\label{sec:patterns}
+
+Several design patterns~\cite{gof1994patterns} are used throughout the system.
+
+The \textbf{Facade pattern} is the most important. The \texttt{AnalyzerService} class acts as a single entry point for both the GUI and CLI. Instead of interacting directly with parsers, analyzers, and database modules, the frontends communicate only with this class, simplifying the overall architecture.
+
+The \textbf{Repository pattern}~\cite{fowler2002peaa} separates database logic from the rest of the application. Four repository classes manage all SQL operations for analyses, settings, bookmarks, and tags. This ensures that no other part of the codebase interacts with SQL directly, improving maintainability and testability.
+
+The \textbf{Singleton pattern} is used for the database connection. Only one connection instance exists during runtime, and it is shared across all repositories to ensure consistency and efficient resource usage.
+
+\textbf{Dependency Injection} is applied in the repository constructors. Each repository accepts an optional database connection parameter. In production, \texttt{AnalysisRepository()} uses the real database connection; in tests, \texttt{AnalysisRepository(conn=test\_conn)} uses an in-memory database. This keeps tests isolated from production data.
+
+\textbf{Lazy Loading} is implemented in \texttt{AnalyzerService}. Heavy components such as parsers and analyzers are not initialized at application startup. Instead, they are created only when first needed, improving startup performance.
+
+\textbf{Layered Configuration} controls how settings are resolved. Configuration values follow a priority order: CLI flags have the highest precedence, followed by the config file, then \texttt{package.json}, and finally built-in defaults. Each layer overrides the ones below it, for example, passing \texttt{-{}-browsers chrome:120} on the CLI overrides any \texttt{"browsers"} key set in \texttt{crossguard.config.json}.
+
+\textbf{Data Contracts} define communication between the frontend and backend using typed dataclasses. This ensures consistent and predictable data exchange across the system.
+
+\section{Developer Setup}
+\label{sec:setup}
+
+To set up the development environment, the following tools are required: Python 3.9 or newer, pip, and Git. The full setup, from cloning the repository to running the test suite, is shown in Listing~\ref{src:dev-setup}.
+
+\begin{lstlisting}[caption={Complete developer setup: clone, virtual environment, install, run, and test}, label=src:dev-setup, basicstyle=\ttfamily\small, breaklines=true]
+# 1. Clone the repository and enter the project directory
+git clone <repository>
+cd cross-guard
+
+# 2. Create and activate a virtual environment
+python -m venv venv
+source venv/bin/activate     # macOS / Linux
+venv\Scripts\activate        # Windows
+
+# 3. Install all dependencies (GUI, CLI, dev packages)
+pip install -e ".[gui,cli,dev]"
+
+# 4. Run the application
+python run_gui.py                                           # GUI
+python -m src.cli.main analyze example.js --format table   # CLI
+
+# 5. Run the test suite
+pytest tests/ -q
+\end{lstlisting}
+
+\section{Testing}
+\label{sec:testing}
+
+Cross Guard includes a comprehensive automated test suite with 112 tests implemented using pytest~\cite{pytestdocs}, organized into three testing categories: black box, white box, and integration~\cite{myers2011testing}. Every module follows a consistent file structure. Black box tests verify the public API by passing inputs and asserting outputs without inspecting internal state. White box tests exercise internals such as AST pipelines, singleton patterns, state management, and mocked dependencies. Integration tests verify the full pipeline including file I/O and real-world scenarios. Each test is marked with \texttt{@pytest.mark.blackbox}, \texttt{@pytest.mark.whitebox}, or \texttt{@pytest.mark.integration}, allowing selective execution by testing approach.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|l|c|c|c|c|}
+        \hline
+        \textbf{Module} & \textbf{BB} & \textbf{WB} & \textbf{Int} & \textbf{Total} \\
+        \hline \hline
+        CSS parser    & 6 & 5 & 3 & 14 \\ \hline
+        HTML parser   & 7 & 4 & 3 & 14 \\ \hline
+        JS parser     & 6 & 5 & 3 & 14 \\ \hline
+        Custom rules  & 3 & 2 & - & 5  \\ \hline
+        Analyzer      & 6 & 4 & 2 & 12 \\ \hline
+        API service   & 5 & 3 & 2 & 10 \\ \hline
+        Database      & 3 & 2 & 2 & 7  \\ \hline
+        CLI           & 4 & 4 & 2 & 10 \\ \hline
+        Polyfill      & 3 & 2 & 2 & 7  \\ \hline
+        Export        & 7 & - & - & 7  \\ \hline
+        Config        & 5 & - & - & 5  \\ \hline
+        AI            & 4 & 3 & - & 7  \\ \hline
+        \textbf{Total} & \textbf{59} & \textbf{34} & \textbf{19} & \textbf{112} \\ \hline
+    \end{tabular}
+    \caption{Test distribution across modules and categories}
+    \label{tab:test-distribution}
+\end{table}
+
+The test suite uses three testing approaches, each targeting a different level of the system.
+Black box tests treat each module as a closed box, they only test what goes in and what comes out, without inspecting internal implementation. For example, to verify that the CSS parser correctly detects CSS Grid, a test passes a CSS string containing \texttt{display: grid} and checks that \texttt{"css-grid"} appears in the result. The test does not consider how the parser finds the feature, only that it is detected:
+
+\begin{lstlisting}[caption={Black box test for feature detection}, label=src:blackbox-test, language=Python, basicstyle=\ttfamily\footnotesize, breaklines=true]
+@pytest.mark.blackbox
+class TestFeatureDetection:
+  @pytest.mark.parametrize("css_input,expected_id", [
+    (".c{display:grid}", "css-grid"),
+    (".c{display:flex}", "flexbox"),
+    ("@container(min-width:400px){.c{display:flex}}",
+     "css-container-queries"),])
+  def test_feature_detected(self, parse_features, css_input, expected_id):
+    assert expected_id in parse_features(css_input)
+\end{lstlisting}
+
+
+The test calls \texttt{parse\_features()} with a CSS snippet and asserts that the expected feature ID is present in the returned set. If the parser returns \texttt{\{"css-grid"\}} for \texttt{display:grid}, the test passes. This approach is applied consistently across all parsers to verify detection of a large set of feature identifiers.
+
+White box tests examine internal implementation details. These tests inspect parser state, call internal methods, and isolate behavior using controlled inputs. For example, the CSS parser must determine whether declarations belong to the same rule block. This affects whether \texttt{flexbox-gap} should be detected when \texttt{display: flex} and \texttt{gap} appear together:
+
+\begin{lstlisting}[caption={White box test for block boundary preservation}, label=src:whitebox-test, language=Python, basicstyle=\ttfamily\footnotesize, breaklines=true]
+@pytest.mark.whitebox
+class TestBlockBoundaryPreservation:
+  def test_flex_and_gap_same_block(self, parse_features):
+    assert "flexbox-gap" in parse_features(
+      ".c { display: flex; gap: 10px; }")
+
+  def test_flex_and_gap_different_blocks(self, parse_features):
+    css = (".flex { display: flex; } "
+           ".grid { display: grid; gap: 10px }")
+    assert "flexbox-gap" not in parse_features(css)
+\end{lstlisting}
+
+Both tests use the same properties, but their placement in different CSS rule blocks leads to different outcomes. Verifying this distinction requires knowledge of the parser's internal behavior, making it appropriate for white box testing.
+
+Integration tests verify the full pipeline from file input to final output. These tests operate on real files, invoke parser methods or CLI commands, and ensure that file reading, parsing, analysis, and output generation all work together correctly.
+
+For example, CLI integration tests use Click's \texttt{CliRunner} to execute commands and verify both exit codes and output streams. The complete test suite can be executed with a single command: \texttt{pytest tests/ -q}. The current test suite successfully executes all 112 automated tests in approximately under a second when run with the quiet flag, confirming the reliability and performance of the system across all modules.
+
+The test suite can be executed either by module or by testing approach, depending on the level of granularity required. Developers can use specific terminal commands to target individual components or broader categories of tests.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|l|l|}
+        \hline
+        \textbf{Target Module} & \textbf{Command} \\
+        \hline \hline
+        CSS Parser & \texttt{pytest tests/parsers/css/ -v} \\ \hline
+        HTML Parser & \texttt{pytest tests/parsers/html/ -v} \\ \hline
+        JavaScript Parser & \texttt{pytest tests/parsers/js/ -v} \\ \hline
+        Analyzer & \texttt{pytest tests/analyzer/ -v} \\ \hline
+        Database & \texttt{pytest tests/database/ -v} \\ \hline
+        API Service & \texttt{pytest tests/api/ -v} \\ \hline
+        CLI & \texttt{pytest tests/cli/ -v} \\ \hline
+        Polyfill & \texttt{pytest tests/polyfill/ -v} \\ \hline
+        Export & \texttt{pytest tests/export/ -v} \\ \hline
+        Configuration & \texttt{pytest tests/config/ -v} \\ \hline
+    \end{tabular}
+    \caption{Running tests by target module}
+    \label{tab:test-by-module}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|l|l|}
+        \hline
+        \textbf{Testing Approach} & \textbf{Command} \\
+        \hline \hline
+        Black Box   & \texttt{pytest tests/ -m blackbox} \\ \hline
+        White Box   & \texttt{pytest tests/ -m whitebox} \\ \hline
+        Integration & \texttt{pytest tests/ -m integration} \\ \hline
+    \end{tabular}
+    \caption{Running tests by testing approach}
+    \label{tab:test-by-approach}
+\end{table}
+
+This structure allows flexible test execution, enabling developers to focus on specific components or testing strategies while also verifying output formats and exit codes where applicable.

@@ -1,0 +1,406 @@
+\chapter{User Documentation}
+\label{ch:user}
+
+\section{Introduction}
+\label{sec:user-intro}
+
+Cross Guard is a tool that helps web developers check if their code will work across different browsers. While developing websites, it can be hard to quickly see which HTML, CSS, or JavaScript features may not be supported everywhere. Cross Guard analyzes the source files and highlights possible compatibility problems. It can be used through a simple desktop graphical interface for interactive use or through a command line interface that can be integrated into automated workflows and CI/CD pipelines.
+
+\section{Setting Up Cross Guard Locally}
+\label{sec:setup}
+
+This section explains the system requirements and the steps needed to install and run Cross Guard locally. Cross Guard can run on systems with the following hardware and software configurations.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|l|l|l|}
+        \hline
+        \textbf{Component} & \textbf{Minimum} & \textbf{Recommended} \\
+        \hline \hline
+        Processor   & 2.0 GHz dual core & 3.0 GHz quad core \\ \hline
+        Memory      & 4 GB RAM          & 8 GB RAM or more \\ \hline
+        Disk Space  & 100 MB            & 500 MB (with Can I Use data) \\ \hline
+        Display     & 1024 x 768        & 1920 x 1080 \\ \hline
+    \end{tabular}
+    \caption{Hardware requirements}
+    \label{tab:hardware-req}
+\end{table}
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|l|l|}
+        \hline
+        \textbf{Component} & \textbf{Required Version} \\
+        \hline \hline
+        Operating System & Windows 10+, macOS 12+, Linux (Ubuntu 20.04+) \\ \hline
+        Python           & 3.9 to 3.12 \\ \hline
+        pip              & Latest version \\ \hline
+    \end{tabular}
+    \caption{Software requirements}
+    \label{tab:software-req}
+\end{table}
+
+Before installing Cross Guard, several tools must be available on the system. The application requires Python version 3.9 to 3.12 together with the Python package manager pip, which is usually included with standard Python installations. Git is not strictly required but is recommended because it makes downloading and updating the project easier.
+
+Python can be downloaded from the official Python website. After installing it, users should verify that Python is available in the system terminal, then clone the repository and create a virtual environment as shown in Listing~\ref{src:setup-all}.
+
+\begin{lstlisting}[caption={Complete setup: verify Python, clone the repository, create and activate a virtual environment, and install dependencies}, label=src:setup-all, basicstyle=\ttfamily\small, breaklines=true]
+# 1. Verify Python is installed
+python --version
+
+# 2. Clone the repository and enter the project directory
+cd ~/projects
+git clone [repository-url]
+cd cross-guard
+
+# 3. Create a virtual environment
+python -m venv venv
+
+# 4. Activate the environment
+source venv/bin/activate     # macOS / Linux
+venv\Scripts\activate        # Windows
+
+# 5. Install all dependencies
+pip install -r requirements.txt
+\end{lstlisting}
+
+Cross Guard also supports optional installation modes that allow users to install only the graphical interface, only the command line interface, or both components together depending on how the tool will be used.
+
+\begin{lstlisting}[caption={Optional installation modes}, basicstyle=\ttfamily\small]
+pip install -e ".[gui]"       # GUI only
+pip install -e ".[cli]"       # CLI only
+pip install -e ".[gui,cli]"   # both
+\end{lstlisting}
+
+Users who plan to use both interfaces, or are unsure, should install both components.
+
+\section{Running the Application and Troubleshooting}
+\label{sec:running}
+
+After installing Cross Guard, the application can be run either through the graphical user interface or through the command line interface. The GUI is useful for interactive use, while the CLI is helpful when the tool needs to be integrated into scripts or automated workflows. Both interfaces are launched as shown in Listing~\ref{src:run-app}.
+
+\begin{lstlisting}[caption={Launching Cross Guard and showing CLI help}, label=src:run-app, basicstyle=\ttfamily\small]
+# Start the graphical interface
+python run_gui.py
+
+# Analyze a single file from the command line
+python -m src.cli.main analyze path/to/file.js --format table
+
+# Display the CLI help menu
+python -m src.cli.main --help
+\end{lstlisting}
+
+Once the GUI command is executed, the application window will open. Users can upload HTML, CSS, or JavaScript files by dragging them into the upload area or by selecting them using the file browser. After the files are added, the analysis can be started directly from the interface. The \texttt{-{}-format} flag supports several output types including table, JSON, SARIF, and others. The full list of supported formats is described later in the CLI section of this chapter.
+
+In some cases, users may encounter small issues when running the application. Most problems are related to missing dependencies or incorrect library versions. The most common fixes are shown in Listing~\ref{src:troubleshoot}.
+
+\begin{lstlisting}[caption={Common troubleshooting commands}, label=src:troubleshoot, basicstyle=\ttfamily\small]
+# Reinstall dependencies if packages are missing
+pip install -r requirements.txt
+
+# Resolve a tree-sitter version conflict
+pip install tree-sitter==0.21.3 tree-sitter-languages==1.10.2
+
+# Install tkinter on Linux if the GUI fails to start
+sudo apt-get install python3-tk
+\end{lstlisting}
+
+Cross Guard automatically creates a local SQLite database called \texttt{crossguard.db} when the application runs for the first time. If the database file becomes corrupted or behaves unexpectedly, it can simply be deleted. The application will recreate the file automatically the next time it starts.
+
+\section{Features of Cross Guard: GUI}
+\label{sec:gui-features}
+
+The Cross Guard GUI provides an interactive desktop interface for analyzing web files and reviewing compatibility results. Instead of running commands in a terminal, developers can work through a visual workflow where files are uploaded, analyzed, and the results are presented in a structured dashboard.
+
+\subsection{File Upload (Drag and Drop)}
+
+The analysis process begins by uploading the files that need to be checked. The interface includes a drag-and-drop area where HTML, CSS, or JavaScript files can be added directly from the file system. Files can also be selected using the file browser if dragging is not convenient.
+
+Once the files appear in the file table, they can be reviewed before starting the analysis. This makes it easy to confirm that the correct files are included, especially when checking multiple files at once. After the files are added, the analysis can be started from the interface and Cross Guard will scan them for browser compatibility issues.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{cg_gui_upload}
+    \caption{File upload screen in the Cross Guard GUI}
+    \label{fig:gui-upload}
+\end{figure}
+
+\subsection{Results Dashboard}
+
+After the analysis finishes, the results are presented in the Results Dashboard. This screen provides a summary of how compatible the analyzed code is across the selected browsers. At the top of the dashboard a compatibility score is displayed, showing the overall result of the analysis as both a percentage and a grade. The score reflects how many detected features are fully supported by the chosen browsers. For example, if a CSS file uses flexbox, CSS grid, and container queries, and the target browsers are Chrome 120 and Safari 15, the dashboard might show a score of 85/100 (grade B) because container queries are only partially supported in Safari 15.
+
+The dashboard also includes quick statistics such as the number of detected features and the browsers included in the analysis. Below that, the baseline status groups features into three categories: Widely Available, Newly Available, and Limited. Widely available features are supported across most browsers and generally do not cause compatibility issues. Newly available features are relatively recent and may only work in newer browser versions. Limited features have partial or inconsistent support and are the most likely to cause problems.
+
+One of the most useful sections is the area highlighting issues that need attention. When a feature is not supported by one or more of the selected browsers, it appears here together with warnings or recommendations. Developers can use this information to decide whether the feature should be replaced, rewritten, or supported through a polyfill. Additional sections in the dashboard show browser-specific support tables, the list of detected features, visual charts summarizing the results, and recommended fixes. Together these elements help developers quickly understand which parts of their code may cause cross-browser issues and what actions should be taken.
+
+The compatibility score is calculated by averaging the support level of each detected feature across all target browsers. Each feature is assigned a numeric value based on its support level: fully supported features receive 100 points, features that require a vendor prefix receive 70 points, partially supported features receive 50 points, and unsupported features receive 0 points. The final score is the average of these values across all features and browsers. This score is then mapped to a letter grade:
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|c|c|l|}
+        \hline
+        \textbf{Grade} & \textbf{Score Range} & \textbf{Meaning} \\
+        \hline \hline
+        A & 90--100\% & Excellent. All features are well supported \\ \hline
+        B & 80--89\%  & Good. Minor issues in some browsers \\ \hline
+        C & 70--79\%  & Fair. Several features require fallbacks \\ \hline
+        D & 60--69\%  & Poor. Significant compatibility gaps \\ \hline
+        F & 0--59\%   & Critical. Major features are unsupported \\ \hline
+    \end{tabular}
+    \caption{Simplified grade scale used in the Results Dashboard}
+    \label{tab:gui-grades}
+\end{table}
+
+A risk level is also assigned based on the number of unsupported features, categorized as none (no issues detected), low (only partial support issues), medium (some features are unsupported), or high (more than half of the target browsers lack support).
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{cg_gui_dashboard}
+    \caption{Results Dashboard showing score, grade, and feature breakdown}
+    \label{fig:gui-dashboard}
+\end{figure}
+
+\subsection{Polyfill Suggestions}
+
+When Cross Guard detects a feature that is not supported in one or more target browsers, it can recommend polyfills. A polyfill is a piece of code that provides the missing functionality so that the feature works in older browsers.
+
+The polyfill panel appears in the results view after an analysis is completed. For each unsupported feature, Cross Guard checks its internal polyfill database and suggests available options. Each suggestion includes the name of the polyfill, a short description of what it does, and how to install or include it in the project.
+
+Not every unsupported feature has a polyfill available. Some features, especially newer CSS properties or browser APIs, cannot be replicated through code. In those cases, the panel will not show a suggestion and the developer may need to consider an alternative approach or accept limited support in certain browsers.
+
+\subsection{AI Fix Suggestions}
+
+Cross Guard includes an optional AI-powered feature that generates targeted code fixes for browser compatibility issues. Unlike static polyfill recommendations, which rely on a predefined internal mapping, these suggestions are created dynamically by a large language model such as OpenAI or Anthropic, based on the specific features and browsers identified during analysis.
+
+To use this feature, an API key must be configured in the Settings page under the ``AI Fix Suggestions'' section. Users can enter their key and choose a provider such as OpenAI or Anthropic. The key is stored locally in the application database and is never included in exports or logs.
+
+When compatibility issues are detected, a ``Get AI Suggestions'' button appears in the Issues section of the results dashboard. Suggestions are generated only when the user clicks this button, ensuring that API calls happen only on demand. This avoids unnecessary usage and keeps the analysis process fast. The request runs in a background thread, so the interface remains fully responsive while suggestions are being generated.
+
+Each suggestion includes the affected feature, a concise explanation of the proposed fix, and a code example showing how to implement it. For example, if CSS container queries are unsupported in a target browser, the AI may recommend using media queries with a \texttt{min-width} fallback and provide a ready-to-use snippet.
+
+If no API key is configured, the feature is simply hidden. All other functionality in Cross Guard works exactly the same regardless of whether this feature is enabled.
+
+\subsection{Browser Selector}
+
+Cross-browser compatibility depends heavily on which browsers and versions a project needs to support. The Browser Selector allows developers to define the exact browser targets used during analysis. This is important because a feature that works perfectly in modern Chrome may still fail in older versions of Safari or Firefox.
+
+Within the selector panel, developers can choose the browsers that are relevant for their project and specify the versions that should be considered. For example, a modern web application might only support the latest versions of major browsers, while a public-facing website may need to include older versions used by a wider audience.
+
+By adjusting the browser targets, the analysis becomes more realistic for the actual environment where the code will run. This ensures that the compatibility results reflect real user conditions instead of generic assumptions.
+
+\subsection{Analysis History}
+
+Cross Guard stores previous analyses in a local SQLite database so that results can be reviewed later. This history view becomes useful when developers repeatedly analyze a project while making changes. Instead of losing earlier results, they can compare new analyses with previous ones and track how compatibility improves over time.
+
+The history panel displays statistics such as the total number of analyses performed, the average compatibility score, and the best result achieved so far. It also lists recent analyses with information including the file name, score, grade, feature count, and date of execution.
+
+Another helpful part of this view is the list of frequently failing features. By highlighting patterns across many analyses, Cross Guard helps developers identify recurring compatibility issues in their codebase. Analyses can also be bookmarked or tagged for easier organization, making it simple to return to important results later.
+
+\subsection{Custom Rules Manager}
+
+Cross Guard includes a custom rules system that lets developers extend feature detection without modifying the source code of the tool. These rules are stored in a JSON configuration file and are merged with the built-in feature maps when the parsers are initialized. Once merged, the custom rules behave exactly the same as built-in detection rules during analysis.
+
+A rule connects a detected code pattern to a Can I Use feature ID. The feature ID is the identifier used in the Can I Use compatibility database, for example \texttt{css-grid} or \texttt{promises}. When Cross Guard detects a pattern associated with that ID, it looks up browser support information in the local Can I Use dataset and includes the result in the compatibility report.
+
+For CSS and JavaScript rules, detection is based on regular expressions. A rule might contain a pattern that searches for a specific property, selector, or API usage in the source code. When the parser finds a match, the rule triggers and the corresponding feature is added to the analysis results.
+
+HTML rules work slightly differently, instead of regex patterns they map elements, attributes, or input types directly to feature IDs using simple key-value mappings.
+
+Creating a new rule adds an additional detection pattern to future analyses. Editing a rule changes how that pattern is interpreted, while deleting a rule simply removes that detection logic so it is no longer applied. The Custom Rules Manager in the GUI provides a visual editor for all three rule types, so users do not need to write any code. Developers who prefer to edit the underlying JSON configuration file directly can find the full rule-format specification in Chapter~\ref{ch:impl}.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{cg_gui_rules}
+    \caption{Custom Rules Manager in the GUI}
+    \label{fig:gui-rules}
+\end{figure}
+
+\subsection{Export Reports}
+
+After completing an analysis, the results can be exported as reports. These reports allow the compatibility findings to be shared with other developers or included in documentation and project reports. The GUI supports exporting the results as PDF or JSON files. Additional formats such as SARIF, JUnit XML, Checkstyle XML, and CSV are available through the CLI.
+
+The PDF format provides a readable report containing the compatibility score, detected features, and browser support information. JSON exports are more suitable when the results need to be processed by other tools or scripts.
+
+Exporting a report is done directly from the interface after an analysis is completed. The user selects the desired format and chooses where the file should be saved.
+
+\subsection{Settings}
+
+The Settings page contains configuration options that control how Cross Guard behaves. One section displays information about the local Can I Use database, including the number of features currently stored and the date when the database was last updated. The database can also be refreshed from this page to ensure that the latest browser compatibility data is used.
+
+Another part of the settings provides quick access to the custom rules manager, where detection rules can be created or modified. In addition, the user preferences section includes options such as automatically saving analyses to the history database, limiting how many past analyses are stored, and defining the default browsers that should be selected when the application starts.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{cg_gui_settings}
+    \caption{Settings page in the Cross Guard GUI}
+    \label{fig:gui-settings}
+\end{figure}
+
+\section{Features of Cross Guard: CLI}
+\label{sec:cli-features}
+
+In addition to the graphical interface, Cross Guard also provides a command line interface (CLI). The CLI is designed for developers who prefer working in the terminal or who want to integrate compatibility checks into automated workflows. Instead of uploading files through a window, the CLI analyzes files directly from the command line and prints the results in the terminal or saves them to files.
+
+The CLI uses the same analysis backend as the GUI, which means the compatibility results are identical regardless of how the tool is used. The main difference is how the results are triggered and displayed. This makes the CLI particularly useful in development pipelines where checks need to run automatically during builds or commits.
+
+\subsection{Running an Analysis}
+
+The most common CLI operation is analyzing a file. This is done using the \texttt{analyze} command. When a single file is provided, Cross Guard scans that file and detects the web platform features used in it. For example, the following command analyzes a single JavaScript file and prints the compatibility results in a readable table format:
+
+\begin{lstlisting}[caption={Analyze a JavaScript file in table format}, basicstyle=\ttfamily\small]
+python -m src.cli.main analyze path/to/file.js --format table
+\end{lstlisting}
+
+The \texttt{-{}-format} flag controls how the results are presented. The default table format is designed for human readability in the terminal, while other formats are intended for machine processing or integration with development tools.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{cg_cli_analyze}
+    \caption{CLI analyze command output}
+    \label{fig:cli-analyze}
+\end{figure}
+
+Cross Guard currently supports several output formats, summarized in Table~\ref{tab:cli-formats}.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|l|l|}
+        \hline
+        \textbf{Format} & \textbf{Purpose} \\
+        \hline \hline
+        Table          & Human-readable terminal output. \\ \hline
+        Summary        & A one-line quick compatibility check. \\ \hline
+        JSON           & Machine-readable output for scripts and tools. \\ \hline
+        SARIF          & Integration with GitHub Code Scanning. \\ \hline
+        JUnit XML      & Compatibility with CI systems such as Jenkins or GitLab. \\ \hline
+        Checkstyle XML & Integration with static analysis tools such as SonarQube. \\ \hline
+        CSV            & Export suitable for spreadsheet analysis or reporting. \\ \hline
+    \end{tabular}
+    \caption{Output formats supported by the CLI}
+    \label{tab:cli-formats}
+\end{table}
+
+These formats make it possible to use Cross Guard in continuous integration systems, automated testing pipelines, or external reporting tools.
+
+\subsection{Custom Browser Targets}
+
+By default, Cross Guard checks compatibility against the latest versions of Chrome, Firefox, Safari, and Edge. However, many projects need to support specific browser versions based on their audience. The \texttt{-{}-browsers} flag allows developers to define exactly which browsers and versions should be used during analysis. For example, the following command checks a file against Chrome version 120 and Firefox version 121:
+
+\begin{lstlisting}[caption={Analyze against specific browser versions}, basicstyle=\ttfamily\small]
+python -m src.cli.main analyze file.css --browsers "chrome:120,firefox:121"
+\end{lstlisting}
+
+Multiple browsers are separated by commas. If a version number is not provided, the latest version is used. This flag can be combined with any output format or quality gate. Choosing the right browser targets is important because the compatibility score changes depending on which browsers are selected. A file might score 95 when checked against only modern browsers but drop to 70 when older versions are included.
+\newpage
+\subsection{AI Fix Suggestions (CLI)}
+
+The CLI also supports AI-generated fix suggestions through two optional flags. The \texttt{-{}-api-key} flag provides the API key for the language model service, and the \texttt{-{}-ai-provider} flag selects the provider (\texttt{anthropic} or \texttt{openai}, with \texttt{none} used as the default). The same key can also be set as an environment variable to avoid including it in every command, as shown in Listing~\ref{src:ai-cli}.
+
+\begin{lstlisting}[caption={Enable AI fix suggestions via flags or environment variable}, label=src:ai-cli, basicstyle=\ttfamily\small, breaklines=true]
+# Pass the API key directly on the command line
+python -m src.cli.main analyze style.css --format table --api-key sk-... --ai-provider openai
+
+# Or set it once as an environment variable
+export CROSSGUARD_AI_KEY=sk-...
+python -m src.cli.main analyze style.css --format table
+\end{lstlisting}
+
+When an API key is provided and the analysis detects unsupported or partially supported features, the CLI adds an ``AI Fix Suggestions'' section at the end of the output. Each suggestion includes the feature name, a short explanation of the recommended fix, and a code example showing how it can be implemented. If no API key is provided, the analysis runs normally without generating AI suggestions. The feature is completely optional and does not change the standard analysis output.
+
+\subsection{Working With Previous Analyses}
+
+Just like the GUI, the CLI can access the history stored in the SQLite database. Each analysis performed through the tool can be saved and later reviewed. The \texttt{history} command lists previously recorded analyses and displays information such as the file name, compatibility score, and date of execution. The \texttt{stats} command provides aggregated statistics across all stored analyses, summarizing overall results and frequently failing features.
+
+\begin{lstlisting}[caption={List previous analyses and view aggregated statistics}, basicstyle=\ttfamily\small]
+python -m src.cli.main history
+python -m src.cli.main stats
+\end{lstlisting}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{cg_cli_history}
+    \caption{CLI history command output}
+    \label{fig:cli-history}
+\end{figure}
+
+This history becomes useful when developers repeatedly analyze the same project while making changes. By reviewing previous results, they can observe whether compatibility is improving or identify when a new change introduced a compatibility problem. The aggregated statistics help identify recurring compatibility issues in the codebase.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.75\textwidth]{cg_cli_stats}
+    \caption{CLI stats command output}
+    \label{fig:cli-stats}
+\end{figure}
+
+\subsection{Exporting Reports From the CLI}
+
+The CLI can also export analysis results into report files. These reports contain the same compatibility information shown in the terminal but are saved in formats that can be shared, archived, or processed by other tools. For example, a previously saved analysis can be exported as a JSON or PDF report using the \texttt{export} command:
+
+\begin{lstlisting}[caption={Export a previous analysis in different formats}, basicstyle=\ttfamily\small]
+python -m src.cli.main export 42 --format json --output report.json
+python -m src.cli.main export 42 --format pdf  --output report.pdf
+\end{lstlisting}
+
+Export formats such as SARIF, JUnit XML, and Checkstyle XML are especially useful when Cross Guard is used in automated environments. Many CI/CD platforms understand these formats and can display compatibility problems directly inside their reporting interfaces.
+
+\subsection{Configuration and Database Updates}
+
+The CLI also includes commands for managing configuration and updating compatibility data. The \texttt{config} command shows the current configuration settings or creates a configuration file that can store default options for future runs. The \texttt{update-db} command refreshes the local Can I Use database used for compatibility checks, ensuring that the latest browser support information is used during analysis.
+
+\begin{lstlisting}[caption={Manage configuration and update the Can I Use database}, basicstyle=\ttfamily\small]
+python -m src.cli.main config
+python -m src.cli.main config --init
+python -m src.cli.main update-db
+\end{lstlisting}
+
+\subsection{CI and Automation Support}
+
+One of the main advantages of the CLI is that it can be integrated into automated development workflows. Cross Guard includes commands that generate configuration files for continuous integration platforms or Git hooks. The \texttt{init-ci} command creates example workflow configurations for platforms such as GitHub Actions or GitLab CI. Figure~\ref{fig:cli-initci} shows the command generating a GitHub Actions workflow file.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{cg_cli_initci}
+    \caption{CLI init-ci command generating a workflow file}
+    \label{fig:cli-initci}
+\end{figure}
+
+In addition, the \texttt{init-hooks} command generates Git pre-commit hooks that automatically run compatibility checks before code is committed. Listing~\ref{src:ci-automation} shows how each of these commands is invoked.
+
+\begin{lstlisting}[caption={Generate CI workflow files and Git pre-commit hooks}, label=src:ci-automation, basicstyle=\ttfamily\small]
+python -m src.cli.main init-ci --provider github
+python -m src.cli.main init-ci --provider gitlab
+python -m src.cli.main init-hooks --type pre-commit
+\end{lstlisting}
+
+\subsection{Quality Gates and Exit Codes}
+
+The CLI can also enforce compatibility thresholds through quality gates. These options allow the command to exit with a failure code when the compatibility score drops below a defined level or when too many unsupported features are detected. Figure~\ref{fig:cli-gate} shows an example of a build failing because the compatibility score dropped below the configured threshold.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\textwidth]{cg_cli_gate}
+    \caption{CLI quality gate failing a build when the score is too low}
+    \label{fig:cli-gate}
+\end{figure}
+
+Additional gates can limit the number of unsupported or partially supported features, and gates can be combined in a single command. These checks are particularly useful in automated pipelines because CI systems rely on exit codes to determine whether a build passes or fails.
+
+\begin{lstlisting}[caption={Enforce compatibility thresholds with quality gates}, basicstyle=\ttfamily\small, breaklines=true]
+# Fail if the compatibility score drops below 80
+python -m src.cli.main analyze --fail-on-score 80
+
+# Limit errors and warnings independently
+python -m src.cli.main analyze --fail-on-errors 5
+python -m src.cli.main analyze --fail-on-warnings 10
+
+# Combine multiple gates in a single command
+python -m src.cli.main analyze --fail-on-score 80 --fail-on-errors 5
+\end{lstlisting}
+
+Cross Guard uses three exit codes that CI systems use to decide whether the pipeline should continue or stop:
+
+\begin{compactitem}
+    \item \textbf{0} indicates success.
+    \item \textbf{1} indicates that a quality gate failed or compatibility issues were detected.
+    \item \textbf{2} indicates an execution error such as invalid input or a missing file.
+\end{compactitem}
