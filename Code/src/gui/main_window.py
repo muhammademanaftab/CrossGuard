@@ -2,21 +2,19 @@
 
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 import customtkinter as ctk
 
 from src.api import get_analyzer_service
 
-from .theme import COLORS, SPACING, ICONS, WINDOW, LOGO_SIMPLE, enable_smooth_scrolling
+from .theme import COLORS, SPACING, ICONS, LOGO_SIMPLE, enable_smooth_scrolling
 from .widgets import (
     Sidebar,
     HeaderBar,
     StatusBar,
     FileTable,
     DropZone,
-    ScoreCard,
-    BrowserCard,
     BrowserRadarChart,
     CompatibilityBarChart,
     FeatureDistributionChart,
@@ -30,11 +28,8 @@ from .widgets import (
     IssuesSummary,
     QuickStatsBar,
     BrowserSelector,
-    get_available_browsers,
     HistoryCard,
     StatisticsPanel,
-    CompactStatsBar,
-    BookmarkButton,
     TagManagerDialog,
     PolyfillCard,
     AIFixCard,

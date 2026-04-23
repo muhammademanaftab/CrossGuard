@@ -3,7 +3,7 @@
 from typing import Callable, Optional, Dict, Any, List
 import customtkinter as ctk
 
-from ..theme import COLORS, SPACING, ICONS, get_score_color, get_file_type_color
+from ..theme import COLORS, SPACING, ICONS, get_score_color
 
 
 class HistoryCard(ctk.CTkFrame):

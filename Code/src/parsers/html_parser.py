@@ -1,6 +1,6 @@
 """HTML parser -- extracts browser features from HTML using BeautifulSoup."""
 
-from typing import Set, List, Dict, Optional
+from typing import Set, Dict
 from pathlib import Path
 from bs4 import BeautifulSoup
 import re

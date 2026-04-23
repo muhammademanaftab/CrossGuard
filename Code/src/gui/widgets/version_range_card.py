@@ -1,10 +1,10 @@
 """Can I Use-style browser version range cards with color-coded support status."""
 
-from typing import Dict, List, Optional
+from typing import Dict, List
 import customtkinter as ctk
 
 from ...api import get_analyzer_service
-from ..theme import COLORS, SPACING, ICONS
+from ..theme import COLORS, SPACING
 
 
 BROWSER_INFO = {

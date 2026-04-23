@@ -1,6 +1,6 @@
 """Aggregated analysis stats panel -- totals, averages, and top problem features."""
 
-from typing import Dict, Any, List, Optional
+from typing import Dict, Any, List
 import customtkinter as ctk
 
 from ..theme import COLORS, SPACING, ICONS, get_score_color

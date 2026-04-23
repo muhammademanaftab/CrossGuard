@@ -1,7 +1,7 @@
 """Sortable file table with selection and remove functionality."""
 
 from pathlib import Path
-from typing import List, Callable, Optional, Tuple, Dict
+from typing import List, Callable, Optional, Dict
 import customtkinter as ctk
 
 from ..theme import COLORS, SPACING, ICONS, get_file_type_color, enable_smooth_scrolling

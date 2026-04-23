@@ -16,15 +16,6 @@ WEB_FEATURES_URL = "https://unpkg.com/web-features/data.json"
 WEB_FEATURES_CACHE_DIR = Path.home() / ".crossguard"
 WEB_FEATURES_CACHE_PATH = WEB_FEATURES_CACHE_DIR / "web_features.json"
 
-DEFAULT_BROWSERS = {
-    'chrome': 'Chrome',
-    'firefox': 'Firefox',
-    'safari': 'Safari',
-    'edge': 'Edge',
-    'ie': 'Internet Explorer',
-    'opera': 'Opera'
-}
-
 LATEST_VERSIONS = {
     'chrome': '144',
     'firefox': '146',

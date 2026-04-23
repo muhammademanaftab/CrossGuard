@@ -3,7 +3,7 @@
 from typing import List, Callable, Optional
 import customtkinter as ctk
 
-from ..theme import COLORS, SPACING, FONTS, ICONS
+from ..theme import COLORS, SPACING, FONTS
 
 
 class PolyfillCard(ctk.CTkFrame):

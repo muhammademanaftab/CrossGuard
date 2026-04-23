@@ -3,7 +3,7 @@
 from typing import List, Optional
 import customtkinter as ctk
 
-from ..theme import COLORS, SPACING, ICONS
+from ..theme import COLORS, SPACING
 
 
 class IssueCard(ctk.CTkFrame):

@@ -1,12 +1,10 @@
 """Rules manager dialog -- browse, add, edit, and delete feature detection rules."""
 
-import json
-from pathlib import Path
 from typing import Dict, Optional, Callable, List, Tuple
 
 import customtkinter as ctk
 
-from ..theme import COLORS, SPACING, enable_smooth_scrolling
+from ..theme import COLORS, enable_smooth_scrolling
 from .messagebox import show_info, show_error, show_warning, ask_question
 
 from ...api import get_analyzer_service

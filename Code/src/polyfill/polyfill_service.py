@@ -1,6 +1,6 @@
 """Polyfill recommendation service."""
 
-from typing import Dict, List, Set, Optional
+from typing import Dict, List, Set
 
 from .polyfill_loader import get_polyfill_loader
 

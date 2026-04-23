@@ -1,4 +1,4 @@
-"""App-level settings. Theme constants live in theme.py -- this re-exports them for old import paths."""
+"""App-level settings."""
 
 from pathlib import Path
 
@@ -11,14 +11,3 @@ LOGO_PATH = GUI_DIR / "logo.png"
 
 EXPORT_FORMATS = ['PDF', 'JSON']
 DEFAULT_EXPORT_FORMAT = 'PDF'
-
-
-from .theme import (
-    COLORS,
-    FONTS,
-    SPACING,
-    ANIMATION,
-    WINDOW,
-    get_score_color,
-    configure_ctk_theme,
-)
