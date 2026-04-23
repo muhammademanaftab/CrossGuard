@@ -292,26 +292,9 @@ class SettingsRepository(_BaseRepository):
         """, (key, value))
         logger.debug(f"Setting '{key}' = '{value}'")
 
-    def get_all(self) -> Dict[str, str]:
-        cursor = self.conn.execute("SELECT key, value FROM settings")
-        return {row['key']: row['value'] for row in cursor.fetchall()}
-
-    def delete(self, key: str) -> bool:
-        cursor = self.conn.execute(
-            "DELETE FROM settings WHERE key = ?",
-            (key,)
-        )
-        return cursor.rowcount > 0
-
     def get_as_bool(self, key: str, default: bool = False) -> bool:
         value = self.get(key, str(default).lower())
         return value.lower() in ('true', '1', 'yes', 'on')
-
-    def get_as_int(self, key: str, default: int = 0) -> int:
-        try:
-            return int(self.get(key, str(default)))
-        except (ValueError, TypeError):
-            return default
 
     def get_as_list(self, key: str, default: List[str] = None) -> List[str]:
         value = self.get(key, '')
@@ -350,18 +333,6 @@ class BookmarksRepository(_BaseRepository):
         )
         return cursor.fetchone() is not None
 
-    def get_bookmark(self, analysis_id: int) -> Optional[Dict[str, Any]]:
-        from .models import Bookmark
-
-        cursor = self.conn.execute(
-            "SELECT * FROM bookmarks WHERE analysis_id = ?",
-            (analysis_id,)
-        )
-        row = cursor.fetchone()
-        if row:
-            return Bookmark.from_row(row).to_dict()
-        return None
-
     def get_all_bookmarks(self, limit: int = 50) -> List[Dict[str, Any]]:
         from .models import Bookmark, Analysis
 
@@ -394,13 +365,6 @@ class BookmarksRepository(_BaseRepository):
 
         return results
 
-    def update_note(self, analysis_id: int, note: str) -> bool:
-        cursor = self.conn.execute(
-            "UPDATE bookmarks SET note = ? WHERE analysis_id = ?",
-            (note, analysis_id)
-        )
-        return cursor.rowcount > 0
-
     def get_count(self) -> int:
         cursor = self.conn.execute("SELECT COUNT(*) FROM bookmarks")
         return cursor.fetchone()[0]
@@ -416,30 +380,6 @@ class TagsRepository(_BaseRepository):
 
         logger.info(f"Created tag '{name}'")
         return cursor.lastrowid
-
-    def get_tag_by_name(self, name: str) -> Optional[Dict[str, Any]]:
-        from .models import Tag
-
-        cursor = self.conn.execute(
-            "SELECT * FROM tags WHERE name = ?",
-            (name,)
-        )
-        row = cursor.fetchone()
-        if row:
-            return Tag.from_row(row).to_dict()
-        return None
-
-    def get_tag_by_id(self, tag_id: int) -> Optional[Dict[str, Any]]:
-        from .models import Tag
-
-        cursor = self.conn.execute(
-            "SELECT * FROM tags WHERE id = ?",
-            (tag_id,)
-        )
-        row = cursor.fetchone()
-        if row:
-            return Tag.from_row(row).to_dict()
-        return None
 
     def get_all_tags(self) -> List[Dict[str, Any]]:
         from .models import Tag
@@ -459,46 +399,6 @@ class TagsRepository(_BaseRepository):
             logger.info(f"Deleted tag #{tag_id}")
         return deleted
 
-    def update_tag(self, tag_id: int, name: str = None, color: str = None) -> bool:
-        updates = []
-        params = []
-
-        if name is not None:
-            updates.append("name = ?")
-            params.append(name)
-        if color is not None:
-            updates.append("color = ?")
-            params.append(color)
-
-        if not updates:
-            return False
-
-        params.append(tag_id)
-        cursor = self.conn.execute(
-            f"UPDATE tags SET {', '.join(updates)} WHERE id = ?",
-            params
-        )
-        return cursor.rowcount > 0
-
-    def add_tag_to_analysis(self, analysis_id: int, tag_id: int) -> bool:
-        try:
-            self.conn.execute("""
-                INSERT OR IGNORE INTO analysis_tags (analysis_id, tag_id, created_at)
-                VALUES (?, ?, CURRENT_TIMESTAMP)
-            """, (analysis_id, tag_id))
-            logger.debug(f"Added tag #{tag_id} to analysis #{analysis_id}")
-            return True
-        except Exception as e:
-            logger.error(f"Error adding tag: {e}")
-            return False
-
-    def remove_tag_from_analysis(self, analysis_id: int, tag_id: int) -> bool:
-        cursor = self.conn.execute(
-            "DELETE FROM analysis_tags WHERE analysis_id = ? AND tag_id = ?",
-            (analysis_id, tag_id)
-        )
-        return cursor.rowcount > 0
-
     def get_tags_for_analysis(self, analysis_id: int) -> List[Dict[str, Any]]:
         from .models import Tag
 
@@ -511,24 +411,3 @@ class TagsRepository(_BaseRepository):
 
         return [Tag.from_row(row).to_dict() for row in cursor.fetchall()]
 
-    def get_analyses_by_tag(self, tag_id: int, limit: int = 50) -> List[Dict[str, Any]]:
-        cursor = self.conn.execute("""
-            SELECT a.* FROM analyses a
-            JOIN analysis_tags at ON a.id = at.analysis_id
-            WHERE at.tag_id = ?
-            ORDER BY a.analyzed_at DESC
-            LIMIT ?
-        """, (tag_id, limit))
-
-        return [Analysis.from_row(row).to_dict() for row in cursor.fetchall()]
-
-    def get_tag_counts(self) -> Dict[str, int]:
-        cursor = self.conn.execute("""
-            SELECT t.name, COUNT(at.analysis_id) as count
-            FROM tags t
-            LEFT JOIN analysis_tags at ON t.id = at.tag_id
-            GROUP BY t.id
-            ORDER BY count DESC
-        """)
-
-        return {row['name']: row['count'] for row in cursor.fetchall()}

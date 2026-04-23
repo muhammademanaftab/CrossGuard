@@ -75,7 +75,7 @@ def build():
          '+ save_analysis_to_history(result) : int',
          '+ add_bookmark(analysis_id, note) : bool',
          '+ get_all_tags() : List',
-         '+ ...  (57 public methods total)'],
+         '+ ...  (49 public methods total)'],
         stereotype='facade'))
 
     # ═══ RELATIONSHIPS ═══════════════════════════════════

@@ -3,6 +3,7 @@
 from typing import Dict, List, Optional
 import customtkinter as ctk
 
+from ...api import get_analyzer_service
 from ..theme import COLORS, SPACING, ICONS
 
 
@@ -235,6 +236,8 @@ class VersionRangePopup(ctk.CTkToplevel):
 
         self._feature_id = feature_id
         self._feature_name = feature_name
+        self._service = get_analyzer_service()
+        self._browser_names = self._service.get_browser_display_names()
 
         self._init_ui()
 
@@ -245,10 +248,7 @@ class VersionRangePopup(ctk.CTkToplevel):
         self.geometry(f"+{x}+{y}")
 
     def _init_ui(self):
-        # Deferred import to avoid circular dependency
-        from ...analyzer.version_ranges import get_support_summary, BROWSER_NAMES
-
-        summary = get_support_summary(self._feature_id)
+        summary = self._service.get_version_range_summary(self._feature_id)
 
         header = ctk.CTkFrame(self, fg_color="transparent")
         header.pack(fill="x", padx=SPACING['lg'], pady=SPACING['lg'])
@@ -283,7 +283,7 @@ class VersionRangePopup(ctk.CTkToplevel):
             self._create_browser_row(scroll_frame, browser, data)
 
     def _create_browser_row(self, parent, browser: str, data: Dict):
-        from ...analyzer.version_ranges import BROWSER_NAMES
+        BROWSER_NAMES = self._browser_names
 
         row = ctk.CTkFrame(parent, fg_color=COLORS['bg_medium'], corner_radius=6)
         row.pack(fill="x", pady=SPACING['xs'])

@@ -1,6 +1,5 @@
 """Score card with animated circular progress indicator."""
 
-import math
 from typing import Optional
 
 import customtkinter as ctk

@@ -2,7 +2,7 @@
 
 from datetime import datetime
 from pathlib import Path
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 from reportlab.lib import colors
 from reportlab.lib.colors import HexColor
@@ -12,7 +12,7 @@ from reportlab.lib.styles import ParagraphStyle
 from reportlab.lib.units import inch
 from reportlab.platypus import (
     Paragraph, Spacer, Table, TableStyle, HRFlowable,
-    SimpleDocTemplate, KeepTogether,
+    SimpleDocTemplate,
 )
 from reportlab.graphics.shapes import Drawing, String, Wedge, Circle, Rect
 

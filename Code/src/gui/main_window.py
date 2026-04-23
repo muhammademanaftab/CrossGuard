@@ -6,7 +6,7 @@ from typing import Dict, List, Optional
 
 import customtkinter as ctk
 
-from src.api import get_analyzer_service, AnalysisResult
+from src.api import get_analyzer_service
 
 from .theme import COLORS, SPACING, ICONS, WINDOW, LOGO_SIMPLE, enable_smooth_scrolling
 from .widgets import (

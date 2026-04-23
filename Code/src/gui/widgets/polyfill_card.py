@@ -1,7 +1,6 @@
 """Polyfill recommendation card."""
 
 from typing import List, Callable, Optional
-import re
 import customtkinter as ctk
 
 from ..theme import COLORS, SPACING, FONTS, ICONS
@@ -25,6 +24,8 @@ class PolyfillCard(ctk.CTkFrame):
         self._npm = npm_recommendations
         self._css = css_fallbacks
         self._install_command = install_command
+        self._imports = import_statements or []
+        self._total_size = total_size_kb
         self._on_generate_file = on_generate_file
 
         self._init_ui()
@@ -90,6 +91,31 @@ class PolyfillCard(ctk.CTkFrame):
             )
             copy_btn.configure(command=lambda b=copy_btn: self._copy(b))
             copy_btn.pack(side="right", padx=SPACING['xs'], pady=SPACING['xs'])
+
+            if self._total_size and self._total_size > 0:
+                ctk.CTkLabel(
+                    cmd_row, text=f"~{self._total_size:.1f} KB",
+                    font=ctk.CTkFont(size=9),
+                    text_color=COLORS['text_disabled'],
+                ).pack(side="right", padx=(0, SPACING['xs']), pady=SPACING['xs'])
+
+        if self._imports:
+            ctk.CTkLabel(
+                self, text="Add to your code:",
+                font=ctk.CTkFont(size=10, weight="bold"),
+                text_color=COLORS['text_secondary'],
+                anchor="w",
+            ).pack(fill="x", pady=(SPACING['sm'], 2))
+
+            imports_block = ctk.CTkFrame(self, fg_color=COLORS['bg_darkest'], corner_radius=4)
+            imports_block.pack(fill="x")
+            for imp in self._imports:
+                ctk.CTkLabel(
+                    imports_block, text=imp,
+                    font=ctk.CTkFont(family=FONTS['family_mono'], size=10),
+                    text_color=COLORS['accent'],
+                    anchor="w",
+                ).pack(fill="x", padx=SPACING['sm'], pady=2)
 
         if self._on_generate_file and self._npm:
             gen_row = ctk.CTkFrame(self, fg_color="transparent")

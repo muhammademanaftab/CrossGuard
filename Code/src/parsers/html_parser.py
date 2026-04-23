@@ -15,7 +15,6 @@ from .html_feature_maps import (
     HTML_MEDIA_TYPE_VALUES,
     HTML_CSP_ATTRIBUTES,
     ELEMENT_SPECIFIC_ATTRIBUTES,
-    ALL_HTML_FEATURES
 )
 from .custom_rules_loader import get_custom_html_rules
 from ..utils.config import get_logger
@@ -484,40 +483,3 @@ class HTMLParser:
             'unrecognized': sorted(list(self.unrecognized_patterns))
         }
 
-    def parse_multiple_files(self, filepaths: List[str]) -> Set[str]:
-        all_features = set()
-
-        for filepath in filepaths:
-            try:
-                features = self.parse_file(filepath)
-                all_features.update(features)
-            except Exception as e:
-                logger.warning(f"Could not parse {filepath}: {e}")
-
-        return all_features
-
-    def validate_html(self, html_content: str) -> bool:
-        try:
-            soup = BeautifulSoup(html_content, 'html.parser')
-            return soup is not None
-        except Exception:
-            return False
-
-    def get_statistics(self) -> Dict:
-        element_counts = {}
-        for elem in self.elements_found:
-            element_counts[elem['element']] = element_counts.get(elem['element'], 0) + elem['count']
-
-        attribute_counts = {}
-        for attr in self.attributes_found:
-            attr_name = attr['attribute']
-            attribute_counts[attr_name] = attribute_counts.get(attr_name, 0) + 1
-
-        return {
-            'total_features': len(self.features_found),
-            'total_elements_detected': len(self.elements_found),
-            'total_attributes_detected': len(self.attributes_found),
-            'element_counts': element_counts,
-            'attribute_counts': attribute_counts,
-            'features_list': sorted(list(self.features_found))
-        }

@@ -1,4 +1,4 @@
-"""Compact issue cards with colored left border and browser badges."""
+"""Compact issue cards with colored left border, browser badges, and optional fix suggestion."""
 
 from typing import List, Optional
 import customtkinter as ctk
@@ -29,23 +29,27 @@ class IssueCard(ctk.CTkFrame):
 
         super().__init__(
             master, fg_color=COLORS['bg_dark'], corner_radius=0,
-            border_width=0, height=32, **kwargs
+            border_width=0, **kwargs
         )
-        self.pack_propagate(False)
-        self.grid_columnconfigure(1, weight=1)
 
+        # Colored left border spans the full card height
         ctk.CTkFrame(
-            self, fg_color=border_color, width=3, height=32, corner_radius=0
+            self, fg_color=border_color, width=3, corner_radius=0
         ).place(x=0, y=0, relheight=1)
 
+        # Top row — feature name + browser badges + baseline pill
+        top = ctk.CTkFrame(self, fg_color="transparent", height=32)
+        top.pack(fill="x", side="top")
+        top.pack_propagate(False)
+
         ctk.CTkLabel(
-            self, text=feature_name,
+            top, text=feature_name,
             font=ctk.CTkFont(size=11, weight="bold"),
             text_color=COLORS['text_primary'],
-        ).place(x=12, rely=0.5, anchor="w")
+        ).pack(side="left", padx=(12, 0))
 
-        right = ctk.CTkFrame(self, fg_color="transparent")
-        right.place(relx=1.0, rely=0.5, anchor="e", x=-8)
+        right = ctk.CTkFrame(top, fg_color="transparent")
+        right.pack(side="right", padx=8)
 
         for browser in reversed(browsers):
             ctk.CTkLabel(
@@ -67,6 +71,20 @@ class IssueCard(ctk.CTkFrame):
                 fg_color=badge_color,
                 corner_radius=3,
             ).pack(side="right", padx=(0, 4))
+
+        # Fix suggestion row — only rendered when we actually have text to show
+        if fix_suggestion:
+            fix_row = ctk.CTkFrame(self, fg_color="transparent")
+            fix_row.pack(fill="x", side="top", padx=(12, 8), pady=(0, 6))
+            ctk.CTkLabel(
+                fix_row,
+                text=f"Fix: {fix_suggestion}",
+                font=ctk.CTkFont(size=10, slant="italic"),
+                text_color=COLORS['text_muted'],
+                wraplength=600,
+                justify="left",
+                anchor="w",
+            ).pack(anchor="w", fill="x")
 
 
 class IssuesSummary(ctk.CTkFrame):
@@ -90,7 +108,7 @@ class IssuesSummary(ctk.CTkFrame):
 
         self._toggle = ctk.CTkLabel(
             self._header,
-            text="\u25BC" if self._expanded else "\u25B6",
+            text="▼" if self._expanded else "▶",
             font=ctk.CTkFont(size=9),
             text_color=COLORS['text_muted'],
             width=14,
@@ -159,9 +177,9 @@ class IssuesSummary(ctk.CTkFrame):
         self._expanded = not self._expanded
         if self._expanded:
             self._container.pack(fill="x", padx=SPACING['md'], pady=(0, SPACING['sm']))
-            self._toggle.configure(text="\u25BC")
+            self._toggle.configure(text="▼")
             self._hint.configure(text="Collapse")
         else:
             self._container.pack_forget()
-            self._toggle.configure(text="\u25B6")
+            self._toggle.configure(text="▶")
             self._hint.configure(text="Click to view")

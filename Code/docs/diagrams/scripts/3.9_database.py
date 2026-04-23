@@ -56,10 +56,10 @@ def build():
     g.node('StatisticsService', cn('StatisticsService',
         ['- _conn : Connection'],
         ['+ get_average_score() : float',
-         '+ get_score_trend(days) : List',
+         '+ get_top_problematic_features(lim) : List',
          '+ get_grade_distribution() : Dict',
          '+ get_summary_statistics() : Dict',
-         '+ ...  (13 public methods total)']))
+         '+ ...  (11 public methods total)']))
 
     g.node('SQLiteDB', en('SQLite Database', 'crossguard.db'))
 

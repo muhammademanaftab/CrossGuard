@@ -19,7 +19,6 @@ from .theme import (
     SPACING,
     ANIMATION,
     WINDOW,
-    get_color,
     get_score_color,
     configure_ctk_theme,
 )

@@ -434,11 +434,3 @@ def _id_to_title(feature_id: str) -> str:
 
 def get_fix_suggestion(feature_id: str) -> Optional[str]:
     return FIX_SUGGESTIONS.get(feature_id)
-
-
-def get_severity(support_status: str) -> str:
-    if support_status in ('n', 'u'):
-        return 'critical'
-    elif support_status in ('a', 'p', 'd'):
-        return 'warning'
-    return 'info'

@@ -59,8 +59,6 @@ def build():
     g.node('PolyfillLoader', cn('PolyfillLoader',
         ['- _data : Dict'],
         ['+ get_polyfill(feature_id) : Dict',
-         '+ has_polyfill(feature_id) : bool',
-         '+ is_polyfillable(feature_id) : bool',
          '+ reload()',
          '- _load_data()'],
         stereotype='singleton'))

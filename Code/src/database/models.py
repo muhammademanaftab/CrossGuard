@@ -134,30 +134,6 @@ class Analysis:
             browsers_json=row['browsers_json'] or '{}',
         )
 
-    def get_formatted_date(self) -> str:
-        if not self.analyzed_at:
-            return 'Unknown'
-
-        now = datetime.now()
-        diff = now - self.analyzed_at
-
-        if diff.days == 0:
-            return f"Today {self.analyzed_at.strftime('%I:%M %p')}"
-        elif diff.days == 1:
-            return "Yesterday"
-        elif diff.days < 7:
-            return f"{diff.days} days ago"
-        else:
-            return self.analyzed_at.strftime('%b %d, %Y')
-
-    def get_file_type_icon(self) -> str:
-        icons = {
-            'html': '\u25B6',
-            'htm': '\u25B6',
-            'css': '\u25C6',
-            'js': '\u2605',
-        }
-        return icons.get(self.file_type.lower(), '\u25A0')
 
 
 @dataclass

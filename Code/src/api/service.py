@@ -494,6 +494,93 @@ class AnalyzerService:
         from src.analyzer.version_ranges import get_version_ranges
         return get_version_ranges(feature_id, browser)
 
+    def get_version_range_summary(self, feature_id: str) -> Dict[str, Dict]:
+        """Per-feature support ranges across every browser in the catalog."""
+        from src.analyzer.version_ranges import get_support_summary
+        return get_support_summary(feature_id)
+
+    def get_browser_display_names(self) -> Dict[str, str]:
+        """Maps short codes ('chrome', 'ios_saf') to display labels ('Chrome', 'Safari on iOS')."""
+        from src.analyzer.version_ranges import BROWSER_NAMES
+        return dict(BROWSER_NAMES)
+
+    def get_feature_catalogs(self) -> Dict[str, Dict]:
+        """Pre-grouped built-in feature detection rules for the Custom Rules editor."""
+        from src.parsers.css_feature_maps import (
+            ALL_CSS_FEATURES,
+            CSS_LAYOUT_FEATURES, CSS_TRANSFORM_ANIMATION, CSS_COLOR_BACKGROUND,
+            CSS_TYPOGRAPHY, CSS_BOX_MODEL, CSS_BORDER_OUTLINE, CSS_SHADOW_EFFECTS,
+            CSS_SELECTORS, CSS_MEDIA_QUERIES, CSS_UNITS, CSS_VARIABLES, CSS_AT_RULES,
+            CSS_POSITIONING, CSS_OVERFLOW, CSS_INTERACTION, CSS_MISC, CSS_CONTAINER,
+            CSS_SUBGRID, CSS_CASCADE, CSS_NESTING, CSS_ADDITIONAL_1, CSS_ADDITIONAL_2,
+            CSS_ADDITIONAL_3,
+        )
+        from src.parsers.js_feature_maps import (
+            ALL_JS_FEATURES,
+            JS_SYNTAX_FEATURES, JS_API_FEATURES, JS_ARRAY_METHODS, JS_STRING_METHODS,
+            JS_OBJECT_METHODS, JS_STORAGE_APIS, JS_DOM_APIS,
+        )
+        from src.parsers.html_feature_maps import (
+            ALL_HTML_FEATURES,
+            HTML_ELEMENTS, HTML_ATTRIBUTES, HTML_INPUT_TYPES, HTML_ATTRIBUTE_VALUES,
+        )
+        return {
+            'css': {
+                'all': ALL_CSS_FEATURES,
+                'categories': {
+                    'Layout': CSS_LAYOUT_FEATURES,
+                    'Transforms & Animation': CSS_TRANSFORM_ANIMATION,
+                    'Colors & Background': CSS_COLOR_BACKGROUND,
+                    'Typography': CSS_TYPOGRAPHY,
+                    'Box Model': CSS_BOX_MODEL,
+                    'Border & Outline': CSS_BORDER_OUTLINE,
+                    'Shadow & Effects': CSS_SHADOW_EFFECTS,
+                    'Selectors': CSS_SELECTORS,
+                    'Media Queries': CSS_MEDIA_QUERIES,
+                    'Units': CSS_UNITS,
+                    'Variables': CSS_VARIABLES,
+                    'At-Rules': CSS_AT_RULES,
+                    'Positioning': CSS_POSITIONING,
+                    'Overflow': CSS_OVERFLOW,
+                    'Interaction': CSS_INTERACTION,
+                    'Container': CSS_CONTAINER,
+                    'Subgrid': CSS_SUBGRID,
+                    'Cascade': CSS_CASCADE,
+                    'Nesting': CSS_NESTING,
+                    'Other': {**CSS_MISC, **CSS_ADDITIONAL_1, **CSS_ADDITIONAL_2, **CSS_ADDITIONAL_3},
+                },
+            },
+            'js': {
+                'all': ALL_JS_FEATURES,
+                'categories': {
+                    'Syntax': JS_SYNTAX_FEATURES,
+                    'Web APIs': JS_API_FEATURES,
+                    'Array Methods': JS_ARRAY_METHODS,
+                    'String Methods': JS_STRING_METHODS,
+                    'Object Methods': JS_OBJECT_METHODS,
+                    'Storage': JS_STORAGE_APIS,
+                    'DOM APIs': JS_DOM_APIS,
+                },
+            },
+            'html': {
+                'all': ALL_HTML_FEATURES,
+                'elements': HTML_ELEMENTS,
+                'attributes': HTML_ATTRIBUTES,
+                'input_types': HTML_INPUT_TYPES,
+                'attribute_values': HTML_ATTRIBUTE_VALUES,
+            },
+        }
+
+    def get_polyfill_map(self) -> Dict:
+        """Raw polyfill-recommendation JSON used by the Rules editor."""
+        from src.polyfill.polyfill_loader import load_polyfill_map
+        return load_polyfill_map()
+
+    def save_polyfill_map(self, data: Dict) -> bool:
+        """Write the polyfill-recommendation JSON. Returns True on success."""
+        from src.polyfill.polyfill_loader import save_polyfill_map
+        return save_polyfill_map(data)
+
     def get_ai_fix_suggestions(
         self,
         unsupported_features: List[str],

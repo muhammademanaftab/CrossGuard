@@ -1,6 +1,6 @@
-# Thesis update log — analyzer + api + cli + config module cleanup
+# Thesis update log — analyzer + api + cli + config + database + gui + parsers module cleanup
 
-This file tracks the changes made to `Code/src/analyzer/`, `Code/src/api/`, `Code/src/cli/`, and `Code/src/config/` during the audit, and lists exactly what needs to be updated in the LaTeX thesis so the written chapters + diagrams match the new code. **No LaTeX file has been touched by the automation** — everything below is yours to apply when ready.
+This file tracks the changes made to `Code/src/analyzer/`, `Code/src/api/`, `Code/src/cli/`, `Code/src/config/`, `Code/src/database/`, `Code/src/gui/`, and `Code/src/parsers/` during the audit, and lists exactly what needs to be updated in the LaTeX thesis so the written chapters + diagrams match the new code. **No LaTeX file has been touched by the automation** — everything below is yours to apply when ready.
 
 ---
 
@@ -206,6 +206,302 @@ The `output_format` property was **tested but unused in production**. Users coul
 
 ---
 
+## 1e. What changed in the code (`Code/src/database/`)
+
+### 1e.1 Context — the root cause of the "dead scaffolding"
+
+Grep showed `src/database/` had 18 public methods with zero callers anywhere in the codebase. A deeper read revealed these weren't accidentally dead — they were **scaffolding for GUI features the thesis describes but that were never actually shipped**:
+
+| Unshipped feature claimed in thesis | Dead backend scaffolding |
+|---|---|
+| Tag-attach to analyses (`user.tex:196`, `impl.tex:110`) | `add_tag_to_analysis`, `remove_tag_from_analysis`, `get_analyses_by_tag`, `get_tag_counts`, `update_tag`, `get_tag_by_name`, `get_tag_by_id` |
+| Bookmark note editing (`impl.tex:219`) | `BookmarksRepository.update_note`, `BookmarksRepository.get_bookmark` |
+| Score trends (`impl.tex:213` — already framed as future work in `sum.tex:28`, creating a self-contradiction) | `StatisticsService.get_score_trend` |
+| Activity heatmap (never described in thesis) | `StatisticsService.get_recent_activity` |
+| Settings export / reset (never described) | `SettingsRepository.get_all`, `SettingsRepository.delete`, `SettingsRepository.get_as_int` |
+| Relative-date / file-type-icon view helpers (never described) | `Analysis.get_formatted_date`, `Analysis.get_file_type_icon` |
+| Schema-version / table-info dev helpers (never described) | `migrations.get_schema_version`, `migrations.get_table_info` |
+
+Chose **Path A**: delete the scaffolding and propose four small sentence edits to the thesis so the written claims match the app's actual capabilities. `sum.tex:28` already places trends in future work — just needs `impl.tex:213` to stop contradicting it.
+
+### 1e.2 Deleted 18 methods across 4 files
+
+**`src/database/migrations.py`** (-2 functions, ~35 lines)
+- `get_schema_version()` — dev helper to read the `schema_version` table
+- `get_table_info()` — dev helper returning per-table row counts
+
+**`src/database/models.py`** (-2 methods on `Analysis`, ~20 lines)
+- `get_formatted_date()` — returned "Today 3:45 PM" / "Yesterday" / "3 days ago". GUI history card formats dates independently
+- `get_file_type_icon()` — returned Unicode icons per file type. GUI uses its own icon set
+
+**`src/database/repositories.py`** (-12 methods, ~125 lines)
+- `SettingsRepository`: `get_all`, `delete`, `get_as_int` (3 methods — never read, and `service.py` does its own `int(...)` cast on `ai_max_features`)
+- `BookmarksRepository`: `get_bookmark`, `update_note` (2 methods — note-editing UI never built; single-item getter superseded by `get_all_bookmarks`)
+- `TagsRepository`: `get_tag_by_name`, `get_tag_by_id`, `update_tag`, `add_tag_to_analysis`, `remove_tag_from_analysis`, `get_analyses_by_tag`, `get_tag_counts` (7 methods — tag-attach UI never built)
+
+**`src/database/statistics.py`** (-2 methods, ~25 lines)
+- `get_score_trend` — daily-average trend data, no chart consumes it
+- `get_recent_activity` — daily-count heatmap data, no chart consumes it
+
+### 1e.3 What's left on each class
+
+| Class | Remaining public methods |
+|---|---|
+| `AnalysisRepository` | `save_analysis`, `get_all_analyses`, `get_analysis_by_id`, `delete_analysis`, `clear_all`, `get_count` (6 — all live) |
+| `SettingsRepository` | `get`, `set`, `get_as_bool`, `get_as_list` (4 — all live) |
+| `BookmarksRepository` | `add_bookmark`, `remove_bookmark`, `is_bookmarked`, `get_all_bookmarks`, `get_count` (5 — all live) |
+| `TagsRepository` | `create_tag`, `get_all_tags`, `delete_tag`, `get_tags_for_analysis` (4 — all live, exactly what the GUI currently uses) |
+| `StatisticsService` | 10 methods + `conn` property, all consumed via `get_summary_statistics` aggregate |
+| `migrations.py` (module functions) | `create_tables`, `drop_tables`, `reset_database` (3 — all live) |
+| `Analysis` (model) | `to_dict`, `from_row` (and `browsers` property) — all live |
+
+### 1e.4 Diagram updated — `3.9_database.py` + comparison PNGs
+
+In `Code/docs/diagrams/scripts/3.9_database.py`:
+- Replaced the explicitly-named `+ get_score_trend(days) : List` on the `StatisticsService` node with `+ get_top_problematic_features(lim) : List` (still live — consumed by `get_summary_statistics`)
+- Changed `+ ...  (13 public methods total)` → `+ ...  (11 public methods total)`
+
+Regenerated `Code/docs/diagrams/images/3.9_database.png` and placed comparison copies in LaTeX (mirroring the `cg_pipeline_before/after.png` pattern):
+- `LaTeX/images/cg_database_before.png` — snapshot of the pre-refactor image
+- `LaTeX/images/cg_database_after.png` — new image, matches post-refactor code
+- `LaTeX/images/cg_database.png` — untouched
+
+Rename `cg_database_after.png` → `cg_database.png` when ready to promote. `\includegraphics{cg_database}` keeps working.
+
+### 1e.5 Proposed LaTeX text edits (for your approval — **no file has been modified**)
+
+These four sentences currently claim features the app doesn't ship after the deletion. Proposed find/replace blocks below.
+
+#### Edit 1 — `LaTeX/chapters/user.tex` line 196
+
+**FIND:**
+```
+...Analyses can also be bookmarked or tagged for easier organization, making it simple to return to important results later.
+```
+
+**REPLACE with:**
+```
+...Analyses can also be bookmarked for easier organization, making it simple to return to important results later.
+```
+
+(Rationale: Users can create/delete/list tags but there is no UI to attach a tag to a specific analysis, so "tagged … for easier organization" isn't true in the shipped app.)
+
+#### Edit 2 — `LaTeX/chapters/impl.tex` line 110
+
+**FIND:**
+```
+Users can also bookmark the result, add tags, or export it as a report.
+```
+
+**REPLACE with:**
+```
+Users can also bookmark the result or export it as a report.
+```
+
+(Rationale: Same — no tag-attach button in the Results view.)
+
+#### Edit 3 — `LaTeX/chapters/impl.tex` line 213
+
+**FIND:**
+```
+...\texttt{StatisticsService} queries the same database to provide metrics such as average scores, score trends, and grade distribution.
+```
+
+**REPLACE with:**
+```
+...\texttt{StatisticsService} queries the same database to provide metrics such as average/best/worst scores, grade distribution, and file-type distribution.
+```
+
+(Rationale: `StatisticsService` no longer exposes `get_score_trend`. `sum.tex:28` already describes trend charts as future work — after this edit the two sentences no longer contradict.)
+
+#### Edit 4 — `LaTeX/chapters/impl.tex` line 219
+
+**FIND:**
+```
+On the left, \texttt{Bookmark} references an \texttt{Analysis} through a solid line. Users can bookmark any analysis and attach a note.
+```
+
+**REPLACE with:**
+```
+On the left, \texttt{Bookmark} references an \texttt{Analysis} through a solid line. Users can bookmark any analysis.
+```
+
+(Rationale: `Bookmark` still has a `note` column and the API allows passing `note` when creating a bookmark, but no UI exists to edit it after creation. The dataclass field stays — just don't claim note-editing in the thesis.)
+
+### 1e.6 Verification
+- **132/132 tests pass** — no test depended on any deleted method (verified via exhaustive grep across `tests/` before deletion).
+- Vulture on `src/database/` at 80% confidence: **0 hits**.
+- CLI end-to-end smoke: `crossguard analyze file.css` exits 0 with table output.
+- Every remaining method has at least one caller or is invoked as `self.X(...)` inside its defining class.
+- `grep -rn` for each deleted symbol across `src/` + `tests/` + `run_gui.py`: **0 hits** outside the deletions themselves.
+- Diagram regenerated and visually confirmed: `StatisticsService` shows 4 named methods + "(11 public methods total)", and the `get_score_trend` line is gone.
+
+### 1e.7 Net size impact
+Roughly **−200 lines** of Python across the 4 files (method bodies + docstrings + SQL strings). The diagram script gained 1 line (the replacement) and lost 1 line (the count change) — net zero.
+
+---
+
+## 1f. What changed in the code (`Code/src/gui/`)
+
+### 1f.1 Context — making the thesis's central architectural claim literally true
+
+`impl.tex:329` declares: *"The GUI never imports from the parser, analyzer, or database code, which means the backend could be completely rewritten without breaking the interface."* A GUI audit found **7 deep-path imports** in `src/gui/` violating that claim (`export_manager.py`, `version_range_card.py`, `rules_manager.py`), plus two widgets (`IssueCard`, `PolyfillCard`) accepting constructor params that callers pass real data to — but silently dropping them, undermining the thesis's own UI description at `user.tex:133`. Plus 4 unused imports. Path F4 closes every bypass by routing through new facade wrappers on `AnalyzerService`, and makes the two broken widgets actually render what callers provide.
+
+### 1f.2 Added 5 new facade methods on `AnalyzerService` (`src/api/service.py`)
+
+Each follows the existing lazy-import pattern (`_get_database_updater`, `_get_web_features`).
+
+| Method | Wraps | Consumer |
+|---|---|---|
+| `get_version_range_summary(feature_id)` | `src/analyzer/version_ranges.get_support_summary` | `version_range_card.VersionRangePopup` |
+| `get_browser_display_names()` | `src/analyzer/version_ranges.BROWSER_NAMES` | `version_range_card.VersionRangePopup._create_browser_row` |
+| `get_feature_catalogs()` | All `css_feature_maps.*`, `js_feature_maps.*`, `html_feature_maps.*` catalogs — returns a pre-grouped `{'css': {'all', 'categories'}, 'js': {'all', 'categories'}, 'html': {'elements','attributes','input_types','attribute_values'}}` structure | `rules_manager.RulesManagerDialog` (replaces 3 parser imports + the module-level `CSS_CATEGORIES`/`JS_CATEGORIES` dicts) |
+| `get_polyfill_map()` | `src/polyfill/polyfill_loader.load_polyfill_map` | `rules_manager.RulesManagerDialog` |
+| `save_polyfill_map(data)` | `src/polyfill/polyfill_loader.save_polyfill_map` | `rules_manager.RulesManagerDialog` (2 call sites) |
+
+`AnalyzerService` public method count: **44 → 49**.
+
+### 1f.3 Rewired 3 GUI files through the facade (7 bypasses → 0)
+
+**`src/gui/export_manager.py`** (2 bypasses → 0)
+- Removed the 2 inline `from src.export import export_json`/`export_pdf` imports.
+- Added a module-level `from ..api import get_analyzer_service`; `ExportManager.__init__` now holds `self._service = get_analyzer_service()`.
+- `export_json()` and `export_pdf()` dispatch through `self._service.export_to_json` and `self._service.export_to_pdf` — already-existing facade methods.
+
+**`src/gui/widgets/version_range_card.py`** (2 bypasses → 0)
+- Dropped both `from ...analyzer.version_ranges import ...` inline imports.
+- Added `from ...api import get_analyzer_service` at top; `VersionRangePopup.__init__` now holds `self._service = get_analyzer_service()` and eagerly caches `self._browser_names = self._service.get_browser_display_names()` once.
+- `_init_ui` uses `self._service.get_version_range_summary(feature_id)`; `_create_browser_row` uses the cached `self._browser_names`.
+
+**`src/gui/widgets/rules_manager.py`** (4 bypasses → 0, largest rewire)
+- Removed all 3 `from ...parsers.*_feature_maps import (...)` blocks plus `from ...polyfill.polyfill_loader import load_polyfill_map, save_polyfill_map`.
+- Removed the module-level `CSS_CATEGORIES` and `JS_CATEGORIES` dicts — they're now assembled once by the facade method.
+- Replaced the two module-level helpers `get_css_category()` and `get_js_category()` with a single `_category_for(feature_id, categories)` helper that accepts the category dict as a parameter.
+- `RulesManagerDialog.__init__` now calls `self._service.get_feature_catalogs()` once and caches the result alongside narrow aliases (`self._css_categories`, `self._all_css`, `self._html_elements`, etc.) so the rest of the 1,600-line file only needed mechanical find-replace of ~30 references.
+- `load_polyfill_map()` → `self._service.get_polyfill_map()`; both `save_polyfill_map(...)` sites → `self._service.save_polyfill_map(...)`.
+
+**Verification**: `grep -rnE "^from src\.(analyzer|database|parsers|export|polyfill|ai|config)|^from \.\.\.(analyzer|database|parsers|export|polyfill|ai|config)|^    from src\.(analyzer|database|parsers|export|polyfill|ai|config)|^        from src\.(analyzer|database|parsers|export|polyfill|ai|config)" src/gui/` → **0 hits**. The thesis's claim at `impl.tex:329` is now literally true; `src/gui/` imports only from `src.api`, `src.gui` (self), `src.utils.config` (shared constants), and third-party libraries.
+
+### 1f.4 Fixed the two broken widgets (thesis claims now match reality)
+
+**`src/gui/widgets/issue_card.py`** — render `fix_suggestion`
+
+The widget previously accepted `fix_suggestion` as a constructor parameter but never stored or rendered it, so AI fix suggestions flowed into `IssueCard(fix_suggestion=issue.get('fix_suggestion'))` and vanished. Rewired:
+- Switched from `.place()`-based absolute positioning (fixed 32 px) to a two-row `pack` layout. Top row keeps the feature name + browser badges + baseline pill; bottom row only materialises when `fix_suggestion` is non-empty and shows `"Fix: …"` in muted italic with `wraplength=600` so long suggestions wrap cleanly.
+- Colored left border spans the full card height via `relheight=1` regardless of which rows are present.
+- Constructor signature unchanged — the existing caller at `issue_card.py:150` (`fix_suggestion=issue.get('fix_suggestion')`) now visibly renders.
+
+**`src/gui/widgets/polyfill_card.py`** — render `import_statements` + `total_size_kb`
+
+Both params were accepted, both silently dropped. Rewired:
+- `__init__` now stores `self._imports = import_statements or []` and `self._total_size = total_size_kb`.
+- When `self._total_size > 0`, a small `"~X.X KB"` badge appears at the right side of the install-command row (next to the Copy button).
+- When `self._imports` is non-empty, a new "Add to your code:" section renders below the install-command row — a `bg_darkest` code block containing one monospace line per import.
+- The "Generate polyfills.js" button still renders last when applicable.
+
+Matches `user.tex:133`: *"…install commands (e.g. `npm install datalist-polyfill`), a Copy button, and a Generate polyfills.js button…"* — plus now also the imports and size previously claimed by the backend's aggregate helpers.
+
+### 1f.5 Deleted 4 unused imports
+
+- `src/gui/config.py` — removed `get_color` (re-export dropped; `theme.py` still exports it)
+- `src/gui/main_window.py` — removed `AnalysisResult` (kept `get_analyzer_service`)
+- `src/gui/widgets/file_table.py` — removed `import os`
+- `src/gui/widgets/score_card.py` — removed `import math`
+
+### 1f.6 Updated diagrams + refreshed comparison PNGs
+
+- `Code/docs/diagrams/scripts/3.13_gui.py`: `AnalyzerService "(57 public methods total)"` → `"(49 public methods total)"`
+- `Code/docs/diagrams/scripts/3.6_analysis_pipeline.py`: `AnalyzerService "(44 public methods total)"` → `"(49 public methods total)"`
+- Regenerated `Code/docs/diagrams/images/3.13_gui.png` and `3.6_analysis_pipeline.png`
+- Snapshotted `LaTeX/images/cg_gui.png` → `LaTeX/images/cg_gui_before.png` (frozen pre-refactor state)
+- Copied new render → `LaTeX/images/cg_gui_after.png`
+- Refreshed `LaTeX/images/cg_pipeline_after.png` with new `"(49 public methods total)"` annotation
+
+Canonical `cg_gui.png` untouched — promote `_after` → canonical when ready.
+
+### 1f.7 No LaTeX text edits needed for impl.tex:329
+
+After F4, the sentence *"The GUI never imports from the parser, analyzer, or database code"* is now literally enforceable by `grep` — no softening required.
+
+**Minor drift flagged but not fixed** (optional cleanup): `user.tex:131` describes the dashboard banner as *"Compatibility: Passing (or Failing, depending on the score)"*. The actual `BuildBadge` widget renders three states (`PASSING` / `WARNING` / `FAILING`, all uppercase) without a `"Compatibility:"` prefix. If you want exact alignment, add a small LaTeX tweak acknowledging the three states and the uppercase status label — but the meaning is close enough that many readers won't notice.
+
+### 1f.8 Verification
+
+- **132/132 tests pass** (no test touches the rewired paths).
+- `grep` for GUI deep-path imports → **0 hits**.
+- `AnalyzerService` now exposes **49 public methods**, all live.
+- Vulture 80% confidence across **every** cleaned module (analyzer + api + cli + config + database + gui) → **0 hits** in any of them.
+- End-to-end service smoke — all 5 new facade methods return the expected shapes.
+- GUI module tree imports cleanly end-to-end.
+
+---
+
+## 1g. What changed in the code (`Code/src/parsers/`)
+
+### 1g.1 Context
+
+Audit found the parsers diagram (`cg_parsers.png`) advertised 6 public methods per parser, but **3 of those 6 had zero callers anywhere** — not in `src/`, not in any test, not in any diagram anywhere except the parser diagram itself. They were untested API surface that had accumulated without ever being wired to anything. Plus one dead import. The thesis text doesn't mention any of these methods — only `parse_file` and `parse_string` are cited in the pipeline/sequence diagrams.
+
+Pre-deletion safety sweep (9 integration test files scanned, `tests/validation/` scanned, dynamic-dispatch patterns checked, `CLAUDE.md`/`pyproject.toml`/`requirements.txt` checked, `__init__.py` re-exports checked, thesis LaTeX checked) confirmed zero real callers for all 9 methods.
+
+### 1g.2 Deleted 9 dead public methods across 3 parser classes
+
+Each parser had the same 3-method dead tail:
+
+| File | Methods removed |
+|---|---|
+| `src/parsers/html_parser.py` | `parse_multiple_files`, `get_statistics`, `validate_html` |
+| `src/parsers/css_parser.py` | `parse_multiple_files`, `get_statistics`, `validate_css` |
+| `src/parsers/js_parser.py` | `parse_multiple_files`, `get_statistics`, `validate_javascript` |
+
+After deletion, each parser exposes exactly **3 public methods** — the ones actually called by the pipeline and tests:
+- `parse_file(path) → Set[str]`
+- `parse_string(content) → Set[str]`
+- `get_detailed_report() → Dict`
+
+Private-method counts unchanged (HTMLParser 17, CSSParser 5, JavaScriptParser 13) — those are the internal detection helpers.
+
+### 1g.3 Deleted 1 unused import
+
+`src/parsers/html_parser.py:8` — `ALL_HTML_FEATURES` was imported but never referenced in the file. `HTMLParser` uses the individual sub-dicts (`HTML_ELEMENTS`, `HTML_ATTRIBUTES`, `HTML_INPUT_TYPES`, `HTML_ATTRIBUTE_VALUES`, …) directly, never the consolidated lookup. The constant is still defined in `html_feature_maps.py` and consumed by `AnalyzerService.get_feature_catalogs()` (see §1f.2).
+
+### 1g.4 Diagram updated — `3.7_parsers.py` + comparison PNGs
+
+In `Code/docs/diagrams/scripts/3.7_parsers.py`:
+- `HTMLParser` block: dropped `parse_multiple_files`, `get_statistics`, `validate_html` rows (6 → 3 public methods shown)
+- `CSSParser` block: dropped `parse_multiple_files`, `get_statistics`, `validate_css` rows (6 → 3)
+- `JavaScriptParser` block: dropped `parse_multiple_files`, `get_statistics`, `validate_javascript` rows (6 → 3)
+- Private-method counts (17 / 5 / 13) unchanged
+- Attributes unchanged
+- "loads rules" arrows to `CustomRulesLoader` unchanged
+
+Regenerated `Code/docs/diagrams/images/3.7_parsers.png` and placed comparison PNGs in LaTeX (same pattern as earlier modules):
+- `LaTeX/images/cg_parsers_before.png` — frozen snapshot of the pre-refactor state
+- `LaTeX/images/cg_parsers_after.png` — new render
+- `LaTeX/images/cg_parsers.png` — untouched
+
+Rename `cg_parsers_after.png` → `cg_parsers.png` when ready to promote; `\includegraphics{cg_parsers}` keeps working.
+
+### 1g.5 No LaTeX text edits needed
+
+Grepped `LaTeX/chapters/*.tex` for every deleted method name (`parse_multiple_files`, `get_statistics`, `validate_html`, `validate_css`, `validate_javascript`): **0 hits**. The thesis only mentions `parse_file` and `parse_string` by name (in the pipeline and sequence diagrams, and in the parser-flow descriptions). No sentence becomes false after deletion.
+
+### 1g.6 Verification
+
+- **132/132 tests pass** (47 parser tests plus 85 other tests — no regressions).
+- Vulture at 80% confidence across **all 7 cleaned modules** (analyzer + api + cli + config + database + gui + parsers) → **0 hits** everywhere.
+- End-to-end parser smoke via the new trimmed API:
+  - `HTMLParser().parse_string('<dialog>…')` detects `dialog`, `input-datetime`
+  - `CSSParser().parse_string('.a { display: grid; gap: 10px; … }')` detects `css-grid`, `css-container-queries`, `css-logical-props`
+  - `JavaScriptParser().parse_string('const p = Promise.resolve(); fetch(…)')` detects `promises`, `fetch`, `const`, `let`
+- `grep -rn "\bparse_multiple_files\b|\bvalidate_html\b|\bvalidate_css\b|\bvalidate_javascript\b"` across the entire repo → **0 stray references**.
+
+### 1g.7 Net size impact
+
+Roughly **−150 lines** of Python (9 method bodies + one import line). The diagram script lost 9 rows and gained nothing — tighter representation.
+
+---
+
 ## 2. What needs to change in LaTeX (your call)
 
 ### 2.1 `LaTeX/images/cg_pipeline.png` — replace with the new PNG
@@ -262,18 +558,105 @@ I scanned `LaTeX/chapters/*.tex` for every removed / renamed symbol. Only `impl.
 
 ```
 [ ] Rename LaTeX/images/cg_pipeline_after.png → cg_pipeline.png (old one currently deleted)
+[ ] Rename LaTeX/images/cg_database_after.png → cg_database.png when ready to promote
+[ ] Rename LaTeX/images/cg_gui_after.png → cg_gui.png when ready to promote
+[ ] Rename LaTeX/images/cg_parsers_after.png → cg_parsers.png when ready to promote
+[ ] Rename LaTeX/images/cg_polyfill_after.png → cg_polyfill.png when ready to promote
+[ ] Edit LaTeX/chapters/impl.tex line 271 (PolyfillLoader public methods — see section 2.4)
 [ ] Update LaTeX/images/cg_sequence.png (2 message changes — see section 2.2)
-[ ] Edit LaTeX/chapters/impl.tex line 106 (replace the scoring sentence — see section 2.3)
+[ ] Edit LaTeX/chapters/impl.tex line 106 (scoring sentence — see section 2.3)
+[ ] Edit LaTeX/chapters/user.tex line 196 (remove "or tagged" — see section 1e.5 Edit 1)
+[ ] Edit LaTeX/chapters/impl.tex line 110 (remove "add tags," — see 1e.5 Edit 2)
+[ ] Edit LaTeX/chapters/impl.tex line 213 (replace "average scores, score trends, and grade distribution" — see 1e.5 Edit 3)
+[ ] Edit LaTeX/chapters/impl.tex line 219 (remove "and attach a note" — see 1e.5 Edit 4)
+[ ] (Optional) LaTeX/chapters/user.tex line 131 — align "Compatibility: Passing/Failing" with actual BuildBadge states PASSING/WARNING/FAILING (see 1f.7)
 ```
 
-## 4. So, are the analyzer, api, cli, and config modules "fixed"?
+## 1h. Polyfill module cleanup (Path A — aggressive delete + diagram refresh)
 
-Yes. After the changes in sections 1, 1b, 1c, and 1d:
-- **No dead code**: every public and private method has at least one caller (verified by grep + vulture). `AnalyzerService` is at 44 public methods, all live. `ConfigManager` surface trimmed to what's used.
-- **No duplicates**: the classification loop lives in one place (`CompatibilityAnalyzer.classify_features`), the scoring math in one place (`CompatibilityScorer`), one dispatch table for CI-format exports in the CLI, no parallel/shadow APIs on the facade.
-- **No broken references**: `CompatibilityAnalyzer` is called from the pipeline, `AnalyzerService` is honoured by `RulesManagerDialog` and by the CLI for all export formats, `config.output_format` is now actually wired into the CLI's `--format` priority chain.
-- **No dead schemas**: `AnalysisStatus`, `RiskLevel`, `ExportRequest`, `ai_suggestions` field, `ConfigManager.rules_path`/`get`/`get_default_config` are all gone.
-- **Facade enforced** for analyzer + database + export flows: GUI has 0 deep imports from `src/analyzer/`, `src/database/`, or `src/export/`; CLI has 0 deep imports from `src/export/`. (Three minor peripheral bypasses remain in GUI widgets for static-data browsing.)
-- **Tests**: 132/132 pass (129 original + 3 new for config-to-CLI wiring).
+**Context.** `src/polyfill/` has 2 classes (`PolyfillService`, `PolyfillLoader`) + 1 helper module (`polyfill_generator.py`) + the `polyfill_map.json` data file (57 mappings). Structurally clean and already behind the facade (GUI goes through 8 `AnalyzerService` methods, never imports `src/polyfill/` directly). The deep grep-and-vulture sweep surfaced 3 orphan items — methods/functions that exist in code but no call site ever reaches them.
 
-The only outstanding inconsistency is the three LaTeX items listed in section 2 — because the automation is not permitted to edit the thesis source.
+**Dead code removed.**
+
+1. `PolyfillLoader.has_polyfill(feature_id)` — `polyfill_loader.py:68–73`. No caller anywhere in `src/`, `tests/`, or `docs/`. `PolyfillService.get_recommendations` does the equivalent check inline (`if polyfill_info.get('polyfillable')` / `elif 'fallback' in polyfill_info`) instead of routing through this helper.
+2. `PolyfillLoader.is_polyfillable(feature_id)` — `polyfill_loader.py:75–78`. Same: zero callers; the one consumer re-implements the logic inline.
+3. `generate_polyfills_content(recommendations)` — `polyfill_generator.py:58–81`. Never exported from `__init__.py`, never called. Near-duplicate of `generate_polyfills_file` without the `output.write_text(...)` step and without the "// Required packages:" npm-install header block. Fossil of an earlier split.
+
+**Net change.** `PolyfillLoader` drops from 5 public methods to 3 (`get_polyfill`, `reload`, plus the private `_load_data`). `polyfill_generator.py` drops from 2 functions to 1.
+
+**Diagram refresh.** `cg_polyfill.png` has been snapshotted as `cg_polyfill_before.png`; `cg_polyfill_after.png` is the re-rendered version with the 2 dead methods gone. Every class, attribute, and method shown on the "after" diagram now has a live caller — the diagram and the code agree.
+
+**Thesis text softening (section 2 below).** `impl.tex:271` currently lists all 3 `PolyfillLoader` methods: "`get_polyfill(feature_id)` returns the mapping for a given feature, or `None` if no match is found; `has_polyfill()` checks whether any polyfill or fallback is available; and `is_polyfillable()` checks specifically for JavaScript polyfills." After Path A, only `get_polyfill` survives, so the sentence needs to lose the `has_polyfill` and `is_polyfillable` clauses. The proposed edit is surfaced in section 2.4 below.
+
+**Verification (post-cleanup).**
+- `pytest tests/` → 132/132 pass.
+- `vulture src/polyfill/ --min-confidence 80` → 0 hits.
+- `python -c "from src.polyfill import PolyfillLoader; print([m for m in dir(PolyfillLoader) if not m.startswith('__')])"` → `['_load_data', 'get_polyfill', 'reload']`.
+- GUI smoke: polyfill cards still render; "Generate polyfills.js" still works; Rules Manager polyfill editor still loads/saves `polyfill_map.json`. No call path touched any deleted method.
+- Facade integrity: `grep -rn "from src.polyfill\|from \.\.\.polyfill" src/gui/` → **0 hits** (still clean — the polyfill module was already consumer-isolated; this pass didn't need to rewire anything).
+
+## 2.4. Thesis text edit — `impl.tex:271` (polyfill loader public methods)
+
+After Path A, `PolyfillLoader` exposes only `get_polyfill` as a lookup method. The sentence at impl.tex:271 must drop the removed helpers.
+
+**Find:**
+```
+\texttt{PolyfillLoader} follows the singleton pattern, meaning the JSON file is read only once through the private \texttt{\_load\_data()} method and stored in \texttt{\_data}. Its public methods handle straightforward lookups in a way that \texttt{get\_polyfill(feature\_id)} returns the mapping for a given feature, or \texttt{None} if no match is found; \texttt{has\_polyfill()} checks whether any polyfill or fallback is available; and \texttt{is\_polyfillable()} checks specifically for JavaScript polyfills.
+```
+
+**Replace with:**
+```
+\texttt{PolyfillLoader} follows the singleton pattern, meaning the JSON file is read only once through the private \texttt{\_load\_data()} method and stored in \texttt{\_data}. Its public \texttt{get\_polyfill(feature\_id)} method returns the mapping for a given feature, or \texttt{None} if no match is found; callers inspect the returned dictionary themselves to decide whether to use a JavaScript polyfill or a CSS fallback.
+```
+
+This also reconciles with the regenerated diagram (`cg_polyfill_after.png`) which now shows only `get_polyfill`, `reload`, and `_load_data` on `PolyfillLoader`.
+
+## 1i. Utils module cleanup (Path A — aggressive delete, zero thesis/diagram impact)
+
+**Context.** `src/utils/` holds the app's cross-cutting helpers: `config.py` (app-wide constants + singleton logger) and `feature_names.py` (Can I Use ID → human-readable name mapping + fix-suggestion lookup). It is the one shared module that both frontends (GUI, CLI) and the entire backend are allowed to import from, by explicit CLAUDE.md architecture rule. The thesis does not mention utils internals and no diagram depicts it, so cleanup here is purely a code hygiene pass.
+
+**Dead code removed (12 items).** Every item below was verified with exhaustive grep across `src/`, `tests/`, `docs/`, and `LaTeX/` — all returned zero external references before deletion.
+
+1. `DATABASE_PATH` (config.py:13) — `connection.py` builds its own path from `PROJECT_ROOT`; this constant was a stale parallel definition.
+2. `DATABASE_HISTORY_LIMIT` (config.py:14) — nothing reads it.
+3. `CANIUSE_PACKAGE_JSON` (config.py:17) — `database_updater.py` builds its own package.json path.
+4. `SUPPORT_STATUS` dict (config.py:41–49, 9 entries) — orphan. Status-code-to-label mapping is done inline where needed.
+5. `STATUS_COLORS` dict (config.py:51–59, 7 entries) — orphan. `version_range_card.py:23` and `browser_card.py:135` each have their own widget-local copies using theme-aware colors; nobody was importing the utils version.
+6. `SEVERITY_LEVELS` dict (config.py:61–66, 4 entries) — nothing reads it.
+7. `APP_NAME = "Cross Guard"` (config.py:68) — `gui/config.py:5` has its own hardcoded copy; nothing imports utils' version.
+8. `APP_VERSION = "1.0.0"` (config.py:69) — same: `gui/config.py:6` owns the only live copy.
+9. `LOG_DIR`, `LOG_FILE`, `LOG_MAX_SIZE`, `LOG_BACKUP_COUNT` (config.py:75–78) — used only inside `_setup_file_handler` (item 10).
+10. `CrossGuardLogger._setup_file_handler()` method (config.py:110–125, 16 lines) — **never called.** The class's `_setup_root_logger` only installs a stderr console handler; file logging was fully unimplemented. `Code/logs/` directory does not exist on disk.
+11. `get_severity(support_status)` function (feature_names.py:439–444) — never imported. Severity mapping is done ad-hoc by callers that need it.
+12. `src/utils/feature_names.json` (337-line data file, ~15 KB) — **never loaded by any Python code.** It is a stale JSON dump of the `FEATURE_NAMES` Python dict. The live source of truth is the dict at `feature_names.py:5`.
+
+**Net change.**
+- `config.py`: 146 → 90 lines
+- `feature_names.py`: 444 → 436 lines
+- `feature_names.json`: deleted entirely (0 lines remaining)
+
+**What was kept.** Everything with a live caller: `PROJECT_ROOT`, `CANIUSE_DIR`, `CANIUSE_DB_PATH`, `CANIUSE_FEATURES_PATH`, `NPM_REGISTRY_URL`, `WEB_FEATURES_URL`, `WEB_FEATURES_CACHE_DIR`, `WEB_FEATURES_CACHE_PATH`, `DEFAULT_BROWSERS`, `LATEST_VERSIONS`, `LOG_LEVEL`, `LOG_FORMAT`, `LOG_DATE_FORMAT`, `CrossGuardLogger` (with `_setup_root_logger`, `get_logger`, `set_level`), the module-level `get_logger()` and `set_log_level()` helpers, the `FEATURE_NAMES` and `FIX_SUGGESTIONS` dicts, and the `get_feature_name()` / `_id_to_title()` / `get_fix_suggestion()` functions.
+
+**Verification (post-cleanup).**
+- `pytest tests/` → **132/132 pass**.
+- Import smoke: every constant and function still imported successfully; logger still emits to stderr (`2026-04-23 … crossguard.smoke.test - INFO - smoke test`).
+- CLI smoke: `python -m src.cli.main analyze examples/sample_project/sample.css --format table` → ran to completion with correct output.
+- Exhaustive final grep across entire Thesis tree for each of the 12 deleted names (`DATABASE_PATH`, `DATABASE_HISTORY_LIMIT`, `CANIUSE_PACKAGE_JSON`, `SUPPORT_STATUS`, `SEVERITY_LEVELS`, `LOG_DIR`, `LOG_FILE`, `LOG_MAX_SIZE`, `LOG_BACKUP_COUNT`, `_setup_file_handler`, `get_severity`, `feature_names.json`) → **all 0 refs**.
+- GUI-local `STATUS_COLORS` dicts in `version_range_card.py` and `browser_card.py` unaffected and still working — they never depended on utils.
+- GUI-local `APP_NAME` / `APP_VERSION` in `gui/config.py` unaffected and still the only live copy.
+
+**Thesis impact.** None — utils is not described in any LaTeX chapter and no diagram depicts it. No `impl.tex` edit needed, no diagram refresh needed.
+
+## 4. So, are the analyzer, api, cli, config, database, gui, parsers, polyfill, and utils modules "fixed"?
+
+Yes. After the changes in sections 1, 1b, 1c, 1d, 1e, 1f, 1g, 1h, and 1i:
+- **No dead code**: every public method has a caller (grep + vulture clean across all eight modules at 80% confidence). `AnalyzerService` is at **49 public methods**, all live. `PolyfillLoader` is at **3 public methods**, all live.
+- **No duplicates**: classification loop in one place, scoring math in one place, one dispatch table for CI-format exports in the CLI, no parallel/shadow APIs on the facade, no backend scaffolding for unbuilt features.
+- **No broken references**: `CompatibilityAnalyzer` is called from the pipeline, `AnalyzerService` is honoured by every GUI widget and by the CLI, `config.output_format` drives `--format`, `StatisticsService` only exposes methods the aggregate actually uses.
+- **No dead schemas**: `AnalysisStatus`, `RiskLevel`, `ExportRequest`, `ai_suggestions` field, `ConfigManager.rules_path`/`get`/`get_default_config` all gone.
+- **No broken UI**: `IssueCard` now renders `fix_suggestion` text, `PolyfillCard` renders the `import_statements` list and `total_size_kb` badge — both stopped swallowing real data from their callers.
+- **Facade literally enforced** — `grep` for deep-path imports under `src/gui/` returns **0 hits**. The thesis's central architectural claim at `impl.tex:329` is now exactly true. CLI has 0 deep imports from `src/export/`.
+- **Thesis claims match code** — after applying the LaTeX edits from sections 1e.5 and 2, every feature the thesis describes maps to something the GUI actually ships.
+- **Tests**: 132/132 pass (129 original + 3 new for config-to-CLI wiring). No test depended on any deleted method; UI rewires preserved all constructor signatures.
+
+The only outstanding LaTeX work is the items in section 3's checklist — the automation is not permitted to edit thesis source.

@@ -10,11 +10,7 @@ CANIUSE_DIR = PROJECT_ROOT / "data" / "caniuse"
 CANIUSE_DB_PATH = CANIUSE_DIR / "data.json"
 CANIUSE_FEATURES_PATH = CANIUSE_DIR / "features-json"
 
-DATABASE_PATH = PROJECT_ROOT / 'crossguard.db'
-DATABASE_HISTORY_LIMIT = 100
-
 NPM_REGISTRY_URL = "https://registry.npmjs.org/caniuse-db/latest"
-CANIUSE_PACKAGE_JSON = CANIUSE_DIR / "package.json"
 
 WEB_FEATURES_URL = "https://unpkg.com/web-features/data.json"
 WEB_FEATURES_CACHE_DIR = Path.home() / ".crossguard"
@@ -38,44 +34,9 @@ LATEST_VERSIONS = {
     'opera': '122'
 }
 
-SUPPORT_STATUS = {
-    'y': 'Fully Supported',
-    'a': 'Partially Supported',
-    'n': 'Not Supported',
-    'p': 'Polyfill Available',
-    'u': 'Unknown',
-    'x': 'Requires Prefix',
-    'd': 'Disabled by Default'
-}
-
-STATUS_COLORS = {
-    'y': '#4CAF50',
-    'a': '#FFC107',
-    'n': '#F44336',
-    'p': '#2196F3',
-    'u': '#9E9E9E',
-    'x': '#FF9800',
-    'd': '#795548'
-}
-
-SEVERITY_LEVELS = {
-    'critical': 'Feature not supported in any target browser',
-    'high': 'Feature not supported in 50%+ of target browsers',
-    'medium': 'Feature partially supported or requires prefix',
-    'low': 'Feature fully supported with minor issues'
-}
-
-APP_NAME = "Cross Guard"
-APP_VERSION = "1.0.0"
-
 LOG_LEVEL = os.environ.get('CROSSGUARD_LOG_LEVEL', 'INFO').upper()
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 LOG_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
-
-LOG_DIR = PROJECT_ROOT / "logs"
-LOG_FILE = LOG_DIR / "crossguard.log"
-LOG_MAX_SIZE = 5 * 1024 * 1024  # 5 MB
-LOG_BACKUP_COUNT = 3
 
 
 class CrossGuardLogger:
@@ -106,23 +67,6 @@ class CrossGuardLogger:
         console_handler.setLevel(logging.INFO)
         console_handler.setFormatter(logging.Formatter(LOG_FORMAT, LOG_DATE_FORMAT))
         root_logger.addHandler(console_handler)
-
-    def _setup_file_handler(self):
-        try:
-            LOG_DIR.mkdir(parents=True, exist_ok=True)
-
-            from logging.handlers import RotatingFileHandler
-            file_handler = RotatingFileHandler(
-                LOG_FILE,
-                maxBytes=LOG_MAX_SIZE,
-                backupCount=LOG_BACKUP_COUNT
-            )
-            file_handler.setLevel(logging.DEBUG)
-            file_handler.setFormatter(logging.Formatter(LOG_FORMAT, LOG_DATE_FORMAT))
-
-            logging.getLogger('crossguard').addHandler(file_handler)
-        except Exception:
-            pass  # file logging is best-effort; don't crash if the log dir is unwritable
 
     def get_logger(self, name: str) -> logging.Logger:
         full_name = f'crossguard.{name}'

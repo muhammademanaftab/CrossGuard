@@ -39,26 +39,6 @@ class StatisticsService:
         result = cursor.fetchone()[0]
         return round(result, 1) if result else 0.0
 
-    def get_score_trend(self, days: int = 7) -> List[Dict[str, Any]]:
-        cursor = self.conn.execute("""
-            SELECT DATE(analyzed_at) as date,
-                   AVG(overall_score) as avg_score,
-                   COUNT(*) as count
-            FROM analyses
-            WHERE analyzed_at >= date('now', ? || ' days')
-            GROUP BY DATE(analyzed_at)
-            ORDER BY date DESC
-        """, (f'-{days}',))
-
-        return [
-            {
-                'date': row['date'],
-                'avg_score': round(row['avg_score'], 1),
-                'count': row['count'],
-            }
-            for row in cursor.fetchall()
-        ]
-
     def get_top_problematic_features(self, limit: int = 5) -> List[Dict[str, Any]]:
         cursor = self.conn.execute("""
             SELECT af.feature_name,
@@ -151,17 +131,6 @@ class StatisticsService:
         """)
 
         return {row['file_type']: row['count'] for row in cursor.fetchall()}
-
-    def get_recent_activity(self, days: int = 30) -> Dict[str, int]:
-        cursor = self.conn.execute("""
-            SELECT DATE(analyzed_at) as date, COUNT(*) as count
-            FROM analyses
-            WHERE analyzed_at >= date('now', ? || ' days')
-            GROUP BY DATE(analyzed_at)
-            ORDER BY date
-        """, (f'-{days}',))
-
-        return {row['date']: row['count'] for row in cursor.fetchall()}
 
     def get_summary_statistics(self) -> Dict[str, Any]:
         total = self.get_total_analyses()

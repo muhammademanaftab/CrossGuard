@@ -9,74 +9,16 @@ import customtkinter as ctk
 from ..theme import COLORS, SPACING, enable_smooth_scrolling
 from .messagebox import show_info, show_error, show_warning, ask_question
 
-from ...parsers.css_feature_maps import (
-    ALL_CSS_FEATURES,
-    CSS_LAYOUT_FEATURES, CSS_TRANSFORM_ANIMATION, CSS_COLOR_BACKGROUND,
-    CSS_TYPOGRAPHY, CSS_BOX_MODEL, CSS_BORDER_OUTLINE, CSS_SHADOW_EFFECTS,
-    CSS_SELECTORS, CSS_MEDIA_QUERIES, CSS_UNITS, CSS_VARIABLES, CSS_AT_RULES,
-    CSS_POSITIONING, CSS_OVERFLOW, CSS_INTERACTION, CSS_MISC, CSS_CONTAINER,
-    CSS_SUBGRID, CSS_CASCADE, CSS_NESTING, CSS_ADDITIONAL_1, CSS_ADDITIONAL_2,
-    CSS_ADDITIONAL_3
-)
-from ...parsers.js_feature_maps import (
-    ALL_JS_FEATURES,
-    JS_SYNTAX_FEATURES, JS_API_FEATURES, JS_ARRAY_METHODS, JS_STRING_METHODS,
-    JS_OBJECT_METHODS, JS_STORAGE_APIS, JS_DOM_APIS
-)
-from ...parsers.html_feature_maps import (
-    HTML_ELEMENTS, HTML_ATTRIBUTES, HTML_INPUT_TYPES, HTML_ATTRIBUTE_VALUES
-)
 from ...api import get_analyzer_service
-from ...polyfill.polyfill_loader import load_polyfill_map, save_polyfill_map
 
-
-CSS_CATEGORIES = {
-    'Layout': CSS_LAYOUT_FEATURES,
-    'Transforms & Animation': CSS_TRANSFORM_ANIMATION,
-    'Colors & Background': CSS_COLOR_BACKGROUND,
-    'Typography': CSS_TYPOGRAPHY,
-    'Box Model': CSS_BOX_MODEL,
-    'Border & Outline': CSS_BORDER_OUTLINE,
-    'Shadow & Effects': CSS_SHADOW_EFFECTS,
-    'Selectors': CSS_SELECTORS,
-    'Media Queries': CSS_MEDIA_QUERIES,
-    'Units': CSS_UNITS,
-    'Variables': CSS_VARIABLES,
-    'At-Rules': CSS_AT_RULES,
-    'Positioning': CSS_POSITIONING,
-    'Overflow': CSS_OVERFLOW,
-    'Interaction': CSS_INTERACTION,
-    'Container': CSS_CONTAINER,
-    'Subgrid': CSS_SUBGRID,
-    'Cascade': CSS_CASCADE,
-    'Nesting': CSS_NESTING,
-    'Other': {**CSS_MISC, **CSS_ADDITIONAL_1, **CSS_ADDITIONAL_2, **CSS_ADDITIONAL_3},
-}
-
-JS_CATEGORIES = {
-    'Syntax': JS_SYNTAX_FEATURES,
-    'Web APIs': JS_API_FEATURES,
-    'Array Methods': JS_ARRAY_METHODS,
-    'String Methods': JS_STRING_METHODS,
-    'Object Methods': JS_OBJECT_METHODS,
-    'Storage': JS_STORAGE_APIS,
-    'DOM APIs': JS_DOM_APIS,
-}
 
 HTML_TYPES = ['Elements', 'Attributes', 'Input Types', 'Attribute Values']
 
 POLYFILL_TYPES = ['JavaScript', 'CSS', 'HTML']
 
 
-def get_css_category(feature_id: str) -> str:
-    for cat_name, cat_features in CSS_CATEGORIES.items():
-        if feature_id in cat_features:
-            return cat_name
-    return 'Custom'
-
-
-def get_js_category(feature_id: str) -> str:
-    for cat_name, cat_features in JS_CATEGORIES.items():
+def _category_for(feature_id: str, categories: Dict) -> str:
+    for cat_name, cat_features in categories.items():
         if feature_id in cat_features:
             return cat_name
     return 'Custom'
@@ -92,13 +34,22 @@ class RulesManagerDialog(ctk.CTkToplevel):
         self.on_rules_changed = on_rules_changed
         self._service = get_analyzer_service()
         self._custom_rules = self._service.get_custom_rules()
+        self._catalogs = self._service.get_feature_catalogs()
+        self._css_categories = self._catalogs['css']['categories']
+        self._js_categories = self._catalogs['js']['categories']
+        self._all_css = self._catalogs['css']['all']
+        self._all_js = self._catalogs['js']['all']
+        self._html_elements = self._catalogs['html']['elements']
+        self._html_attributes = self._catalogs['html']['attributes']
+        self._html_input_types = self._catalogs['html']['input_types']
+        self._html_attribute_values = self._catalogs['html']['attribute_values']
         self._selected_rule_id = None
         self._selected_category = "css"
         self._search_var = ctk.StringVar()
         self._category_filter_var = ctk.StringVar(value="All")
         self._html_type_filter_var = ctk.StringVar(value="All")
         self._polyfill_type_filter_var = ctk.StringVar(value="All")
-        self._polyfill_data = load_polyfill_map()
+        self._polyfill_data = self._service.get_polyfill_map()
 
         self.title("Feature Detection Rules")
         self.configure(fg_color=COLORS['bg_dark'])
@@ -276,7 +227,7 @@ class RulesManagerDialog(ctk.CTkToplevel):
         self._category_dropdown = ctk.CTkOptionMenu(
             filter_right,
             variable=self._category_filter_var,
-            values=["All"] + list(CSS_CATEGORIES.keys()),
+            values=["All"] + list(self._css_categories.keys()),
             width=160,
             height=32,
             fg_color=COLORS['input_bg'],
@@ -382,12 +333,12 @@ class RulesManagerDialog(ctk.CTkToplevel):
 
         if category == "css":
             self._filter_label.configure(text="Category:")
-            self._category_dropdown.configure(values=["All"] + list(CSS_CATEGORIES.keys()))
+            self._category_dropdown.configure(values=["All"] + list(self._css_categories.keys()))
             self._category_filter_var.set("All")
             self._category_dropdown.pack(side="left")
         elif category == "javascript":
             self._filter_label.configure(text="Category:")
-            self._category_dropdown.configure(values=["All"] + list(JS_CATEGORIES.keys()))
+            self._category_dropdown.configure(values=["All"] + list(self._js_categories.keys()))
             self._category_filter_var.set("All")
             self._category_dropdown.pack(side="left")
         elif category == "polyfills":
@@ -410,8 +361,8 @@ class RulesManagerDialog(ctk.CTkToplevel):
         html_type_filter = self._html_type_filter_var.get()
 
         if self._selected_category == "css":
-            for feature_id, rule_data in ALL_CSS_FEATURES.items():
-                cat = get_css_category(feature_id)
+            for feature_id, rule_data in self._all_css.items():
+                cat = _category_for(feature_id, self._css_categories)
                 if category_filter != "All" and cat != category_filter:
                     continue
                 if search and not self._matches_search(feature_id, rule_data, search):
@@ -426,8 +377,8 @@ class RulesManagerDialog(ctk.CTkToplevel):
                 rules.append((feature_id, rule_data, True, 'Custom'))
 
         elif self._selected_category == "javascript":
-            for feature_id, rule_data in ALL_JS_FEATURES.items():
-                cat = get_js_category(feature_id)
+            for feature_id, rule_data in self._all_js.items():
+                cat = _category_for(feature_id, self._js_categories)
                 if category_filter != "All" and cat != category_filter:
                     continue
                 if search and not self._matches_search(feature_id, rule_data, search):
@@ -452,7 +403,7 @@ class RulesManagerDialog(ctk.CTkToplevel):
         rules = []
 
         if type_filter in ("All", "Elements"):
-            for name, feature_id in HTML_ELEMENTS.items():
+            for name, feature_id in self._html_elements.items():
                 if search and search not in name.lower() and search not in feature_id.lower():
                     continue
                 rules.append((name, {'maps_to': feature_id}, False, 'Elements'))
@@ -462,7 +413,7 @@ class RulesManagerDialog(ctk.CTkToplevel):
                 rules.append((name, {'maps_to': feature_id}, True, 'Elements'))
 
         if type_filter in ("All", "Attributes"):
-            for name, feature_id in HTML_ATTRIBUTES.items():
+            for name, feature_id in self._html_attributes.items():
                 if search and search not in name.lower() and search not in feature_id.lower():
                     continue
                 rules.append((name, {'maps_to': feature_id}, False, 'Attributes'))
@@ -472,7 +423,7 @@ class RulesManagerDialog(ctk.CTkToplevel):
                 rules.append((name, {'maps_to': feature_id}, True, 'Attributes'))
 
         if type_filter in ("All", "Input Types"):
-            for name, feature_id in HTML_INPUT_TYPES.items():
+            for name, feature_id in self._html_input_types.items():
                 if search and search not in name.lower() and search not in feature_id.lower():
                     continue
                 rules.append((name, {'maps_to': feature_id}, False, 'Input Types'))
@@ -482,7 +433,7 @@ class RulesManagerDialog(ctk.CTkToplevel):
                 rules.append((name, {'maps_to': feature_id}, True, 'Input Types'))
 
         if type_filter in ("All", "Attribute Values"):
-            for (attr, val), feature_id in HTML_ATTRIBUTE_VALUES.items():
+            for (attr, val), feature_id in self._html_attribute_values.items():
                 display_name = f"{attr}:{val}"
                 if search and search not in display_name.lower() and search not in feature_id.lower():
                     continue
@@ -642,14 +593,14 @@ class RulesManagerDialog(ctk.CTkToplevel):
             if is_custom:
                 rule_data = self._custom_rules.get('css', {}).get(feature_id, {})
             else:
-                rule_data = ALL_CSS_FEATURES.get(feature_id, {})
-            category = get_css_category(feature_id) if not is_custom else 'Custom'
+                rule_data = self._all_css.get(feature_id, {})
+            category = _category_for(feature_id, self._css_categories) if not is_custom else 'Custom'
         else:
             if is_custom:
                 rule_data = self._custom_rules.get('javascript', {}).get(feature_id, {})
             else:
-                rule_data = ALL_JS_FEATURES.get(feature_id, {})
-            category = get_js_category(feature_id) if not is_custom else 'Custom'
+                rule_data = self._all_js.get(feature_id, {})
+            category = _category_for(feature_id, self._js_categories) if not is_custom else 'Custom'
 
         title_frame = ctk.CTkFrame(self._details_frame, fg_color="transparent")
         title_frame.pack(fill="x", pady=(0, 15))
@@ -1050,7 +1001,7 @@ class RulesManagerDialog(ctk.CTkToplevel):
             return
 
         # Don't let custom rules shadow built-in ones
-        built_in = ALL_CSS_FEATURES if self._selected_category == "css" else ALL_JS_FEATURES
+        built_in = self._all_css if self._selected_category == "css" else self._all_js
         if feature_id in built_in and (not old_id or old_id != feature_id):
             show_warning(self, "Validation", f"Feature ID '{feature_id}' already exists as a built-in rule")
             return
@@ -1106,10 +1057,10 @@ class RulesManagerDialog(ctk.CTkToplevel):
 
         # Don't shadow built-in rules
         built_in_map = {
-            'elements': HTML_ELEMENTS,
-            'attributes': HTML_ATTRIBUTES,
-            'input_types': HTML_INPUT_TYPES,
-            'attribute_values': {f"{k[0]}:{k[1]}": v for k, v in HTML_ATTRIBUTE_VALUES.items()},
+            'elements': self._html_elements,
+            'attributes': self._html_attributes,
+            'input_types': self._html_input_types,
+            'attribute_values': {f"{k[0]}:{k[1]}": v for k, v in self._html_attribute_values.items()},
         }
         if name in built_in_map.get(key, {}) and (not old_name or old_name != name):
             show_warning(self, "Validation", f"'{name}' already exists as a built-in rule")
@@ -1608,7 +1559,7 @@ class RulesManagerDialog(ctk.CTkToplevel):
 
         self._polyfill_data[type_key][feature_id] = entry
 
-        if save_polyfill_map(self._polyfill_data):
+        if self._service.save_polyfill_map(self._polyfill_data):
             show_info(self, "Success", f"Polyfill '{feature_id}' saved!")
             self._refresh_rules_list()
             self._show_polyfill_details(feature_id, entry, type_key)
@@ -1620,7 +1571,7 @@ class RulesManagerDialog(ctk.CTkToplevel):
         if feature_id in self._polyfill_data.get(type_key, {}):
             del self._polyfill_data[type_key][feature_id]
 
-            if save_polyfill_map(self._polyfill_data):
+            if self._service.save_polyfill_map(self._polyfill_data):
                 show_info(self, "Deleted", f"Polyfill '{feature_id}' deleted")
                 self._refresh_rules_list()
                 self._show_details_placeholder()

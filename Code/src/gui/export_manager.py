@@ -1,9 +1,10 @@
-"""File dialogs and error toasts around src.export."""
+"""File dialogs and error toasts around the AnalyzerService export facade."""
 
 import traceback
 from tkinter import filedialog
 from typing import Dict
 
+from ..api import get_analyzer_service
 from .widgets.messagebox import show_info, show_warning, show_error
 
 
@@ -11,6 +12,7 @@ class ExportManager:
 
     def __init__(self, parent):
         self.parent = parent
+        self._service = get_analyzer_service()
 
     def export_json(self, report: Dict) -> None:
         if not report:
@@ -26,9 +28,7 @@ class ExportManager:
 
         if file_path:
             try:
-                from src.export import export_json as do_export_json
-                do_export_json(report, output_path=file_path)
-
+                self._service.export_to_json(report, output_path=file_path)
                 show_info(
                     self.parent,
                     "Export Successful",
@@ -55,9 +55,7 @@ class ExportManager:
 
         if file_path:
             try:
-                from src.export import export_pdf as do_export_pdf
-                do_export_pdf(report, output_path=file_path)
-
+                self._service.export_to_pdf(report, output_path=file_path)
                 show_info(
                     self.parent,
                     "Export Successful",

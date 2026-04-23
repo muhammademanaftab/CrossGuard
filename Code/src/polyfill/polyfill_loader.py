@@ -65,18 +65,6 @@ class PolyfillLoader:
 
         return None
 
-    def has_polyfill(self, feature_id: str) -> bool:
-        polyfill = self.get_polyfill(feature_id)
-        if polyfill is None:
-            return False
-
-        return polyfill.get('polyfillable', False) or 'fallback' in polyfill
-
-    def is_polyfillable(self, feature_id: str) -> bool:
-        """True if the feature can be truly polyfilled, not just a CSS fallback."""
-        polyfill = self.get_polyfill(feature_id)
-        return polyfill is not None and polyfill.get('polyfillable', False)
-
     def reload(self):
         self._load_data()
 
