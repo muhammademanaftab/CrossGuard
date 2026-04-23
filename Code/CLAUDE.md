@@ -48,6 +48,7 @@ Input File (HTML/CSS/JS)
 - **JS Parsing**: tree-sitter 0.21.3 + tree-sitter-languages 1.10.2 (AST-based), with regex fallback
 - **Data Source**: Can I Use database (local JSON copy, updatable)
 - **Database**: SQLite (analysis history, bookmarks, tags, settings)
+- **PDF Export**: WeasyPrint + Jinja2 (HTML+CSS → PDF). Requires pango/cairo system libs — on macOS `brew install pango cairo`, on Debian/Ubuntu `apt install libpango-1.0-0 libcairo2`.
 - **Distribution**: pyproject.toml with optional deps (gui, cli)
 
 ## Key Features
@@ -136,7 +137,7 @@ src/
 │   └── schemas.py          # AIFixSuggestion dataclass
 ├── api/                    # API layer (service facade)
 │   ├── schemas.py          # Data schemas (incl. ExportRequest)
-│   └── service.py          # Main service class (59 methods)
+│   └── service.py          # Main service class (49 methods)
 ├── cli/                    # CLI (Click-based)
 │   ├── main.py             # CLI commands (analyze, export, history, stats, config, update-db, init-ci, init-hooks)
 │   ├── formatters.py       # Terminal output formatting (with color support)
@@ -147,7 +148,7 @@ src/
 │   └── config_manager.py   # crossguard.config.json + package.json fallback
 ├── export/                 # Report export (GUI-independent)
 │   ├── json_exporter.py    # JSON export
-│   ├── pdf_exporter.py     # PDF export (reportlab)
+│   ├── pdf_exporter.py     # PDF export (weasyprint + jinja2; needs pango/cairo system libs)
 │   ├── sarif_exporter.py   # SARIF 2.1.0 export (GitHub Code Scanning)
 │   ├── junit_exporter.py   # JUnit XML export (Jenkins/GitLab CI)
 │   ├── checkstyle_exporter.py  # Checkstyle XML export (SonarQube)
@@ -172,7 +173,7 @@ src/
 │   ├── config.py           # GUI configuration
 │   ├── file_selector.py    # File selection with drag-and-drop
 │   ├── export_manager.py   # GUI export dialogs (delegates to src/export/)
-│   └── widgets/            # Reusable UI widgets (23 widgets)
+│   └── widgets/            # Reusable UI widgets (22 widgets)
 │       ├── ai_fix_card.py       # AI fix suggestion display
 │       ├── bookmark_button.py
 │       ├── browser_card.py
@@ -221,45 +222,45 @@ data/
 
 tests/
 ├── conftest.py             # Shared fixtures + test markers (unit/component/integration)
-├── analyzer/               # Compatibility engine tests (151 tests, 3 files)
-│   ├── test_analyzer_blackbox.py   # Scoring, compatibility, version ranges (89)
-│   ├── test_analyzer_whitebox.py   # DB loading, web features, NPM updater (49)
-│   └── test_analyzer_integration.py # Full pipeline (13)
-├── api/                    # API service layer tests (89 tests, 3 files)
-│   ├── test_api_blackbox.py        # Analyze, CRUD, export (52)
-│   ├── test_api_whitebox.py        # Singleton, lazy loading, baseline (23)
-│   └── test_api_integration.py     # End-to-end (14)
-├── cli/                    # CLI tests (83 tests, 3 files)
-│   ├── test_cli_blackbox.py        # Commands, gates, browser validation (30)
-│   ├── test_cli_whitebox.py        # Formatters, context, generators (34)
-│   └── test_cli_integration.py     # Full command integration (19)
-├── config/                 # Config module tests (19 tests, 1 file)
+├── analyzer/               # Compatibility engine tests (24 tests, 3 files)
+│   ├── test_analyzer_blackbox.py   # Scoring, compatibility, version ranges (18)
+│   ├── test_analyzer_whitebox.py   # DB loading, web features, NPM updater (4)
+│   └── test_analyzer_integration.py # Full pipeline (2)
+├── api/                    # API service layer tests (10 tests, 3 files)
+│   ├── test_api_blackbox.py        # Analyze, CRUD, export (5)
+│   ├── test_api_whitebox.py        # Singleton, lazy loading, baseline (3)
+│   └── test_api_integration.py     # End-to-end (2)
+├── cli/                    # CLI tests (18 tests, 3 files)
+│   ├── test_cli_blackbox.py        # Commands, gates, browser validation (9)
+│   ├── test_cli_whitebox.py        # Formatters, context, generators (4)
+│   └── test_cli_integration.py     # Full command integration (5)
+├── config/                 # Config module tests (5 tests, 1 file)
 │   └── test_config_blackbox.py     # Loading, merging, defaults, pkg.json
-├── database/               # Database layer tests (129 tests, 2 files)
-│   ├── test_database_blackbox.py   # CRUD, statistics, models (99)
-│   └── test_database_whitebox.py   # Migrations, singleton, schema (30)
-├── export/                 # Export module tests (33 tests, 1 file)
-│   └── test_export_blackbox.py     # All 6 formats (~5 per format)
-├── polyfill/               # Polyfill tests (60 tests, 3 files)
-│   ├── test_polyfill_blackbox.py   # Recommendations, lookups (23)
-│   ├── test_polyfill_whitebox.py   # Singleton, reload, internals (15)
-│   └── test_polyfill_integration.py # File generation, multi-feature (22)
+├── database/               # Database layer tests (7 tests, 2 files)
+│   ├── test_database_blackbox.py   # CRUD, statistics, models (3)
+│   └── test_database_whitebox.py   # Migrations, singleton, schema (2)
+├── export/                 # Export module tests (7 tests, 1 file)
+│   └── test_export_blackbox.py     # All 6 formats
+├── polyfill/               # Polyfill tests (7 tests, 3 files)
+│   ├── test_polyfill_blackbox.py   # Recommendations, lookups (3)
+│   ├── test_polyfill_whitebox.py   # Singleton, reload, internals (2)
+│   └── test_polyfill_integration.py # File generation, multi-feature (2)
 ├── parsers/
-│   ├── css/                # CSS parser tests (185 tests, 3 files)
-│   │   ├── test_css_blackbox.py    # Feature detection, edge cases (102)
-│   │   ├── test_css_whitebox.py    # tinycss2 internals, bugs, custom rules (55)
-│   │   └── test_css_integration.py # File I/O, real-world scenarios (28)
-│   ├── html/               # HTML parser tests (167 tests, 3 files)
-│   │   ├── test_html_blackbox.py   # Detection, edge cases, validate (88)
-│   │   ├── test_html_whitebox.py   # State, custom rules (38)
-│   │   └── test_html_integration.py # File I/O, real-world, reports (41)
-│   ├── js/                 # JS parser tests (196 tests, 3 files)
-│   │   ├── test_js_blackbox.py     # Feature detection, edge cases (100)
-│   │   ├── test_js_whitebox.py     # AST internals, custom rules (82)
-│   │   └── test_js_integration.py  # End-to-end (14)
-│   └── custom_rules/       # Custom rules loader tests (23 tests, 2 files)
-│       ├── test_custom_rules_blackbox.py  # Loading, applying (12)
-│       └── test_custom_rules_whitebox.py  # Singleton, save, reload (11)
+│   ├── css/                # CSS parser tests (14 tests, 3 files)
+│   │   ├── test_css_blackbox.py    # Feature detection, edge cases (6)
+│   │   ├── test_css_whitebox.py    # tinycss2 internals, bugs, custom rules (5)
+│   │   └── test_css_integration.py # File I/O, real-world scenarios (3)
+│   ├── html/               # HTML parser tests (14 tests, 3 files)
+│   │   ├── test_html_blackbox.py   # Detection, edge cases (7)
+│   │   ├── test_html_whitebox.py   # State, custom rules (4)
+│   │   └── test_html_integration.py # File I/O, real-world, reports (3)
+│   ├── js/                 # JS parser tests (14 tests, 3 files)
+│   │   ├── test_js_blackbox.py     # Feature detection, edge cases (6)
+│   │   ├── test_js_whitebox.py     # AST internals, custom rules (5)
+│   │   └── test_js_integration.py  # End-to-end (3)
+│   └── custom_rules/       # Custom rules loader tests (5 tests, 2 files)
+│       ├── test_custom_rules_blackbox.py  # Loading, applying (3)
+│       └── test_custom_rules_whitebox.py  # Singleton, save, reload (2)
 └── validation/             # Manual validation sample files
     ├── css/                # CSS validation samples + checklist
     ├── html/               # HTML validation samples + checklist
@@ -294,7 +295,7 @@ run_gui.py                  # GUI entry point
 
 | Pattern | Location | Purpose |
 |---------|----------|---------|
-| **Facade** | `src/api/service.py` | Single `AnalyzerService` (59 methods) provides unified API for both GUI and CLI |
+| **Facade** | `src/api/service.py` | Single `AnalyzerService` (49 methods) provides unified API for both GUI and CLI |
 | **Repository** | `src/database/repositories.py` | 4 repository classes (Analysis, Settings, Bookmarks, Tags) abstract all DB operations |
 | **Singleton** | `src/database/connection.py` | Thread-safe SQLite connection with automatic table initialization |
 | **Dependency Injection** | Repository constructors | Optional `conn` parameter allows passing test DB connections |
@@ -313,7 +314,7 @@ run_gui.py                  # GUI entry point
        ▼                 ▼
 ┌─────────────────────────────────┐
 │   API Facade (src/api/)         │    Service layer — AnalyzerService
-│   schemas.py + service.py       │    Data contracts + 59 methods
+│   schemas.py + service.py       │    Data contracts + 49 methods
 └──────────────┬──────────────────┘
                │
        ┌───────┼───────┬───────────┐
@@ -391,48 +392,48 @@ Edit `src/parsers/custom_rules.json`:
 
 ## Testing
 
-**Total: 289 tests** across all modules (pytest), organized into black box / white box / integration files. Each module has `test_<module>_blackbox.py` (public API), `test_<module>_whitebox.py` (internals), and optionally `test_<module>_integration.py` (end-to-end).
+**Total: 132 tests** across all modules (pytest), organized into black box / white box / integration files. Each module has `test_<module>_blackbox.py` (public API), `test_<module>_whitebox.py` (internals), and optionally `test_<module>_integration.py` (end-to-end).
 
 ### Run All Tests
 ```bash
-pytest tests/                       # Full suite (289 tests)
-pytest tests/ -m blackbox           # Black box tests only (133)
-pytest tests/ -m whitebox           # White box tests only (83)
-pytest tests/ -m integration        # Integration tests only (59)
+pytest tests/                       # Full suite (132 tests)
+pytest tests/ -m blackbox           # Black box tests only (76)
+pytest tests/ -m whitebox           # White box tests only (34)
+pytest tests/ -m integration        # Integration tests only (22)
 ```
 
 ### Run by Module
 ```bash
-pytest tests/parsers/css/ -v        # CSS parser tests (53)
-pytest tests/parsers/html/ -v       # HTML parser tests (52)
-pytest tests/parsers/js/ -v         # JS parser tests (52)
-pytest tests/parsers/custom_rules/  # Custom rules loader tests (10)
-pytest tests/analyzer/ -v           # Compatibility engine tests (56)
-pytest tests/api/ -v                # API service layer tests (36)
-pytest tests/database/ -v           # Database layer tests (37)
-pytest tests/cli/ -v                # CLI tests (37)
-pytest tests/polyfill/ -v           # Polyfill tests (23)
-pytest tests/export/ -v             # Export module tests (18)
-pytest tests/config/ -v             # Config module tests (11)
-pytest tests/ai/ -v                 # AI fix suggestions tests (14)
+pytest tests/parsers/css/ -v        # CSS parser tests (14)
+pytest tests/parsers/html/ -v       # HTML parser tests (14)
+pytest tests/parsers/js/ -v         # JS parser tests (14)
+pytest tests/parsers/custom_rules/  # Custom rules loader tests (5)
+pytest tests/analyzer/ -v           # Compatibility engine tests (24)
+pytest tests/api/ -v                # API service layer tests (10)
+pytest tests/database/ -v           # Database layer tests (7)
+pytest tests/cli/ -v                # CLI tests (18)
+pytest tests/polyfill/ -v           # Polyfill tests (7)
+pytest tests/export/ -v             # Export module tests (7)
+pytest tests/config/ -v             # Config module tests (5)
+pytest tests/ai/ -v                 # AI fix suggestions tests (7)
 ```
 
 ### Test Coverage Summary
 
 | Module | Tests | BB/WB/Int | What's Covered |
 |--------|-------|-----------|----------------|
-| CSS parser | 53 | 21/22/10 | Detection, tinycss2 AST, bugs, real-world |
-| HTML parser | 52 | 33/10/9 | Detection, DOM, custom rules, real-world |
-| JS parser | 52 | 25/19/8 | Detection, tree-sitter AST, custom rules |
-| Custom rules | 10 | 5/5/- | Loading, singleton, save/reload |
-| Analyzer | 56 | 35/15/6 | Scoring, compatibility, DB, web features |
-| API service | 36 | 18/10/8 | Analyze, CRUD, singleton, end-to-end |
-| Database | 37 | 27/10/- | CRUD, statistics, migrations, singleton |
-| CLI | 37 | 12/15/10 | Commands, gates, formatters, generators |
-| Polyfill | 23 | 8/6/9 | Recommendations, singleton, file gen |
-| Export | 18 | 18/-/- | All 6 formats (~3 per format) |
-| Config | 11 | 11/-/- | Loading, merging, defaults, pkg.json |
-| AI | 14 | 8/6/- | API calls, prompt building, response parsing |
+| CSS parser | 14 | 6/5/3 | Detection, tinycss2 AST, bugs, real-world |
+| HTML parser | 14 | 7/4/3 | Detection, DOM, custom rules, real-world |
+| JS parser | 14 | 6/5/3 | Detection, tree-sitter AST, custom rules |
+| Custom rules | 5 | 3/2/- | Loading, singleton, save/reload |
+| Analyzer | 24 | 18/4/2 | Scoring, compatibility, DB, web features |
+| API service | 10 | 5/3/2 | Analyze, CRUD, singleton, end-to-end |
+| Database | 7 | 3/2/2 | CRUD, statistics, migrations, singleton |
+| CLI | 18 | 9/4/5 | Commands, gates, formatters, generators |
+| Polyfill | 7 | 3/2/2 | Recommendations, singleton, file gen |
+| Export | 7 | 7/-/- | All 6 formats |
+| Config | 5 | 5/-/- | Loading, merging, defaults, pkg.json |
+| AI | 7 | 4/3/- | API calls, prompt building, response parsing |
 
 ### Manual Validation
 See `tests/validation/` for manual validation samples and checklists (CSS, HTML, JS, custom rules).

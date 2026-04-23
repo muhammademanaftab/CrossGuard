@@ -66,7 +66,8 @@ class ExportManager:
                     self.parent,
                     "Missing Library",
                     f"Required libraries for PDF export:\n\n"
-                    f"pip install reportlab matplotlib\n\n"
+                    f"pip install weasyprint jinja2\n\n"
+                    f"(On macOS you may also need: brew install pango cairo)\n\n"
                     f"Error: {str(e)}",
                 )
             except Exception as e:

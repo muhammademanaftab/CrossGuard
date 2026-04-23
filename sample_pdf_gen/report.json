@@ -1,0 +1,231 @@
+{
+  "success": true,
+  "summary": {
+    "total_features": 16,
+    "html_features": 0,
+    "css_features": 16,
+    "js_features": 0,
+    "critical_issues": 1
+  },
+  "scores": {
+    "grade": "B",
+    "risk_level": "low",
+    "simple_score": 89.06,
+    "weighted_score": 89.06
+  },
+  "browsers": {
+    "chrome": {
+      "version": "144",
+      "supported": 14,
+      "partial": 0,
+      "unsupported": 1,
+      "compatibility_percentage": 87.5,
+      "unsupported_features": [
+        "css-filter-function"
+      ],
+      "partial_features": []
+    },
+    "firefox": {
+      "version": "146",
+      "supported": 14,
+      "partial": 0,
+      "unsupported": 1,
+      "compatibility_percentage": 87.5,
+      "unsupported_features": [
+        "css-filter-function"
+      ],
+      "partial_features": []
+    },
+    "safari": {
+      "version": "18.4",
+      "supported": 15,
+      "partial": 0,
+      "unsupported": 0,
+      "compatibility_percentage": 93.75,
+      "unsupported_features": [],
+      "partial_features": []
+    },
+    "edge": {
+      "version": "141",
+      "supported": 14,
+      "partial": 0,
+      "unsupported": 1,
+      "compatibility_percentage": 87.5,
+      "unsupported_features": [
+        "css-filter-function"
+      ],
+      "partial_features": []
+    }
+  },
+  "features": {
+    "html": [],
+    "css": [
+      "calc",
+      "css-backdrop-filter",
+      "css-container-queries",
+      "css-filter-function",
+      "css-filters",
+      "css-grid",
+      "css-has",
+      "css-lch-lab",
+      "css-logical-props",
+      "css-math-functions",
+      "css-subgrid",
+      "css-variables",
+      "css3-colors",
+      "flexbox",
+      "minmaxwh",
+      "test-container-queries"
+    ],
+    "js": [],
+    "all": [
+      "calc",
+      "css-backdrop-filter",
+      "css-container-queries",
+      "css-filter-function",
+      "css-filters",
+      "css-grid",
+      "css-has",
+      "css-lch-lab",
+      "css-logical-props",
+      "css-math-functions",
+      "css-subgrid",
+      "css-variables",
+      "css3-colors",
+      "flexbox",
+      "minmaxwh",
+      "test-container-queries"
+    ]
+  },
+  "feature_details": {
+    "css": [
+      {
+        "feature": "flexbox",
+        "description": "CSS Flexbox",
+        "matched_properties": [
+          "display"
+        ]
+      },
+      {
+        "feature": "css-grid",
+        "description": "CSS Grid Layout",
+        "matched_properties": [
+          "display",
+          "grid-template"
+        ]
+      },
+      {
+        "feature": "css3-colors",
+        "description": "CSS3 Colors (RGB/HSL)",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-filter-function",
+        "description": "CSS Filter Effects",
+        "matched_properties": [
+          "filter",
+          "blur"
+        ]
+      },
+      {
+        "feature": "css-backdrop-filter",
+        "description": "CSS backdrop-filter",
+        "matched_properties": [
+          "backdrop-filter"
+        ]
+      },
+      {
+        "feature": "minmaxwh",
+        "description": "CSS min/max Width & Height",
+        "matched_properties": [
+          "min-width",
+          "aspect-ratio"
+        ]
+      },
+      {
+        "feature": "css-has",
+        "description": "CSS :has() Selector",
+        "matched_properties": []
+      },
+      {
+        "feature": "calc",
+        "description": "CSS calc() function",
+        "matched_properties": [
+          "calc"
+        ]
+      },
+      {
+        "feature": "css-variables",
+        "description": "CSS Variables (Custom Properties)",
+        "matched_properties": [
+          "var"
+        ]
+      },
+      {
+        "feature": "css-logical-props",
+        "description": "CSS Logical Properties",
+        "matched_properties": [
+          "margin-inline",
+          "padding-block"
+        ]
+      },
+      {
+        "feature": "css-container-queries",
+        "description": "CSS Container Queries",
+        "matched_properties": []
+      },
+      {
+        "feature": "css-subgrid",
+        "description": "CSS Subgrid",
+        "matched_properties": [
+          "grid-template-columns"
+        ]
+      },
+      {
+        "feature": "css-filters",
+        "description": "CSS Filter Effects",
+        "matched_properties": [
+          "filter"
+        ]
+      },
+      {
+        "feature": "css-lch-lab",
+        "description": "LCH and Lab color values",
+        "matched_properties": [
+          "lch"
+        ]
+      },
+      {
+        "feature": "css-math-functions",
+        "description": "CSS math functions min(), max() and clamp()",
+        "matched_properties": [
+          "clamp"
+        ]
+      },
+      {
+        "feature": "test-container-queries",
+        "description": "CSS Container Queries",
+        "matched_properties": []
+      }
+    ],
+    "js": [],
+    "html": []
+  },
+  "unrecognized": {
+    "html": [],
+    "css": [],
+    "js": [],
+    "total": 0
+  },
+  "recommendations": [
+    "1 features are not supported in some browsers. Consider providing fallbacks or polyfills.",
+    "1 feature not found in database across 4 browsers. These may be universally supported or custom features."
+  ],
+  "baseline_summary": {
+    "widely_available": 11,
+    "newly_available": 3,
+    "limited": 1,
+    "unknown": 1
+  },
+  "ai_suggestions": null
+}

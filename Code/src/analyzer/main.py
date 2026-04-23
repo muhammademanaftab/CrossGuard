@@ -9,7 +9,11 @@ from ..parsers.js_parser import JavaScriptParser
 from ..parsers.css_parser import CSSParser
 from .compatibility import CompatibilityAnalyzer
 from .scorer import CompatibilityScorer
+from .web_features import WebFeaturesManager
 from ..utils.config import get_logger, LATEST_VERSIONS
+
+# Maps web-features baseline status codes to display labels used in reports.
+_BASELINE_LABELS = {'high': 'Widely', 'low': 'Newly', 'limited': 'Limited'}
 
 logger = get_logger('analyzer.main')
 
@@ -22,7 +26,19 @@ class CrossGuardAnalyzer:
         self.css_parser = CSSParser()
         self.compatibility_analyzer = CompatibilityAnalyzer()
         self.scorer = CompatibilityScorer()
+        self.web_features = WebFeaturesManager()
         self._reset_state()
+
+    def _annotate_baseline(self, detail_lists):
+        """Attach a 'baseline' label to each feature_details entry. Falls back to 'Unknown'."""
+        has_data = self.web_features.has_data()
+        for entries in detail_lists:
+            for entry in entries:
+                if not has_data:
+                    entry['baseline'] = 'Unknown'
+                    continue
+                info = self.web_features.get_baseline_status(entry.get('feature', ''))
+                entry['baseline'] = _BASELINE_LABELS.get(info.status, 'Unknown') if info else 'Unknown'
 
     def run_analysis(
         self,
@@ -206,6 +222,12 @@ class CrossGuardAnalyzer:
             compatibility_results,
             target_browsers
         )
+
+        self._annotate_baseline([
+            self.css_feature_details,
+            self.js_feature_details,
+            self.html_feature_details,
+        ])
 
         return {
             'success': True,
