@@ -20,16 +20,16 @@ def build():
     )
 
     dirs = [
-        ('api/',      'Service',  'Service facade (64 methods) and data contracts'),
+        ('api/',      'Service',  'Service facade (49 methods) and data contracts'),
         ('cli/',      'Frontend', 'Click CLI (8 commands, quality gates, CI generators)'),
         ('config/',   'Backend',  'Config file support (crossguard.config.json)'),
         ('export/',   'Backend',  '6 export formats (JSON, PDF, SARIF, JUnit, Checkstyle, CSV)'),
         ('analyzer/', 'Backend',  'Compatibility engine (scoring, Can I Use lookup)'),
         ('database/', 'Backend',  'SQLite persistence (4 repositories, migrations)'),
-        ('gui/',      'Frontend', 'CustomTkinter GUI (23 widgets)'),
+        ('gui/',      'Frontend', 'CustomTkinter GUI (22 widgets)'),
         ('polyfill/', 'Backend',  'Polyfill recommendation engine'),
         ('parsers/',  'Backend',  'HTML/CSS/JS parsers and feature maps'),
-        ('utils/',    'Utilities','Logging, exceptions, types, constants'),
+        ('utils/',    'Utilities','Logging, constants, and feature-name helpers'),
     ]
 
     rows = ''

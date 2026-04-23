@@ -131,24 +131,25 @@ The `LaTeX/images/` directory currently holds frozen "before" snapshots and refr
 | `cg_gui.png` | `cg_gui_after.png` |
 | `cg_parsers.png` | `cg_parsers_after.png` |
 | `cg_polyfill.png` | `cg_polyfill_after.png` |
+| `cg_directory.png` | `cg_directory_after.png` |
+| `cg_sequence.png` | `cg_sequence_after.png` |
 
 After each rename, the matching `cg_X_before.png` can stay in-repo as an archival record or be deleted — whichever you prefer.
 
 ---
 
-## 3. External diagram — `LaTeX/images/cg_sequence.png`
+## 3. `LaTeX/images/cg_sequence.png` — already regenerated from the updated PlantUML source
 
-The sequence diagram was authored externally (no `Code/docs/diagrams/scripts/` source exists for it), so this one needs to be edited in whichever tool produced it.
+The earlier version of this file claimed the sequence diagram was externally authored — that was wrong. The source is at `Code/docs/diagrams/scripts/3.16_sequence.puml` (PlantUML). It has been updated and re-rendered with the corrected arrows:
 
-**Two message labels are out of date and need to change:**
+1. `CrossGuardAnalyzer → CompatibilityAnalyzer: analyze(...)` → now reads `classify_features(features, browsers)`
+2. `CrossGuardAnalyzer → CompatibilityScorer: calculate_weighted_score(status)` → replaced with 4 arrows showing each real scorer method (`score_statuses`, `overall_score`, `grade`, `risk_level`)
 
-1. `CrossGuardAnalyzer → CompatibilityAnalyzer: analyze(features, browsers)`
-   → should become `classify_features(features, browsers)`
+Before/after snapshots saved:
+- `LaTeX/images/cg_sequence_before.png` — frozen pre-refactor render
+- `LaTeX/images/cg_sequence_after.png` — new render matching current code
 
-2. `CrossGuardAnalyzer → CompatibilityScorer: calculate_weighted_score(status)`
-   → this method never existed after the Arch B refactor. The scorer is now driven by a `STATUS_SCORES` lookup and four helpers (`score_statuses`, `overall_score`, `grade`, `risk_level`). Replace with either:
-   - one simplified arrow labelled `score_statuses / overall_score / grade / risk_level`, returning `score + grade`, or
-   - four arrows (one per helper) if you want the full picture.
+To promote: rename `cg_sequence_after.png` → `cg_sequence.png` (same pattern as the other before/after pairs).
 
 ---
 
@@ -167,5 +168,6 @@ The sequence diagram was authored externally (no `Code/docs/diagrams/scripts/` s
 [ ] Rename images/cg_gui_after.png       → images/cg_gui.png
 [ ] Rename images/cg_parsers_after.png   → images/cg_parsers.png
 [ ] Rename images/cg_polyfill_after.png  → images/cg_polyfill.png
-[ ] Update images/cg_sequence.png in external editor (two message relabels)
+[ ] Rename images/cg_directory_after.png → images/cg_directory.png
+[ ] Rename images/cg_sequence_after.png  → images/cg_sequence.png
 ```

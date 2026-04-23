@@ -647,9 +647,194 @@ This also reconciles with the regenerated diagram (`cg_polyfill_after.png`) whic
 
 **Thesis impact.** None — utils is not described in any LaTeX chapter and no diagram depicts it. No `impl.tex` edit needed, no diagram refresh needed.
 
+## 1j. Final sweep — residual dead imports + one missed duplicate
+
+**Context.** A final overall sweep (vulture 80 %, exhaustive grep across `src/`, `tests/`, `docs/`, `LaTeX/`, AST-level unused-import detector, and cross-file dynamic-lookup scan) surfaced a handful of items that earlier module-by-module audits missed — partly because some were hidden inside long multi-line import blocks, and one was a dead *data* duplicate that looked live because a different class attribute happened to share its name.
+
+Every flagged item was verified against **seven external-usage channels** before deletion: (1) `from <module> import <name>` elsewhere, (2) `<module>.<name>` attribute access, (3) `__all__` in any `__init__.py`, (4) `getattr/hasattr/eval/__import__` dynamic lookup, (5) test-suite references, (6) LaTeX thesis references, (7) non-import-line usage inside the defining file. All 30 came back with **zero external refs**.
+
+**Dead data removed (1 item).**
+
+- `src/utils/config.py:19–26` — `DEFAULT_BROWSERS` dict of 6 display names (`'chrome': 'Chrome'`, etc.). Never imported anywhere. The identically-named `AnalyzerService.DEFAULT_BROWSERS` class attribute (in `src/api/service.py:28`) is a **different dict** — a browser→version mapping using `LATEST_VERSIONS`. The one in `utils/config.py` was a stale display-name mapping from an earlier design. Removed (9 lines).
+
+**Dead re-export block removed (1 statement, 7 names).**
+
+- `src/gui/config.py:16–24` — a `from .theme import (COLORS, FONTS, SPACING, ANIMATION, WINDOW, get_score_color, configure_ctk_theme)` block labelled "for old import paths" in the module docstring. Grep for `from src.gui.config import COLORS|FONTS|SPACING|ANIMATION|WINDOW|get_score_color|configure_ctk_theme` anywhere under `src/` or `tests/` returned **0 hits** — no consumer ever used the "old path." All GUI widgets import these names directly from `.theme`. Entire block removed; the file's docstring was also shortened from *"Theme constants live in theme.py — this re-exports them for old import paths"* to *"App-level settings."*
+
+**Unused imports removed (22 items across 11 files).**
+
+Each one appears exactly once in its file — inside its import statement — and nowhere else. Verified via AST scan plus regex count.
+
+| File | Removed |
+|---|---|
+| `src/export/pdf_exporter.py` | `List` |
+| `src/gui/main_window.py` | `Optional`, `WINDOW`, `BookmarkButton`, `BrowserCard`, `CompactStatsBar`, `ScoreCard`, `get_available_browsers` |
+| `src/gui/widgets/file_table.py` | `Tuple` |
+| `src/gui/widgets/history_card.py` | `get_file_type_color` |
+| `src/gui/widgets/issue_card.py` | `ICONS` |
+| `src/gui/widgets/polyfill_card.py` | `ICONS` |
+| `src/gui/widgets/rules_manager.py` | `json`, `Path`, `SPACING` |
+| `src/gui/widgets/statistics_panel.py` | `Optional` |
+| `src/gui/widgets/version_range_card.py` | `Optional`, `ICONS` |
+| `src/parsers/html_parser.py` | `List`, `Optional` |
+| `src/polyfill/polyfill_service.py` | `Optional` |
+
+**Note on `ScoreCard`.** `impl.tex:343` mentions `ScoreCard(parent, score=85, grade="B")` as a widget example. This is safe: the `ScoreCard` class itself still lives in `src/gui/widgets/score_card.py` and is still re-exported by `src/gui/widgets/__init__.py`. What was removed is only `main_window.py`'s **unused consumer import** of the same name — the class and its public API are untouched, so the LaTeX description remains accurate.
+
+**Verification (post-cleanup).**
+- `pytest tests/` → **132/132 pass**.
+- `vulture src/ --min-confidence 80` → **0 hits**.
+- Every module imports cleanly (11/11: analyzer, api, cli, config, database, gui, parsers, polyfill, utils, export, ai).
+- AST-level unused-import scan across all of `src/` → **0 flagged**.
+- `python -m compileall -q src/` → silent.
+- CLI end-to-end: `python -m src.cli.main analyze examples/sample_project/sample.css --format table` → runs to completion.
+- Pipeline smoke: `AnalyzerService.analyze(AnalysisRequest(css_files=['sample.css']))` → Grade B, score 89.1.
+- GUI full import tree: `main`, `MainWindow`, `ExportManager`, `PolyfillCard`, `IssueCard`, `RulesManagerDialog`, `VersionRangePopup`, `StatisticsPanel`, `HistoryCard`, `FileTable`, and `APP_NAME`/`APP_VERSION` all resolve.
+
+**Thesis impact.** None — no LaTeX text or diagram references any of the deleted imports or the `DEFAULT_BROWSERS` display-name dict. No new LaTeX edits. No diagram refreshes.
+
+## 1k. Diagram-wide cross-check — 3 drifts fixed
+
+**Context.** A complete sweep of every PNG in `LaTeX/images/` against its source script (`Code/docs/diagrams/scripts/`) and the current code, covering every class, every method, every attribute, every edge — not just module-local changes. Verification method: AST-level inventory of every class shown, compared 1:1 against the diagram script contents.
+
+**Diagrams verified clean (no action needed):**
+- `cg_architecture.png` — all 10 class nodes + connections match code exactly
+- `cg_ai.png` — `AIFixService` class attrs (ANTHROPIC_URL, OPENAI_URL, DEFAULT_MODELS), instance attrs (_api_key, _provider, _model, _max_features, _priority), public methods (is_available, get_fix_suggestions), private methods (_build_prompt, _call_api, _call_anthropic, _call_openai, _parse_response) all present ✓
+- `cg_gui_after.png` — `MainWindow` 8 attrs + 8 named private methods + "(48 private methods total)" all verified in code; `ExportManager` `export_json` / `export_pdf` match; `AnalyzerService` "(49 public methods total)" correct
+- `cg_parsers_after.png` — HTMLParser/CSSParser/JavaScriptParser attrs (features_found, feature_details, unrecognized_patterns, _all_features, _matched_apis) + 3 public methods each + private-method counts (17/5/13) all match; `CustomRulesLoader` `_css_rules` / `_js_rules` / `_html_rules` instance attrs + 4 public + 1 private method all match
+- `cg_database_after.png` — `AnalysisRepository` (6 methods), `StatisticsService` "(11 public methods total)", `Analysis` / `Tag` / `Bookmark` / `AnalysisFeature` / `BrowserResult` attrs + methods all match
+- `cg_polyfill_after.png` — already verified in §1h; still clean
+- `cg_usecase.png` — all 7 use cases map to live features (analyze, view results, export, history/stats, AI + polyfill, rules + DB update, CI/CD); external systems (LLM API, SQLite, Can I Use DB, NPM Registry) all wired correctly
+
+**Diagrams with drift — fixed this pass:**
+
+1. **`cg_pipeline_after.png`** — the parser blocks on this diagram still showed "(6 public methods total)" for HTMLParser / CSSParser / JavaScriptParser, stale from before the §1g parser cleanup (which trimmed each to 3 public methods). Updated `Code/docs/diagrams/scripts/3.6_analysis_pipeline.py` to show the 3 real public methods (`parse_file`, `parse_string`, `get_detailed_report`) inline instead of the "...  (6 public methods total)" placeholder. Re-rendered; `LaTeX/images/cg_pipeline_after.png` refreshed.
+
+2. **`cg_directory.png`** — three stale entries found in `Code/docs/diagrams/scripts/3.18_directory_structure.py`:
+   - `api/`: "Service facade (**64 methods**)" → updated to `(49 methods)`
+   - `gui/`: "CustomTkinter GUI (**23 widgets**)" → updated to `(22 widgets)` (actual file count)
+   - `utils/`: "Logging, **exceptions, types, constants**" → updated to `Logging, constants, and feature-name helpers` (utils never had an exceptions.py or a types module; just `config.py` and `feature_names.py`)
+   - Re-rendered. `LaTeX/images/cg_directory_before.png` snapshotted, `cg_directory_after.png` is the new version.
+
+3. **`cg_sequence.png`** — two arrows were stale from the analyzer + scorer refactors. The earlier `latex_edits.md` claimed this diagram was externally-authored with no in-repo source, but the PlantUML source does exist at `Code/docs/diagrams/scripts/3.16_sequence.puml`. Updated both arrows:
+   - `CGA → CompatibilityAnalyzer: analyze(features, browsers)` → `classify_features(features, browsers)`
+   - `CGA → CompatibilityScorer: calculate_weighted_score(status)` (method never existed after Arch B) → replaced with 4 arrows showing each real scorer method (`score_statuses`, `overall_score`, `grade`, `risk_level`) plus their returns
+   - Re-rendered via `plantuml -tpng`. `LaTeX/images/cg_sequence_before.png` snapshotted, `cg_sequence_after.png` is the new version.
+
+**Verification (post-cleanup).**
+- `pytest tests/` → **132/132 pass**.
+- `vulture src/ --min-confidence 80` → **0 hits**.
+- Every PNG referenced by LaTeX either (a) already matches the code, or (b) has a `_before` + `_after` pair ready for promotion.
+- `latex_edits.md` updated: section 3 no longer calls `cg_sequence.png` "externally authored"; it's now a "rename `_after` to canonical" item alongside the other 5 diagrams. New checklist entries added for `cg_directory_after.png` and `cg_sequence_after.png` promotion.
+
+**LaTeX text impact.** None. No new text edits are required beyond the 7 already listed in `latex_edits.md`. This pass only fixed diagram counts/labels.
+
+## 1l. Diagram future-proofing + edge-by-edge connection audit
+
+**Two-part deliverable.**
+
+### Part 1: Replace hard-coded method counts with vague placeholders
+
+Every diagram that previously said "(N private/public methods total)" has been rewritten with `(other private methods)` / `(other public methods)`. This way a future method add/remove doesn't make the diagram drift again.
+
+| Script | Before | After |
+|---|---|---|
+| `3.6_analysis_pipeline.py` | `(49 public methods total)`, `(11 / 17 / 5 / 13 / 5 private methods total)` | `(other public methods)`, `(other private methods)` |
+| `3.7_parsers.py` | `(17 / 5 / 13 private methods total)` | `(other private methods)` |
+| `3.9_database.py` | `(11 public methods total)` | `(other public methods)` |
+| `3.13_gui.py` | `(48 private methods total)`, `(49 public methods total)` | `(other private methods)`, `(other public methods)` |
+
+All 8 graphviz diagrams regenerated. Every `LaTeX/images/cg_*_after.png` refreshed (`cg_pipeline_after`, `cg_parsers_after`, `cg_database_after`, `cg_polyfill_after`, `cg_gui_after`, `cg_directory_after` — plus the sequence PNG already refreshed in §1k).
+
+### Part 2: Edge-by-edge connection audit — every arrow verified against code
+
+I walked every labelled arrow in every diagram and grepped for the code expression that implements it. **Result: every edge has a real call site; every relationship is honest.**
+
+**`cg_architecture.png` — 11 edges, all live:**
+
+| Edge | Code evidence |
+|---|---|
+| `MainWindow → AnalyzerService` | `main_window.py:9,50` — `from src.api import get_analyzer_service; self._analyzer_service = get_analyzer_service()` |
+| `CLI → AnalyzerService` | `cli/main.py:13,259` — `from src.api.service import AnalyzerService; service.analyze_files(...)` |
+| `AnalyzerService → CrossGuardAnalyzer` (creates) | `api/service.py:44-45` — `CrossGuardAnalyzer()` |
+| `AnalyzerService → AIFixService` (uses) | `api/service.py:598-603` — lazy import + instantiate |
+| `AnalyzerService → PolyfillService` (uses) | `api/service.py:624-625, 635-644` — 5+ call sites |
+| `AnalyzerService → AnalysisRepository` (uses) | `api/service.py:16, 210-211` — 7+ call sites |
+| `CrossGuardAnalyzer ◆ HTMLParser/CSSParser/JavaScriptParser` (composition) | `analyzer/main.py:20-22` |
+| `CrossGuardAnalyzer → CanIUseDatabase` (uses) | **Simplification** — CGA composes `CompatibilityAnalyzer`; `compatibility.py:13` holds the real DB handle. Transitively honest at the architecture-diagram abstraction level. The pipeline diagram (`3.6`) shows the precise edge from `CompatibilityAnalyzer` directly. |
+| `CanIUseDatabase → Can I Use Data (JSON)` | `analyzer/database.py:22-23` — opens `CANIUSE_DB_PATH` |
+| `AnalysisRepository → SQLite` | `repositories.py:3,8,16` — `sqlite3.Connection` |
+| `AIFixService → LLM APIs` | `ai/ai_service.py:119,139` — `requests.post(self.ANTHROPIC_URL / self.OPENAI_URL, …)` |
+
+**`cg_pipeline_after.png` — 9 edges, all live:** AnalysisRequest accepted by `analyze(request)` (line 61), AnalysisResult returned (line 61), CrossGuardAnalyzer created (line 44-45), parsers composed (line 20-22), CompatibilityAnalyzer composed (line 23), CompatibilityScorer composed (line 24), CompatibilityAnalyzer queries CanIUseDatabase (`compatibility.py:13,33`).
+
+**`cg_parsers_after.png` — 3 edges, all live:**
+- `html_parser.py:19,92` — `get_custom_html_rules()`
+- `css_parser.py:11,74` — `get_custom_css_rules()`
+- `js_parser.py:16,304` — `get_custom_js_rules()`
+
+**`cg_database_after.png` — 7 edges, all live:**
+- AnalysisRepository/StatisticsService → SQLite via `get_connection()` (both files)
+- AnalysisRepository manages Analysis (`save_analysis(analysis: Analysis)`)
+- Analysis 1..* AnalysisFeature (`models.py:78` — `features: List[AnalysisFeature]`)
+- AnalysisFeature 1..* BrowserResult (`models.py:44` — `browser_results: List[BrowserResult]`)
+- Bookmark references Analysis (`models.py:141` — `analysis_id: int`)
+- Tag 0..* Analysis via junction (`repositories.py:407` — `JOIN analysis_tags at ON t.id = at.tag_id`)
+
+**`cg_ai.png` — 1 edge, live:** `requests.post(self.ANTHROPIC_URL / self.OPENAI_URL, …)`.
+
+**`cg_gui_after.png` — 2 edges, all live:**
+- `main_window.py:39,49` — `from .export_manager import ExportManager; self.export_manager = ExportManager(master)` (composition ◆)
+- `main_window.py:50` — `self._analyzer_service = get_analyzer_service()` (dependency)
+
+**`cg_polyfill_after.png` — 2 edges, all live:**
+- `polyfill_service.py:5,11,23` — `self._loader = get_polyfill_loader(); self._loader.get_polyfill(...)`
+- `polyfill_loader.py:33,39,84,92` — reads/writes `POLYFILL_MAP_PATH`
+
+**`cg_usecase.png` — 6 external-system edges, all live:**
+- UC analyze → Can I Use DB (`compatibility.py:33` — `self.database.check_support(...)`)
+- UC analyze → SQLite (`api/service.py:210, save_analysis_from_result()`)
+- UC history → SQLite (`api/service.py:253` — `_analysis_repo().get_all_analyses(...)`)
+- UC AI/polyfill → LLM API (`api/service.py:598-603`)
+- UC rules/DB → NPM Registry (`database_updater.py:34,36` — `Request(NPM_REGISTRY_URL, …)`)
+- UC rules/DB → Can I Use DB (`database_updater.py:256` — `update_database(...)`)
+
+**`cg_sequence.png` — 7 message arrows, all live:**
+- `MainWindow/CLI → AnalyzerService.analyze_files(...)` — `main_window.py:1831`, `cli/main.py:259`
+- `AnalyzerService → CrossGuardAnalyzer.run_analysis(...)` — `api/service.py:72`
+- `CrossGuardAnalyzer → Parser.parse_file(...)` — `analyzer/main.py:109, 120, 124, 128`
+- `CrossGuardAnalyzer → CompatibilityAnalyzer.classify_features(...)` — `analyzer/main.py:132`
+- `CompatibilityAnalyzer → CanIUseDatabase.check_support(...)` — `compatibility.py:33`
+- `CrossGuardAnalyzer → CompatibilityScorer.score_statuses / overall_score / grade / risk_level` — `main.py:140,144,145,151`
+- `AnalyzerService → AnalysisRepository.save_analysis(...)` — `api/service.py:20, save_analysis_from_result()`
+
+### Part 3: Facade integrity
+
+| Check | Result |
+|---|---|
+| GUI deep-path imports into backend (`analyzer`, `database`, `parsers`, `export`, `polyfill`, `ai`) | **0** |
+| CLI deep-path imports into backend | **0** |
+| AnalyzerService methods shown on any diagram (22 names checked) | **All 22 present & callable** |
+| Stub methods (`NotImplementedError` or `TODO: implement`) in AnalyzerService | **0** |
+| AnalyzerService public method count | **49**, all live |
+
+### Part 4: Post-cleanup verification
+
+- `pytest tests/` → **132/132 pass**
+- `vulture src/ --min-confidence 80` → **0 hits**
+- Pipeline end-to-end: Grade B, score 89.1 on sample.css ✓
+
+### Summary of this pass
+
+- **40+ edges** across **8 class diagrams + 1 sequence diagram + 1 use-case diagram** verified against code
+- **0 broken edges** found (the one potential drift, architecture's `CGA → CanIUseDatabase`, is a justified high-level simplification covering the real `CGA ◆ CompatibilityAnalyzer → CanIUseDatabase` chain)
+- **All hard-coded method counts replaced** with "(other private/public methods)" — immune to future drift
+- **8 diagram PNGs regenerated**; all `_after.png` copies refreshed in `LaTeX/images/`
+- Facade rule **literally enforced** (0 bypasses in GUI, 0 in CLI)
+
 ## 4. So, are the analyzer, api, cli, config, database, gui, parsers, polyfill, and utils modules "fixed"?
 
-Yes. After the changes in sections 1, 1b, 1c, 1d, 1e, 1f, 1g, 1h, and 1i:
+Yes. After the changes in sections 1, 1b, 1c, 1d, 1e, 1f, 1g, 1h, 1i, 1j, 1k, and 1l:
 - **No dead code**: every public method has a caller (grep + vulture clean across all eight modules at 80% confidence). `AnalyzerService` is at **49 public methods**, all live. `PolyfillLoader` is at **3 public methods**, all live.
 - **No duplicates**: classification loop in one place, scoring math in one place, one dispatch table for CI-format exports in the CLI, no parallel/shadow APIs on the facade, no backend scaffolding for unbuilt features.
 - **No broken references**: `CompatibilityAnalyzer` is called from the pipeline, `AnalyzerService` is honoured by every GUI widget and by the CLI, `config.output_format` drives `--format`, `StatisticsService` only exposes methods the aggregate actually uses.

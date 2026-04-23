@@ -57,7 +57,7 @@ def build():
          '- _build_settings_view()',
          '- _on_files_dropped(files)',
          '- _on_navigate(view_id)',
-         '- ...  (48 private methods total)']))
+         '- ...  (other private methods)']))
 
     g.node('ExportManager', cn('ExportManager',
         ['+ parent : CTk'],
@@ -75,7 +75,7 @@ def build():
          '+ save_analysis_to_history(result) : int',
          '+ add_bookmark(analysis_id, note) : bool',
          '+ get_all_tags() : List',
-         '+ ...  (49 public methods total)'],
+         '+ ...  (other public methods)'],
         stereotype='facade'))
 
     # ═══ RELATIONSHIPS ═══════════════════════════════════

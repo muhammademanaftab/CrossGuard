@@ -51,7 +51,7 @@ def build():
          '+ DEFAULT_BROWSERS : Dict'],
         ['+ analyze(request) : AnalysisResult',
          '+ analyze_files(html, css, js, browsers) : AnalysisResult',
-         '+ ...  (49 public methods total)'],
+         '+ ...  (other public methods)'],
         stereotype='facade'))
 
     g.node('AnalysisResult', cn('AnalysisResult',
@@ -80,7 +80,7 @@ def build():
          '- _check_compatibility(browsers) : Dict',
          '- _calculate_scores(results, browsers) : Dict',
          '- _generate_report(results, scores, browsers) : Dict',
-         '- ...  (11 private methods total)'],
+         '- ...  (other private methods)'],
         stereotype='orchestrator'))
 
     # ── Row 3: Parsers + Engine ─────────────────────────
@@ -89,22 +89,22 @@ def build():
         ['+ features_found : Set[str]'],
         ['+ parse_file(path) : Set[str]',
          '+ parse_string(html) : Set[str]',
-         '+ ...  (6 public methods total)',
-         '- ...  (17 private methods total)']))
+         '+ get_detailed_report() : Dict',
+         '- ...  (other private methods)']))
 
     g.node('CSSParser', cn('CSSParser',
         ['+ features_found : Set[str]'],
         ['+ parse_file(path) : Set[str]',
          '+ parse_string(css) : Set[str]',
-         '+ ...  (6 public methods total)',
-         '- ...  (5 private methods total)']))
+         '+ get_detailed_report() : Dict',
+         '- ...  (other private methods)']))
 
     g.node('JSParser', cn('JavaScriptParser',
         ['+ features_found : Set[str]'],
         ['+ parse_file(path) : Set[str]',
          '+ parse_string(js) : Set[str]',
-         '+ ...  (6 public methods total)',
-         '- ...  (13 private methods total)']))
+         '+ get_detailed_report() : Dict',
+         '- ...  (other private methods)']))
 
     g.node('CompatibilityAnalyzer', cn('CompatibilityAnalyzer',
         ['+ database : CanIUseDatabase'],
@@ -125,7 +125,7 @@ def build():
         ['+ load() : bool',
          '+ get_feature(feature_id) : Dict',
          '+ check_support(feature, browser, ver) : str',
-         '- ...  (5 private methods total)'],
+         '- ...  (other private methods)'],
         stereotype='singleton'))
 
     # ═══ RELATIONSHIPS ═══════════════════════════════════

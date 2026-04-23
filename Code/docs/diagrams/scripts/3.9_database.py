@@ -59,7 +59,7 @@ def build():
          '+ get_top_problematic_features(lim) : List',
          '+ get_grade_distribution() : Dict',
          '+ get_summary_statistics() : Dict',
-         '+ ...  (11 public methods total)']))
+         '+ ...  (other public methods)']))
 
     g.node('SQLiteDB', en('SQLite Database', 'crossguard.db'))
 

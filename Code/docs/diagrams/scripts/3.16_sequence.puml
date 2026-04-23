@@ -62,12 +62,12 @@ end note
 
 == Compatibility Check Phase ==
 
-CGA -> CA : analyze(features, browsers)
+CGA -> CA : classify_features(features, browsers)
 activate CA
 
 CA -> DB : check_support(feature, browser, version)
 activate DB
-DB --> CA : support_status (y / n / a / p)
+DB --> CA : support_status (y / n / a / p / x / d / u)
 deactivate DB
 
 note right of DB
@@ -76,14 +76,20 @@ note right of DB
   combination.
 end note
 
-CA --> CGA : compatibility_report
+CA --> CGA : compatibility_report\n(with raw status codes)
 deactivate CA
 
 == Scoring Phase ==
 
-CGA -> CS : calculate_weighted_score(status)
+CGA -> CS : score_statuses(statuses)
 activate CS
-CS --> CGA : score (0-100) + grade (A+ to F)
+CS --> CGA : per-browser % (0-100)
+CGA -> CS : overall_score(browser_pcts)
+CS --> CGA : score (0-100)
+CGA -> CS : grade(score)
+CS --> CGA : letter grade (A+ to F)
+CGA -> CS : risk_level(score, unsupported)
+CS --> CGA : risk (none/low/medium/high)
 deactivate CS
 
 == Report Generation ==
