@@ -126,7 +126,7 @@ Every class in the diagram has 3 sections:
 
 ### Layer 3: Facade (The single entry point)
 
-**AnalyzerService** -- The facade. This is the ONE class that both frontends talk to. It has 28 public methods covering: analysis, history, settings, bookmarks, tags, export, database updates, AI suggestions, polyfill recommendations, and configuration. It CREATES CrossGuardAnalyzer, DatabaseUpdater, and WebFeaturesManager when needed (lazy loading). It USES repositories, statistics service, AI service, and polyfill service.
+**AnalyzerService** -- The facade. This is the ONE class that both frontends talk to. It has around 60 public methods covering: analysis, history, settings, bookmarks, tags, export, database updates, AI suggestions, polyfill recommendations, and configuration. It CREATES CrossGuardAnalyzer, DatabaseUpdater, and WebFeaturesManager when needed (lazy loading). It USES repositories, statistics service, AI service, and polyfill service.
 
 ### Layer 4: Orchestrator (Coordinates everything)
 
@@ -170,7 +170,7 @@ When `run_analysis()` is called, it:
 
 **CompatibilityAnalyzer** -- Takes a set of feature IDs and target browsers. For each feature + each browser, it QUERIES CanIUseDatabase to check: "Does Chrome 120 support css-grid?" Returns support data with severity ratings.
 
-**CompatibilityScorer** -- Takes support data and calculates: a simple score (0-100 average), a weighted score (browsers weighted by importance), and a compatibility index with letter grade (A+ through F).
+**CompatibilityScorer** -- A small helper class in `src/analyzer/scorer.py`. Holds the `STATUS_SCORES` dictionary that maps each Can I Use status code to a point value, and exposes a `calculate_simple_score()` method. In the live scoring path, `CrossGuardAnalyzer` in `src/analyzer/main.py` applies its own bucketing (y → supported, a/x → partial, everything else → unsupported) and computes the overall score and letter grade (A, B, C, D, F) directly.
 
 **CanIUseDatabase** -- Singleton that loads the Can I Use JSON data files into memory. Provides fast lookups: "Does browser X version Y support feature Z?" This is the core data source for the entire tool.
 

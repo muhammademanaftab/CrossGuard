@@ -150,7 +150,7 @@ The compatibility score is calculated by averaging the support level of each det
     \label{tab:gui-grades}
 \end{table}
 
-A risk level is also assigned based on the number of unsupported features, categorized as none (no issues detected), low (only partial support issues), medium (some features are unsupported), or high (more than half of the target browsers lack support).
+The app also gives each analysis a risk level based on the compatibility score: \texttt{none} when no features are unsupported, \texttt{low} when the score is 80 or above, \texttt{medium} for scores between 60 and 79, and \texttt{high} for scores below 60.
 
 \begin{figure}[H]
     \centering
@@ -293,18 +293,26 @@ Multiple browsers are separated by commas. If a version number is not provided, 
 \newpage
 \subsection{AI Fix Suggestions (CLI)}
 
-The CLI also supports AI-generated fix suggestions through two optional flags. The \texttt{-{}-api-key} flag provides the API key for the language model service, and the \texttt{-{}-ai-provider} flag selects the provider (\texttt{anthropic} or \texttt{openai}, with \texttt{none} used as the default). The same key can also be set as an environment variable to avoid including it in every command, as shown in Listing~\ref{src:ai-cli}.
+AI fix suggestions on the CLI are off by default and must be turned on for each run with the \texttt{-{}-ai} flag, mirroring the ``Get AI Suggestions'' button in the GUI. This prevents accidental API calls when a key is saved on the machine. When \texttt{-{}-ai} is used, the CLI looks for an API key in this order: the \texttt{-{}-api-key} flag, the \texttt{CROSSGUARD\_AI\_KEY} environment variable, and finally the key stored in local settings (saved via \texttt{config -{}-set-api-key}). If no key is found, the CLI prints a warning and continues the analysis without AI suggestions.
 
-\begin{lstlisting}[caption={Enable AI fix suggestions via flags or environment variable}, label=src:ai-cli, basicstyle=\ttfamily\small, breaklines=true]
-# Pass the API key directly on the command line
-python -m src.cli.main analyze style.css --format table --api-key sk-... --ai-provider openai
+\begin{lstlisting}[caption={Enable AI fix suggestions per run with \texttt{-{}-ai}}, label=src:ai-cli, basicstyle=\ttfamily\small, breaklines=true]
+# Save the API key once (prompts with hidden input if no value is given)
+python -m src.cli.main config --set-api-key sk-...
+python -m src.cli.main config --set-ai-provider anthropic
 
-# Or set it once as an environment variable
-export CROSSGUARD_AI_KEY=sk-...
-python -m src.cli.main analyze style.css --format table
+# Each analysis that needs AI explicitly opts in with --ai
+python -m src.cli.main analyze style.css --format table --ai
+
+# Override the saved key for a single run
+python -m src.cli.main analyze style.css --format table --ai --api-key sk-other
+
+# Clear the saved key when no longer needed
+python -m src.cli.main config --clear-api-key
 \end{lstlisting}
 
-When an API key is provided and the analysis detects unsupported or partially supported features, the CLI adds an ``AI Fix Suggestions'' section at the end of the output. Each suggestion includes the feature name, a short explanation of the recommended fix, and a code example showing how it can be implemented. If no API key is provided, the analysis runs normally without generating AI suggestions. The feature is completely optional and does not change the standard analysis output.
+When \texttt{-{}-ai} is passed and the analysis detects unsupported or partially supported features, the CLI adds an ``AI Fix Suggestions'' section at the end of the output. Each suggestion includes the feature name, a short explanation of the recommended fix, and a code example showing how it can be implemented. Without \texttt{-{}-ai}, the analysis runs normally and no request is sent to the language model provider, even if a key is available. This keeps the feature optional and predictable for scripts and CI jobs.
+
+
 
 \subsection{Working With Previous Analyses}
 
@@ -344,8 +352,7 @@ Export formats such as SARIF, JUnit XML, and Checkstyle XML are especially usefu
 
 \subsection{Configuration and Database Updates}
 
-The CLI also includes commands for managing configuration and updating compatibility data. The \texttt{config} command shows the current configuration settings or creates a configuration file that can store default options for future runs. The \texttt{update-db} command refreshes the local Can I Use database used for compatibility checks, ensuring that the latest browser support information is used during analysis.
-
+The CLI also includes commands for managing configuration and updating compatibility data. The \texttt{config} command shows the current configuration settings, creates a configuration file that can store default options, and manages the saved AI credentials (via \texttt{-{}-set-api-key}, \texttt{-{}-set-ai-provider}, and \texttt{-{}-clear-api-key}). When displaying configuration, any saved API key is masked so only the first and last four characters appear. The \texttt{update-db} command refreshes the local Can I Use database used for compatibility checks, ensuring that the latest browser support information is used during analysis.
 \begin{lstlisting}[caption={Manage configuration and update the Can I Use database}, basicstyle=\ttfamily\small]
 python -m src.cli.main config
 python -m src.cli.main config --init

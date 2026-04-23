@@ -11,7 +11,7 @@ Modern web development relies on a wide range of HTML, CSS, and JavaScript featu
     \item Look up each detected feature in the Can I Use database.
     \item Check support status across the selected target browsers.
     \item Calculate a weighted compatibility score from 0 to 100.
-    \item Assign a letter grade from A+ to F.
+    \item Assign a letter grade from A to F.
     \item Produce a detailed report showing supported, partially supported, and unsupported features.
 \end{enumerate}
 
@@ -34,7 +34,7 @@ The detailed internal workflow of each parser is described in Section~\ref{sec:p
 
 \subsection{Compatibility Checking, Storage, and Export}
 
-Beyond parsing, Cross Guard relies on three additional subsystems. Detected features are looked up in a local copy of the Can I Use database to check browser support, and a scoring algorithm calculates a weighted compatibility score (0--100) and assigns a letter grade (A+ to F); details are given in Section~\ref{sec:scoring}. Analysis results, bookmarks, tags, and settings are stored in an SQLite database using repository classes, as explained in Section~\ref{sec:database}. Finally, results can be exported in six formats: JSON, PDF, SARIF, JUnit XML, Checkstyle XML, and CSV, with details in Section~\ref{sec:export}.
+Beyond parsing, Cross Guard relies on three additional subsystems. Detected features are looked up in a local copy of the Can I Use database to check browser support, and a scoring algorithm calculates a weighted compatibility score (0--100) and assigns a letter grade (A to F); details are given in Section~\ref{sec:scoring}. Analysis results, bookmarks, tags, and settings are stored in an SQLite database using repository classes, as explained in Section~\ref{sec:database}. Finally, results can be exported in six formats: JSON, PDF, SARIF, JUnit XML, Checkstyle XML, and CSV, with details in Section~\ref{sec:export}.
 
 \section{Can I Use Database}
 \label{sec:caniuse-db}
@@ -103,7 +103,7 @@ The process begins with \texttt{AnalyzerService}. It receives an \texttt{Analysi
 
 Once all features have been collected, the orchestrator passes them to \texttt{CompatibilityAnalyzer}. This class queries \texttt{CanIUseDatabase}, a singleton at the bottom of the diagram, to check whether each feature is supported in each target browser. For every feature and browser combination, it returns a status: supported, partially supported, or not supported.
 
-\texttt{CompatibilityScorer} then takes these results and calculates a score from 0 to 100 along with a letter grade from A+ to F. The methods \texttt{calculate\_simple\_score()} and \texttt{calculate\_weighted\_score()} handle this computation.
+The scoring module in \texttt{src/analyzer/main.py} then takes these results and calculates a score from 0 to 100 along with a letter grade from A to F. The \texttt{calculate\_simple\_score()} helper on \texttt{CompatibilityScorer} exposes the per-browser contribution logic used during this computation.
 
 Finally, the orchestrator assembles everything into a report through \texttt{\_generate\_report()}. \texttt{AnalyzerService} wraps this into an \texttt{AnalysisResult}, shown at the top right of the diagram, and returns it to whichever frontend requested it.
 
@@ -183,18 +183,18 @@ Each feature is classified as supported, partially supported, or unsupported bas
         \hline
         \textbf{Status Codes} & \textbf{Meaning} & \textbf{Contribution} \\
         \hline \hline
-        y, a & Supported & 100 \\
+        y & Supported & 100 \\
         \hline
-        x, p & Partial support & 50 \\
+        a, x & Partial support or needs a vendor prefix & 50 \\
         \hline
-        d, n, u & Unsupported or unknown & 0 \\
+        n (or any other code) & Unsupported or unknown & 0 \\
         \hline
     \end{tabular}
     \caption{Can I Use status codes and their contribution to the score}
     \label{tab:status-scores}
 \end{table}
 
-Alongside the numeric score, the analyzer categorises each analysis into a risk level based on unsupported features: \texttt{none} if no unsupported or partial features exist, \texttt{low} if only partial support issues are found, \texttt{medium} if some features are unsupported in fewer than half the browsers, and \texttt{high} if more than half of the browsers lack support (e.g. 3 of 5 target browsers don't support \texttt{css-container-queries} $\to$ high risk).
+Alongside the score, each analysis is tagged with a risk level based on the score itself: \texttt{none} when there are no unsupported features, \texttt{low} when the score is 80 or above, \texttt{medium} for scores between 60 and 79, and \texttt{high} for scores below 60. For example, a file that scores 45 with unsupported features falls into the \texttt{high} bucket.
 
 \section{Database Design}
 \label{sec:database}
@@ -281,7 +281,7 @@ Cross Guard includes an optional AI module that generates code fix suggestions f
 
 The API key can come from several sources, checked in this order: the CLI \texttt{-{}-api-key} flag, the \texttt{CROSSGUARD\_AI\_KEY} environment variable, the \texttt{crossguard.config.json} file, or the SQLite settings table configured from the GUI Settings page. If no key is found, the feature stays hidden and the rest of the application continues to work exactly the same.
 
-In the GUI, a ``Get AI Suggestions'' button appears in the Issues section of the results dashboard. The API call only happens when the user clicks this button, not during the analysis itself, which avoids unnecessary API calls and keeps analysis fast. The request runs in a background thread so the interface stays responsive while waiting for a response. In the CLI, the \texttt{-{}-api-key} and \texttt{-{}-ai-provider} flags enable AI suggestions. When provided, an ``AI Fix Suggestions'' section is appended to the end of the output.
+In the GUI, a ``Get AI Suggestions'' button appears in the Issues section of the results dashboard. The API call only happens when the user clicks this button, not during the analysis itself, which avoids unnecessary API calls and keeps analysis fast. The request runs in the background so the interface stays responsive while waiting for a response. In the CLI, AI suggestions have to be turned on for each run with the \texttt{-{}-ai} flag on the \texttt{analyze} command. When \texttt{-{}-ai} is used, the CLI looks for the API key in three places: the \texttt{-{}-api-key} flag, the \texttt{CROSSGUARD\_AI\_KEY} environment variable, and the key saved through \texttt{config -{}-set-api-key}. If no key is found, the CLI shows a warning and the analysis continues without AI. Without \texttt{-{}-ai}, the CLI never calls the AI service, even if a key is available.
 
 The following diagram shows how \texttt{AIFixService} connects to the external LLM APIs:
 
