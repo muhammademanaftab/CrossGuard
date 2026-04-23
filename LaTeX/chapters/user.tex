@@ -63,6 +63,7 @@ venv\Scripts\activate        # Windows
 # 5. Install all dependencies
 pip install -r requirements.txt
 \end{lstlisting}
+\newpage
 
 Cross Guard also supports optional installation modes that allow users to install only the graphical interface, only the command line interface, or both components together depending on how the tool will be used.
 
@@ -127,13 +128,11 @@ Once the files appear in the file table, they can be reviewed before starting th
 
 \subsection{Results Dashboard}
 
-After the analysis finishes, the results are presented in the Results Dashboard. This screen provides a summary of how compatible the analyzed code is across the selected browsers. At the top of the dashboard a compatibility score is displayed, showing the overall result of the analysis as both a percentage and a grade. The score reflects how many detected features are fully supported by the chosen browsers. For example, if a CSS file uses flexbox, CSS grid, and container queries, and the target browsers are Chrome 120 and Safari 15, the dashboard might show a score of 85/100 (grade B) because container queries are only partially supported in Safari 15.
+After the analysis finishes, the results are presented in the Results Dashboard. The page opens with a large status banner labelled \emph{Compatibility: Passing} (or \emph{Failing}, depending on the score), a progress bar, and a caption showing how many detected features are fully supported (for example, ``63 of 68 features fully supported''). Directly below the banner, a row of four summary tiles displays the overall Score, the letter Grade, the number of target Browsers, and the total number of detected Features. For example, if a CSS file uses flexbox, CSS grid, and container queries, and the target browsers are Chrome 120 and Safari 15, the dashboard might show a score of 85\% (grade B) because container queries are only partially supported in Safari 15.
 
-The dashboard also includes quick statistics such as the number of detected features and the browsers included in the analysis. Below that, the baseline status groups features into three categories: Widely Available, Newly Available, and Limited. Widely available features are supported across most browsers and generally do not cause compatibility issues. Newly available features are relatively recent and may only work in newer browser versions. Limited features have partial or inconsistent support and are the most likely to cause problems.
+The rest of the dashboard is organised into collapsible sections that the user can expand or collapse independently. The \emph{Issues \& Fixes} section, marked with a count badge such as ``5 issues'', lists the features that need attention. Each entry shows the feature name together with the browsers affected and a Baseline label such as \emph{Widely Available} or \emph{Limited}, which indicates whether the feature is broadly supported across browsers or only partially. A ``Get AI Suggestions'' button at the bottom of this section invites the user to generate code-level fixes on demand. The \emph{Recommendations} section lists polyfills for unsupported features, complete with install commands (e.g. \texttt{npm install datalist-polyfill}), a \emph{Copy} button, and a \emph{Generate polyfills.js} button for projects that prefer a bundled fallback file. The \emph{Browser Support} section contains one card per target browser; each card shows a support percentage, counts of supported, partial, and unsupported features, and three inner tabs labelled \emph{Overview}, \emph{Issues}, and \emph{Versions}. The \emph{Detected Features} section lists every web feature Cross Guard identified in the analysed files, grouped by language. Finally, the \emph{Visualizations} section renders bar charts for per-browser compatibility, a breakdown of features by language (HTML, CSS, JavaScript), and an overall support summary showing how many features are supported, partial, or unsupported across the whole analysis. At the bottom of the dashboard, three buttons offer quick actions: \emph{Re-check}, \emph{Export PDF}, and \emph{Export JSON}.
 
-One of the most useful sections is the area highlighting issues that need attention. When a feature is not supported by one or more of the selected browsers, it appears here together with warnings or recommendations. Developers can use this information to decide whether the feature should be replaced, rewritten, or supported through a polyfill. Additional sections in the dashboard show browser-specific support tables, the list of detected features, visual charts summarizing the results, and recommended fixes. Together these elements help developers quickly understand which parts of their code may cause cross-browser issues and what actions should be taken.
-
-The compatibility score is calculated by averaging the support level of each detected feature across all target browsers. Each feature is assigned a numeric value based on its support level: fully supported features receive 100 points, features that require a vendor prefix receive 70 points, partially supported features receive 50 points, and unsupported features receive 0 points. The final score is the average of these values across all features and browsers. This score is then mapped to a letter grade:
+The compatibility score is calculated by averaging the support level of each detected feature across all target browsers. Each feature contributes 100 points if fully supported, 50 points if partially supported, and 0 points otherwise. The final score is the arithmetic mean of these values across all features and browsers. This score is then mapped to a letter grade:
 
 \begin{table}[H]
     \centering
@@ -147,7 +146,7 @@ The compatibility score is calculated by averaging the support level of each det
         D & 60--69\%  & Poor. Significant compatibility gaps \\ \hline
         F & 0--59\%   & Critical. Major features are unsupported \\ \hline
     \end{tabular}
-    \caption{Simplified grade scale used in the Results Dashboard}
+    \caption{Grade scale used in the Results Dashboard}
     \label{tab:gui-grades}
 \end{table}
 
@@ -160,11 +159,11 @@ A risk level is also assigned based on the number of unsupported features, categ
     \label{fig:gui-dashboard}
 \end{figure}
 
-\subsection{Polyfill Suggestions}
+\subsection{Polyfill Recommendations}
 
 When Cross Guard detects a feature that is not supported in one or more target browsers, it can recommend polyfills. A polyfill is a piece of code that provides the missing functionality so that the feature works in older browsers.
 
-The polyfill panel appears in the results view after an analysis is completed. For each unsupported feature, Cross Guard checks its internal polyfill database and suggests available options. Each suggestion includes the name of the polyfill, a short description of what it does, and how to install or include it in the project.
+The polyfill panel appears in the results view as a Recommendation, after an analysis is completed. For each unsupported feature, Cross Guard checks its internal polyfill database and recommends available options. Each recommendation includes the name of the polyfill, a short description of what it does, and how to install or include it in the project.
 
 Not every unsupported feature has a polyfill available. Some features, especially newer CSS properties or browser APIs, cannot be replicated through code. In those cases, the panel will not show a suggestion and the developer may need to consider an alternative approach or accept limited support in certain browsers.
 
@@ -176,7 +175,7 @@ To use this feature, an API key must be configured in the Settings page under th
 
 When compatibility issues are detected, a ``Get AI Suggestions'' button appears in the Issues section of the results dashboard. Suggestions are generated only when the user clicks this button, ensuring that API calls happen only on demand. This avoids unnecessary usage and keeps the analysis process fast. The request runs in a background thread, so the interface remains fully responsive while suggestions are being generated.
 
-Each suggestion includes the affected feature, a concise explanation of the proposed fix, and a code example showing how to implement it. For example, if CSS container queries are unsupported in a target browser, the AI may recommend using media queries with a \texttt{min-width} fallback and provide a ready-to-use snippet.
+Each suggestion includes the affected feature, a short explanation of the recommended fix, and a ready-to-use code snippet. For example, if the code uses a modern CSS feature that some target browsers do not support, the AI may suggest an older, more widely supported alternative that produces the same visual result.
 
 If no API key is configured, the feature is simply hidden. All other functionality in Cross Guard works exactly the same regardless of whether this feature is enabled.
 
@@ -260,7 +259,7 @@ The \texttt{-{}-format} flag controls how the results are presented. The default
     \label{fig:cli-analyze}
 \end{figure}
 
-Cross Guard currently supports several output formats, summarized in Table~\ref{tab:cli-formats}.
+The \texttt{analyze} command accepts seven values for its \texttt{-{}-format} flag, summarized in Table~\ref{tab:cli-formats}. Two of them (\texttt{table} and \texttt{summary}) print results directly to the terminal, while the other five write machine-readable output. PDF exports are produced separately through the \texttt{export} command rather than through \texttt{-{}-format}.
 
 \begin{table}[H]
     \centering

@@ -20,10 +20,10 @@ LaTeX/
 ├── elteikthesis_en.tex   # main document — metadata, \input order, front/back matter
 ├── elteikthesis.bib      # bibliography (17 entries, biber/biblatex)
 ├── chapters/
-│   ├── introduction.tex         # ch. 1 — problem, motivation, contributions
-│   ├── user_documentation.tex   # ch. 2 — end-user guide (GUI + CLI)
-│   ├── implementation.tex       # ch. 3 — developer docs, architecture, parsers, DB, AI
-│   └── conclusion.tex           # ch. 4 — summary and future work
+│   ├── intro.tex   # ch. 1 — problem, motivation, contributions
+│   ├── user.tex    # ch. 2 — end-user guide (GUI + CLI)
+│   ├── impl.tex    # ch. 3 — developer docs, architecture, parsers, DB, AI
+│   └── sum.tex     # ch. 4 — summary and future work
 └── images/                       # figures referenced by chapters (cg_*.png)
 ```
 
@@ -31,7 +31,7 @@ LaTeX/
 
 All figures live in `images/` and are referenced bare-filename (no path, no extension) via `\includegraphics{cg_...}`. Naming convention: `cg_<area>_<subtopic>.png`.
 
-**Orphan:** `images/cg_directory.png` exists but is not referenced by any chapter. Either wire it into `implementation.tex` or delete it before final submission.
+**Orphan:** `images/cg_directory.png` exists but is not referenced by any chapter. Either wire it into `impl.tex` or delete it before final submission.
 
 ## Renaming note (2026-04-22)
 

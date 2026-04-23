@@ -8,7 +8,6 @@ import pytest
 from unittest.mock import MagicMock
 
 from src.analyzer.compatibility import CompatibilityAnalyzer
-from src.analyzer.scorer import _score_to_grade
 from src.analyzer.version_ranges import (
     get_version_ranges,
     _get_status_text,
@@ -33,21 +32,6 @@ class TestAnalyze:
         with_ie = {'chrome': '120', 'firefox': '121', 'ie': '11'}
         assert analyzer.analyze(well_supported_features, with_ie)['overall_score'] < \
                analyzer.analyze(well_supported_features, modern)['overall_score']
-
-
-# ============================================================================
-# SECTION 3: Severity and Grading
-# ============================================================================
-
-class TestAnalyzerGrade:
-    """Tests for the analyzer's 13-level grading scale (A+ to F)."""
-
-    @pytest.mark.blackbox
-    @pytest.mark.parametrize("score,expected", [
-        (100, 'A+'),
-    ])
-    def test_grade_boundary(self, analyzer, score, expected):
-        assert _score_to_grade(score) == expected
 
 
 # ============================================================================

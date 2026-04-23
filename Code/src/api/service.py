@@ -571,7 +571,7 @@ class AnalyzerService:
             logger.error(f"Failed to get AI fix suggestions: {e}")
             return []
 
-    def get_polyfill_suggestions(
+    def get_polyfill_recommendations(
         self,
         unsupported_features: List[str],
         partial_features: List[str] = None,

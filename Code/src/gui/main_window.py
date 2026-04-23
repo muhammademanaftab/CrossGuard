@@ -1227,7 +1227,7 @@ class MainWindow(ctk.CTkFrame):
             unsupported.update(data.get('unsupported_features', []))
             partial.update(data.get('partial_features', []))
 
-        recommendations = self._analyzer_service.get_polyfill_suggestions(
+        recommendations = self._analyzer_service.get_polyfill_recommendations(
             list(unsupported), list(partial), browser_versions)
 
         if not recommendations:
