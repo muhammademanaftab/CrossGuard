@@ -19,7 +19,7 @@ All edits below are the reconciliation of the thesis text with the cleaned-up co
 
 **REPLACE with:**
 ```
-...Analyses can also be bookmarked for easier organization, making it simple to return to important results later.
+...Analyses can also be bookmarked, so it is easy to come back to important results later.
 ```
 
 ---
@@ -51,7 +51,7 @@ Users can also bookmark the result or export it as a report.
 
 **REPLACE with:**
 ```
-...\texttt{StatisticsService} queries the same database to provide metrics such as average/best/worst scores, grade distribution, and file-type distribution.
+...\texttt{StatisticsService} reads from the same database to show numbers like the average, best, and worst scores, the grade distribution, and the file-type distribution.
 ```
 
 ---
@@ -83,7 +83,7 @@ The scoring module in \texttt{src/analyzer/main.py} then takes these results and
 
 **REPLACE with:**
 ```
-After gathering these results, the scoring work is delegated to the \texttt{CompatibilityScorer} class in \texttt{src/analyzer/scorer.py}. At its core is a \texttt{STATUS\_SCORES} lookup table that maps each Can I Use status code to a point contribution out of 100 ('y' = 100, 'a'/'x' = 50, everything else = 0), making the scoring policy a single edit away. \texttt{score\_statuses()} averages those points over all checked features for one browser, \texttt{overall\_score()} averages across browsers into a single number from 0 to 100, \texttt{grade()} maps that score to a letter grade from A to F, and \texttt{risk\_level()} tags the analysis as \texttt{none}, \texttt{low}, \texttt{medium}, or \texttt{high}.
+Once the results are ready, the scoring is handed over to the \texttt{CompatibilityScorer} class in \texttt{src/analyzer/scorer.py}. This class is built around a \texttt{STATUS\_SCORES} lookup table that gives each Can I Use status code a score out of 100 ('y' is 100, 'a' and 'x' are 50, and everything else is 0), so the scoring rules can be changed in one place. The \texttt{score\_statuses()} method takes the average of these points for one browser, \texttt{overall\_score()} then averages the browser scores into a single number from 0 to 100, \texttt{grade()} turns that number into a letter grade from A to F, and \texttt{risk\_level()} labels the result as \texttt{none}, \texttt{low}, \texttt{medium}, or \texttt{high} risk.
 ```
 
 ---
@@ -99,7 +99,7 @@ After gathering these results, the scoring work is delegated to the \texttt{Comp
 
 **REPLACE with:**
 ```
-\texttt{PolyfillLoader} follows the singleton pattern, meaning the JSON file is read only once through the private \texttt{\_load\_data()} method and stored in \texttt{\_data}. Its public \texttt{get\_polyfill(feature\_id)} method returns the mapping for a given feature, or \texttt{None} if no match is found; callers inspect the returned dictionary themselves to decide whether to use a JavaScript polyfill or a CSS fallback.
+\texttt{PolyfillLoader} follows the singleton pattern, which means the JSON file is read only once through the private \texttt{\_load\_data()} method and then kept in \texttt{\_data}. Its public \texttt{get\_polyfill(feature\_id)} method returns the mapping for a given feature, or \texttt{None} if no match is found. The caller then looks at the returned dictionary and decides whether to use a JavaScript polyfill or a CSS fallback.
 ```
 
 ---
@@ -115,59 +115,44 @@ Compatibility: Passing (or Failing, depending on the score)
 
 **REPLACE with:**
 ```
-PASSING, WARNING, or FAILING (depending on the score)
+PASSING, WARNING, or FAILING, depending on the score
 ```
 
 ---
 
-## 2. Image replacements
+## 2. Image replacements — DONE
 
-The `LaTeX/images/` directory currently holds frozen "before" snapshots and refreshed "after" renders alongside each canonical PNG. `\includegraphics{cg_X}` still resolves because the canonical filename is unchanged; promotion is just a rename.
+All 7 updated diagrams are now the canonical versions in `LaTeX/images/`, and the old snapshots have been archived in `LaTeX/images/before/`.
 
-| Canonical filename | Rename this file to it |
-|---|---|
-| `cg_pipeline.png` (currently deleted) | `cg_pipeline_after.png` |
-| `cg_database.png` | `cg_database_after.png` |
-| `cg_gui.png` | `cg_gui_after.png` |
-| `cg_parsers.png` | `cg_parsers_after.png` |
-| `cg_polyfill.png` | `cg_polyfill_after.png` |
-| `cg_directory.png` | `cg_directory_after.png` |
-| `cg_sequence.png` | `cg_sequence_after.png` |
+**`LaTeX/images/`** (main folder — what the thesis uses):
+- `cg_pipeline.png` — new (pipeline diagram with parsers showing 3 public methods)
+- `cg_database.png` — new (StatisticsService trimmed to 11 methods)
+- `cg_gui.png` — new (AnalyzerService at 49 methods, all bypasses removed)
+- `cg_parsers.png` — new (parsers at 3 public methods each)
+- `cg_polyfill.png` — new (only `get_polyfill` + `reload` shown)
+- `cg_directory.png` — new (49 methods, 22 widgets, utils description fixed)
+- `cg_sequence.png` — new (`classify_features` + 4 scorer messages)
+- `cg_ai.png`, `cg_architecture.png`, `cg_usecase.png` — unchanged (never needed updating)
+- `cg_cli_*.png`, `cg_gui_dashboard/rules/settings/upload.png` — screenshots, unchanged
 
-After each rename, the matching `cg_X_before.png` can stay in-repo as an archival record or be deleted — whichever you prefer.
+**`LaTeX/images/before/`** (archive — frozen old snapshots for historical reference):
+- `cg_pipeline.png`, `cg_database.png`, `cg_gui.png`, `cg_parsers.png`, `cg_polyfill.png`, `cg_directory.png`, `cg_sequence.png`
 
----
-
-## 3. `LaTeX/images/cg_sequence.png` — already regenerated from the updated PlantUML source
-
-The earlier version of this file claimed the sequence diagram was externally authored — that was wrong. The source is at `Code/docs/diagrams/scripts/3.16_sequence.puml` (PlantUML). It has been updated and re-rendered with the corrected arrows:
-
-1. `CrossGuardAnalyzer → CompatibilityAnalyzer: analyze(...)` → now reads `classify_features(features, browsers)`
-2. `CrossGuardAnalyzer → CompatibilityScorer: calculate_weighted_score(status)` → replaced with 4 arrows showing each real scorer method (`score_statuses`, `overall_score`, `grade`, `risk_level`)
-
-Before/after snapshots saved:
-- `LaTeX/images/cg_sequence_before.png` — frozen pre-refactor render
-- `LaTeX/images/cg_sequence_after.png` — new render matching current code
-
-To promote: rename `cg_sequence_after.png` → `cg_sequence.png` (same pattern as the other before/after pairs).
+Nothing in the thesis references the `before/` folder; it's only there in case you ever need to compare old vs new.
 
 ---
 
-## 4. Quick checklist
+## 3. Quick checklist
 
 ```
-[ ] Edit 1 — chapters/user.tex line 196 (remove "or tagged")
-[ ] Edit 2 — chapters/impl.tex line 110 (remove "add tags,")
-[ ] Edit 3 — chapters/impl.tex line 213 (StatisticsService metrics list)
-[ ] Edit 4 — chapters/impl.tex line 219 (remove "and attach a note")
-[ ] Edit 5 — chapters/impl.tex line 106 (scoring sentence rewrite)
-[ ] Edit 6 — chapters/impl.tex line 271 (drop has_polyfill/is_polyfillable)
+[x] Edit 1 — chapters/user.tex line 196 (remove "or tagged")
+[x] Edit 2 — chapters/impl.tex line 110 (remove "add tags,")
+[x] Edit 3 — chapters/impl.tex line 213 (StatisticsService metrics list)
+[x] Edit 4 — chapters/impl.tex line 219 (remove "and attach a note")
+[x] Edit 5 — chapters/impl.tex line 106 (scoring sentence rewrite)
+[x] Edit 6 — chapters/impl.tex line 271 (drop has_polyfill/is_polyfillable)
 [ ] (Optional) Edit 7 — chapters/user.tex line 131 (BuildBadge states)
-[ ] Rename images/cg_pipeline_after.png  → images/cg_pipeline.png
-[ ] Rename images/cg_database_after.png  → images/cg_database.png
-[ ] Rename images/cg_gui_after.png       → images/cg_gui.png
-[ ] Rename images/cg_parsers_after.png   → images/cg_parsers.png
-[ ] Rename images/cg_polyfill_after.png  → images/cg_polyfill.png
-[ ] Rename images/cg_directory_after.png → images/cg_directory.png
-[ ] Rename images/cg_sequence_after.png  → images/cg_sequence.png
+[x] All 7 diagram images promoted to canonical; old snapshots archived in images/before/
 ```
+
+Everything the thesis needs is now in place. Only Edit 7 remains, and it is optional (cosmetic phrasing of the PASSING/WARNING/FAILING banner).

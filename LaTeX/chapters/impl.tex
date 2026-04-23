@@ -103,11 +103,11 @@ The process begins with \texttt{AnalyzerService}. It receives an \texttt{Analysi
 
 Once all features have been collected, the orchestrator passes them to \texttt{CompatibilityAnalyzer}. This class queries \texttt{CanIUseDatabase}, a singleton at the bottom of the diagram, to check whether each feature is supported in each target browser. For every feature and browser combination, it returns a status: supported, partially supported, or not supported.
 
-The scoring module in \texttt{src/analyzer/main.py} then takes these results and calculates a score from 0 to 100 along with a letter grade from A to F. The \texttt{calculate\_simple\_score()} helper on \texttt{CompatibilityScorer} exposes the per-browser contribution logic used during this computation.
+Once the results are ready, the scoring is handed over to the \texttt{CompatibilityScorer} class in \texttt{src/analyzer/scorer.py}. This class is built around a \texttt{STATUS\_SCORES} lookup table that gives each Can I Use status code a score out of 100 ('y' is 100, 'a' and 'x' are 50, and everything else is 0), so the scoring rules can be changed in one place. The \texttt{score\_statuses()} method takes the average of these points for one browser, \texttt{overall\_score()} then averages the browser scores into a single number from 0 to 100, \texttt{grade()} turns that number into a letter grade from A to F, and \texttt{risk\_level()} labels the result as \texttt{none}, \texttt{low}, \texttt{medium}, or \texttt{high} risk.
 
 Finally, the orchestrator assembles everything into a report through \texttt{\_generate\_report()}. \texttt{AnalyzerService} wraps this into an \texttt{AnalysisResult}, shown at the top right of the diagram, and returns it to whichever frontend requested it.
 
-Back in the GUI, \texttt{MainWindow} saves the result and switches to the Results page. This page displays the score, a pass/fail badge, per-browser support cards, a list of issues grouped by severity, and polyfill suggestions. Users can also bookmark the result, add tags, or export it as a report.
+Back in the GUI, \texttt{MainWindow} saves the result and switches to the Results page. This page displays the score, a pass/fail badge, per-browser support cards, a list of issues grouped by severity, and polyfill suggestions. Users can also bookmark the result or export it as a report.
 
 In the CLI, the same result is printed to the terminal as a table, JSON, SARIF, or another format the user selected.
 
@@ -210,13 +210,13 @@ The database connection is managed by a singleton in \texttt{src/database/connec
     \label{fig:database}
 \end{figure}
 
-At the top of the diagram are the two classes that read and write data. \texttt{AnalysisRepository} handles all basic operations: saving, loading, finding by ID, and deleting records. \texttt{StatisticsService} queries the same database to provide metrics such as average scores, score trends, and grade distribution.
+At the top of the diagram are the two classes that read and write data. \texttt{AnalysisRepository} handles all basic operations: saving, loading, finding by ID, and deleting records. \texttt{StatisticsService} reads from the same database to show numbers like the average, best, and worst scores, the grade distribution, and the file-type distribution.
 
 In the center is the \texttt{Analysis} class, the main data model. Each \texttt{Analysis} stores the file name, file type, overall score, grade, number of features detected, and when it was performed (e.g. \texttt{Analysis(file\_name="style.css", file\_type="css", overall\_score=85.3, grade="B", total\_features=12)}).
 
 The hollow diamond arrows show how the data nests. One \texttt{Analysis} contains one or more \texttt{AnalysisFeatures} (marked $1..*$). Each \texttt{AnalysisFeature} represents a single detected web feature. Each \texttt{AnalysisFeature} then contains one or more \texttt{BrowserResults} (also $1..*$). A \texttt{BrowserResult} records whether a specific browser supports that feature, for example ``Chrome 120: supported'' or ``Safari 17: not supported''. This three-level nesting mirrors the database tables and their foreign key relationships.
 
-On the left, \texttt{Bookmark} references an \texttt{Analysis} through a solid line. Users can bookmark any analysis and attach a note. On the right, \texttt{Tag} has a $0..*$ relationship with \texttt{Analysis}, meaning one analysis can have multiple labels and one label can apply to multiple analyses.
+On the left, \texttt{Bookmark} references an \texttt{Analysis} through a solid line. Users can bookmark any analysis. On the right, \texttt{Tag} has a $0..*$ relationship with \texttt{Analysis}, meaning one analysis can have multiple labels and one label can apply to multiple analyses.
 
 All five data model classes share the same methods: \texttt{to\_dict()} for JSON export and \texttt{from\_row()} for creating objects from database rows.
 
@@ -268,7 +268,7 @@ The following diagram shows how these three parts connect:
     \label{fig:polyfill}
 \end{figure}
 
-\texttt{PolyfillLoader} follows the singleton pattern, meaning the JSON file is read only once through the private \texttt{\_load\_data()} method and stored in \texttt{\_data}. Its public methods handle straightforward lookups in a way that \texttt{get\_polyfill(feature\_id)} returns the mapping for a given feature, or \texttt{None} if no match is found; \texttt{has\_polyfill()} checks whether any polyfill or fallback is available; and \texttt{is\_polyfillable()} checks specifically for JavaScript polyfills.
+\texttt{PolyfillLoader} follows the singleton pattern, which means the JSON file is read only once through the private \texttt{\_load\_data()} method and then kept in \texttt{\_data}. Its public \texttt{get\_polyfill(feature\_id)} method returns the mapping for a given feature, or \texttt{None} if no match is found. The caller then looks at the returned dictionary and decides whether to use a JavaScript polyfill or a CSS fallback.
 
 \texttt{PolyfillService} is the class responsible for building recommendations. Its main method, \texttt{get\_recommendations()}, accepts the sets of unsupported and partially supported features, merges them, and checks each one against the loader. If a JavaScript polyfill is available, it produces an ``npm'' recommendation containing the relevant package details. If only a CSS fallback exists, it produces a ``fallback'' recommendation with the description and code example. Each recommendation also records which browsers are affected.
 

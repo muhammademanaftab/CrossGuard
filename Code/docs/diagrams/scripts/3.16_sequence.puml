@@ -23,6 +23,9 @@ skinparam note {
 }
 
 ' ── Participants ──────────────────────────────
+' Ordering: a participant is placed next to the one that calls it, so arrows
+' stay short. CS sits next to CGA because CGA uses it directly; DB sits next
+' to CA because only CA queries it.
 
 actor "User" as U
 participant "MainWindow\n//or CLI//" as MW
@@ -30,8 +33,8 @@ participant "AnalyzerService\n//<<facade>>//" as AS
 participant "CrossGuard\nAnalyzer" as CGA
 participant "Parser\n//HTML/CSS/JS//" as P
 participant "Compatibility\nAnalyzer" as CA
-participant "CanIUse\nDatabase" as DB
 participant "Compatibility\nScorer" as CS
+participant "CanIUse\nDatabase" as DB
 participant "Analysis\nRepository" as AR
 
 ' ── Main Flow ─────────────────────────────────
@@ -81,16 +84,23 @@ deactivate CA
 
 == Scoring Phase ==
 
-CGA -> CS : score_statuses(statuses)
 activate CS
-CS --> CGA : per-browser % (0-100)
-CGA -> CS : overall_score(browser_pcts)
-CS --> CGA : score (0-100)
+CGA -> CS : score_statuses(statuses)
+CS --> CGA : per-browser %
+CGA -> CS : overall_score(pcts)
+CS --> CGA : score
 CGA -> CS : grade(score)
-CS --> CGA : letter grade (A+ to F)
-CGA -> CS : risk_level(score, unsupported)
-CS --> CGA : risk (none/low/medium/high)
+CS --> CGA : letter grade
+CGA -> CS : risk_level(score, unsup)
+CS --> CGA : risk level
 deactivate CS
+
+note right of CS
+  4 small calls, one per
+  helper method. Output:
+  per-browser %, overall
+  score, grade, risk level.
+end note
 
 == Report Generation ==
 
