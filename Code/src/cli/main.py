@@ -182,18 +182,20 @@ def cli(ctx, verbose, quiet, debug, no_color, timing):
               help='Write Checkstyle XML to this file (independent of --format).')
 @click.option('--output-csv', default=None,
               help='Write CSV output to this file (independent of --format).')
+@click.option('--ai', 'ai_enabled', is_flag=True, default=False,
+              help='Enable AI fix suggestions (requires a saved or passed API key).')
 @click.option('--api-key', default=None, envvar='CROSSGUARD_AI_KEY',
-              help='API key for AI fix suggestions (Anthropic or OpenAI).')
+              help='API key for AI fix suggestions (Anthropic or OpenAI). Only used when --ai is set.')
 @click.option('--ai-provider', default=None,
               type=click.Choice(['anthropic', 'openai']),
-              help='AI provider for fix suggestions (default: anthropic).')
+              help='AI provider for fix suggestions (default: anthropic). Only used when --ai is set.')
 @click.pass_context
 def analyze(ctx, target, browsers, fmt, output, config_path,
             fail_on_score, fail_on_errors, fail_on_warnings,
             use_stdin, stdin_filename,
             output_sarif, output_junit, output_json_path,
             output_checkstyle, output_csv,
-            api_key, ai_provider):
+            ai_enabled, api_key, ai_provider):
     """Analyze a file for browser compatibility.
 
     TARGET is a single HTML, CSS, or JavaScript file.
@@ -266,13 +268,24 @@ def analyze(ctx, target, browsers, fmt, output, config_path,
         error_count, warning_count = _count_issues(result_dict)
 
         # Priority: CLI flag/env var > config file > SQLite settings
-        ai_key = api_key or config.ai_config.get('api_key', '') or None
+        ai_key = (api_key
+                  or config.ai_config.get('api_key', '')
+                  or service.get_setting('ai_api_key', '')
+                  or None)
         ai_prov = (ai_provider
                    or config.ai_config.get('provider', '')
+                   or service.get_setting('ai_provider', '')
                    or None)
 
         ai_suggestions = []
-        if result.success:
+        if ai_enabled and not ai_key:
+            click.echo(
+                "Warning: --ai requires an API key. None found via --api-key, "
+                "CROSSGUARD_AI_KEY, or saved settings. "
+                "Save one with: crossguard config --set-api-key",
+                err=True,
+            )
+        elif ai_enabled and result.success:
             file_type = 'css' if css else ('js' if js else 'html')
             unsupported = []
             partial = []
@@ -443,8 +456,42 @@ def stats(ctx):
               help='Create a default crossguard.config.json')
 @click.option('--path', 'config_path', default=None,
               help='Path to config file to display')
-def config_cmd(do_init, config_path):
-    """Show or initialize configuration."""
+@click.option('--set-api-key', 'set_api_key',
+              is_flag=False, flag_value='__PROMPT__', default=None,
+              help='Save an AI API key. Pass the key directly, or omit the value for a hidden prompt.')
+@click.option('--set-ai-provider', 'set_ai_provider', default=None,
+              type=click.Choice(['anthropic', 'openai']),
+              help='Save the AI provider.')
+@click.option('--clear-api-key', 'clear_api_key', is_flag=True,
+              help='Remove the saved AI API key.')
+def config_cmd(do_init, config_path, set_api_key, set_ai_provider, clear_api_key):
+    """Show or manage configuration."""
+    service = AnalyzerService()
+
+    did_manage = False
+
+    if set_api_key is not None:
+        key = click.prompt('Enter API key', hide_input=True) if set_api_key == '__PROMPT__' else set_api_key
+        if not key or not key.strip():
+            click.echo('Error: empty API key', err=True)
+            sys.exit(2)
+        service.set_setting('ai_api_key', key.strip())
+        click.echo('API key saved.')
+        did_manage = True
+
+    if set_ai_provider is not None:
+        service.set_setting('ai_provider', set_ai_provider)
+        click.echo(f'AI provider saved: {set_ai_provider}')
+        did_manage = True
+
+    if clear_api_key:
+        service.set_setting('ai_api_key', '')
+        click.echo('API key cleared.')
+        did_manage = True
+
+    if did_manage:
+        return
+
     if do_init:
         from src.config import ConfigManager
         path = ConfigManager.create_default_config()
@@ -455,10 +502,27 @@ def config_cmd(do_init, config_path):
     config = load_config(config_path=config_path)
     click.echo(json.dumps(config.to_dict(), indent=2))
 
+    saved_key = service.get_setting('ai_api_key', '')
+    saved_prov = service.get_setting('ai_provider', '')
+    if saved_key or saved_prov:
+        click.echo('\nSaved AI settings:')
+        if saved_key:
+            click.echo(f'  api_key:  {_mask_api_key(saved_key)}')
+        if saved_prov:
+            click.echo(f'  provider: {saved_prov}')
+
     if config.config_path:
         click.echo(f"\n(Loaded from {config.config_path})", err=True)
     else:
         click.echo("\n(Using defaults — no config file found)", err=True)
+
+
+def _mask_api_key(key: str) -> str:
+    if not key:
+        return '(not set)'
+    if len(key) < 8:
+        return '****'
+    return f'{key[:4]}...{key[-4:]}'
 
 
 @cli.command('update-db')
