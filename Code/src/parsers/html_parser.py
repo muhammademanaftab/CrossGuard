@@ -521,13 +521,3 @@ class HTMLParser:
             'attribute_counts': attribute_counts,
             'features_list': sorted(list(self.features_found))
         }
-
-
-def parse_html_file(filepath: str) -> Set[str]:
-    parser = HTMLParser()
-    return parser.parse_file(filepath)
-
-
-def parse_html_string(html_content: str) -> Set[str]:
-    parser = HTMLParser()
-    return parser.parse_string(html_content)

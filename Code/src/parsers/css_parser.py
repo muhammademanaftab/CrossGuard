@@ -416,13 +416,3 @@ class CSSParser:
             return True
 
         return False
-
-
-def parse_css_file(filepath: str) -> Set[str]:
-    parser = CSSParser()
-    return parser.parse_file(filepath)
-
-
-def parse_css_string(css_content: str) -> Set[str]:
-    parser = CSSParser()
-    return parser.parse_string(css_content)

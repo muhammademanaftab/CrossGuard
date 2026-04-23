@@ -1199,13 +1199,3 @@ class JavaScriptParser:
                 return True
 
         return False
-
-
-def parse_js_file(filepath: str) -> Set[str]:
-    parser = JavaScriptParser()
-    return parser.parse_file(filepath)
-
-
-def parse_js_string(js_content: str) -> Set[str]:
-    parser = JavaScriptParser()
-    return parser.parse_string(js_content)

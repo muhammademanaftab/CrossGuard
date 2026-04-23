@@ -139,7 +139,3 @@ class WebFeaturesManager:
 
     def has_data(self) -> bool:
         return WEB_FEATURES_CACHE_PATH.exists()
-
-    def get_feature_count(self) -> int:
-        self._ensure_loaded()
-        return len(self._reverse_map)

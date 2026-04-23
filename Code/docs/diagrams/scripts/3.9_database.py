@@ -51,8 +51,7 @@ def build():
          '+ get_analysis_by_id(id) : Analysis',
          '+ delete_analysis(id) : bool',
          '+ clear_all() : int',
-         '+ get_count(file_type) : int',
-         '+ ...  (7 public methods total)']))
+         '+ get_count(file_type) : int']))
 
     g.node('StatisticsService', cn('StatisticsService',
         ['- _conn : Connection'],
@@ -68,14 +67,16 @@ def build():
 
     g.node('Bookmark', cn('Bookmark',
         ['+ id : int', '+ analysis_id : int',
-         '+ note : str', '+ created_at : datetime'],
+         '+ note : str', '+ created_at : datetime',
+         '+ analysis : Analysis'],
         ['+ to_dict() : Dict']))
 
     g.node('Analysis', cn('Analysis',
         ['+ id : int', '+ file_name : str',
-         '+ file_type : str', '+ overall_score : float',
-         '+ grade : str', '+ total_features : int',
-         '+ analyzed_at : datetime'],
+         '+ file_path : str', '+ file_type : str',
+         '+ overall_score : float', '+ grade : str',
+         '+ total_features : int', '+ analyzed_at : datetime',
+         '+ browsers_json : str', '+ features : List'],
         ['+ to_dict() : Dict', '+ from_row(row) : Analysis']))
 
     g.node('Tag', cn('Tag',

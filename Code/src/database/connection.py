@@ -42,26 +42,6 @@ def get_connection() -> sqlite3.Connection:
         return _connection
 
 
-def close_connection():
-    global _connection
-
-    with _lock:
-        if _connection is not None:
-            logger.info("Closing database connection")
-            _connection.close()
-            _connection = None
-
-
 def _init_tables(conn: sqlite3.Connection):
     from .migrations import create_tables
     create_tables(conn)
-
-
-def execute_query(query: str, params: tuple = ()) -> sqlite3.Cursor:
-    conn = get_connection()
-    return conn.execute(query, params)
-
-
-def execute_many(query: str, params_list: list) -> sqlite3.Cursor:
-    conn = get_connection()
-    return conn.executemany(query, params_list)

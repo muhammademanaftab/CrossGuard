@@ -1,7 +1,7 @@
 """Generates AI-powered fix suggestions using LLM APIs."""
 
 import json
-from typing import Dict, List, Set, Optional
+from typing import Dict, List, Set
 
 import requests
 

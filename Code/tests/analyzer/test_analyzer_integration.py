@@ -6,6 +6,7 @@ works correctly with real Can I Use data.
 
 import pytest
 
+from src.analyzer.scorer import CompatibilityScorer
 from src.parsers.css_parser import CSSParser
 from src.parsers.js_parser import JavaScriptParser
 
@@ -23,9 +24,10 @@ class TestParserToAnalyzerPipeline:
         css_file.write_text("div { display: flex; gap: 10px; }", encoding='utf-8')
         features = CSSParser().parse_file(str(css_file))
         assert 'flexbox' in features
-        report = analyzer.analyze(features, modern_browsers)
-        assert isinstance(report, dict)
-        assert report['overall_score'] > 50
+        classification = analyzer.classify_features(features, modern_browsers)
+        scorer = CompatibilityScorer()
+        pcts = {b: scorer.score_statuses(r['statuses']) for b, r in classification.items()}
+        assert scorer.overall_score(pcts) > 50
 
 
 # ============================================================================
@@ -42,5 +44,10 @@ class TestMultiFileAnalysis:
         js_file = tmp_path / "app.js"
         js_file.write_text("const x = new Promise((r) => r());", encoding='utf-8')
         combined = CSSParser().parse_file(str(css_file)) | JavaScriptParser().parse_file(str(js_file))
-        report = analyzer.analyze(combined, modern_browsers)
-        assert report['features_analyzed'] == len(combined)
+        classification = analyzer.classify_features(combined, modern_browsers)
+        # every feature should land in exactly one bucket per browser
+        bucket_keys = ('supported', 'partial', 'unsupported', 'unknown')
+        for bucket in classification.values():
+            total_in_buckets = sum(len(bucket[k]) for k in bucket_keys)
+            assert total_in_buckets == len(combined)
+            assert len(bucket['statuses']) == len(combined)

@@ -1,13 +1,12 @@
 """Entry point that combines parsers, compatibility checking, and scoring."""
 
-from typing import Dict, List, Set, Optional, Tuple
+from typing import Dict, List, Set, Optional
 from pathlib import Path
 from datetime import datetime
 
 from ..parsers.html_parser import HTMLParser
 from ..parsers.js_parser import JavaScriptParser
 from ..parsers.css_parser import CSSParser
-from .database import get_database
 from .compatibility import CompatibilityAnalyzer
 from .scorer import CompatibilityScorer
 from ..utils.config import get_logger, LATEST_VERSIONS
@@ -21,7 +20,6 @@ class CrossGuardAnalyzer:
         self.html_parser = HTMLParser()
         self.js_parser = JavaScriptParser()
         self.css_parser = CSSParser()
-        self.database = get_database()
         self.compatibility_analyzer = CompatibilityAnalyzer()
         self.scorer = CompatibilityScorer()
         self._reset_state()
@@ -66,36 +64,6 @@ class CrossGuardAnalyzer:
         )
 
         return report
-
-    def analyze_single_file(
-        self,
-        filepath: str,
-        file_type: str,
-        target_browsers: Optional[Dict[str, str]] = None
-    ) -> Dict:
-        self._reset_state()
-
-        if target_browsers is None:
-            target_browsers = self._get_default_browsers()
-
-        if file_type.lower() == 'html':
-            self._parse_html_files([filepath])
-        elif file_type.lower() == 'css':
-            self._parse_css_files([filepath])
-        elif file_type.lower() in ['js', 'javascript']:
-            self._parse_js_files([filepath])
-        else:
-            return {
-                'success': False,
-                'error': f"Unknown file type: {file_type}. Use 'html', 'css', or 'js'."
-            }
-
-        self.all_features = self.html_features | self.js_features | self.css_features
-
-        compatibility_results = self._check_compatibility(target_browsers)
-        scores = self._calculate_scores(compatibility_results, target_browsers)
-
-        return self._generate_report(compatibility_results, scores, target_browsers)
 
     def _reset_state(self):
         self.html_features = set()
@@ -161,91 +129,32 @@ class CrossGuardAnalyzer:
                           self.js_features, self.unrecognized_js, self.js_feature_details)
 
     def _check_compatibility(self, target_browsers: Dict[str, str]) -> Dict:
-        results = {}
-
-        for browser, version in target_browsers.items():
-            browser_results = {
-                'supported': [],
-                'partial': [],
-                'unsupported': [],
-                'unknown': []
-            }
-
-            for feature in self.all_features:
-                try:
-                    support_status = self.database.check_support(feature, browser, version)
-
-                    if support_status == 'y':
-                        browser_results['supported'].append(feature)
-                    elif support_status in ['a', 'x']:
-                        browser_results['partial'].append(feature)
-                    elif support_status == 'n':
-                        browser_results['unsupported'].append(feature)
-                    else:
-                        browser_results['unknown'].append(feature)
-
-                except Exception as e:
-                    browser_results['unknown'].append(feature)
-                    if feature not in [w.split(':')[0] for w in self.warnings]:
-                        self.warnings.append(f"{feature}: Not found in database")
-
-            results[browser] = browser_results
-
-        return results
+        return self.compatibility_analyzer.classify_features(self.all_features, target_browsers)
 
     def _calculate_scores(
         self,
         compatibility_results: Dict,
         target_browsers: Dict[str, str]
     ) -> Dict:
-        total_features = len(self.all_features)
+        browser_percentages = {
+            browser: self.scorer.score_statuses(results['statuses'])
+            for browser, results in compatibility_results.items()
+        }
 
-        browser_percentages = {}
-        for browser, results in compatibility_results.items():
-            if total_features == 0:
-                browser_percentages[browser] = 100.0
-                continue
-
-            supported = len(results['supported'])
-            partial = len(results['partial'])
-
-            compatibility_pct = ((supported * 100) + (partial * 50)) / total_features
-            browser_percentages[browser] = compatibility_pct
-
-        if browser_percentages:
-            weighted_score = sum(browser_percentages.values()) / len(browser_percentages)
-        else:
-            weighted_score = 0.0
-
-        if weighted_score >= 90:
-            grade = 'A'
-        elif weighted_score >= 80:
-            grade = 'B'
-        elif weighted_score >= 70:
-            grade = 'C'
-        elif weighted_score >= 60:
-            grade = 'D'
-        else:
-            grade = 'F'
+        overall_score = self.scorer.overall_score(browser_percentages)
+        grade = self.scorer.grade(overall_score)
 
         unsupported_count = sum(
             len(results['unsupported'])
             for results in compatibility_results.values()
         )
-        if not unsupported_count:
-            risk_level = 'none'
-        elif weighted_score >= 80:
-            risk_level = 'low'
-        elif weighted_score >= 60:
-            risk_level = 'medium'
-        else:
-            risk_level = 'high'
+        risk_level = self.scorer.risk_level(overall_score, unsupported_count)
 
         return {
-            'simple_score': weighted_score,  # kept for API compat
-            'weighted_score': weighted_score,
+            'simple_score': overall_score,  # kept for API compat
+            'weighted_score': overall_score,
             'compatibility_index': {
-                'score': weighted_score,
+                'score': overall_score,
                 'grade': grade,
                 'risk_level': risk_level
             },
@@ -404,13 +313,3 @@ class CrossGuardAnalyzer:
             'safari': LATEST_VERSIONS['safari'],
             'edge': LATEST_VERSIONS['edge']
         }
-
-
-def run_analysis(
-    html_files: Optional[List[str]] = None,
-    css_files: Optional[List[str]] = None,
-    js_files: Optional[List[str]] = None,
-    target_browsers: Optional[Dict[str, str]] = None
-) -> Dict:
-    analyzer = CrossGuardAnalyzer()
-    return analyzer.run_analysis(html_files, css_files, js_files, target_browsers)

@@ -94,28 +94,24 @@ def _count_issues(report: dict) -> tuple[int, int]:
     return errors, warnings
 
 
-def _write_secondary_outputs(report: dict, **kwargs):
-    from src.export import export_sarif, export_junit, export_checkstyle, export_csv
+# Facade methods on AnalyzerService that serialize a report for each export format.
+_EXPORT_METHOD_BY_FORMAT = {
+    'sarif': 'export_to_sarif',
+    'junit': 'export_to_junit',
+    'checkstyle': 'export_to_checkstyle',
+    'csv': 'export_to_csv',
+    'json': 'export_to_json',
+}
 
-    exporters = {
-        'sarif': export_sarif,
-        'junit': export_junit,
-        'checkstyle': export_checkstyle,
-        'csv': export_csv,
-        'json': None,  # handled below
-    }
 
+def _write_secondary_outputs(service: AnalyzerService, report: dict, **kwargs):
     for fmt_name, path in kwargs.items():
         if path is None:
             continue
-        exporter = exporters.get(fmt_name)
-        if exporter:
-            exporter(report, output_path=path)
+        method_name = _EXPORT_METHOD_BY_FORMAT.get(fmt_name)
+        if method_name:
+            getattr(service, method_name)(report, output_path=path)
             click.echo(f"  {fmt_name.upper()} saved to {path}", err=True)
-        elif fmt_name == 'json':
-            from src.export import export_json
-            export_json(report, output_path=path)
-            click.echo(f"  JSON saved to {path}", err=True)
 
 
 @click.group()
@@ -154,10 +150,10 @@ def cli(ctx, verbose, quiet, debug, no_color, timing):
 @click.argument('target', required=False)
 @click.option('--browsers', '-b', default=None, envvar='CROSSGUARD_BROWSERS',
               help='Target browsers (e.g., "chrome:120,firefox:121")')
-@click.option('--format', '-f', 'fmt', default='table', envvar='CROSSGUARD_FORMAT',
+@click.option('--format', '-f', 'fmt', default=None, envvar='CROSSGUARD_FORMAT',
               type=click.Choice(['table', 'json', 'summary', 'sarif', 'junit',
                                  'checkstyle', 'csv']),
-              help='Output format')
+              help='Output format (falls back to "output" in crossguard.config.json, else "table")')
 @click.option('--output', '-o', default=None,
               help='Save output to file')
 @click.option('--config', '-c', 'config_path', default=None, envvar='CROSSGUARD_CONFIG',
@@ -206,6 +202,17 @@ def analyze(ctx, target, browsers, fmt, output, config_path,
 
     config = load_config(config_path=config_path)
     service = AnalyzerService(config=config.to_dict())
+
+    # Priority for --format: CLI flag > CROSSGUARD_FORMAT env > config.output_format > 'table'
+    if fmt is None:
+        fmt = config.output_format
+    if fmt not in ('table', 'json', 'summary', 'sarif', 'junit', 'checkstyle', 'csv'):
+        click.echo(
+            f"Error: invalid output format '{fmt}' from config. "
+            f"Valid formats: table, json, summary, sarif, junit, checkstyle, csv",
+            err=True,
+        )
+        sys.exit(2)
 
     browser_dict = _parse_browsers(browsers) or config.browsers
 
@@ -260,7 +267,7 @@ def analyze(ctx, target, browsers, fmt, output, config_path,
 
         if fmt in ('sarif', 'junit', 'checkstyle', 'csv'):
             result_dict['file_path'] = str(target_path)  # CI exporters need this
-            result_text = _format_ci_output(result_dict, fmt)
+            result_text = _format_ci_output(service, result_dict, fmt)
         else:
             result_text = format_result(result_dict, fmt, color=cli_ctx.color)
 
@@ -319,7 +326,7 @@ def analyze(ctx, target, browsers, fmt, output, config_path,
 
             if fmt in ('json', 'sarif', 'junit', 'checkstyle', 'csv'):
                 if fmt in ('sarif', 'junit', 'checkstyle', 'csv'):
-                    result_text = _format_ci_output(result_dict, fmt)
+                    result_text = _format_ci_output(service, result_dict, fmt)
                 else:
                     result_text = format_result(result_dict, fmt, color=cli_ctx.color)
             else:
@@ -339,6 +346,7 @@ def analyze(ctx, target, browsers, fmt, output, config_path,
             click.echo(result_text)
 
         _write_secondary_outputs(
+            service,
             result_dict,
             sarif=output_sarif,
             junit=output_junit,
@@ -375,19 +383,11 @@ def analyze(ctx, target, browsers, fmt, output, config_path,
             os.unlink(tmp_file.name)
 
 
-def _format_ci_output(report: dict, fmt: str) -> str:
-    from src.export import export_sarif, export_junit, export_checkstyle, export_csv
-
-    if fmt == 'sarif':
-        import json
-        return json.dumps(export_sarif(report), indent=2)
-    elif fmt == 'junit':
-        return export_junit(report)
-    elif fmt == 'checkstyle':
-        return export_checkstyle(report)
-    elif fmt == 'csv':
-        return export_csv(report)
-    return ''
+def _format_ci_output(service: AnalyzerService, report: dict, fmt: str) -> str:
+    method_name = _EXPORT_METHOD_BY_FORMAT.get(fmt)
+    if not method_name:
+        return ''
+    return getattr(service, method_name)(report)
 
 
 @cli.command('export')

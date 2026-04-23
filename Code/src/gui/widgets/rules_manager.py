@@ -26,9 +26,7 @@ from ...parsers.js_feature_maps import (
 from ...parsers.html_feature_maps import (
     HTML_ELEMENTS, HTML_ATTRIBUTES, HTML_INPUT_TYPES, HTML_ATTRIBUTE_VALUES
 )
-from ...parsers.custom_rules_loader import (
-    is_user_rule, save_custom_rules, load_raw_custom_rules, reload_custom_rules
-)
+from ...api import get_analyzer_service
 from ...polyfill.polyfill_loader import load_polyfill_map, save_polyfill_map
 
 
@@ -92,7 +90,8 @@ class RulesManagerDialog(ctk.CTkToplevel):
 
         self.parent = parent
         self.on_rules_changed = on_rules_changed
-        self._custom_rules = load_raw_custom_rules()
+        self._service = get_analyzer_service()
+        self._custom_rules = self._service.get_custom_rules()
         self._selected_rule_id = None
         self._selected_category = "css"
         self._search_var = ctk.StringVar()
@@ -1075,7 +1074,7 @@ class RulesManagerDialog(ctk.CTkToplevel):
 
         self._custom_rules[self._selected_category][feature_id] = rule_data
 
-        if save_custom_rules(self._custom_rules):
+        if self._service.save_custom_rules(self._custom_rules):
             show_info(self, "Success", f"Rule '{feature_id}' saved successfully!")
             if self.on_rules_changed:
                 self.on_rules_changed()
@@ -1127,7 +1126,7 @@ class RulesManagerDialog(ctk.CTkToplevel):
 
         self._custom_rules['html'][key][name] = feature_id
 
-        if save_custom_rules(self._custom_rules):
+        if self._service.save_custom_rules(self._custom_rules):
             show_info(self, "Success", f"Rule '{name}' saved successfully!")
             if self.on_rules_changed:
                 self.on_rules_changed()
@@ -1141,7 +1140,7 @@ class RulesManagerDialog(ctk.CTkToplevel):
         if feature_id in self._custom_rules.get(self._selected_category, {}):
             del self._custom_rules[self._selected_category][feature_id]
 
-            if save_custom_rules(self._custom_rules):
+            if self._service.save_custom_rules(self._custom_rules):
                 show_info(self, "Deleted", f"Rule '{feature_id}' deleted")
                 if self.on_rules_changed:
                     self.on_rules_changed()
@@ -1163,7 +1162,7 @@ class RulesManagerDialog(ctk.CTkToplevel):
         if key and name in self._custom_rules.get('html', {}).get(key, {}):
             del self._custom_rules['html'][key][name]
 
-            if save_custom_rules(self._custom_rules):
+            if self._service.save_custom_rules(self._custom_rules):
                 show_info(self, "Deleted", f"Rule '{name}' deleted")
                 if self.on_rules_changed:
                     self.on_rules_changed()

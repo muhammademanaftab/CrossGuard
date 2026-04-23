@@ -14,7 +14,6 @@ DEFAULT_CONFIG: Dict[str, Any] = {
         'edge': LATEST_VERSIONS['edge'],
     },
     'output': 'table',
-    'rules': None,  # None = use built-in rules
     'ai': {
         'api_key': '',
         'provider': '',
@@ -74,15 +73,8 @@ class ConfigManager:
         return self._config.get('output', 'table')
 
     @property
-    def rules_path(self) -> Optional[str]:
-        return self._config.get('rules')
-
-    @property
     def ai_config(self) -> Dict[str, str]:
         return dict(self._config.get('ai', {}))
-
-    def get(self, key: str, default: Any = None) -> Any:
-        return self._config.get(key, default)
 
     def to_dict(self) -> Dict[str, Any]:
         return _deep_copy(self._config)
@@ -100,10 +92,6 @@ def load_config(
     overrides: Optional[Dict] = None,
 ) -> ConfigManager:
     return ConfigManager(config_path=config_path, overrides=overrides)
-
-
-def get_default_config() -> Dict[str, Any]:
-    return _deep_copy(DEFAULT_CONFIG)
 
 
 def _find_config_file(start: Path) -> Optional[Path]:

@@ -207,12 +207,6 @@ class AnalyzerService:
         except Exception:
             pass
 
-    def get_default_browsers(self) -> Dict[str, str]:
-        return self.DEFAULT_BROWSERS.copy()
-
-    def get_available_browsers(self) -> List[str]:
-        return list(self.DEFAULT_BROWSERS.keys())
-
     def _analysis_repo(self) -> AnalysisRepository:
         return AnalysisRepository()
 
@@ -307,18 +301,6 @@ class AnalyzerService:
                 'error': str(e),
             }
 
-    def get_score_trend(self, days: int = 7) -> List[Dict[str, Any]]:
-        try:
-            return get_statistics_service().get_score_trend(days)
-        except Exception:
-            return []
-
-    def get_top_problematic_features(self, limit: int = 5) -> List[Dict[str, Any]]:
-        try:
-            return get_statistics_service().get_top_problematic_features(limit)
-        except Exception:
-            return []
-
     # -- Settings --------------------------------------------------------------
 
     def get_setting(self, key: str, default: str = '') -> str:
@@ -333,12 +315,6 @@ class AnalyzerService:
             return True
         except Exception:
             return False
-
-    def get_all_settings(self) -> Dict[str, str]:
-        try:
-            return self._settings_repo().get_all()
-        except Exception:
-            return {}
 
     def get_setting_as_bool(self, key: str, default: bool = False) -> bool:
         try:
@@ -387,18 +363,6 @@ class AnalyzerService:
         except Exception:
             return []
 
-    def update_bookmark_note(self, analysis_id: int, note: str) -> bool:
-        try:
-            return self._bookmarks_repo().update_note(analysis_id, note)
-        except Exception:
-            return False
-
-    def get_bookmarks_count(self) -> int:
-        try:
-            return self._bookmarks_repo().get_count()
-        except Exception:
-            return 0
-
     # -- Tags ------------------------------------------------------------------
 
     def create_tag(self, name: str, color: str = '#58a6ff') -> Optional[int]:
@@ -419,51 +383,13 @@ class AnalyzerService:
         except Exception:
             return False
 
-    def update_tag(self, tag_id: int, name: str = None, color: str = None) -> bool:
-        try:
-            return self._tags_repo().update_tag(tag_id, name, color)
-        except Exception:
-            return False
-
-    def add_tag_to_analysis(self, analysis_id: int, tag_id: int) -> bool:
-        try:
-            return self._tags_repo().add_tag_to_analysis(analysis_id, tag_id)
-        except Exception:
-            return False
-
-    def remove_tag_from_analysis(self, analysis_id: int, tag_id: int) -> bool:
-        try:
-            return self._tags_repo().remove_tag_from_analysis(analysis_id, tag_id)
-        except Exception:
-            return False
-
     def get_tags_for_analysis(self, analysis_id: int) -> List[Dict[str, Any]]:
         try:
             return self._tags_repo().get_tags_for_analysis(analysis_id)
         except Exception:
             return []
 
-    def get_analyses_by_tag(self, tag_id: int, limit: int = 50) -> List[Dict[str, Any]]:
-        try:
-            return self._tags_repo().get_analyses_by_tag(tag_id, limit)
-        except Exception:
-            return []
-
-    def get_tag_counts(self) -> Dict[str, int]:
-        try:
-            return self._tags_repo().get_tag_counts()
-        except Exception:
-            return {}
-
     # -- Web Features (Baseline) -----------------------------------------------
-
-    def update_web_features(self) -> bool:
-        try:
-            wf = self._get_web_features()
-            return wf.download()
-        except Exception as e:
-            logger.error(f"Failed to update web features: {e}")
-            return False
 
     def get_baseline_status(self, feature_id: str) -> Optional[Dict]:
         try:
@@ -472,23 +398,6 @@ class AnalyzerService:
             return info.to_dict() if info else None
         except Exception:
             return None
-
-    def has_web_features_data(self) -> bool:
-        try:
-            return self._get_web_features().has_data()
-        except Exception:
-            return False
-
-    # -- Configuration ---------------------------------------------------------
-
-    def load_config(self, config_path: Optional[str] = None) -> Dict:
-        """Merges file config, CLI overrides, and defaults — also updates DEFAULT_BROWSERS in place."""
-        from src.config import load_config
-        mgr = load_config(config_path=config_path, overrides=self._config)
-        self._config = mgr.to_dict()
-        if 'browsers' in self._config:
-            self.DEFAULT_BROWSERS.update(self._config['browsers'])
-        return self._config
 
     # -- Export ----------------------------------------------------------------
 
@@ -510,6 +419,53 @@ class AnalyzerService:
         report = self._resolve_report(analysis_id_or_result)
         from src.export.pdf_exporter import export_pdf
         return export_pdf(report, output_path)
+
+    def export_to_sarif(
+        self,
+        analysis_id_or_result=None,
+        output_path: Optional[str] = None,
+    ) -> str:
+        """Writes SARIF 2.1.0 if output_path is given; otherwise returns the SARIF JSON as a string."""
+        import json
+        report = self._resolve_report(analysis_id_or_result)
+        from src.export.sarif_exporter import export_sarif
+        if output_path:
+            export_sarif(report, output_path=output_path)
+            return output_path
+        return json.dumps(export_sarif(report), indent=2)
+
+    def export_to_junit(
+        self,
+        analysis_id_or_result=None,
+        output_path: Optional[str] = None,
+    ) -> str:
+        """Writes JUnit XML if output_path is given; otherwise returns the XML as a string."""
+        report = self._resolve_report(analysis_id_or_result)
+        from src.export.junit_exporter import export_junit
+        result = export_junit(report, output_path=output_path)
+        return output_path if output_path else (result or '')
+
+    def export_to_checkstyle(
+        self,
+        analysis_id_or_result=None,
+        output_path: Optional[str] = None,
+    ) -> str:
+        """Writes Checkstyle XML if output_path is given; otherwise returns the XML as a string."""
+        report = self._resolve_report(analysis_id_or_result)
+        from src.export.checkstyle_exporter import export_checkstyle
+        result = export_checkstyle(report, output_path=output_path)
+        return output_path if output_path else (result or '')
+
+    def export_to_csv(
+        self,
+        analysis_id_or_result=None,
+        output_path: Optional[str] = None,
+    ) -> str:
+        """Writes CSV if output_path is given; otherwise returns the CSV as a string."""
+        report = self._resolve_report(analysis_id_or_result)
+        from src.export.csv_exporter import export_csv
+        result = export_csv(report, output_path=output_path)
+        return output_path if output_path else (result or '')
 
     def _resolve_report(self, analysis_id_or_result) -> Dict:
         """Accept int (history ID), dict, or AnalysisResult and normalize to dict."""
@@ -612,17 +568,6 @@ class AnalyzerService:
         from src.polyfill import generate_polyfills_file
         return generate_polyfills_file(recommendations, output_path)
 
-    def classify_file(self, file_path: str) -> Optional[str]:
-        import os
-        ext = os.path.splitext(file_path)[1].lower()
-        ext_map = {
-            '.html': 'html', '.htm': 'html',
-            '.css': 'css',
-            '.js': 'js', '.mjs': 'js', '.jsx': 'js',
-            '.ts': 'js', '.tsx': 'js',
-        }
-        return ext_map.get(ext)
-
     # -- Custom Rules ----------------------------------------------------------
 
     def get_custom_rules(self) -> Dict:
@@ -636,12 +581,6 @@ class AnalyzerService:
         if result:
             self._analyzer = None
         return result
-
-    def is_user_rule(
-        self, category: str, feature_id: str, subtype: Optional[str] = None
-    ) -> bool:
-        from src.parsers.custom_rules_loader import is_user_rule
-        return is_user_rule(category, feature_id, subtype)
 
 
 _service_instance: Optional[AnalyzerService] = None

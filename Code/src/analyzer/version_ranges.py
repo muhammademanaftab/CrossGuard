@@ -35,6 +35,14 @@ def get_version_ranges(feature_id: str, browser: str) -> List[Dict]:
 
     versions.sort(key=lambda x: x[0])
 
+    def _flush(status, start, end):
+        ranges.append({
+            "start": start,
+            "end": end,
+            "status": status,
+            "status_text": _get_status_text(status),
+        })
+
     ranges = []
     current_status = None
     start_version = None
@@ -45,23 +53,13 @@ def get_version_ranges(feature_id: str, browser: str) -> List[Dict]:
 
         if base_status != current_status:
             if current_status is not None:
-                ranges.append({
-                    "start": start_version,
-                    "end": prev_version,
-                    "status": current_status,
-                    "status_text": _get_status_text(current_status)
-                })
+                _flush(current_status, start_version, prev_version)
             start_version = version
             current_status = base_status
         prev_version = version
 
     if current_status is not None:
-        ranges.append({
-            "start": start_version,
-            "end": prev_version,
-            "status": current_status,
-            "status_text": _get_status_text(current_status)
-        })
+        _flush(current_status, start_version, prev_version)
 
     return ranges
 
@@ -77,39 +75,6 @@ def _get_status_text(status: str) -> str:
         'd': 'Disabled by Default'
     }
     return status_map.get(status, status)
-
-
-def get_all_browser_ranges(feature_id: str) -> Dict[str, List[Dict]]:
-    browsers = [
-        'chrome', 'firefox', 'safari', 'edge', 'opera', 'ie',
-        'android', 'ios_saf', 'samsung', 'op_mini', 'op_mob'
-    ]
-
-    result = {}
-    for browser in browsers:
-        ranges = get_version_ranges(feature_id, browser)
-        if ranges:
-            result[browser] = ranges
-
-    return result
-
-
-def format_ranges_for_display(feature_id: str, browser: str) -> str:
-    """e.g. '4-31: Not Supported | 37-143: Supported'"""
-    ranges = get_version_ranges(feature_id, browser)
-
-    if not ranges:
-        return "No data available"
-
-    parts = []
-    for r in ranges:
-        if r["start"] == r["end"]:
-            version_str = r["start"]
-        else:
-            version_str = f"{r['start']}-{r['end']}"
-        parts.append(f"{version_str}: {r['status_text']}")
-
-    return " | ".join(parts)
 
 
 def get_support_summary(feature_id: str) -> Dict[str, Dict]:

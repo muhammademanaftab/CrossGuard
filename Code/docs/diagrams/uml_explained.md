@@ -170,7 +170,7 @@ When `run_analysis()` is called, it:
 
 **CompatibilityAnalyzer** -- Takes a set of feature IDs and target browsers. For each feature + each browser, it QUERIES CanIUseDatabase to check: "Does Chrome 120 support css-grid?" Returns support data with severity ratings.
 
-**CompatibilityScorer** -- A small helper class in `src/analyzer/scorer.py`. Holds the `STATUS_SCORES` dictionary that maps each Can I Use status code to a point value, and exposes a `calculate_simple_score()` method. In the live scoring path, `CrossGuardAnalyzer` in `src/analyzer/main.py` applies its own bucketing (y → supported, a/x → partial, everything else → unsupported) and computes the overall score and letter grade (A, B, C, D, F) directly.
+**CompatibilityScorer** -- The scoring helper in `src/analyzer/scorer.py`. Holds `STATUS_SCORES`, a dictionary that maps each Can I Use status code to a point value (y → 100, a/x → 50, everything else → 0), and exposes five methods used by `CrossGuardAnalyzer` during scoring: `score_for_status()` (points for a single status), `per_browser_percentage()` (compatibility percent for one browser based on supported/partial/total counts), `overall_score()` (mean across all target browsers), `grade()` (maps a score to A, B, C, D, or F), and `risk_level()` (maps a score + unsupported count to none/low/medium/high).
 
 **CanIUseDatabase** -- Singleton that loads the Can I Use JSON data files into memory. Provides fast lookups: "Does browser X version Y support feature Z?" This is the core data source for the entire tool.
 

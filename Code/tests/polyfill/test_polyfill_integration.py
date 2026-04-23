@@ -30,9 +30,11 @@ class TestFullPipeline:
     @pytest.mark.integration
     def test_ie11_fetch_pipeline(self, analyzer, service, tmp_path):
         features = {'fetch', 'promises'}
-        report = analyzer.analyze(features, {'ie': '11'})
-        ie = report['browser_scores']['ie']
-        assert ie['unsupported_count'] + ie['partial_count'] == 2
+        classification = analyzer.classify_features(features, {'ie': '11'})
+        ie = classification['ie']
+        # neither feature is natively supported in IE11 -- fetch='n' (unsupported), promises='p' (polyfill-only, unknown)
+        assert 'fetch' not in ie['supported']
+        assert 'promises' not in ie['supported']
 
         recs = service.get_recommendations(features, set(), {'ie': '11'})
         assert len(recs) == 2

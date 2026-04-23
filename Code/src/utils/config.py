@@ -134,16 +134,6 @@ class CrossGuardLogger:
         log_level = getattr(logging, level.upper(), logging.INFO)
         logging.getLogger('crossguard').setLevel(log_level)
 
-    def enable_file_logging(self):
-        self._setup_file_handler()
-
-    def disable_console_output(self):
-        # GUI mode — don't want log noise in the terminal the user launched from
-        root_logger = logging.getLogger('crossguard')
-        for handler in root_logger.handlers[:]:
-            if isinstance(handler, logging.StreamHandler):
-                root_logger.removeHandler(handler)
-
 
 _logger_manager = CrossGuardLogger()
 
@@ -154,11 +144,3 @@ def get_logger(name: str) -> logging.Logger:
 
 def set_log_level(level: str):
     _logger_manager.set_level(level)
-
-
-def enable_file_logging():
-    _logger_manager.enable_file_logging()
-
-
-def disable_console_logging():
-    _logger_manager.disable_console_output()

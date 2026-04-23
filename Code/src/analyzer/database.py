@@ -2,8 +2,7 @@
 
 import json
 from pathlib import Path
-from typing import Dict, List, Optional
-from functools import lru_cache
+from typing import Dict, Optional
 
 from ..utils.config import CANIUSE_DB_PATH, CANIUSE_FEATURES_PATH, get_logger
 
@@ -149,41 +148,6 @@ class CanIUseDatabase:
             return self._parse_support_status(browser_stats[closest_version])
         
         return 'u'
-    
-    def get_all_features(self) -> List[str]:
-        self._ensure_loaded()
-
-        return list(self.features.keys())
-    
-    def get_feature_info(self, feature_id: str) -> Optional[Dict]:
-        feature = self.get_feature(feature_id)
-        
-        if not feature:
-            return None
-        
-        return {
-            'id': feature_id,
-            'title': feature.get('title', 'Unknown'),
-            'description': feature.get('description', 'No description available'),
-            'spec': feature.get('spec', ''),
-            'status': feature.get('status', 'unknown'),
-            'categories': feature.get('categories', []),
-            'keywords': feature.get('keywords', ''),
-            'bugs': feature.get('bugs', [])
-        }
-    
-    @lru_cache(maxsize=1000)
-    def get_browser_versions(self, browser: str) -> List[str]:
-        if not self.features:
-            return []
-
-        # all features share the same browser version list in the caniuse schema
-        first_feature = next(iter(self.features.values()))
-        
-        if 'stats' not in first_feature or browser not in first_feature['stats']:
-            return []
-        
-        return list(first_feature['stats'][browser].keys())
     
 
 _database_instance = None

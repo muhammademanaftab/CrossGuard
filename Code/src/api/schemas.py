@@ -2,20 +2,6 @@
 
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Any
-from enum import Enum
-
-
-class AnalysisStatus(Enum):
-    SUCCESS = "success"
-    FAILED = "failed"
-    NO_FILES = "no_files"
-
-
-class RiskLevel(Enum):
-    LOW = "low"
-    MEDIUM = "medium"
-    HIGH = "high"
-    CRITICAL = "critical"
 
 
 @dataclass
@@ -55,7 +41,6 @@ class AnalysisResult:
     unrecognized_patterns: Optional[Dict[str, Any]] = None
     recommendations: List[str] = field(default_factory=list)
     baseline_summary: Optional[Dict[str, Any]] = None
-    ai_suggestions: Optional[List] = None
     error: Optional[str] = None
 
     @classmethod
@@ -180,16 +165,6 @@ class AnalysisResult:
             },
             'recommendations': self.recommendations,
             'baseline_summary': self.baseline_summary,
-            'ai_suggestions': [
-                {
-                    'feature_id': s.feature_id,
-                    'feature_name': s.feature_name,
-                    'suggestion': s.suggestion,
-                    'code_example': s.code_example,
-                    'browsers_affected': s.browsers_affected,
-                }
-                for s in self.ai_suggestions
-            ] if self.ai_suggestions else None,
         }
 
 
@@ -212,17 +187,3 @@ class DatabaseUpdateResult:
 
 
 ProgressCallback = Optional[callable]
-
-
-@dataclass
-class ExportRequest:
-    format: str
-    analysis_id: Optional[int] = None
-    result: Optional[AnalysisResult] = None
-    output_path: Optional[str] = None
-
-    def __post_init__(self):
-        if self.format not in ('json', 'pdf'):
-            raise ValueError(f"Unsupported export format: {self.format}")
-        if self.analysis_id is None and self.result is None:
-            raise ValueError("Either analysis_id or result must be provided")

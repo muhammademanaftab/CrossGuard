@@ -51,7 +51,7 @@ def build():
          '+ DEFAULT_BROWSERS : Dict'],
         ['+ analyze(request) : AnalysisResult',
          '+ analyze_files(html, css, js, browsers) : AnalysisResult',
-         '+ ...  (57 public methods total)'],
+         '+ ...  (44 public methods total)'],
         stereotype='facade'))
 
     g.node('AnalysisResult', cn('AnalysisResult',
@@ -74,14 +74,13 @@ def build():
          '+ scorer : CompatibilityScorer',
          '+ all_features : Set[str]'],
         ['+ run_analysis(html, css, js, browsers) : Dict',
-         '+ ...  (2 public methods total)',
          '- _parse_html_files(files)',
          '- _parse_css_files(files)',
          '- _parse_js_files(files)',
          '- _check_compatibility(browsers) : Dict',
          '- _calculate_scores(results, browsers) : Dict',
          '- _generate_report(results, scores, browsers) : Dict',
-         '- ...  (10 private methods total)'],
+         '- ...  (11 private methods total)'],
         stereotype='orchestrator'))
 
     # ── Row 3: Parsers + Engine ─────────────────────────
@@ -109,16 +108,14 @@ def build():
 
     g.node('CompatibilityAnalyzer', cn('CompatibilityAnalyzer',
         ['+ database : CanIUseDatabase'],
-        ['+ analyze(features, browsers) : Dict',
-         '- _calculate_severity(status, total) : str',
-         '- ...  (6 private methods total)']))
+        ['+ classify_features(features, browsers) : Dict']))
 
     g.node('CompatibilityScorer', cn('CompatibilityScorer',
-        ['+ browser_weights : Dict',
-         '+ STATUS_SCORES : Dict'],
-        ['+ calculate_simple_score(status) : float',
-         '+ calculate_weighted_score(status) : Dict',
-         '+ ...  (3 public methods total)']))
+        ['+ STATUS_SCORES : Dict'],
+        ['+ score_statuses(statuses) : float',
+         '+ overall_score(browser_pcts) : float',
+         '+ grade(score) : str',
+         '+ risk_level(score, unsup) : str']))
 
     # ── Row 4: Database ─────────────────────────────────
 
@@ -126,9 +123,8 @@ def build():
         ['+ features : Dict',
          '+ loaded : bool'],
         ['+ load() : bool',
+         '+ get_feature(feature_id) : Dict',
          '+ check_support(feature, browser, ver) : str',
-         '+ get_feature_info(feature_id) : Dict',
-         '+ ...  (6 public methods total)',
          '- ...  (5 private methods total)'],
         stereotype='singleton'))
 
@@ -148,8 +144,7 @@ def build():
     g.edge('CrossGuardAnalyzer', 'CompatibilityAnalyzer', arrowhead='none', arrowtail='diamond', dir='both')
     g.edge('CrossGuardAnalyzer', 'CompatibilityScorer', arrowhead='none', arrowtail='diamond', dir='both')
 
-    # Orchestrator + CompatibilityAnalyzer -> database
-    g.edge('CrossGuardAnalyzer', 'CanIUseDatabase', style='dashed', arrowhead='open', label=' uses ')
+    # CompatibilityAnalyzer -> database (orchestrator delegates all DB lookups here)
     g.edge('CompatibilityAnalyzer', 'CanIUseDatabase', style='dashed', arrowhead='open', label=' queries ')
 
     # ═══ LAYOUT ══════════════════════════════════════════
