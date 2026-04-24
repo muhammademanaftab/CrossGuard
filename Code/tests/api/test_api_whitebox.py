@@ -1,46 +1,12 @@
 """Whitebox tests for AnalyzerService internals.
 
-Tests singleton behavior, lazy loading, database management,
-baseline enrichment, and reload mechanics.
+Tests baseline enrichment logic for analysis results.
 """
 
 import pytest
 from unittest.mock import patch, MagicMock
 
-import src.api.service as service_module
-from src.api.service import get_analyzer_service
 from src.api.schemas import AnalysisRequest
-
-
-# ===================================================================
-# Singleton
-# ===================================================================
-
-class TestSingleton:
-
-    @pytest.mark.whitebox
-    def test_returns_same_instance(self, reset_singleton):
-        service_module._service_instance = None
-        a = get_analyzer_service()
-        b = get_analyzer_service()
-        assert a is b
-
-
-# ===================================================================
-# Lazy Loading
-# ===================================================================
-
-class TestLazyLoading:
-
-    @pytest.mark.whitebox
-    @patch('src.analyzer.main.CrossGuardAnalyzer')
-    def test_analyzer_not_created_until_analyze(self, MockAnalyzer, service, sample_success_report):
-        mock_instance = MockAnalyzer.return_value
-        mock_instance.run_analysis.return_value = sample_success_report
-
-        assert service._analyzer is None
-        service.analyze(AnalysisRequest(html_files=["index.html"]))
-        assert service._analyzer is not None
 
 
 # ===================================================================

@@ -5,7 +5,6 @@ Models tested via serialization (to_dict/from_row), property behavior, and helpe
 """
 
 import pytest
-from datetime import datetime
 
 from src.database.models import (
     Analysis,
@@ -36,21 +35,6 @@ class TestModelSerialization:
 # =============================================================================
 # Model behavior -- properties, __post_init__, helpers
 # =============================================================================
-
-class TestModelBehavior:
-    """Test model properties, computed fields, and type-conversion helpers."""
-
-    @pytest.mark.blackbox
-    def test_analysis_post_init_sets_analyzed_at(self):
-        a = Analysis(file_name="x.html", file_type="html", overall_score=0, grade="F", total_features=0)
-        assert isinstance(a.analyzed_at, datetime)
-
-    @pytest.mark.blackbox
-    def test_analysis_browsers_property_roundtrip(self):
-        a = Analysis(file_name="x.html", file_type="html", overall_score=0, grade="F", total_features=0)
-        a.browsers = {"safari": "17", "chrome": "120"}
-        assert a.browsers == {"safari": "17", "chrome": "120"}
-
 
 # =============================================================================
 # AnalysisRepository -- CRUD

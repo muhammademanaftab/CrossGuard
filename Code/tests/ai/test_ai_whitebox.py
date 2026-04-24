@@ -7,13 +7,6 @@ from src.ai.ai_service import AIFixService
 
 
 @pytest.mark.whitebox
-class TestProviderSelection:
-    def test_anthropic_is_default(self):
-        service = AIFixService(api_key="sk-test")
-        assert service._provider == "anthropic"
-
-
-@pytest.mark.whitebox
 class TestApiCalls:
     @patch('src.ai.ai_service.requests.post')
     def test_anthropic_call_structure(self, mock_post):

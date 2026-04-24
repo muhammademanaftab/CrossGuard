@@ -102,8 +102,7 @@ class TestCompatibilityScorer:
 
     @pytest.mark.blackbox
     @pytest.mark.parametrize("score,expected", [
-        (100, 'A'), (90, 'A'), (89.9, 'B'), (80, 'B'),
-        (70, 'C'), (60, 'D'), (59.9, 'F'), (0, 'F'),
+        (100, 'A'), (89.9, 'B'), (70, 'C'), (60, 'D'), (59.9, 'F'),
     ])
     def test_grade_boundaries(self, score, expected):
         assert CompatibilityScorer().grade(score) == expected

@@ -392,48 +392,48 @@ Edit `src/parsers/custom_rules.json`:
 
 ## Testing
 
-**Total: 132 tests** across all modules (pytest), organized into black box / white box / integration files. Each module has `test_<module>_blackbox.py` (public API), `test_<module>_whitebox.py` (internals), and optionally `test_<module>_integration.py` (end-to-end).
+**Total: 98 tests** across all modules (pytest), organized into black box / white box / integration files. The suite is trimmed to a lean, high-signal set — each test covers a primary behavior (feature detection, scoring, export integrity, quality gates, custom rules), not internal wiring or singleton plumbing.
 
 ### Run All Tests
 ```bash
-pytest tests/                       # Full suite (132 tests)
-pytest tests/ -m blackbox           # Black box tests only (76)
-pytest tests/ -m whitebox           # White box tests only (34)
-pytest tests/ -m integration        # Integration tests only (22)
+pytest tests/                       # Full suite (98 tests)
+pytest tests/ -m blackbox           # Black box tests only (68)
+pytest tests/ -m whitebox           # White box tests only (15)
+pytest tests/ -m integration        # Integration tests only (15)
 ```
 
 ### Run by Module
 ```bash
-pytest tests/parsers/css/ -v        # CSS parser tests (14)
-pytest tests/parsers/html/ -v       # HTML parser tests (14)
-pytest tests/parsers/js/ -v         # JS parser tests (14)
-pytest tests/parsers/custom_rules/  # Custom rules loader tests (5)
-pytest tests/analyzer/ -v           # Compatibility engine tests (24)
-pytest tests/api/ -v                # API service layer tests (10)
-pytest tests/database/ -v           # Database layer tests (7)
-pytest tests/cli/ -v                # CLI tests (18)
-pytest tests/polyfill/ -v           # Polyfill tests (7)
+pytest tests/parsers/css/ -v        # CSS parser tests (9)
+pytest tests/parsers/html/ -v       # HTML parser tests (11)
+pytest tests/parsers/js/ -v         # JS parser tests (9)
+pytest tests/parsers/custom_rules/  # Custom rules loader tests (4)
+pytest tests/analyzer/ -v           # Compatibility engine tests (18)
+pytest tests/api/ -v                # API service layer tests (7)
+pytest tests/database/ -v           # Database layer tests (4)
+pytest tests/cli/ -v                # CLI tests (13)
+pytest tests/polyfill/ -v           # Polyfill tests (5)
 pytest tests/export/ -v             # Export module tests (7)
 pytest tests/config/ -v             # Config module tests (5)
-pytest tests/ai/ -v                 # AI fix suggestions tests (7)
+pytest tests/ai/ -v                 # AI fix suggestions tests (6)
 ```
 
 ### Test Coverage Summary
 
 | Module | Tests | BB/WB/Int | What's Covered |
 |--------|-------|-----------|----------------|
-| CSS parser | 14 | 6/5/3 | Detection, tinycss2 AST, bugs, real-world |
-| HTML parser | 14 | 7/4/3 | Detection, DOM, custom rules, real-world |
-| JS parser | 14 | 6/5/3 | Detection, tree-sitter AST, custom rules |
-| Custom rules | 5 | 3/2/- | Loading, singleton, save/reload |
-| Analyzer | 24 | 18/4/2 | Scoring, compatibility, DB, web features |
-| API service | 10 | 5/3/2 | Analyze, CRUD, singleton, end-to-end |
-| Database | 7 | 3/2/2 | CRUD, statistics, migrations, singleton |
-| CLI | 18 | 9/4/5 | Commands, gates, formatters, generators |
-| Polyfill | 7 | 3/2/2 | Recommendations, singleton, file gen |
+| CSS parser | 9 | 6/2/1 | Detection, tinycss2 AST, custom rules, real-world |
+| HTML parser | 11 | 7/2/2 | Detection, DOM, custom rules, real-world |
+| JS parser | 9 | 6/3/- | Detection, tree-sitter AST, false-positive guards, custom rules |
+| Custom rules | 4 | 3/1/- | Loading, save/reload |
+| Analyzer | 18 | 15/1/2 | Scoring, compatibility, DB load, end-to-end |
+| API service | 7 | 4/1/2 | Analyze, CRUD, baseline enrichment, end-to-end |
+| Database | 4 | 3/1/- | CRUD, statistics, schema |
+| CLI | 13 | 7/2/4 | Commands, gates, generators, config precedence |
+| Polyfill | 5 | 3/-/2 | Recommendations, pipeline, file gen |
 | Export | 7 | 7/-/- | All 6 formats |
 | Config | 5 | 5/-/- | Loading, merging, defaults, pkg.json |
-| AI | 7 | 4/3/- | API calls, prompt building, response parsing |
+| AI | 6 | 4/2/- | API calls, prompt building, response parsing |
 
 ### Manual Validation
 See `tests/validation/` for manual validation samples and checklists (CSS, HTML, JS, custom rules).

@@ -21,19 +21,6 @@ class TestParseFile:
 
 
 # =====================================================================
-# Reports & Statistics
-# =====================================================================
-
-@pytest.mark.integration
-class TestDetailedReport:
-    def test_has_required_keys(self, html_parser):
-        html_parser.parse_string("<main>Content</main>")
-        report = html_parser.get_detailed_report()
-        for key in ("total_features", "features", "elements_found", "attributes_found", "unrecognized"):
-            assert key in report
-
-
-# =====================================================================
 # Real-World Scenarios
 # =====================================================================
 

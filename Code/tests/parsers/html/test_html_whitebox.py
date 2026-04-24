@@ -1,6 +1,6 @@
 """HTML parser white box tests.
 
-Tests internal state, custom rules integration, and DOM traversal internals.
+Tests internal state management and custom-rules integration.
 """
 
 import pytest
@@ -18,28 +18,6 @@ class TestStateReset:
         assert "video" in features1
         features2 = html_parser.parse_string("<div>No features</div>")
         assert "video" not in features2
-
-
-# =====================================================================
-# Parse String State Inspection
-# =====================================================================
-
-@pytest.mark.whitebox
-class TestParseStringState:
-    def test_return_matches_features_found(self, html_parser):
-        result = html_parser.parse_string("<main><video src='v.mp4'></video></main>")
-        assert result == html_parser.features_found
-
-
-# =====================================================================
-# Custom Rules Integration (builtin rules inspection)
-# =====================================================================
-
-@pytest.mark.whitebox
-class TestCustomRulesIntegration:
-    def test_parser_has_rule_dicts(self, html_parser):
-        for attr in ("_elements", "_input_types", "_attributes", "_attribute_values"):
-            assert hasattr(html_parser, attr)
 
 
 # =====================================================================

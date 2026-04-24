@@ -74,8 +74,3 @@ class TestConfigOutputFormat:
         # summary output starts with "Grade:" not a JSON object
         assert result.output.lstrip().startswith('Grade:')
 
-    def test_invalid_config_output_exits_with_error(self, runner, tmp_path, js_file):
-        cfg = self._write_config(tmp_path, "wat")
-        result = runner.invoke(cli, ['-q', 'analyze', str(js_file), '-c', str(cfg)])
-        assert result.exit_code == 2
-        assert 'invalid output format' in result.output

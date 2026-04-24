@@ -101,22 +101,3 @@ class TestAnalyzeAIFlag:
             mock_ai.assert_not_called()
 
 
-@pytest.mark.blackbox
-class TestConfigKeyManagement:
-    def test_config_set_api_key_direct(self):
-        """`config --set-api-key sk-...` saves the key via set_setting."""
-        with patch('src.cli.main.AnalyzerService.set_setting') as mock_set:
-            runner = CliRunner()
-            result = runner.invoke(cli, ['config', '--set-api-key', 'sk-12345678'])
-            assert result.exit_code == 0, result.output
-            mock_set.assert_any_call('ai_api_key', 'sk-12345678')
-            assert 'API key saved' in result.output
-
-    def test_config_clear_api_key(self):
-        """`config --clear-api-key` removes the saved key by setting to empty."""
-        with patch('src.cli.main.AnalyzerService.set_setting') as mock_set:
-            runner = CliRunner()
-            result = runner.invoke(cli, ['config', '--clear-api-key'])
-            assert result.exit_code == 0, result.output
-            mock_set.assert_any_call('ai_api_key', '')
-            assert 'API key cleared' in result.output

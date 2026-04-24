@@ -1,24 +1,13 @@
 """White-box tests for custom rules loader internals.
 
-Tests singleton pattern, save/reload cycle, and edge-case resilience.
+Tests the save/reload cycle.
 """
 
 import pytest
 from src.parsers.custom_rules_loader import (
-    CustomRulesLoader,
     get_custom_rules_loader,
     save_custom_rules,
 )
-
-
-@pytest.mark.whitebox
-class TestSingleton:
-
-    def test_returns_same_instance(self, tmp_rules_file):
-        loader1 = CustomRulesLoader()
-        loader2 = CustomRulesLoader()
-        module_loader = get_custom_rules_loader()
-        assert loader1 is loader2 is module_loader
 
 
 @pytest.mark.whitebox

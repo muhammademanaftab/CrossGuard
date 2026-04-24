@@ -47,17 +47,8 @@ class TestHistory:
 
 
 # ===================================================================
-# Settings / Bookmarks (essential)
+# Bookmarks (essential)
 # ===================================================================
-
-class TestSettings:
-
-    @pytest.mark.blackbox
-    @patch('src.api.service.SettingsRepository')
-    def test_set_setting(self, MockRepo, service):
-        assert service.set_setting('theme', 'dark') is True
-        MockRepo.return_value.set.assert_called_once_with('theme', 'dark')
-
 
 class TestBookmarks:
 

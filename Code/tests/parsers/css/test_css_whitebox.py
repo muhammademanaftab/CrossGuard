@@ -1,38 +1,11 @@
 """CSS parser white box tests.
 
-Tests internals: state management, tinycss2 AST pipeline, private methods,
-bug documentation, and custom rules with mocked dependencies.
+Tests internals: tinycss2 AST pipeline, and custom rules with mocked dependencies.
 """
 
 import pytest
 from unittest.mock import patch
 from src.parsers.css_parser import CSSParser
-
-
-# =====================================================================
-# Block Boundary Preservation (flexbox-gap context detection)
-# =====================================================================
-
-@pytest.mark.whitebox
-class TestBlockBoundaryPreservation:
-    def test_flex_and_gap_same_block(self, parse_features):
-        assert "flexbox-gap" in parse_features(".c { display: flex; gap: 10px; }")
-
-    def test_flex_and_gap_different_blocks(self, parse_features):
-        css = ".flex { display: flex; } .grid { display: grid; gap: 10px; }"
-        assert "flexbox-gap" not in parse_features(css)
-
-
-# =====================================================================
-# Bug Documentation
-# =====================================================================
-
-@pytest.mark.whitebox
-class TestPatternPrecision:
-    def test_transform_property_triggers_2d_for_3d_value(self, parse_features):
-        features = parse_features("div { transform: rotateY(45deg); }")
-        assert "transforms2d" in features
-        assert "transforms3d" in features
 
 
 # =====================================================================

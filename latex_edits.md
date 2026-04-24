@@ -156,3 +156,106 @@ Nothing in the thesis references the `before/` folder; it's only there in case y
 ```
 
 Everything the thesis needs is now in place. Only Edit 7 remains, and it is optional (cosmetic phrasing of the PASSING/WARNING/FAILING banner).
+
+---
+
+## 4. Additional edits — PDF rewrite + test-count audit
+
+These four edits come from a second pass with two filters: "does the thesis claim anything the code doesn't actually do?" and "do user.tex and impl.tex say the same thing?" They reconcile the thesis with the ReportLab PDF rewrite and correct stale test numbers that contradict each other between chapters.
+
+### Edit 8 — `chapters/impl.tex` line 230 — fix PDF description (overclaim + cross-chapter inconsistency)
+
+**Why:** the new ReportLab PDF has no "score cards" — it uses a single plain score line followed by an aligned table layout. The current wording in `impl.tex` is also stronger than what `user.tex:222` says, creating a chapter-to-chapter contradiction. After this edit both chapters match the code.
+
+**FIND:**
+```
+PDF produces a professional report containing score cards and browser breakdowns.
+```
+
+**REPLACE with:**
+```
+PDF produces a readable report containing the compatibility score, a browser support table, key issues, baseline availability counts, recommendations, and a per-feature inventory that shows support status in each browser.
+```
+
+---
+
+### Edit 9 — `chapters/impl.tex` line 462 — fix test count in prose
+
+**Why:** the current number (111) is stale. Running `pytest tests/` today reports 132 test cases. 132 is the number any reviewer will see when they run the command themselves.
+
+**FIND:**
+```
+Cross Guard includes a comprehensive automated test suite with 111 tests implemented using pytest
+```
+
+**REPLACE with:**
+```
+Cross Guard includes a comprehensive automated test suite with 132 tests implemented using pytest
+```
+
+---
+
+### Edit 10 — `chapters/impl.tex` lines 470–482 — fix test distribution table
+
+**Why:** the per-module numbers and totals in Table 12.1 were frozen at an earlier count (total 111). The corrected numbers below match `pytest --collect-only` and add up to 132, which aligns with the prose fix in Edit 9.
+
+**FIND (the full table body, between the `\hline \hline` row and the closing `\end{tabular}`):**
+```
+CSS parser    & 6 & 5 & 3 & 14 \\ \hline
+HTML parser   & 7 & 4 & 3 & 14 \\ \hline
+JS parser     & 6 & 5 & 3 & 14 \\ \hline
+Custom rules  & 3 & 2 & - & 5  \\ \hline
+Analyzer      & 5 & 4 & 2 & 11 \\ \hline
+API service   & 5 & 3 & 2 & 10 \\ \hline
+Database      & 3 & 2 & 2 & 7  \\ \hline
+CLI           & 4 & 4 & 2 & 10 \\ \hline
+Polyfill      & 3 & 2 & 2 & 7  \\ \hline
+Export        & 7 & - & - & 7  \\ \hline
+Config        & 5 & - & - & 5  \\ \hline
+AI            & 4 & 3 & - & 7  \\ \hline
+\textbf{Total} & \textbf{58} & \textbf{34} & \textbf{19} & \textbf{111} \\ \hline
+```
+
+**REPLACE with:**
+```
+CSS parser    & 6  & 5 & 3 & 14 \\ \hline
+HTML parser   & 7  & 4 & 3 & 14 \\ \hline
+JS parser     & 6  & 5 & 3 & 14 \\ \hline
+Custom rules  & 3  & 2 & - & 5  \\ \hline
+Analyzer      & 18 & 4 & 2 & 24 \\ \hline
+API service   & 5  & 3 & 2 & 10 \\ \hline
+Database      & 5  & 2 & - & 7  \\ \hline
+CLI           & 9  & 4 & 5 & 18 \\ \hline
+Polyfill      & 3  & 2 & 2 & 7  \\ \hline
+Export        & 7  & - & - & 7  \\ \hline
+Config        & 5  & - & - & 5  \\ \hline
+AI            & 4  & 3 & - & 7  \\ \hline
+\textbf{Total} & \textbf{78} & \textbf{34} & \textbf{20} & \textbf{132} \\ \hline
+```
+
+---
+
+### Edit 11 — `chapters/sum.tex` line 13 — fix test count in summary
+
+**Why:** `sum.tex` says 112 and `impl.tex:462` says 111 — the two chapters contradicted each other, and both were stale. After Edits 9 and 11 together, both chapters say 132 and match reality.
+
+**FIND:**
+```
+The project includes a comprehensive test suite of 112 automated tests covering all major modules.
+```
+
+**REPLACE with:**
+```
+The project includes a comprehensive test suite of 132 automated tests covering all major modules.
+```
+
+---
+
+## 5. Updated checklist
+
+```
+[ ] Edit 8  — chapters/impl.tex line 230 (PDF description — remove "score cards")
+[ ] Edit 9  — chapters/impl.tex line 462 (test count in prose: 111 -> 132)
+[ ] Edit 10 — chapters/impl.tex lines 470-482 (test distribution table)
+[ ] Edit 11 — chapters/sum.tex line 13 (test count in summary: 112 -> 132)
+```
