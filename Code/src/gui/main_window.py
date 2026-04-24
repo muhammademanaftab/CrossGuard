@@ -1856,6 +1856,8 @@ class MainWindow(ctk.CTkFrame):
             traceback.print_exc()
 
     def _save_to_history(self, result, files: List[str]):
+        if not self._analyzer_service.get_setting_as_bool('auto_save_history', True):
+            return
         try:
             if len(files) == 1:
                 file_path = files[0]

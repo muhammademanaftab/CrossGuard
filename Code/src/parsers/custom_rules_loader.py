@@ -43,14 +43,16 @@ class CustomRulesLoader:
             return
 
         try:
-            with open(CUSTOM_RULES_PATH, 'r', encoding='utf-8') as f:
+            # utf-8-sig strips an optional UTF-8 BOM that macOS TextEdit /
+            # Windows Notepad may have added on save.
+            with open(CUSTOM_RULES_PATH, 'r', encoding='utf-8-sig') as f:
                 data = json.load(f)
 
             css_data = data.get('css', {})
             for feature_id, feature_info in css_data.items():
                 if feature_id.startswith('_'):
                     continue  # Skip metadata keys
-                if isinstance(feature_info, dict) and 'patterns' in feature_info:
+                if isinstance(feature_info, dict) and isinstance(feature_info.get('patterns'), list):
                     self._css_rules[feature_id] = feature_info
                     logger.debug(f"Loaded custom CSS rule: {feature_id}")
 
@@ -58,7 +60,7 @@ class CustomRulesLoader:
             for feature_id, feature_info in js_data.items():
                 if feature_id.startswith('_'):
                     continue
-                if isinstance(feature_info, dict) and 'patterns' in feature_info:
+                if isinstance(feature_info, dict) and isinstance(feature_info.get('patterns'), list):
                     self._js_rules[feature_id] = feature_info
                     logger.debug(f"Loaded custom JS rule: {feature_id}")
 
@@ -174,7 +176,7 @@ def save_custom_rules(rules_data: dict) -> bool:
 def load_raw_custom_rules() -> dict:
     try:
         if CUSTOM_RULES_PATH.exists():
-            with open(CUSTOM_RULES_PATH, 'r', encoding='utf-8') as f:
+            with open(CUSTOM_RULES_PATH, 'r', encoding='utf-8-sig') as f:
                 return json.load(f)
     except Exception as e:
         logger.error(f"Error loading raw custom rules: {e}")

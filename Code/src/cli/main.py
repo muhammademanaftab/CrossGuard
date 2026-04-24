@@ -337,6 +337,23 @@ def analyze(ctx, target, browsers, fmt, output, config_path,
                     if s.code_example:
                         result_text += f"  Example: {s.code_example}\n"
 
+        # Save to history if enabled (same setting the GUI uses).
+        if result.success and service.get_setting_as_bool('auto_save_history', True):
+            if use_stdin:
+                save_name = stdin_filename
+                save_path_str = ''
+                save_type = os.path.splitext(stdin_filename)[1].lstrip('.') or 'mixed'
+            else:
+                save_name = target_path.name
+                save_path_str = str(target_path)
+                save_type = 'css' if css else ('js' if js else 'html')
+            service.save_analysis_to_history(
+                result=result,
+                file_name=save_name,
+                file_path=save_path_str,
+                file_type=save_type,
+            )
+
         if output:
             with open(output, 'w', encoding='utf-8') as f:
                 f.write(result_text)
