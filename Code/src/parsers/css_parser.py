@@ -13,6 +13,11 @@ from ..utils.config import get_logger
 
 logger = get_logger('parsers.css')
 
+# Matches CSS string literals (double- or single-quoted, with escapes).
+# Used to strip string CONTENTS before regex feature matching so that text
+# inside strings (e.g. content: "display: flex") does not false-positive.
+_CSS_STRING_RE = re.compile(r'"(?:\\.|[^"\\\n])*"|\'(?:\\.|[^\'\\\n])*\'')
+
 
 # Universally-supported properties we don't need to flag
 _BASIC_PROPERTIES = frozenset({
@@ -71,6 +76,7 @@ class CSSParser:
         self.feature_details = []
         self.unrecognized_patterns = set()
         self._block_counter = 0  # Preserves block boundaries in matchable text
+        self._has_nesting = False
         self._all_features = {**ALL_CSS_FEATURES, **get_custom_css_rules()}
 
     def parse_file(self, filepath: str) -> Set[str]:
@@ -95,6 +101,7 @@ class CSSParser:
         self.feature_details = []
         self.unrecognized_patterns = set()
         self._block_counter = 0
+        self._has_nesting = False
 
         rules = tinycss2.parse_stylesheet(
             css_content, skip_comments=True, skip_whitespace=True
@@ -108,6 +115,16 @@ class CSSParser:
         )
 
         self._detect_features(matchable_text)
+        # AST-based nesting detection catches unprefixed nesting (no '&') that the
+        # regex patterns can't see after matchable_text flattens nested rules.
+        if self._has_nesting and 'css-nesting' not in self.features_found:
+            nesting_info = self._all_features.get('css-nesting', {})
+            self.features_found.add('css-nesting')
+            self.feature_details.append({
+                'feature': 'css-nesting',
+                'description': nesting_info.get('description', 'CSS Nesting'),
+                'matched_properties': [],
+            })
         self._find_unrecognized_patterns_structured(declarations, at_rules)
 
         return self.features_found
@@ -177,7 +194,10 @@ class CSSParser:
                 value_text = tinycss2.serialize(item.value).strip()
                 declarations.append((item.name, value_text, selector_text, block_id))
             elif isinstance(item, tinycss2.ast.QualifiedRule):
-                # Nested rule (CSS nesting or @keyframes stops)
+                # Nested rule (CSS nesting inside a normal rule; @keyframes stops
+                # take a different path via _extract_components). A nested rule
+                # arriving here means the source uses CSS nesting.
+                self._has_nesting = True
                 nested_sel = tinycss2.serialize(item.prelude).strip()
                 selectors.append(nested_sel)
                 self._extract_block_contents(
@@ -230,7 +250,9 @@ class CSSParser:
             else:
                 parts.append(f"@{keyword}")
 
-        return '\n'.join(parts)
+        # Strip contents of string literals so feature keywords inside strings
+        # (e.g. content: "display: flex") don't trigger false positives.
+        return _CSS_STRING_RE.sub('""', '\n'.join(parts))
 
     def _detect_features(self, css_content: str):
         for feature_id, feature_info in self._all_features.items():

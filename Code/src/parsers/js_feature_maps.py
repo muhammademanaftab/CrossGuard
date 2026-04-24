@@ -365,6 +365,16 @@ JS_API_FEATURES = {
         'keywords': ['requestIdleCallback'],
         'description': 'requestIdleCallback'
     },
+    'queuemicrotask': {
+        'patterns': [r'\bqueueMicrotask\s*\('],
+        'keywords': ['queueMicrotask'],
+        'description': 'queueMicrotask()'
+    },
+    'mdn-api_structuredclone': {
+        'patterns': [r'\bstructuredClone\s*\('],
+        'keywords': ['structuredClone'],
+        'description': 'structuredClone()'
+    },
     'console-time': {
         'patterns': [r'console\.time\s*\(', r'console\.timeEnd\s*\('],
         'keywords': ['console.time'],
@@ -491,8 +501,11 @@ JS_API_FEATURES = {
         'description': 'Clipboard API'
     },
     'async-clipboard': {
-        'patterns': [r'navigator\.clipboard\.read', r'clipboard\.readText'],
-        'keywords': ['clipboard.read'],
+        'patterns': [
+            r'navigator\.clipboard\.(?:read|write)',
+            r'clipboard\.(?:readText|writeText)',
+        ],
+        'keywords': ['clipboard.read', 'clipboard.write'],
         'description': 'Asynchronous Clipboard API'
     },
     'picture-in-picture': {
@@ -1146,17 +1159,20 @@ JS_DOM_APIS = {
         'description': 'Node.compareDocumentPosition()'
     },
     'keyboardevent-key': {
-        'patterns': [r'\.key\b', r'event\.key', r'KeyboardEvent'],
+        # Restricted to event-like handler parameters + the constructor. The old
+        # bare `\.key\b` matched any `.key` access (Map keys, React list keys,
+        # Lodash — extremely common) and was a false-positive machine.
+        'patterns': [r'\b(?:event|evt|ev|keyEvent|keyboardEvent)\.key\b', r'\bKeyboardEvent\b'],
         'keywords': ['event.key'],
         'description': 'KeyboardEvent.key'
     },
     'keyboardevent-code': {
-        'patterns': [r'\.code\b', r'event\.code'],
+        'patterns': [r'\b(?:event|evt|ev|keyEvent|keyboardEvent)\.code\b'],
         'keywords': ['event.code'],
         'description': 'KeyboardEvent.code'
     },
     'keyboardevent-which': {
-        'patterns': [r'\.which\b', r'event\.which'],
+        'patterns': [r'\b(?:event|evt|ev|keyEvent|keyboardEvent)\.which\b'],
         'keywords': ['event.which'],
         'description': 'KeyboardEvent.which'
     },
@@ -1376,8 +1392,11 @@ JS_DOM_APIS = {
         'description': 'WebAssembly Threads and Atomics'
     },
     'wasm-simd': {
-        'patterns': [r'v128', r'SIMD'],
-        'keywords': ['wasm simd'],
+        # Bare `v128` / `SIMD` matched any identifier or substring containing
+        # those tokens (e.g. `const v128 = 1`). Narrowed to WebAssembly-namespaced
+        # usage only, which is the actual surface in JS.
+        'patterns': [r'\bWebAssembly\.(?:v128|SIMD|Simd)\b'],
+        'keywords': ['WebAssembly.SIMD'],
         'description': 'WebAssembly SIMD'
     },
     'wasm-bulk-memory': {

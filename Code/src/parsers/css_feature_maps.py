@@ -266,8 +266,8 @@ CSS_BOX_MODEL = {
         'description': 'CSS3 Box-sizing'
     },
     'minmaxwh': {
-        'patterns': [r'min-width\s*:', r'min-height\s*:', r'max-width\s*:', r'max-height\s*:', r'aspect-ratio\s*:'],
-        'keywords': ['min-width', 'max-width', 'aspect-ratio'],
+        'patterns': [r'min-width\s*:', r'min-height\s*:', r'max-width\s*:', r'max-height\s*:'],
+        'keywords': ['min-width', 'max-width'],
         'description': 'CSS min/max Width & Height'
     },
     'intrinsic-width': {
@@ -806,6 +806,16 @@ CSS_ADDITIONAL_1 = {
         'patterns': [r'@counter-style'],
         'keywords': ['@counter-style'],
         'description': 'CSS Counter Styles'
+    },
+    'css-at-property': {
+        'patterns': [r'@property\s+--'],
+        'keywords': ['@property'],
+        'description': 'CSS @property at-rule'
+    },
+    'css-aspect-ratio': {
+        'patterns': [r'(?<![a-z-])aspect-ratio\s*:'],
+        'keywords': ['aspect-ratio'],
+        'description': 'CSS aspect-ratio property'
     },
     'css-background-offsets': {
         'patterns': [r'background-position.*\s+from\s+'],

@@ -555,8 +555,10 @@ class JavaScriptParser:
                 if text_start.startswith('async'):
                     self._add_ast_feature('async-functions', 'async', 'Async/await')
 
-            # Optional chaining (?.) via optional_chain child
-            if node_type == 'member_expression' or node_type == 'call_expression':
+            # Optional chaining (?.) via optional_chain child.
+            # subscript_expression covers `a?.[x]` (computed access), which
+            # tree-sitter emits as its own node separate from member/call.
+            if node_type in ('member_expression', 'call_expression', 'subscript_expression'):
                 for child in node.children:
                     if child.type == 'optional_chain':
                         self._add_ast_feature(
