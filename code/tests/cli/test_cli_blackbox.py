@@ -94,7 +94,7 @@ class TestAnalyzeAIFlag:
         js_file.write_text("const x = 1;")
         with patch('src.cli.main.AnalyzerService.get_setting', return_value=''), \
              patch('src.cli.main.AnalyzerService.get_ai_fix_suggestions') as mock_ai:
-            runner = CliRunner(mix_stderr=False)
+            runner = CliRunner()
             result = runner.invoke(cli, ['analyze', str(js_file), '--format', 'json', '--ai'])
             assert result.exit_code == 0, result.output
             assert '--ai requires an API key' in result.stderr

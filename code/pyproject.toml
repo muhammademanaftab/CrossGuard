@@ -8,7 +8,7 @@ version = "1.0.0"
 description = "Browser compatibility checker for HTML, CSS, and JavaScript"
 readme = "README.md"
 license = {text = "MIT"}
-requires-python = ">=3.9"
+requires-python = ">=3.9,<3.13"
 keywords = ["browser", "compatibility", "caniuse", "css", "javascript", "html"]
 classifiers = [
     "Development Status :: 4 - Beta",
@@ -34,7 +34,7 @@ dependencies = [
 [project.optional-dependencies]
 gui = [
     "customtkinter>=5.2",
-    "tkinterdnd2>=0.3",
+    "tkinterdnd2-universal>=1.7",
     "reportlab>=4.0",
     "Pillow>=10.0",
     "matplotlib>=3.8",

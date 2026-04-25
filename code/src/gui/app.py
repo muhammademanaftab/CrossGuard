@@ -1,28 +1,51 @@
 """GUI application launcher."""
 
 import customtkinter as ctk
-from tkinterdnd2 import TkinterDnD
 from pathlib import Path
 from PIL import Image, ImageTk
 
 from .theme import configure_ctk_theme, COLORS, WINDOW
 from .main_window import MainWindow
 
+# tkdnd binaries are absent on some platforms (notably Apple Silicon + macOS Tahoe).
+# We import lazily and fall back to plain CTk so the GUI launches without drag-and-drop
+# instead of crashing the user out at startup.
+try:
+    from tkinterdnd2 import TkinterDnD
+    _TKDND_IMPORT_OK = True
+except Exception:
+    TkinterDnD = None
+    _TKDND_IMPORT_OK = False
+
 ICON_PATH = Path(__file__).parent / "assets" / "icon.png"
 ICON_ICO_PATH = Path(__file__).parent / "assets" / "icon.ico"
 
 
-class CTkDnD(ctk.CTk, TkinterDnD.DnDWrapper):
+if _TKDND_IMPORT_OK:
+    class CTkDnD(ctk.CTk, TkinterDnD.DnDWrapper):
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.TkdndVersion = TkinterDnD._require(self)
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.TkdndVersion = TkinterDnD._require(self)
+else:
+    CTkDnD = ctk.CTk
+
+
+def _create_app():
+    if not _TKDND_IMPORT_OK:
+        print("Warning: tkinterdnd2 unavailable — drag-and-drop disabled. Use the file picker instead.")
+        return ctk.CTk()
+    try:
+        return CTkDnD()
+    except Exception as e:
+        print(f"Warning: tkdnd library failed to load ({e}); drag-and-drop disabled. Use the file picker instead.")
+        return ctk.CTk()
 
 
 def main():
     configure_ctk_theme()
 
-    app = CTkDnD()
+    app = _create_app()
     app.title("Cross Guard - Browser Compatibility Checker")
     app.geometry(f"{WINDOW['default_width']}x{WINDOW['default_height']}")
     app.minsize(WINDOW['min_width'], WINDOW['min_height'])

@@ -5,7 +5,13 @@ from pathlib import Path
 from typing import List, Callable, Optional
 
 import customtkinter as ctk
-from tkinterdnd2 import DND_FILES
+
+try:
+    from tkinterdnd2 import DND_FILES
+    _DND_AVAILABLE = True
+except Exception:
+    DND_FILES = None
+    _DND_AVAILABLE = False
 
 from ..theme import COLORS, SPACING, ICONS
 
@@ -90,12 +96,19 @@ class DropZone(ctk.CTkFrame):
         self._content_frame = content
 
     def _setup_dnd(self):
-        self.drop_target_register(DND_FILES)
-
-        self.dnd_bind('<<DropEnter>>', self._on_drag_enter)
-        self.dnd_bind('<<DropPosition>>', self._on_drag_over)
-        self.dnd_bind('<<DropLeave>>', self._on_drag_leave)
-        self.dnd_bind('<<Drop>>', self._on_drop)
+        # Drop target registration only works when the root app is TkinterDnD-wrapped
+        # and the tkdnd C library is loadable on this platform. Skip silently otherwise
+        # — the click-to-browse fallback still works.
+        if not _DND_AVAILABLE:
+            return
+        try:
+            self.drop_target_register(DND_FILES)
+            self.dnd_bind('<<DropEnter>>', self._on_drag_enter)
+            self.dnd_bind('<<DropPosition>>', self._on_drag_over)
+            self.dnd_bind('<<DropLeave>>', self._on_drag_leave)
+            self.dnd_bind('<<Drop>>', self._on_drop)
+        except Exception:
+            pass
 
     def _setup_hover(self):
         """Bind hover to self and all children so it works across the whole area."""
