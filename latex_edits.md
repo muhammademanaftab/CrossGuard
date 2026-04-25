@@ -6,7 +6,7 @@ Below is every line you need to edit in the LaTeX source. Open each file, find t
 
 ---
 
-## Edit 1 — `LaTeX/chapters/impl.tex`
+## Edit 1 — `latex/chapters/impl.tex`
 
 ### Line 37
 
@@ -24,7 +24,7 @@ Beyond parsing, Cross Guard relies on three additional subsystems. Detected feat
 
 ---
 
-## Edit 2 — `LaTeX/chapters/user.tex`
+## Edit 2 — `latex/chapters/user.tex`
 
 ### Line 220 (GUI export section)
 
@@ -144,7 +144,7 @@ After making these edits, recompile the thesis (`pdflatex` / `latexmk`) and chec
 2. Table 2.x in user.tex (CLI formats) has only 5 rows (Table, Summary, JSON, SARIF, JUnit XML)
 3. The CSV / Checkstyle words no longer appear anywhere in the thesis text:
    ```bash
-   grep -ni "checkstyle\|\\bcsv\\b" LaTeX/chapters/*.tex
+   grep -ni "checkstyle\|\\bcsv\\b" latex/chapters/*.tex
    ```
    should return nothing (or only false positives — e.g. "css" inside the word "cascading").
 

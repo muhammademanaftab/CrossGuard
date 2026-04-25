@@ -5,7 +5,7 @@ Every command from Chapter 2 of the thesis, with real file paths so you can copy
 **Before you start** — open a terminal and `cd` into the project, and activate the venv:
 
 ```bash
-cd /Users/home/Documents/Educational/Thesis/Code
+cd /Users/home/Documents/Educational/Thesis/code
 source .venv/bin/activate
 ```
 
@@ -171,7 +171,7 @@ python -m src.cli.main config
 python -m src.cli.main config --init
 ```
 
-> 📌 This creates `crossguard.config.json` in `Code/`. Delete it afterwards if you don't want it: `rm crossguard.config.json`
+> 📌 This creates `crossguard.config.json` in `code/`. Delete it afterwards if you don't want it: `rm crossguard.config.json`
 
 **Update the Can I Use database from npm** (requires internet):
 
@@ -216,7 +216,7 @@ ls -la .github/workflows/ .gitlab-ci.yml .pre-commit-config.yaml 2>/dev/null
 **Return to the project:**
 
 ```bash
-cd /Users/home/Documents/Educational/Thesis/Code
+cd /Users/home/Documents/Educational/Thesis/code
 ```
 
 ---
@@ -325,7 +325,7 @@ rm -f crossguard.config.json   # only if you ran `config --init`
 Copy-paste this whole block to run a full smoke test:
 
 ```bash
-cd /Users/home/Documents/Educational/Thesis/Code
+cd /Users/home/Documents/Educational/Thesis/code
 source .venv/bin/activate
 
 echo "=== 1. Help ==="
@@ -366,7 +366,7 @@ python -m src.cli.main init-ci --provider github
 python -m src.cli.main init-ci --provider gitlab
 python -m src.cli.main init-hooks --type pre-commit
 ls -la .github/workflows/ .gitlab-ci.yml .pre-commit-config.yaml 2>/dev/null
-cd /Users/home/Documents/Educational/Thesis/Code
+cd /Users/home/Documents/Educational/Thesis/code
 
 echo "=== 9. Quality gates ==="
 python -m src.cli.main analyze examples/sample_project/sample.css --fail-on-score 80  && echo "gate PASSED (exit 0)"

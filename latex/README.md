@@ -16,7 +16,7 @@ The document class `elteikthesis` (version 2024/04/26) is **not vendored** in th
 ## Layout
 
 ```
-LaTeX/
+latex/
 ├── elteikthesis_en.tex   # main document — metadata, \input order, front/back matter
 ├── elteikthesis.bib      # bibliography (17 entries, biber/biblatex)
 ├── chapters/

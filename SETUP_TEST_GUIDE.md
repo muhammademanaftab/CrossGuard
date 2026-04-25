@@ -7,7 +7,7 @@ This tests:
 - ✅ **Code 2.2** — Optional installation modes (`pip install -e ".[gui]"`, `".[cli]"`, `".[gui,cli]"`)
 - ✅ **Code 2.3** — Launching the GUI and CLI
 
-**Strategy**: everything happens in a fresh sandbox at `/tmp/cross-guard-test/`. Your existing project at `/Users/home/Documents/Educational/Thesis/Code/` and its `.venv/` are **never touched**.
+**Strategy**: everything happens in a fresh sandbox at `/tmp/cross-guard-test/`. Your existing project at `/Users/home/Documents/Educational/Thesis/code/` and its `.venv/` are **never touched**.
 
 ---
 
@@ -49,7 +49,7 @@ Since there's no remote URL, we clone the local project. The sandbox lives at `/
 
 ```bash
 mkdir -p /tmp/cross-guard-test && cd /tmp/cross-guard-test
-git clone /Users/home/Documents/Educational/Thesis/Code cross-guard
+git clone /Users/home/Documents/Educational/Thesis/code cross-guard
 cd cross-guard
 ls
 ```
@@ -189,7 +189,7 @@ cd /
 rm -rf /tmp/cross-guard-test
 ```
 
-Your real project at `/Users/home/Documents/Educational/Thesis/Code/` is completely untouched.
+Your real project at `/Users/home/Documents/Educational/Thesis/code/` is completely untouched.
 
 ---
 
@@ -201,7 +201,7 @@ Your real project at `/Users/home/Documents/Educational/Thesis/Code/` is complet
 # 1. Setup sandbox
 mkdir -p /tmp/cross-guard-test
 cd /tmp/cross-guard-test
-git clone /Users/home/Documents/Educational/Thesis/Code cross-guard
+git clone /Users/home/Documents/Educational/Thesis/code cross-guard
 cd cross-guard
 
 # 2. Verify Python

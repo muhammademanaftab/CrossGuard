@@ -1,10 +1,10 @@
 # Thesis update log — analyzer + api + cli + config + database + gui + parsers module cleanup
 
-This file tracks the changes made to `Code/src/analyzer/`, `Code/src/api/`, `Code/src/cli/`, `Code/src/config/`, `Code/src/database/`, `Code/src/gui/`, and `Code/src/parsers/` during the audit, and lists exactly what needs to be updated in the LaTeX thesis so the written chapters + diagrams match the new code. **No LaTeX file has been touched by the automation** — everything below is yours to apply when ready.
+This file tracks the changes made to `code/src/analyzer/`, `code/src/api/`, `code/src/cli/`, `code/src/config/`, `code/src/database/`, `code/src/gui/`, and `code/src/parsers/` during the audit, and lists exactly what needs to be updated in the LaTeX thesis so the written chapters + diagrams match the new code. **No LaTeX file has been touched by the automation** — everything below is yours to apply when ready.
 
 ---
 
-## 1. What changed in the code (`Code/src/analyzer/`)
+## 1. What changed in the code (`code/src/analyzer/`)
 
 ### 1.1 `CompatibilityAnalyzer` was wired into the pipeline
 Previously the class was instantiated on `CrossGuardAnalyzer` but never actually called — `CrossGuardAnalyzer._check_compatibility()` had its own inline duplicate of the classification loop. The class was also carrying two dead private methods (`_calculate_severity`, `_extreme_browser`) and five dead `SEVERITY_*` string constants.
@@ -54,11 +54,11 @@ A top-level `def run_analysis(html_files, css_files, js_files, target_browsers)`
 The function had the same five-line `ranges.append({"start": ..., "end": ..., "status": ..., "status_text": ...})` block in two places (once at each status-boundary inside the loop, once after the loop to flush the final range). Extracted as a local `_flush(status, start, end)` closure inside `get_version_ranges`. Behaviour identical; no public API change.
 
 ### 1.10 Code-side diagram re-rendered
-`Code/docs/diagrams/images/3.6_analysis_pipeline.png` has been regenerated from the updated script so it matches the code exactly. Additionally, two comparison copies were saved next to the existing LaTeX diagram so nothing gets overwritten:
-- `LaTeX/images/cg_pipeline_before.png` — copy of the pre-refactor image (same as the still-untouched `cg_pipeline.png`)
-- `LaTeX/images/cg_pipeline_after.png` — the new rendered image
+`code/docs/diagrams/images/3.6_analysis_pipeline.png` has been regenerated from the updated script so it matches the code exactly. Additionally, two comparison copies were saved next to the existing LaTeX diagram so nothing gets overwritten:
+- `latex/images/cg_pipeline_before.png` — copy of the pre-refactor image (same as the still-untouched `cg_pipeline.png`)
+- `latex/images/cg_pipeline_after.png` — the new rendered image
 
-The original `LaTeX/images/cg_pipeline.png` was **not** modified — see section 2.
+The original `latex/images/cg_pipeline.png` was **not** modified — see section 2.
 
 ### 1.11 Tests
 Three test files were updated to use the new `classify_features` + `CompatibilityScorer` API instead of the old `analyze()` / `per_browser_percentage()` APIs:
@@ -70,7 +70,7 @@ Full suite: **129 tests pass**. Vulture at 80% confidence: **0 hits**.
 
 ---
 
-## 1b. What changed in the code (`Code/src/api/`)
+## 1b. What changed in the code (`code/src/api/`)
 
 ### 1b.1 Enforced the facade rule — rewired `rules_manager.py`
 The GUI's `RulesManagerDialog` was bypassing the facade by importing four helpers directly from `src/parsers/custom_rules_loader`, violating the thesis's own architectural rule ("GUI imports only from src/api/"). Of those four, only `load_raw_custom_rules` (1 call) and `save_custom_rules` (4 calls) were actually used — the other two imports were dead.
@@ -99,7 +99,7 @@ Confirmed via exhaustive grep: zero callers anywhere in `src/`, `tests/`, or `ru
 **Public method count on `AnalyzerService` drops from 57 → 40.**
 
 ### 1b.3 Deleted dead schemas
-All had zero consumers anywhere in `Code/`:
+All had zero consumers anywhere in `code/`:
 
 - `AnalysisStatus` enum + 3 values (`SUCCESS`, `FAILED`, `NO_FILES`) — success is expressed via `AnalysisResult.success: bool` instead.
 - `RiskLevel` enum + 4 values (`LOW`, `MEDIUM`, `HIGH`, `CRITICAL`) — code uses the string literals `'none'/'low'/'medium'/'high'` from `CompatibilityScorer.risk_level()` instead.
@@ -111,14 +111,14 @@ All had zero consumers anywhere in `Code/`:
 Removed re-exports for the three deleted schemas. The `__all__` list shrinks from 11 to 8 symbols.
 
 ### 1b.5 Pipeline diagram re-rendered
-`Code/docs/diagrams/scripts/3.6_analysis_pipeline.py`: the `AnalyzerService` annotation changed from `"(57 public methods total)"` → `"(40 public methods total)"`. Regenerated `Code/docs/diagrams/images/3.6_analysis_pipeline.png` and refreshed `LaTeX/images/cg_pipeline_after.png`.
+`code/docs/diagrams/scripts/3.6_analysis_pipeline.py`: the `AnalyzerService` annotation changed from `"(57 public methods total)"` → `"(40 public methods total)"`. Regenerated `code/docs/diagrams/images/3.6_analysis_pipeline.png` and refreshed `latex/images/cg_pipeline_after.png`.
 
 ### 1b.6 Tests
 No test changes needed. All 129/129 still pass. End-to-end analyze via `AnalyzerService.analyze_files` on a sample CSS file still returns a successful result with a correct grade.
 
 ---
 
-## 1c. What changed in the code (`Code/src/cli/`)
+## 1c. What changed in the code (`code/src/cli/`)
 
 ### 1c.1 Added four CI-export facade wrappers to `AnalyzerService`
 The CLI was importing `export_sarif`, `export_junit`, `export_checkstyle`, and `export_csv` directly from `src/export/` — violating the facade rule. The facade had wrappers for `export_to_json` and `export_to_pdf` but not for the four CI formats.
@@ -147,7 +147,7 @@ The CLI had two helpers (`_write_secondary_outputs`, `_format_ci_output`) with n
 `from typing import Any, Dict, List` → `from typing import Dict, List`. Trivial cleanup.
 
 ### 1c.4 Pipeline diagram re-rendered
-`Code/docs/diagrams/scripts/3.6_analysis_pipeline.py`: the `AnalyzerService` annotation changed from `"(40 public methods total)"` → `"(44 public methods total)"`. Regenerated `Code/docs/diagrams/images/3.6_analysis_pipeline.png` and refreshed `LaTeX/images/cg_pipeline_after.png`.
+`code/docs/diagrams/scripts/3.6_analysis_pipeline.py`: the `AnalyzerService` annotation changed from `"(40 public methods total)"` → `"(44 public methods total)"`. Regenerated `code/docs/diagrams/images/3.6_analysis_pipeline.png` and refreshed `latex/images/cg_pipeline_after.png`.
 
 ### 1c.5 Verification
 - **129/129 tests pass** (no test changes were needed).
@@ -157,7 +157,7 @@ The CLI had two helpers (`_write_secondary_outputs`, `_format_ci_output`) with n
 
 ---
 
-## 1d. What changed in the code (`Code/src/config/`)
+## 1d. What changed in the code (`code/src/config/`)
 
 ### 1d.1 Deleted 4 truly-dead items
 Confirmed by exhaustive grep: zero callers anywhere.
@@ -206,7 +206,7 @@ The `output_format` property was **tested but unused in production**. Users coul
 
 ---
 
-## 1e. What changed in the code (`Code/src/database/`)
+## 1e. What changed in the code (`code/src/database/`)
 
 ### 1e.1 Context — the root cause of the "dead scaffolding"
 
@@ -257,14 +257,14 @@ Chose **Path A**: delete the scaffolding and propose four small sentence edits t
 
 ### 1e.4 Diagram updated — `3.9_database.py` + comparison PNGs
 
-In `Code/docs/diagrams/scripts/3.9_database.py`:
+In `code/docs/diagrams/scripts/3.9_database.py`:
 - Replaced the explicitly-named `+ get_score_trend(days) : List` on the `StatisticsService` node with `+ get_top_problematic_features(lim) : List` (still live — consumed by `get_summary_statistics`)
 - Changed `+ ...  (13 public methods total)` → `+ ...  (11 public methods total)`
 
-Regenerated `Code/docs/diagrams/images/3.9_database.png` and placed comparison copies in LaTeX (mirroring the `cg_pipeline_before/after.png` pattern):
-- `LaTeX/images/cg_database_before.png` — snapshot of the pre-refactor image
-- `LaTeX/images/cg_database_after.png` — new image, matches post-refactor code
-- `LaTeX/images/cg_database.png` — untouched
+Regenerated `code/docs/diagrams/images/3.9_database.png` and placed comparison copies in LaTeX (mirroring the `cg_pipeline_before/after.png` pattern):
+- `latex/images/cg_database_before.png` — snapshot of the pre-refactor image
+- `latex/images/cg_database_after.png` — new image, matches post-refactor code
+- `latex/images/cg_database.png` — untouched
 
 Rename `cg_database_after.png` → `cg_database.png` when ready to promote. `\includegraphics{cg_database}` keeps working.
 
@@ -272,7 +272,7 @@ Rename `cg_database_after.png` → `cg_database.png` when ready to promote. `\in
 
 These four sentences currently claim features the app doesn't ship after the deletion. Proposed find/replace blocks below.
 
-#### Edit 1 — `LaTeX/chapters/user.tex` line 196
+#### Edit 1 — `latex/chapters/user.tex` line 196
 
 **FIND:**
 ```
@@ -286,7 +286,7 @@ These four sentences currently claim features the app doesn't ship after the del
 
 (Rationale: Users can create/delete/list tags but there is no UI to attach a tag to a specific analysis, so "tagged … for easier organization" isn't true in the shipped app.)
 
-#### Edit 2 — `LaTeX/chapters/impl.tex` line 110
+#### Edit 2 — `latex/chapters/impl.tex` line 110
 
 **FIND:**
 ```
@@ -300,7 +300,7 @@ Users can also bookmark the result or export it as a report.
 
 (Rationale: Same — no tag-attach button in the Results view.)
 
-#### Edit 3 — `LaTeX/chapters/impl.tex` line 213
+#### Edit 3 — `latex/chapters/impl.tex` line 213
 
 **FIND:**
 ```
@@ -314,7 +314,7 @@ Users can also bookmark the result or export it as a report.
 
 (Rationale: `StatisticsService` no longer exposes `get_score_trend`. `sum.tex:28` already describes trend charts as future work — after this edit the two sentences no longer contradict.)
 
-#### Edit 4 — `LaTeX/chapters/impl.tex` line 219
+#### Edit 4 — `latex/chapters/impl.tex` line 219
 
 **FIND:**
 ```
@@ -341,7 +341,7 @@ Roughly **−200 lines** of Python across the 4 files (method bodies + docstring
 
 ---
 
-## 1f. What changed in the code (`Code/src/gui/`)
+## 1f. What changed in the code (`code/src/gui/`)
 
 ### 1f.1 Context — making the thesis's central architectural claim literally true
 
@@ -410,12 +410,12 @@ Matches `user.tex:133`: *"…install commands (e.g. `npm install datalist-polyfi
 
 ### 1f.6 Updated diagrams + refreshed comparison PNGs
 
-- `Code/docs/diagrams/scripts/3.13_gui.py`: `AnalyzerService "(57 public methods total)"` → `"(49 public methods total)"`
-- `Code/docs/diagrams/scripts/3.6_analysis_pipeline.py`: `AnalyzerService "(44 public methods total)"` → `"(49 public methods total)"`
-- Regenerated `Code/docs/diagrams/images/3.13_gui.png` and `3.6_analysis_pipeline.png`
-- Snapshotted `LaTeX/images/cg_gui.png` → `LaTeX/images/cg_gui_before.png` (frozen pre-refactor state)
-- Copied new render → `LaTeX/images/cg_gui_after.png`
-- Refreshed `LaTeX/images/cg_pipeline_after.png` with new `"(49 public methods total)"` annotation
+- `code/docs/diagrams/scripts/3.13_gui.py`: `AnalyzerService "(57 public methods total)"` → `"(49 public methods total)"`
+- `code/docs/diagrams/scripts/3.6_analysis_pipeline.py`: `AnalyzerService "(44 public methods total)"` → `"(49 public methods total)"`
+- Regenerated `code/docs/diagrams/images/3.13_gui.png` and `3.6_analysis_pipeline.png`
+- Snapshotted `latex/images/cg_gui.png` → `latex/images/cg_gui_before.png` (frozen pre-refactor state)
+- Copied new render → `latex/images/cg_gui_after.png`
+- Refreshed `latex/images/cg_pipeline_after.png` with new `"(49 public methods total)"` annotation
 
 Canonical `cg_gui.png` untouched — promote `_after` → canonical when ready.
 
@@ -436,7 +436,7 @@ After F4, the sentence *"The GUI never imports from the parser, analyzer, or dat
 
 ---
 
-## 1g. What changed in the code (`Code/src/parsers/`)
+## 1g. What changed in the code (`code/src/parsers/`)
 
 ### 1g.1 Context
 
@@ -467,7 +467,7 @@ Private-method counts unchanged (HTMLParser 17, CSSParser 5, JavaScriptParser 13
 
 ### 1g.4 Diagram updated — `3.7_parsers.py` + comparison PNGs
 
-In `Code/docs/diagrams/scripts/3.7_parsers.py`:
+In `code/docs/diagrams/scripts/3.7_parsers.py`:
 - `HTMLParser` block: dropped `parse_multiple_files`, `get_statistics`, `validate_html` rows (6 → 3 public methods shown)
 - `CSSParser` block: dropped `parse_multiple_files`, `get_statistics`, `validate_css` rows (6 → 3)
 - `JavaScriptParser` block: dropped `parse_multiple_files`, `get_statistics`, `validate_javascript` rows (6 → 3)
@@ -475,16 +475,16 @@ In `Code/docs/diagrams/scripts/3.7_parsers.py`:
 - Attributes unchanged
 - "loads rules" arrows to `CustomRulesLoader` unchanged
 
-Regenerated `Code/docs/diagrams/images/3.7_parsers.png` and placed comparison PNGs in LaTeX (same pattern as earlier modules):
-- `LaTeX/images/cg_parsers_before.png` — frozen snapshot of the pre-refactor state
-- `LaTeX/images/cg_parsers_after.png` — new render
-- `LaTeX/images/cg_parsers.png` — untouched
+Regenerated `code/docs/diagrams/images/3.7_parsers.png` and placed comparison PNGs in LaTeX (same pattern as earlier modules):
+- `latex/images/cg_parsers_before.png` — frozen snapshot of the pre-refactor state
+- `latex/images/cg_parsers_after.png` — new render
+- `latex/images/cg_parsers.png` — untouched
 
 Rename `cg_parsers_after.png` → `cg_parsers.png` when ready to promote; `\includegraphics{cg_parsers}` keeps working.
 
 ### 1g.5 No LaTeX text edits needed
 
-Grepped `LaTeX/chapters/*.tex` for every deleted method name (`parse_multiple_files`, `get_statistics`, `validate_html`, `validate_css`, `validate_javascript`): **0 hits**. The thesis only mentions `parse_file` and `parse_string` by name (in the pipeline and sequence diagrams, and in the parser-flow descriptions). No sentence becomes false after deletion.
+Grepped `latex/chapters/*.tex` for every deleted method name (`parse_multiple_files`, `get_statistics`, `validate_html`, `validate_css`, `validate_javascript`): **0 hits**. The thesis only mentions `parse_file` and `parse_string` by name (in the pipeline and sequence diagrams, and in the parser-flow descriptions). No sentence becomes false after deletion.
 
 ### 1g.6 Verification
 
@@ -504,12 +504,12 @@ Roughly **−150 lines** of Python (9 method bodies + one import line). The diag
 
 ## 2. What needs to change in LaTeX (your call)
 
-### 2.1 `LaTeX/images/cg_pipeline.png` — replace with the new PNG
+### 2.1 `latex/images/cg_pipeline.png` — replace with the new PNG
 
-The original `cg_pipeline.png` is currently missing from the working tree (shown as `deleted:` in `git status`). Two comparison copies still sit in `LaTeX/images/`:
+The original `cg_pipeline.png` is currently missing from the working tree (shown as `deleted:` in `git status`). Two comparison copies still sit in `latex/images/`:
 
 - `cg_pipeline_before.png` — what the image looked like before the analyzer + api refactors
-- `cg_pipeline_after.png` — what the image looks like after the refactors (matches current code); regenerated from `Code/docs/diagrams/images/3.6_analysis_pipeline.png`
+- `cg_pipeline_after.png` — what the image looks like after the refactors (matches current code); regenerated from `code/docs/diagrams/images/3.6_analysis_pipeline.png`
 
 To make `\includegraphics{cg_pipeline}` resolve again, rename or copy `cg_pipeline_after.png` → `cg_pipeline.png`. You can then remove `_before.png` and `_after.png` if you don't want them in the repo long-term. **The after-PNG now reflects both the analyzer-module changes (§1) and the api-module changes (§1b)** — including the "(40 public methods total)" annotation on the `AnalyzerService` block.
 
@@ -524,7 +524,7 @@ To make `\includegraphics{cg_pipeline}` resolve again, rename or copy `cg_pipeli
 | `CanIUseDatabase` methods | `load`, `check_support`, `get_feature_info`, *(6 public methods total)* | `load`, `get_feature`, `check_support` (3 public, no total-count footer) |
 | Edges | dashed edge `CrossGuardAnalyzer — uses → CanIUseDatabase` | (removed — only `CompatibilityAnalyzer` queries the DB now) |
 
-### 2.2 `LaTeX/images/cg_sequence.png` — needs two fixes
+### 2.2 `latex/images/cg_sequence.png` — needs two fixes
 
 The sequence diagram currently shows two messages that don't match the code:
 
@@ -535,9 +535,9 @@ The sequence diagram currently shows two messages that don't match the code:
    - a simplified single arrow labelled `score_statuses / overall_score / grade / risk_level` returning `score + grade`, or
    - four arrows (one per helper) — the thesis-level simplification is fine.
 
-`Code/docs/diagrams/scripts/` does not currently contain a source for `cg_sequence.png` (it's the one diagram that was authored externally), so this one needs to be edited in whichever tool produced it — or regenerated.
+`code/docs/diagrams/scripts/` does not currently contain a source for `cg_sequence.png` (it's the one diagram that was authored externally), so this one needs to be edited in whichever tool produced it — or regenerated.
 
-### 2.3 `LaTeX/chapters/impl.tex` line 106 — text edit
+### 2.3 `latex/chapters/impl.tex` line 106 — text edit
 
 **FIND:**
 ```
@@ -550,26 +550,26 @@ After gathering these results, the scoring work is delegated to the \texttt{Comp
 ```
 
 ### 2.4 Anywhere else in LaTeX that still looks fine
-I scanned `LaTeX/chapters/*.tex` for every removed / renamed symbol. Only `impl.tex:106` needs edits. The surrounding paragraphs (pipeline overview, parser descriptions, severity-based GUI grouping, scoring formula description on impl.tex:170-194, grade scale, user.tex scoring section) are all still accurate.
+I scanned `latex/chapters/*.tex` for every removed / renamed symbol. Only `impl.tex:106` needs edits. The surrounding paragraphs (pipeline overview, parser descriptions, severity-based GUI grouping, scoring formula description on impl.tex:170-194, grade scale, user.tex scoring section) are all still accurate.
 
 ---
 
 ## 3. Quick checklist
 
 ```
-[ ] Rename LaTeX/images/cg_pipeline_after.png → cg_pipeline.png (old one currently deleted)
-[ ] Rename LaTeX/images/cg_database_after.png → cg_database.png when ready to promote
-[ ] Rename LaTeX/images/cg_gui_after.png → cg_gui.png when ready to promote
-[ ] Rename LaTeX/images/cg_parsers_after.png → cg_parsers.png when ready to promote
-[ ] Rename LaTeX/images/cg_polyfill_after.png → cg_polyfill.png when ready to promote
-[ ] Edit LaTeX/chapters/impl.tex line 271 (PolyfillLoader public methods — see section 2.4)
-[ ] Update LaTeX/images/cg_sequence.png (2 message changes — see section 2.2)
-[ ] Edit LaTeX/chapters/impl.tex line 106 (scoring sentence — see section 2.3)
-[ ] Edit LaTeX/chapters/user.tex line 196 (remove "or tagged" — see section 1e.5 Edit 1)
-[ ] Edit LaTeX/chapters/impl.tex line 110 (remove "add tags," — see 1e.5 Edit 2)
-[ ] Edit LaTeX/chapters/impl.tex line 213 (replace "average scores, score trends, and grade distribution" — see 1e.5 Edit 3)
-[ ] Edit LaTeX/chapters/impl.tex line 219 (remove "and attach a note" — see 1e.5 Edit 4)
-[ ] (Optional) LaTeX/chapters/user.tex line 131 — align "Compatibility: Passing/Failing" with actual BuildBadge states PASSING/WARNING/FAILING (see 1f.7)
+[ ] Rename latex/images/cg_pipeline_after.png → cg_pipeline.png (old one currently deleted)
+[ ] Rename latex/images/cg_database_after.png → cg_database.png when ready to promote
+[ ] Rename latex/images/cg_gui_after.png → cg_gui.png when ready to promote
+[ ] Rename latex/images/cg_parsers_after.png → cg_parsers.png when ready to promote
+[ ] Rename latex/images/cg_polyfill_after.png → cg_polyfill.png when ready to promote
+[ ] Edit latex/chapters/impl.tex line 271 (PolyfillLoader public methods — see section 2.4)
+[ ] Update latex/images/cg_sequence.png (2 message changes — see section 2.2)
+[ ] Edit latex/chapters/impl.tex line 106 (scoring sentence — see section 2.3)
+[ ] Edit latex/chapters/user.tex line 196 (remove "or tagged" — see section 1e.5 Edit 1)
+[ ] Edit latex/chapters/impl.tex line 110 (remove "add tags," — see 1e.5 Edit 2)
+[ ] Edit latex/chapters/impl.tex line 213 (replace "average scores, score trends, and grade distribution" — see 1e.5 Edit 3)
+[ ] Edit latex/chapters/impl.tex line 219 (remove "and attach a note" — see 1e.5 Edit 4)
+[ ] (Optional) latex/chapters/user.tex line 131 — align "Compatibility: Passing/Failing" with actual BuildBadge states PASSING/WARNING/FAILING (see 1f.7)
 ```
 
 ## 1h. Polyfill module cleanup (Path A — aggressive delete + diagram refresh)
@@ -615,7 +615,7 @@ This also reconciles with the regenerated diagram (`cg_polyfill_after.png`) whic
 
 **Context.** `src/utils/` holds the app's cross-cutting helpers: `config.py` (app-wide constants + singleton logger) and `feature_names.py` (Can I Use ID → human-readable name mapping + fix-suggestion lookup). It is the one shared module that both frontends (GUI, CLI) and the entire backend are allowed to import from, by explicit CLAUDE.md architecture rule. The thesis does not mention utils internals and no diagram depicts it, so cleanup here is purely a code hygiene pass.
 
-**Dead code removed (12 items).** Every item below was verified with exhaustive grep across `src/`, `tests/`, `docs/`, and `LaTeX/` — all returned zero external references before deletion.
+**Dead code removed (12 items).** Every item below was verified with exhaustive grep across `src/`, `tests/`, `docs/`, and `latex/` — all returned zero external references before deletion.
 
 1. `DATABASE_PATH` (config.py:13) — `connection.py` builds its own path from `PROJECT_ROOT`; this constant was a stale parallel definition.
 2. `DATABASE_HISTORY_LIMIT` (config.py:14) — nothing reads it.
@@ -626,7 +626,7 @@ This also reconciles with the regenerated diagram (`cg_polyfill_after.png`) whic
 7. `APP_NAME = "Cross Guard"` (config.py:68) — `gui/config.py:5` has its own hardcoded copy; nothing imports utils' version.
 8. `APP_VERSION = "1.0.0"` (config.py:69) — same: `gui/config.py:6` owns the only live copy.
 9. `LOG_DIR`, `LOG_FILE`, `LOG_MAX_SIZE`, `LOG_BACKUP_COUNT` (config.py:75–78) — used only inside `_setup_file_handler` (item 10).
-10. `CrossGuardLogger._setup_file_handler()` method (config.py:110–125, 16 lines) — **never called.** The class's `_setup_root_logger` only installs a stderr console handler; file logging was fully unimplemented. `Code/logs/` directory does not exist on disk.
+10. `CrossGuardLogger._setup_file_handler()` method (config.py:110–125, 16 lines) — **never called.** The class's `_setup_root_logger` only installs a stderr console handler; file logging was fully unimplemented. `code/logs/` directory does not exist on disk.
 11. `get_severity(support_status)` function (feature_names.py:439–444) — never imported. Severity mapping is done ad-hoc by callers that need it.
 12. `src/utils/feature_names.json` (337-line data file, ~15 KB) — **never loaded by any Python code.** It is a stale JSON dump of the `FEATURE_NAMES` Python dict. The live source of truth is the dict at `feature_names.py:5`.
 
@@ -649,7 +649,7 @@ This also reconciles with the regenerated diagram (`cg_polyfill_after.png`) whic
 
 ## 1j. Final sweep — residual dead imports + one missed duplicate
 
-**Context.** A final overall sweep (vulture 80 %, exhaustive grep across `src/`, `tests/`, `docs/`, `LaTeX/`, AST-level unused-import detector, and cross-file dynamic-lookup scan) surfaced a handful of items that earlier module-by-module audits missed — partly because some were hidden inside long multi-line import blocks, and one was a dead *data* duplicate that looked live because a different class attribute happened to share its name.
+**Context.** A final overall sweep (vulture 80 %, exhaustive grep across `src/`, `tests/`, `docs/`, `latex/`, AST-level unused-import detector, and cross-file dynamic-lookup scan) surfaced a handful of items that earlier module-by-module audits missed — partly because some were hidden inside long multi-line import blocks, and one was a dead *data* duplicate that looked live because a different class attribute happened to share its name.
 
 Every flagged item was verified against **seven external-usage channels** before deletion: (1) `from <module> import <name>` elsewhere, (2) `<module>.<name>` attribute access, (3) `__all__` in any `__init__.py`, (4) `getattr/hasattr/eval/__import__` dynamic lookup, (5) test-suite references, (6) LaTeX thesis references, (7) non-import-line usage inside the defining file. All 30 came back with **zero external refs**.
 
@@ -695,7 +695,7 @@ Each one appears exactly once in its file — inside its import statement — an
 
 ## 1k. Diagram-wide cross-check — 3 drifts fixed
 
-**Context.** A complete sweep of every PNG in `LaTeX/images/` against its source script (`Code/docs/diagrams/scripts/`) and the current code, covering every class, every method, every attribute, every edge — not just module-local changes. Verification method: AST-level inventory of every class shown, compared 1:1 against the diagram script contents.
+**Context.** A complete sweep of every PNG in `latex/images/` against its source script (`code/docs/diagrams/scripts/`) and the current code, covering every class, every method, every attribute, every edge — not just module-local changes. Verification method: AST-level inventory of every class shown, compared 1:1 against the diagram script contents.
 
 **Diagrams verified clean (no action needed):**
 - `cg_architecture.png` — all 10 class nodes + connections match code exactly
@@ -708,18 +708,18 @@ Each one appears exactly once in its file — inside its import statement — an
 
 **Diagrams with drift — fixed this pass:**
 
-1. **`cg_pipeline_after.png`** — the parser blocks on this diagram still showed "(6 public methods total)" for HTMLParser / CSSParser / JavaScriptParser, stale from before the §1g parser cleanup (which trimmed each to 3 public methods). Updated `Code/docs/diagrams/scripts/3.6_analysis_pipeline.py` to show the 3 real public methods (`parse_file`, `parse_string`, `get_detailed_report`) inline instead of the "...  (6 public methods total)" placeholder. Re-rendered; `LaTeX/images/cg_pipeline_after.png` refreshed.
+1. **`cg_pipeline_after.png`** — the parser blocks on this diagram still showed "(6 public methods total)" for HTMLParser / CSSParser / JavaScriptParser, stale from before the §1g parser cleanup (which trimmed each to 3 public methods). Updated `code/docs/diagrams/scripts/3.6_analysis_pipeline.py` to show the 3 real public methods (`parse_file`, `parse_string`, `get_detailed_report`) inline instead of the "...  (6 public methods total)" placeholder. Re-rendered; `latex/images/cg_pipeline_after.png` refreshed.
 
-2. **`cg_directory.png`** — three stale entries found in `Code/docs/diagrams/scripts/3.18_directory_structure.py`:
+2. **`cg_directory.png`** — three stale entries found in `code/docs/diagrams/scripts/3.18_directory_structure.py`:
    - `api/`: "Service facade (**64 methods**)" → updated to `(49 methods)`
    - `gui/`: "CustomTkinter GUI (**23 widgets**)" → updated to `(22 widgets)` (actual file count)
    - `utils/`: "Logging, **exceptions, types, constants**" → updated to `Logging, constants, and feature-name helpers` (utils never had an exceptions.py or a types module; just `config.py` and `feature_names.py`)
-   - Re-rendered. `LaTeX/images/cg_directory_before.png` snapshotted, `cg_directory_after.png` is the new version.
+   - Re-rendered. `latex/images/cg_directory_before.png` snapshotted, `cg_directory_after.png` is the new version.
 
-3. **`cg_sequence.png`** — two arrows were stale from the analyzer + scorer refactors. The earlier `latex_edits.md` claimed this diagram was externally-authored with no in-repo source, but the PlantUML source does exist at `Code/docs/diagrams/scripts/3.16_sequence.puml`. Updated both arrows:
+3. **`cg_sequence.png`** — two arrows were stale from the analyzer + scorer refactors. The earlier `latex_edits.md` claimed this diagram was externally-authored with no in-repo source, but the PlantUML source does exist at `code/docs/diagrams/scripts/3.16_sequence.puml`. Updated both arrows:
    - `CGA → CompatibilityAnalyzer: analyze(features, browsers)` → `classify_features(features, browsers)`
    - `CGA → CompatibilityScorer: calculate_weighted_score(status)` (method never existed after Arch B) → replaced with 4 arrows showing each real scorer method (`score_statuses`, `overall_score`, `grade`, `risk_level`) plus their returns
-   - Re-rendered via `plantuml -tpng`. `LaTeX/images/cg_sequence_before.png` snapshotted, `cg_sequence_after.png` is the new version.
+   - Re-rendered via `plantuml -tpng`. `latex/images/cg_sequence_before.png` snapshotted, `cg_sequence_after.png` is the new version.
 
 **Verification (post-cleanup).**
 - `pytest tests/` → **132/132 pass**.
@@ -744,7 +744,7 @@ Every diagram that previously said "(N private/public methods total)" has been r
 | `3.9_database.py` | `(11 public methods total)` | `(other public methods)` |
 | `3.13_gui.py` | `(48 private methods total)`, `(49 public methods total)` | `(other private methods)`, `(other public methods)` |
 
-All 8 graphviz diagrams regenerated. Every `LaTeX/images/cg_*_after.png` refreshed (`cg_pipeline_after`, `cg_parsers_after`, `cg_database_after`, `cg_polyfill_after`, `cg_gui_after`, `cg_directory_after` — plus the sequence PNG already refreshed in §1k).
+All 8 graphviz diagrams regenerated. Every `latex/images/cg_*_after.png` refreshed (`cg_pipeline_after`, `cg_parsers_after`, `cg_database_after`, `cg_polyfill_after`, `cg_gui_after`, `cg_directory_after` — plus the sequence PNG already refreshed in §1k).
 
 ### Part 2: Edge-by-edge connection audit — every arrow verified against code
 
@@ -829,7 +829,7 @@ I walked every labelled arrow in every diagram and grepped for the code expressi
 - **40+ edges** across **8 class diagrams + 1 sequence diagram + 1 use-case diagram** verified against code
 - **0 broken edges** found (the one potential drift, architecture's `CGA → CanIUseDatabase`, is a justified high-level simplification covering the real `CGA ◆ CompatibilityAnalyzer → CanIUseDatabase` chain)
 - **All hard-coded method counts replaced** with "(other private/public methods)" — immune to future drift
-- **8 diagram PNGs regenerated**; all `_after.png` copies refreshed in `LaTeX/images/`
+- **8 diagram PNGs regenerated**; all `_after.png` copies refreshed in `latex/images/`
 - Facade rule **literally enforced** (0 bypasses in GUI, 0 in CLI)
 
 ## 4. So, are the analyzer, api, cli, config, database, gui, parsers, polyfill, and utils modules "fixed"?
