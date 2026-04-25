@@ -445,40 +445,147 @@ class AnalyzerService:
         result = export_junit(report, output_path=output_path)
         return output_path if output_path else (result or '')
 
-    def export_to_checkstyle(
-        self,
-        analysis_id_or_result=None,
-        output_path: Optional[str] = None,
-    ) -> str:
-        """Writes Checkstyle XML if output_path is given; otherwise returns the XML as a string."""
-        report = self._resolve_report(analysis_id_or_result)
-        from src.export.checkstyle_exporter import export_checkstyle
-        result = export_checkstyle(report, output_path=output_path)
-        return output_path if output_path else (result or '')
-
-    def export_to_csv(
-        self,
-        analysis_id_or_result=None,
-        output_path: Optional[str] = None,
-    ) -> str:
-        """Writes CSV if output_path is given; otherwise returns the CSV as a string."""
-        report = self._resolve_report(analysis_id_or_result)
-        from src.export.csv_exporter import export_csv
-        result = export_csv(report, output_path=output_path)
-        return output_path if output_path else (result or '')
-
     def _resolve_report(self, analysis_id_or_result) -> Dict:
-        """Accept int (history ID), dict, or AnalysisResult and normalize to dict."""
+        """Accept int (history ID), dict, or AnalysisResult and normalize to the
+        exporter-shaped report dict (summary/scores/browsers/features/...).
+        """
         if isinstance(analysis_id_or_result, int):
             record = self.get_analysis_by_id(analysis_id_or_result)
             if record is None:
                 raise ValueError(f"Analysis #{analysis_id_or_result} not found")
-            return record
+            return self._db_record_to_report(record)
         if hasattr(analysis_id_or_result, 'to_dict'):
             return analysis_id_or_result.to_dict()
         if isinstance(analysis_id_or_result, dict):
             return analysis_id_or_result
         raise TypeError(f"Expected int, dict, or AnalysisResult, got {type(analysis_id_or_result)}")
+
+    def _db_record_to_report(self, db: Dict) -> Dict:
+        """Rebuild the analyzer-shaped report from what the DB stored.
+
+        The DB schema is lossy — we don't persist feature descriptions,
+        matched properties, unrecognized patterns, or recommendations. This
+        reconstructs enough for the exporters to render a usable report.
+        """
+        features = db.get('features') or []
+
+        # Group feature IDs by category
+        def _ids_for(cat_values):
+            return [f['feature_id'] for f in features if f.get('category') in cat_values]
+
+        html_ids = _ids_for(('html',))
+        css_ids = _ids_for(('css',))
+        js_ids = _ids_for(('js', 'javascript'))
+        all_ids = [f['feature_id'] for f in features]
+
+        # Per-browser rollups from browser_results attached to each feature
+        browsers_used = db.get('browsers') or {}
+        browser_details = {}
+        for browser_code, version in browsers_used.items():
+            supported = partial = unsupported = unknown = 0
+            unsup_list, part_list = [], []
+            for f in features:
+                for br in f.get('browser_results', []) or []:
+                    if br.get('browser') != browser_code:
+                        continue
+                    status = br.get('support_status', 'u')
+                    if status == 'y':
+                        supported += 1
+                    elif status == 'a':
+                        partial += 1
+                        part_list.append(f['feature_id'])
+                    elif status == 'n':
+                        unsupported += 1
+                        unsup_list.append(f['feature_id'])
+                    else:
+                        unknown += 1
+                    break
+            total = supported + partial + unsupported + unknown
+            compat_pct = ((supported + partial * 0.5) / total * 100) if total else 0
+            browser_details[browser_code] = {
+                'version': version,
+                'total_features': total,
+                'supported': supported,
+                'partial': partial,
+                'unsupported': unsupported,
+                'unknown': unknown,
+                'compatibility_percentage': round(compat_pct, 2),
+                'unsupported_features': sorted(unsup_list),
+                'partial_features': sorted(part_list),
+            }
+
+        # Critical issues = union of unsupported features across browsers
+        critical = set()
+        for details in browser_details.values():
+            critical.update(details['unsupported_features'])
+
+        # Risk level derived from score + critical count
+        from src.analyzer.scorer import CompatibilityScorer
+        score = float(db.get('overall_score') or 0)
+        risk = CompatibilityScorer().risk_level(score, len(critical))
+
+        def _details_for(cat_values):
+            return [
+                {
+                    'feature': f['feature_id'],
+                    'description': f.get('feature_name') or '',
+                    'matched_properties': [],
+                }
+                for f in features if f.get('category') in cat_values
+            ]
+
+        # Best-effort recommendations from the reconstructed numbers
+        partial_count = sum(d['partial'] for d in browser_details.values())
+        recommendations = []
+        if critical:
+            recommendations.append(
+                f"{len(critical)} features are not supported in some browsers. "
+                "Consider providing fallbacks or polyfills."
+            )
+        if partial_count:
+            recommendations.append(
+                f"{partial_count} features have partial support. "
+                "Test thoroughly in target browsers."
+            )
+        if not critical and not partial_count:
+            recommendations.append("All features are well-supported across target browsers.")
+
+        return {
+            'success': True,
+            'timestamp': db.get('analyzed_at') or '',
+            'file_name': db.get('file_name', ''),
+            'summary': {
+                'total_features': db.get('total_features') or len(all_ids),
+                'html_features': len(html_ids),
+                'css_features': len(css_ids),
+                'js_features': len(js_ids),
+                'critical_issues': len(critical),
+                'overall_grade': db.get('grade') or 'N/A',
+                'risk_level': risk,
+            },
+            'scores': {
+                'simple_score': round(score, 2),
+                'weighted_score': round(score, 2),
+                'compatibility_index': round(score, 2),
+                'grade': db.get('grade') or 'N/A',
+                'risk_level': risk,
+            },
+            'browsers': browser_details,
+            'features': {
+                'html': sorted(html_ids),
+                'css': sorted(css_ids),
+                'js': sorted(js_ids),
+                'all': sorted(all_ids),
+            },
+            'feature_details': {
+                'html': _details_for(('html',)),
+                'css': _details_for(('css',)),
+                'js': _details_for(('js', 'javascript')),
+            },
+            'unrecognized': {'html': [], 'css': [], 'js': [], 'total': 0},
+            'issues': {'critical': sorted(critical), 'warnings': [], 'errors': []},
+            'recommendations': recommendations,
+        }
 
     # -- Feature Utilities -----------------------------------------------------
 

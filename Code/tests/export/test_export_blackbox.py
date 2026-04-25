@@ -1,4 +1,4 @@
-"""Blackbox tests for all 6 export formats (JSON, PDF, SARIF, JUnit, Checkstyle, CSV)."""
+"""Blackbox tests for the 4 export formats (JSON, PDF, SARIF, JUnit)."""
 
 import json
 import os
@@ -10,8 +10,6 @@ from src.export.json_exporter import export_json
 from src.export.pdf_exporter import export_pdf
 from src.export.sarif_exporter import export_sarif
 from src.export.junit_exporter import export_junit
-from src.export.checkstyle_exporter import export_checkstyle
-from src.export.csv_exporter import export_csv
 
 
 # --- Shared fixtures ---
@@ -103,23 +101,3 @@ class TestJunitExporter:
         assert root.tag == 'testsuites'
 
 
-# --- Checkstyle exporter ---
-
-@pytest.mark.blackbox
-class TestCheckstyleExporter:
-    def test_writes_valid_checkstyle_file(self, tmp_path):
-        out = tmp_path / 'report.xml'
-        result = export_checkstyle(_FULL_REPORT, output_path=str(out))
-        assert result == str(out)
-        assert out.exists()
-
-
-# --- CSV exporter ---
-
-@pytest.mark.blackbox
-class TestCsvExporter:
-    def test_writes_valid_csv_file(self, tmp_path):
-        out = tmp_path / 'report.csv'
-        result = export_csv(_FULL_REPORT, output_path=str(out))
-        assert result == str(out)
-        assert 'feature_id' in out.read_text()

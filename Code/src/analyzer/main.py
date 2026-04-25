@@ -213,8 +213,10 @@ class CrossGuardAnalyzer:
                 'unsupported': unsupported,
                 'unknown': len(results['unknown']),
                 'compatibility_percentage': round(compatibility_pct, 2),
+                'supported_features': results['supported'],
+                'partial_features': results['partial'],
                 'unsupported_features': results['unsupported'],
-                'partial_features': results['partial']
+                'unknown_features': results['unknown'],
             }
 
         recommendations = self._generate_recommendations(

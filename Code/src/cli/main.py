@@ -98,8 +98,6 @@ def _count_issues(report: dict) -> tuple[int, int]:
 _EXPORT_METHOD_BY_FORMAT = {
     'sarif': 'export_to_sarif',
     'junit': 'export_to_junit',
-    'checkstyle': 'export_to_checkstyle',
-    'csv': 'export_to_csv',
     'json': 'export_to_json',
 }
 
@@ -151,8 +149,7 @@ def cli(ctx, verbose, quiet, debug, no_color, timing):
 @click.option('--browsers', '-b', default=None, envvar='CROSSGUARD_BROWSERS',
               help='Target browsers (e.g., "chrome:120,firefox:121")')
 @click.option('--format', '-f', 'fmt', default=None, envvar='CROSSGUARD_FORMAT',
-              type=click.Choice(['table', 'json', 'summary', 'sarif', 'junit',
-                                 'checkstyle', 'csv']),
+              type=click.Choice(['table', 'json', 'summary', 'sarif', 'junit']),
               help='Output format (falls back to "output" in crossguard.config.json, else "table")')
 @click.option('--output', '-o', default=None,
               help='Save output to file')
@@ -174,10 +171,6 @@ def cli(ctx, verbose, quiet, debug, no_color, timing):
               help='Write JUnit XML to this file (independent of --format).')
 @click.option('--output-json', 'output_json_path', default=None,
               help='Write JSON output to this file (independent of --format).')
-@click.option('--output-checkstyle', default=None,
-              help='Write Checkstyle XML to this file (independent of --format).')
-@click.option('--output-csv', default=None,
-              help='Write CSV output to this file (independent of --format).')
 @click.option('--ai', 'ai_enabled', is_flag=True, default=False,
               help='Enable AI fix suggestions (requires a saved or passed API key).')
 @click.option('--api-key', default=None, envvar='CROSSGUARD_AI_KEY',
@@ -190,7 +183,6 @@ def analyze(ctx, target, browsers, fmt, output, config_path,
             fail_on_score, fail_on_errors, fail_on_warnings,
             use_stdin, stdin_filename,
             output_sarif, output_junit, output_json_path,
-            output_checkstyle, output_csv,
             ai_enabled, api_key, ai_provider):
     """Analyze a file for browser compatibility.
 
@@ -206,10 +198,10 @@ def analyze(ctx, target, browsers, fmt, output, config_path,
     # Priority for --format: CLI flag > CROSSGUARD_FORMAT env > config.output_format > 'table'
     if fmt is None:
         fmt = config.output_format
-    if fmt not in ('table', 'json', 'summary', 'sarif', 'junit', 'checkstyle', 'csv'):
+    if fmt not in ('table', 'json', 'summary', 'sarif', 'junit'):
         click.echo(
             f"Error: invalid output format '{fmt}' from config. "
-            f"Valid formats: table, json, summary, sarif, junit, checkstyle, csv",
+            f"Valid formats: table, json, summary, sarif, junit",
             err=True,
         )
         sys.exit(2)
@@ -265,7 +257,7 @@ def analyze(ctx, target, browsers, fmt, output, config_path,
 
         result_dict = result.to_dict()
 
-        if fmt in ('sarif', 'junit', 'checkstyle', 'csv'):
+        if fmt in ('sarif', 'junit'):
             result_dict['file_path'] = str(target_path)  # CI exporters need this
             result_text = _format_ci_output(service, result_dict, fmt)
         else:
@@ -324,8 +316,8 @@ def analyze(ctx, target, browsers, fmt, output, config_path,
             # Always add to result_dict so secondary outputs get AI data
             result_dict['ai_suggestions'] = ai_data
 
-            if fmt in ('json', 'sarif', 'junit', 'checkstyle', 'csv'):
-                if fmt in ('sarif', 'junit', 'checkstyle', 'csv'):
+            if fmt in ('json', 'sarif', 'junit'):
+                if fmt in ('sarif', 'junit'):
                     result_text = _format_ci_output(service, result_dict, fmt)
                 else:
                     result_text = format_result(result_dict, fmt, color=cli_ctx.color)
@@ -368,8 +360,6 @@ def analyze(ctx, target, browsers, fmt, output, config_path,
             sarif=output_sarif,
             junit=output_junit,
             json=output_json_path,
-            checkstyle=output_checkstyle,
-            csv=output_csv,
         )
 
         if cli_ctx.timing:

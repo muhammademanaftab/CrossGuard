@@ -4,7 +4,7 @@
 
 Cross Guard is a static analysis tool that checks HTML, CSS, and JavaScript source files for browser compatibility issues. It parses source files, extracts the web platform features they use (e.g. CSS Grid, Promises, `<dialog>` element), looks up each feature in the Can I Use database, and reports which features are unsupported or partially supported in the target browsers. Each analysis produces a compatibility score (0-100), a letter grade, and a per-feature breakdown showing support status across Chrome, Firefox, Safari, and Edge.
 
-The tool provides two frontends — a **desktop GUI** (CustomTkinter) and a **production CLI** (Click) — both sharing a single backend through the `src/api/` service facade. Analysis results can be exported in 6 formats (JSON, PDF, SARIF, JUnit XML, Checkstyle XML, CSV) and the CLI integrates directly into CI/CD pipelines with quality gates. An optional AI module (`src/ai/`) can generate code fix suggestions for unsupported features using OpenAI or Anthropic APIs.
+The tool provides two frontends — a **desktop GUI** (CustomTkinter) and a **production CLI** (Click) — both sharing a single backend through the `src/api/` service facade. Analysis results can be exported in 4 formats (JSON, PDF, SARIF, JUnit XML) and the CLI integrates directly into CI/CD pipelines with quality gates. An optional AI module (`src/ai/`) can generate code fix suggestions for unsupported features using OpenAI or Anthropic APIs.
 
 ## How It Works (Data Flow)
 
@@ -33,7 +33,7 @@ Input File (HTML/CSS/JS)
 │  Output                     │
 │  - GUI: results view        │  Score card, issue cards, browser cards
 │  - CLI: table/json/sarif    │  Terminal table or machine-readable output
-│  - Export: PDF/CSV/JUnit    │  Report files for CI or documentation
+│  - Export: PDF/JSON/SARIF   │  Report files for CI or documentation
 │  - Database: SQLite         │  Persistent history + statistics
 └─────────────────────────────┘
 ```
@@ -68,7 +68,7 @@ Input File (HTML/CSS/JS)
 10. **Custom Rules Manager**: Visual editor for adding/editing detection rules
 
 ### CLI & CI/CD
-11. **6 Export Formats**: JSON, PDF, SARIF 2.1.0, JUnit XML, Checkstyle XML, CSV
+11. **4 Export Formats**: JSON, PDF, SARIF 2.1.0, JUnit XML
 12. **Quality Gates**: `--fail-on-score`, `--fail-on-errors`, `--fail-on-warnings` (exit 1 on failure)
 13. **CI Config Generation**: Auto-generate GitHub Actions, GitLab CI, or pre-commit hook configs
 14. **Stdin Support**: Pipe file content via `--stdin --stdin-filename`
@@ -92,7 +92,7 @@ python -m src.cli.main analyze path/to/project/ --format json
 # With custom browsers
 python -m src.cli.main analyze file.css --browsers "chrome:120,firefox:121"
 
-# CI output formats (SARIF, JUnit, Checkstyle, CSV)
+# CI output formats (SARIF, JUnit)
 python -m src.cli.main analyze src/ --format sarif -o results.sarif
 python -m src.cli.main analyze src/ --format junit -o results.xml
 
@@ -148,11 +148,9 @@ src/
 │   └── config_manager.py   # crossguard.config.json + package.json fallback
 ├── export/                 # Report export (GUI-independent)
 │   ├── json_exporter.py    # JSON export
-│   ├── pdf_exporter.py     # PDF export (reportlab; pure Python)
+│   ├── pdf_exporter.py     # PDF export (weasyprint + jinja2; needs pango/cairo system libs)
 │   ├── sarif_exporter.py   # SARIF 2.1.0 export (GitHub Code Scanning)
-│   ├── junit_exporter.py   # JUnit XML export (Jenkins/GitLab CI)
-│   ├── checkstyle_exporter.py  # Checkstyle XML export (SonarQube)
-│   └── csv_exporter.py     # CSV export
+│   └── junit_exporter.py   # JUnit XML export (Jenkins/GitLab CI)
 ├── analyzer/               # Compatibility analysis logic
 │   ├── main.py             # CrossGuardAnalyzer entry point
 │   ├── compatibility.py    # Browser compatibility checker
@@ -239,8 +237,8 @@ tests/
 ├── database/               # Database layer tests (7 tests, 2 files)
 │   ├── test_database_blackbox.py   # CRUD, statistics, models (3)
 │   └── test_database_whitebox.py   # Migrations, singleton, schema (2)
-├── export/                 # Export module tests (7 tests, 1 file)
-│   └── test_export_blackbox.py     # All 6 formats
+├── export/                 # Export module tests (5 tests, 1 file)
+│   └── test_export_blackbox.py     # All 4 formats
 ├── polyfill/               # Polyfill tests (7 tests, 3 files)
 │   ├── test_polyfill_blackbox.py   # Recommendations, lookups (3)
 │   ├── test_polyfill_whitebox.py   # Singleton, reload, internals (2)
@@ -392,12 +390,12 @@ Edit `src/parsers/custom_rules.json`:
 
 ## Testing
 
-**Total: 98 tests** across all modules (pytest), organized into black box / white box / integration files. The suite is trimmed to a lean, high-signal set — each test covers a primary behavior (feature detection, scoring, export integrity, quality gates, custom rules), not internal wiring or singleton plumbing.
+**Total: 96 tests** across all modules (pytest), organized into black box / white box / integration files. The suite is trimmed to a lean, high-signal set — each test covers a primary behavior (feature detection, scoring, export integrity, quality gates, custom rules), not internal wiring or singleton plumbing.
 
 ### Run All Tests
 ```bash
-pytest tests/                       # Full suite (98 tests)
-pytest tests/ -m blackbox           # Black box tests only (68)
+pytest tests/                       # Full suite (96 tests)
+pytest tests/ -m blackbox           # Black box tests only (66)
 pytest tests/ -m whitebox           # White box tests only (15)
 pytest tests/ -m integration        # Integration tests only (15)
 ```
@@ -413,7 +411,7 @@ pytest tests/api/ -v                # API service layer tests (7)
 pytest tests/database/ -v           # Database layer tests (4)
 pytest tests/cli/ -v                # CLI tests (13)
 pytest tests/polyfill/ -v           # Polyfill tests (5)
-pytest tests/export/ -v             # Export module tests (7)
+pytest tests/export/ -v             # Export module tests (5)
 pytest tests/config/ -v             # Config module tests (5)
 pytest tests/ai/ -v                 # AI fix suggestions tests (6)
 ```
@@ -431,7 +429,7 @@ pytest tests/ai/ -v                 # AI fix suggestions tests (6)
 | Database | 4 | 3/1/- | CRUD, statistics, schema |
 | CLI | 13 | 7/2/4 | Commands, gates, generators, config precedence |
 | Polyfill | 5 | 3/-/2 | Recommendations, pipeline, file gen |
-| Export | 7 | 7/-/- | All 6 formats |
+| Export | 5 | 5/-/- | All 4 formats |
 | Config | 5 | 5/-/- | Loading, merging, defaults, pkg.json |
 | AI | 6 | 4/2/- | API calls, prompt building, response parsing |
 

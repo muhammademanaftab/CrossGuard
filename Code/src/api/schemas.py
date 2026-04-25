@@ -25,9 +25,12 @@ class BrowserCompatibility:
     supported: int = 0
     partial: int = 0
     unsupported: int = 0
+    unknown: int = 0
     compatibility_percentage: float = 0.0
-    unsupported_features: List[str] = field(default_factory=list)
+    supported_features: List[str] = field(default_factory=list)
     partial_features: List[str] = field(default_factory=list)
+    unsupported_features: List[str] = field(default_factory=list)
+    unknown_features: List[str] = field(default_factory=list)
 
 
 @dataclass
@@ -77,9 +80,12 @@ class AnalysisResult:
                 supported=browser_data.get('supported', 0),
                 partial=browser_data.get('partial', 0),
                 unsupported=browser_data.get('unsupported', 0),
+                unknown=browser_data.get('unknown', 0),
                 compatibility_percentage=browser_data.get('compatibility_percentage', 0.0),
-                unsupported_features=browser_data.get('unsupported_features', []),
+                supported_features=browser_data.get('supported_features', []),
                 partial_features=browser_data.get('partial_features', []),
+                unsupported_features=browser_data.get('unsupported_features', []),
+                unknown_features=browser_data.get('unknown_features', []),
             )
 
         features_data = data.get('features', {})
@@ -148,9 +154,12 @@ class AnalysisResult:
                     'supported': browser.supported,
                     'partial': browser.partial,
                     'unsupported': browser.unsupported,
+                    'unknown': browser.unknown,
                     'compatibility_percentage': browser.compatibility_percentage,
-                    'unsupported_features': browser.unsupported_features,
+                    'supported_features': browser.supported_features,
                     'partial_features': browser.partial_features,
+                    'unsupported_features': browser.unsupported_features,
+                    'unknown_features': browser.unknown_features,
                 }
                 for name, browser in self.browsers.items()
             },
