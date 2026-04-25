@@ -1,164 +1,118 @@
-# LaTeX edits — reduce export formats from 6 to 4
+# LaTeX edits — fix the install commands so a fresh user can follow them
 
-After cutting CSV and Checkstyle XML from the codebase, the thesis text needs to be aligned. Cross Guard now supports **4 export formats**: JSON, PDF, SARIF, JUnit XML.
+While testing the install steps from Chapter 2 on a clean macOS machine, three problems came up that a brand-new user would hit. None of them are bugs in Cross Guard — they are documentation problems where the listings use commands that don't exist on a fresh macOS install.
 
-Below is every line you need to edit in the LaTeX source. Open each file, find the line, and replace it.
+These edits make the listings work for **macOS, Linux, and Windows users** without any extra steps.
 
----
-
-## Edit 1 — `latex/chapters/impl.tex`
-
-### Line 37
-
-**FIND** (currently in the paragraph that ends Section 3.1):
-```latex
-Beyond parsing, Cross Guard relies on three additional subsystems. Detected features are looked up in a local copy of the Can I Use database to check browser support, and a scoring algorithm calculates a weighted compatibility score (0--100) and assigns a letter grade (A to F); details are given in Section~\ref{sec:scoring}. Analysis results, bookmarks, tags, and settings are stored in an SQLite database using repository classes, as explained in Section~\ref{sec:database}. Finally, results can be exported in six formats: JSON, PDF, SARIF, JUnit XML, Checkstyle XML, and CSV, with details in Section~\ref{sec:export}.
-```
-
-**REPLACE WITH**:
-```latex
-Beyond parsing, Cross Guard relies on three additional subsystems. Detected features are looked up in a local copy of the Can I Use database to check browser support, and a scoring algorithm calculates a weighted compatibility score (0--100) and assigns a letter grade (A to F); details are given in Section~\ref{sec:scoring}. Analysis results, bookmarks, tags, and settings are stored in an SQLite database using repository classes, as explained in Section~\ref{sec:database}. Finally, results can be exported in four formats: JSON, PDF, SARIF, and JUnit XML, with details in Section~\ref{sec:export}.
-```
-
-**Diff**: `six formats: JSON, PDF, SARIF, JUnit XML, Checkstyle XML, and CSV` → `four formats: JSON, PDF, SARIF, and JUnit XML`
+All edits are in **`latex/chapters/user.tex`**.
 
 ---
 
-## Edit 2 — `latex/chapters/user.tex`
+## Why these edits are needed (in plain words)
 
-### Line 220 (GUI export section)
+1. On a fresh macOS install, the command `python` does not exist — only `python3` does. So when a Mac user copies `python --version` from the thesis, they get `command not found`.
+2. The same problem hits the venv step: `python -m venv venv` fails on a fresh macOS install for the same reason.
+3. The troubleshooting section already tells Linux users how to install Tk if the GUI fails to start, but says nothing for macOS users. Mac users get the exact same error and need a similar one-line fix (`brew install python-tk@3.11`).
 
-**FIND**:
-```latex
-After completing an analysis, the results can be exported as reports. These reports allow the compatibility findings to be shared with other developers or included in documentation and project reports. The GUI supports exporting the results as PDF or JSON files. Additional formats such as SARIF, JUnit XML, Checkstyle XML, and CSV are available through the CLI.
-```
-
-**REPLACE WITH**:
-```latex
-After completing an analysis, the results can be exported as reports. These reports allow the compatibility findings to be shared with other developers or included in documentation and project reports. The GUI supports exporting the results as PDF or JSON files. Additional formats such as SARIF and JUnit XML are available through the CLI.
-```
-
-**Diff**: `SARIF, JUnit XML, Checkstyle XML, and CSV` → `SARIF and JUnit XML`
+The fix in each case is to follow the same pattern that the listing already uses for the activate step on line 60–61: show the macOS/Linux command and the Windows command on two lines, with a short `# macOS / Linux` and `# Windows` comment on each.
 
 ---
 
-### Line 263 (CLI format intro paragraph)
+## Edit 1 — Listing 2.1, the Python version check (line 49)
 
-**FIND**:
+### Find this line:
+
 ```latex
-The \texttt{analyze} command accepts seven values for its \texttt{-{}-format} flag, summarized in Table~\ref{tab:cli-formats}. Two of them (\texttt{table} and \texttt{summary}) print results directly to the terminal, while the other five write machine-readable output. PDF exports are produced separately through the \texttt{export} command rather than through \texttt{-{}-format}.
+python --version
 ```
 
-**REPLACE WITH**:
+### Replace with:
+
 ```latex
-The \texttt{analyze} command accepts five values for its \texttt{-{}-format} flag, summarized in Table~\ref{tab:cli-formats}. Two of them (\texttt{table} and \texttt{summary}) print results directly to the terminal, while the other three write machine-readable output. PDF exports are produced separately through the \texttt{export} command rather than through \texttt{-{}-format}.
+python3 --version    # macOS / Linux
+python --version     # Windows
 ```
 
-**Diff**:
-- `seven values` → `five values`
-- `the other five` → `the other three`
+### Why
+On macOS, the shell only knows `python3`, not `python`. The Windows Python installer registers both names, but most macOS users only have `python3`. Splitting the command into two lines (the same way the activate step is already split) makes the listing work for all three operating systems.
 
 ---
 
-### Lines 265–281 (Table of formats)
+## Edit 2 — Listing 2.1, creating the virtual environment (line 57)
 
-**FIND** (the entire table block):
+### Find this line:
+
 ```latex
-\begin{table}[H]
-    \centering
-    \begin{tabular}{|l|l|}
-        \hline
-        \textbf{Format} & \textbf{Purpose} \\
-        \hline \hline
-        Table          & Human-readable terminal output. \\ \hline
-        Summary        & A one-line quick compatibility check. \\ \hline
-        JSON           & Machine-readable output for scripts and tools. \\ \hline
-        SARIF          & Integration with GitHub Code Scanning. \\ \hline
-        JUnit XML      & Compatibility with CI systems such as Jenkins or GitLab. \\ \hline
-        Checkstyle XML & Integration with static analysis tools such as SonarQube. \\ \hline
-        CSV            & Export suitable for spreadsheet analysis or reporting. \\ \hline
-    \end{tabular}
-    \caption{Output formats supported by the CLI}
-    \label{tab:cli-formats}
-\end{table}
+python -m venv venv
 ```
 
-**REPLACE WITH**:
+### Replace with:
+
 ```latex
-\begin{table}[H]
-    \centering
-    \begin{tabular}{|l|l|}
-        \hline
-        \textbf{Format} & \textbf{Purpose} \\
-        \hline \hline
-        Table     & Human-readable terminal output. \\ \hline
-        Summary   & A one-line quick compatibility check. \\ \hline
-        JSON      & Machine-readable output for scripts and tools. \\ \hline
-        SARIF     & Integration with GitHub Code Scanning. \\ \hline
-        JUnit XML & Compatibility with CI systems such as Jenkins or GitLab. \\ \hline
-    \end{tabular}
-    \caption{Output formats supported by the CLI}
-    \label{tab:cli-formats}
-\end{table}
+python3 -m venv venv    # macOS / Linux
+python -m venv venv     # Windows
 ```
 
-**Diff**: delete the two rows for `Checkstyle XML` and `CSV`. The table now has 5 rows instead of 7.
+### Why
+Same reason as Edit 1. On a fresh macOS install, `python` does not exist. Inside the venv (after activation) both `python` and `python3` work, so the rest of the listing is fine — only this one creation step needs the platform split.
 
 ---
 
-### Line 352 (CI tools paragraph)
+## Edit 3 — Troubleshooting listing, add the macOS Tk fix (around line 105–106)
 
-**FIND**:
+### Find these two lines:
+
 ```latex
-Export formats such as SARIF, JUnit XML, and Checkstyle XML are especially useful when Cross Guard is used in automated environments. Many CI/CD platforms understand these formats and can display compatibility problems directly inside their reporting interfaces.
+# Install tkinter on Linux if the GUI fails to start
+sudo apt-get install python3-tk
 ```
 
-**REPLACE WITH**:
+### Replace with:
+
 ```latex
-Export formats such as SARIF and JUnit XML are especially useful when Cross Guard is used in automated environments. Many CI/CD platforms understand these formats and can display compatibility problems directly inside their reporting interfaces.
+# Install tkinter on Linux if the GUI fails to start
+sudo apt-get install python3-tk
+
+# Install tkinter on macOS if the GUI fails to start
+brew install python-tk@3.11
 ```
 
-**Diff**: `SARIF, JUnit XML, and Checkstyle XML` → `SARIF and JUnit XML`
+### Why
+On macOS, Homebrew's Python does not include Tk by default. If a Mac user tries to launch the GUI without it, they get `ModuleNotFoundError: No module named '_tkinter'`. This is the same kind of issue Linux users hit (which is already covered in the listing), and the fix is just as short — one Homebrew command. Adding it makes the troubleshooting section symmetric across operating systems.
 
 ---
 
-## Summary of all edits
+## Summary table
 
-| File | Line(s) | Change |
-|------|---------|--------|
-| `chapters/impl.tex` | 37 | "six formats: JSON, PDF, SARIF, JUnit XML, Checkstyle XML, and CSV" → "four formats: JSON, PDF, SARIF, and JUnit XML" |
-| `chapters/user.tex` | 220 | "SARIF, JUnit XML, Checkstyle XML, and CSV" → "SARIF and JUnit XML" |
-| `chapters/user.tex` | 263 | "seven values…the other five" → "five values…the other three" |
-| `chapters/user.tex` | 265–281 | Delete 2 table rows: `Checkstyle XML` and `CSV` |
-| `chapters/user.tex` | 352 | "SARIF, JUnit XML, and Checkstyle XML" → "SARIF and JUnit XML" |
+| # | File | Line(s) | Plain-English change |
+|---|------|---------|----------------------|
+| 1 | `chapters/user.tex` | 49 | Split `python --version` into two lines: `python3` for macOS/Linux, `python` for Windows |
+| 2 | `chapters/user.tex` | 57 | Split `python -m venv venv` into two lines the same way |
+| 3 | `chapters/user.tex` | 105–106 | Add a macOS line under the existing Linux Tk fix |
 
-**Total: 5 small edits, all in 2 files.**
+**Total: 3 small edits, all in one file.**
 
 ---
 
 ## How to verify after editing
 
-After making these edits, recompile the thesis (`pdflatex` / `latexmk`) and check:
+1. Recompile the thesis (`pdflatex` / `latexmk`).
+2. Open the rendered PDF and check Listing 2.1: lines 1 and 9 should now show two commands each (macOS/Linux and Windows), matching the style of line 13 (the activate line).
+3. Check the troubleshooting listing: it should now have a macOS Tk entry next to the Linux one.
+4. Optional sanity grep — confirm no bare `python --version` or `python -m venv` remains in the listings:
 
-1. The phrase "four formats" appears in Section 3.1 (impl.tex)
-2. Table 2.x in user.tex (CLI formats) has only 5 rows (Table, Summary, JSON, SARIF, JUnit XML)
-3. The CSV / Checkstyle words no longer appear anywhere in the thesis text:
-   ```bash
-   grep -ni "checkstyle\|\\bcsv\\b" latex/chapters/*.tex
-   ```
-   should return nothing (or only false positives — e.g. "css" inside the word "cascading").
+```bash
+grep -n "python --version\|python -m venv" latex/chapters/user.tex
+```
+
+It should only show lines that have a Windows comment after them.
 
 ---
 
-## What was changed in the codebase (for your reference)
+## What is not changing
 
-- `src/export/csv_exporter.py` — **deleted**
-- `src/export/checkstyle_exporter.py` — **deleted**
-- `src/export/__init__.py` — removed 2 imports
-- `src/api/service.py` — removed `export_to_csv()` and `export_to_checkstyle()` methods
-- `src/cli/main.py` — removed `csv` / `checkstyle` from `--format` choices, removed `--output-csv` / `--output-checkstyle` flags, removed from validation and dispatch
-- `tests/export/test_export_blackbox.py` — removed 2 tests
-- `CLAUDE.md` — updated all "6 formats" references to "4 formats", test totals 98 → 96, blackbox 68 → 66, export module 7 → 5
-- `TEST_COMMANDS.md` — removed CSV/Checkstyle commands
+- **Table 2.2 (Software requirements)** already says `Python 3.9 to 3.12` — this is correct and matches what was tested. No change needed.
+- **Listing 2.2 (Optional installation modes)** — the `pip install -e ".[gui]"` style commands work on every platform once the venv is active. No change needed.
+- **All `python -m src.cli.main ...` lines later in the chapter** — these run from inside an activated venv, where both `python` and `python3` work. No change needed.
 
-**Test suite: 96/96 passing.**
+These three small edits are the only ones required to make Chapter 2 work end-to-end for a brand-new user on macOS, Linux, or Windows.
