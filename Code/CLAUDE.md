@@ -148,7 +148,7 @@ src/
 │   └── config_manager.py   # crossguard.config.json + package.json fallback
 ├── export/                 # Report export (GUI-independent)
 │   ├── json_exporter.py    # JSON export
-│   ├── pdf_exporter.py     # PDF export (weasyprint + jinja2; needs pango/cairo system libs)
+│   ├── pdf_exporter.py     # PDF export (reportlab; pure Python)
 │   ├── sarif_exporter.py   # SARIF 2.1.0 export (GitHub Code Scanning)
 │   └── junit_exporter.py   # JUnit XML export (Jenkins/GitLab CI)
 ├── analyzer/               # Compatibility analysis logic
