@@ -97,7 +97,14 @@ class TestAnalyzeAIFlag:
             runner = CliRunner()
             result = runner.invoke(cli, ['analyze', str(js_file), '--format', 'json', '--ai'])
             assert result.exit_code == 0, result.output
-            assert '--ai requires an API key' in result.stderr
+            # Old Click folds stderr into output; new Click (8.3+) splits them.
+            # Try stderr first; if it raises (not separately captured) or is empty, fall back to output.
+            try:
+                stderr = result.stderr or ''
+            except ValueError:
+                stderr = ''
+            combined = result.output + stderr
+            assert '--ai requires an API key' in combined
             mock_ai.assert_not_called()
 
 

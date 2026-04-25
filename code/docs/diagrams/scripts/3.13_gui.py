@@ -74,7 +74,6 @@ def build():
          '+ set_setting(key, value) : bool',
          '+ save_analysis_to_history(result) : int',
          '+ add_bookmark(analysis_id, note) : bool',
-         '+ get_all_tags() : List',
          '+ ...  (other public methods)'],
         stereotype='facade'))
 

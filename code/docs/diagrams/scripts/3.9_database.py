@@ -79,11 +79,6 @@ def build():
          '+ browsers_json : str', '+ features : List'],
         ['+ to_dict() : Dict', '+ from_row(row) : Analysis']))
 
-    g.node('Tag', cn('Tag',
-        ['+ id : int', '+ name : str',
-         '+ color : str', '+ created_at : datetime'],
-        ['+ to_dict() : Dict']))
-
     # ── Row 3: Nested models ────────────────────────────
 
     g.node('AnalysisFeature', cn('AnalysisFeature',
@@ -110,9 +105,8 @@ def build():
     g.edge('Analysis', 'AnalysisFeature', arrowhead='none', arrowtail='odiamond', dir='both', label=' 1..* ')
     g.edge('AnalysisFeature', 'BrowserResult', arrowhead='none', arrowtail='odiamond', dir='both', label=' 1..* ')
 
-    # Bookmark and Tag
+    # Bookmark
     g.edge('Bookmark', 'Analysis', arrowhead='none', label=' references ')
-    g.edge('Analysis', 'Tag', arrowhead='none', label=' 0..* ')
 
     # ═══ LAYOUT ══════════════════════════════════════════
 
@@ -126,7 +120,6 @@ def build():
         s.attr(rank='same')
         s.node('Bookmark')
         s.node('Analysis')
-        s.node('Tag')
 
     with g.subgraph() as s:
         s.attr(rank='same')

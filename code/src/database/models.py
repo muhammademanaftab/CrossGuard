@@ -176,39 +176,3 @@ class Bookmark:
         )
 
 
-@dataclass
-class Tag:
-    name: str
-    color: str = '#58a6ff'
-    id: Optional[int] = None
-    created_at: Optional[datetime] = None
-
-    def __post_init__(self):
-        if self.created_at is None:
-            self.created_at = datetime.now()
-
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            'id': self.id,
-            'name': self.name,
-            'color': self.color,
-            'created_at': self.created_at.isoformat() if self.created_at else None,
-        }
-
-    @classmethod
-    def from_row(cls, row) -> 'Tag':
-        created_at = None
-        if row['created_at']:
-            try:
-                created_at = datetime.fromisoformat(row['created_at'])
-            except (ValueError, TypeError):
-                pass
-
-        return cls(
-            id=row['id'],
-            name=row['name'],
-            color=row['color'] or '#58a6ff',
-            created_at=created_at,
-        )
-
-

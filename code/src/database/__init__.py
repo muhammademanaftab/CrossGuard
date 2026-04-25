@@ -1,4 +1,4 @@
-"""SQLite storage for analysis history, settings, bookmarks, and tags."""
+"""SQLite storage for analysis history, settings, and bookmarks."""
 
 from .connection import get_connection, get_db_path
 from .models import (
@@ -6,13 +6,11 @@ from .models import (
     AnalysisFeature,
     BrowserResult,
     Bookmark,
-    Tag,
 )
 from .repositories import (
     AnalysisRepository,
     SettingsRepository,
     BookmarksRepository,
-    TagsRepository,
 )
 from .statistics import StatisticsService
 from .migrations import create_tables, drop_tables, reset_database
@@ -24,11 +22,9 @@ __all__ = [
     'AnalysisFeature',
     'BrowserResult',
     'Bookmark',
-    'Tag',
     'AnalysisRepository',
     'SettingsRepository',
     'BookmarksRepository',
-    'TagsRepository',
     'StatisticsService',
     'create_tables',
     'drop_tables',

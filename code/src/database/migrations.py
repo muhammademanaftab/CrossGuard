@@ -47,7 +47,7 @@ CREATE TABLE IF NOT EXISTS browser_results (
 );
 """
 
-# --- V2 tables (settings, bookmarks, tags) ---
+# --- V2 tables (settings, bookmarks) ---
 
 CREATE_SETTINGS_TABLE = """
 CREATE TABLE IF NOT EXISTS settings (
@@ -67,26 +67,6 @@ CREATE TABLE IF NOT EXISTS bookmarks (
 );
 """
 
-CREATE_TAGS_TABLE = """
-CREATE TABLE IF NOT EXISTS tags (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT NOT NULL UNIQUE,
-    color TEXT DEFAULT '#58a6ff',
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-);
-"""
-
-CREATE_ANALYSIS_TAGS_TABLE = """
-CREATE TABLE IF NOT EXISTS analysis_tags (
-    analysis_id INTEGER NOT NULL,
-    tag_id INTEGER NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (analysis_id, tag_id),
-    FOREIGN KEY (analysis_id) REFERENCES analyses(id) ON DELETE CASCADE,
-    FOREIGN KEY (tag_id) REFERENCES tags(id) ON DELETE CASCADE
-);
-"""
-
 # --- Indexes ---
 
 CREATE_INDEXES_V1 = [
@@ -101,9 +81,6 @@ CREATE_INDEXES_V1 = [
 
 CREATE_INDEXES_V2 = [
     "CREATE INDEX IF NOT EXISTS idx_bookmarks_analysis ON bookmarks(analysis_id);",
-    "CREATE INDEX IF NOT EXISTS idx_tags_name ON tags(name);",
-    "CREATE INDEX IF NOT EXISTS idx_analysis_tags_analysis ON analysis_tags(analysis_id);",
-    "CREATE INDEX IF NOT EXISTS idx_analysis_tags_tag ON analysis_tags(tag_id);",
 ]
 
 CREATE_SCHEMA_VERSION_TABLE = """
@@ -165,7 +142,7 @@ def _migrate_to_v1(conn: sqlite3.Connection):
 
 
 def _migrate_to_v2(conn: sqlite3.Connection):
-    """V2: settings, bookmarks, tags."""
+    """V2: settings and bookmarks."""
     logger.info("Applying migration: version 2")
 
     conn.execute(CREATE_SETTINGS_TABLE)
@@ -173,12 +150,6 @@ def _migrate_to_v2(conn: sqlite3.Connection):
 
     conn.execute(CREATE_BOOKMARKS_TABLE)
     logger.debug("Created bookmarks table")
-
-    conn.execute(CREATE_TAGS_TABLE)
-    logger.debug("Created tags table")
-
-    conn.execute(CREATE_ANALYSIS_TAGS_TABLE)
-    logger.debug("Created analysis_tags junction table")
 
     for index_sql in CREATE_INDEXES_V2:
         conn.execute(index_sql)
@@ -208,8 +179,6 @@ def drop_tables(conn: Optional[sqlite3.Connection] = None):
     conn.execute("PRAGMA foreign_keys = OFF")
 
     # drop in reverse dependency order so FK constraints don't fire
-    conn.execute("DROP TABLE IF EXISTS analysis_tags")
-    conn.execute("DROP TABLE IF EXISTS tags")
     conn.execute("DROP TABLE IF EXISTS bookmarks")
     conn.execute("DROP TABLE IF EXISTS settings")
     conn.execute("DROP TABLE IF EXISTS browser_results")

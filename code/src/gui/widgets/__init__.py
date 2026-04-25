@@ -36,7 +36,6 @@ from .history_card import HistoryCard
 from .statistics_panel import StatisticsPanel, CompactStatsBar
 
 from .bookmark_button import BookmarkButton
-from .tag_widget import TagChip, TagList, TagSelector, TagManagerDialog
 
 from .polyfill_card import PolyfillCard
 from .ai_fix_card import AIFixCard
@@ -76,10 +75,6 @@ __all__ = [
     'StatisticsPanel',
     'CompactStatsBar',
     'BookmarkButton',
-    'TagChip',
-    'TagList',
-    'TagSelector',
-    'TagManagerDialog',
     'PolyfillCard',
     'AIFixCard',
 ]

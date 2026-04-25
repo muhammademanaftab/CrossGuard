@@ -20,7 +20,7 @@ def _table_names(conn):
 
 class TestCreateTables:
     @pytest.mark.whitebox
-    def test_all_eight_tables_created(self, db):
+    def test_all_six_tables_created(self, db):
         expected = {"schema_version", "analyses", "analysis_features", "browser_results",
-                    "settings", "bookmarks", "tags", "analysis_tags"}
+                    "settings", "bookmarks"}
         assert _table_names(db) == expected

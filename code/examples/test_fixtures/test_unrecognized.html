@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Unrecognized Patterns Demo</title>
+</head>
+<body>
+    <h1>Mix of known + unknown things</h1>
+
+    <!-- Known: <dialog> is in the parser's element dict -->
+    <dialog open>I am a known feature</dialog>
+
+    <!-- Unknown elements: have hyphens, not in the rules dict, not SVG -->
+    <my-banner></my-banner>
+    <fancy-card></fancy-card>
+    <super-cool-thing></super-cool-thing>
+
+    <!-- Unknown attributes: not basic, not data-*, not aria-*, not in rules -->
+    <div weirdo="123" sparkle="yes" frobnicate="please">Has unknown attrs</div>
+
+    <!-- Mix: known attribute + unknown attribute on same element -->
+    <img src="x.jpg" alt="x" my-magic-attr="boom">
+</body>
+</html>

@@ -140,17 +140,21 @@ class HTMLParser:
         return self.features_found
 
     def _detect_elements(self, soup: BeautifulSoup):
-        for element_name, feature_id in self._elements.items():
-            elements = soup.find_all(element_name)
+        counts = {}
+        for element in soup.find_all():
+            name = element.name
+            if name in self._elements:
+                counts[name] = counts.get(name, 0) + 1
 
-            if elements:
-                self.features_found.add(feature_id)
-                self.elements_found.append({
-                    'element': element_name,
-                    'feature': feature_id,
-                    'count': len(elements)
-                })
-                self._add_match(feature_id, 'elements', f'<{element_name}>')
+        for element_name, count in counts.items():
+            feature_id = self._elements[element_name]
+            self.features_found.add(feature_id)
+            self.elements_found.append({
+                'element': element_name,
+                'feature': feature_id,
+                'count': count,
+            })
+            self._add_match(feature_id, 'elements', f'<{element_name}>')
 
     def _detect_input_types(self, soup: BeautifulSoup):
         inputs = soup.find_all('input')

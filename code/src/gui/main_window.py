@@ -30,7 +30,6 @@ from .widgets import (
     BrowserSelector,
     HistoryCard,
     StatisticsPanel,
-    TagManagerDialog,
     PolyfillCard,
     AIFixCard,
 )
@@ -922,20 +921,6 @@ class MainWindow(ctk.CTkFrame):
         btn_frame = ctk.CTkFrame(title_frame, fg_color="transparent")
         btn_frame.pack(side="right")
 
-        tag_icon = ICONS.get('tag', '\u2302')
-        tags_btn = ctk.CTkButton(
-            btn_frame,
-            text=f"{tag_icon} Tags",
-            font=ctk.CTkFont(size=12),
-            width=80,
-            height=32,
-            fg_color="transparent",
-            hover_color=COLORS['accent_muted'],
-            text_color=COLORS['text_muted'],
-            command=self._show_tag_manager,
-        )
-        tags_btn.pack(side="left", padx=(0, SPACING['sm']))
-
         bookmark_icon = ICONS.get('bookmark', '\u2606')
         bookmarks_btn = ctk.CTkButton(
             btn_frame,
@@ -1010,7 +995,6 @@ class MainWindow(ctk.CTkFrame):
         for analysis in history:
             analysis_id = analysis.get('id')
             is_bookmarked = self._analyzer_service.is_bookmarked(analysis_id) if analysis_id else False
-            tags = self._analyzer_service.get_tags_for_analysis(analysis_id) if analysis_id else []
 
             card = HistoryCard(
                 self._history_list_frame,
@@ -1019,7 +1003,6 @@ class MainWindow(ctk.CTkFrame):
                 on_delete=self._on_history_item_delete,
                 on_bookmark_toggle=self._on_bookmark_toggle,
                 is_bookmarked=is_bookmarked,
-                tags=tags,
             )
             card.pack(fill="x", pady=(0, SPACING['sm']))
 
@@ -1032,28 +1015,6 @@ class MainWindow(ctk.CTkFrame):
             success = self._analyzer_service.remove_bookmark(analysis_id)
             if success:
                 self.status_bar.set_status("Bookmark removed", "info")
-
-    def _show_tag_manager(self):
-        from .widgets import TagManagerDialog
-        tags = self._analyzer_service.get_all_tags()
-
-        def on_create(name: str, color: str):
-            tag_id = self._analyzer_service.create_tag(name, color)
-            if tag_id:
-                self.status_bar.set_status(f"Tag '{name}' created", "success")
-                dialog.set_tags(self._analyzer_service.get_all_tags())
-
-        def on_delete(tag_id: int):
-            if self._analyzer_service.delete_tag(tag_id):
-                self.status_bar.set_status("Tag deleted", "info")
-                dialog.set_tags(self._analyzer_service.get_all_tags())
-
-        dialog = TagManagerDialog(
-            self.master,
-            tags=tags,
-            on_create=on_create,
-            on_delete=on_delete,
-        )
 
     def _show_bookmarks_only(self):
         for widget in self._history_list_frame.winfo_children():
@@ -1099,8 +1060,6 @@ class MainWindow(ctk.CTkFrame):
         for bookmark in bookmarks:
             analysis_data = bookmark.get('analysis', {})
             analysis_data['id'] = bookmark.get('analysis_id')
-            analysis_id = bookmark.get('analysis_id')
-            tags = self._analyzer_service.get_tags_for_analysis(analysis_id) if analysis_id else []
 
             card = HistoryCard(
                 self._history_list_frame,
@@ -1109,7 +1068,6 @@ class MainWindow(ctk.CTkFrame):
                 on_delete=self._on_history_item_delete,
                 on_bookmark_toggle=self._on_bookmark_toggle,
                 is_bookmarked=True,
-                tags=tags,
             )
             card.pack(fill="x", pady=(0, SPACING['sm']))
 

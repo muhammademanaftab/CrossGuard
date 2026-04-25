@@ -16,7 +16,6 @@ from src.database.repositories import (
     AnalysisRepository,
     SettingsRepository,
     BookmarksRepository,
-    TagsRepository,
     save_analysis_from_result,
 )
 from src.database.statistics import get_statistics_service
@@ -216,9 +215,6 @@ class AnalyzerService:
     def _bookmarks_repo(self) -> BookmarksRepository:
         return BookmarksRepository()
 
-    def _tags_repo(self) -> TagsRepository:
-        return TagsRepository()
-
     # -- History ---------------------------------------------------------------
 
     def save_analysis_to_history(
@@ -360,32 +356,6 @@ class AnalyzerService:
     def get_all_bookmarks(self, limit: int = 50) -> List[Dict[str, Any]]:
         try:
             return self._bookmarks_repo().get_all_bookmarks(limit)
-        except Exception:
-            return []
-
-    # -- Tags ------------------------------------------------------------------
-
-    def create_tag(self, name: str, color: str = '#58a6ff') -> Optional[int]:
-        try:
-            return self._tags_repo().create_tag(name, color)
-        except Exception:
-            return None
-
-    def get_all_tags(self) -> List[Dict[str, Any]]:
-        try:
-            return self._tags_repo().get_all_tags()
-        except Exception:
-            return []
-
-    def delete_tag(self, tag_id: int) -> bool:
-        try:
-            return self._tags_repo().delete_tag(tag_id)
-        except Exception:
-            return False
-
-    def get_tags_for_analysis(self, analysis_id: int) -> List[Dict[str, Any]]:
-        try:
-            return self._tags_repo().get_tags_for_analysis(analysis_id)
         except Exception:
             return []
 

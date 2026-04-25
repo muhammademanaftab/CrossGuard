@@ -1,6 +1,6 @@
-"""History card showing a past analysis with score, tags, and bookmark status."""
+"""History card showing a past analysis with score and bookmark status."""
 
-from typing import Callable, Optional, Dict, Any, List
+from typing import Callable, Optional, Dict, Any
 import customtkinter as ctk
 
 from ..theme import COLORS, SPACING, ICONS, get_score_color
@@ -16,7 +16,6 @@ class HistoryCard(ctk.CTkFrame):
         on_delete: Optional[Callable[[int], None]] = None,
         on_bookmark_toggle: Optional[Callable[[int, bool], None]] = None,
         is_bookmarked: bool = False,
-        tags: List[Dict[str, Any]] = None,
         **kwargs
     ):
         super().__init__(
@@ -33,7 +32,6 @@ class HistoryCard(ctk.CTkFrame):
         self._on_delete = on_delete
         self._on_bookmark_toggle = on_bookmark_toggle
         self._is_bookmarked = is_bookmarked
-        self._tags = tags or []
         self._analysis_id = analysis_data.get('id')
 
         self._init_ui()
@@ -105,38 +103,6 @@ class HistoryCard(ctk.CTkFrame):
             anchor="w",
         )
         details_label.pack(anchor="w")
-
-        if self._tags:
-            tags_frame = ctk.CTkFrame(info_frame, fg_color="transparent")
-            tags_frame.pack(anchor="w", pady=(SPACING['xs'], 0))
-
-            for tag in self._tags[:3]:
-                tag_color = tag.get('color', '#58a6ff')
-                try:
-                    hex_c = tag_color.lstrip('#')
-                    r, g, b = int(hex_c[0:2], 16), int(hex_c[2:4], 16), int(hex_c[4:6], 16)
-                    muted = f'#{int(r*0.3):02x}{int(g*0.3):02x}{int(b*0.3):02x}'
-                except:
-                    muted = COLORS['bg_light']
-
-                tag_chip = ctk.CTkLabel(
-                    tags_frame,
-                    text=f" {tag.get('name', 'Tag')} ",
-                    font=ctk.CTkFont(size=9),
-                    text_color=tag_color,
-                    fg_color=muted,
-                    corner_radius=3,
-                )
-                tag_chip.pack(side="left", padx=(0, SPACING['xs']))
-
-            if len(self._tags) > 3:
-                more_label = ctk.CTkLabel(
-                    tags_frame,
-                    text=f"+{len(self._tags) - 3}",
-                    font=ctk.CTkFont(size=9),
-                    text_color=COLORS['text_muted'],
-                )
-                more_label.pack(side="left")
 
         right_frame = ctk.CTkFrame(container, fg_color="transparent")
         right_frame.pack(side="right")
@@ -264,10 +230,6 @@ class HistoryCard(ctk.CTkFrame):
     def set_bookmarked(self, is_bookmarked: bool):
         self._is_bookmarked = is_bookmarked
         self._update_bookmark_appearance()
-
-    def set_tags(self, tags: List[Dict[str, Any]]):
-        """Note: requires UI rebuild to take effect."""
-        self._tags = tags or []
 
 
 class EmptyHistoryCard(ctk.CTkFrame):
