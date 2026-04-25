@@ -40,5 +40,6 @@ logs/
 
 # Git worktrees
 .worktrees/
-Code/data/caniuse/
+
+# Can I Use database — 289 MB, downloaded via `crossguard update-db` instead
 Code/data/caniuse/

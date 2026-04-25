@@ -18,6 +18,12 @@ class CanIUseDatabase:
         self.loaded = False
         
     def load(self) -> bool:
+        # First-run convenience: if the Can I Use database isn't on disk yet,
+        # fetch it from npm so the user doesn't have to call `update-db` manually.
+        if not CANIUSE_DB_PATH.exists():
+            if not self._first_run_download():
+                return False
+
         try:
             logger.info(f"Loading Can I Use database from {CANIUSE_DB_PATH}...")
             with open(CANIUSE_DB_PATH, 'r', encoding='utf-8') as f:
@@ -39,6 +45,31 @@ class CanIUseDatabase:
         except Exception as e:
             logger.error(f"Error loading database: {e}")
             return False
+
+    def _first_run_download(self) -> bool:
+        """Download the Can I Use database from npm on first run.
+
+        Returns True if the download succeeded and CANIUSE_DB_PATH now exists,
+        False otherwise (with a clear error logged).
+        """
+        logger.info("First-run setup: Can I Use database not found locally.")
+        logger.info("Downloading from npm registry — this only happens once (~5 MB compressed).")
+        try:
+            from .database_updater import DatabaseUpdater
+            updater = DatabaseUpdater(CANIUSE_DB_PATH.parent)
+            result = updater.download_npm_update()
+        except Exception as e:
+            logger.error(f"First-run database download failed: {e}")
+            logger.error("Run `crossguard update-db` manually, or check your internet connection.")
+            return False
+
+        if not result.get('success'):
+            logger.error(f"First-run database download failed: {result.get('message', 'unknown error')}")
+            logger.error("Run `crossguard update-db` manually when you have network access.")
+            return False
+
+        logger.info(f"First-run download complete: {result.get('message', '')}")
+        return True
     
     def _load_feature_files(self):
         features_path = Path(CANIUSE_FEATURES_PATH)
