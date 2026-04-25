@@ -34,7 +34,7 @@ The detailed internal workflow of each parser is described in Section~\ref{sec:p
 
 \subsection{Compatibility Checking, Storage, and Export}
 
-Beyond parsing, Cross Guard relies on three additional subsystems. Detected features are looked up in a local copy of the Can I Use database to check browser support, and a scoring algorithm calculates a weighted compatibility score (0--100) and assigns a letter grade (A to F); details are given in Section~\ref{sec:scoring}. Analysis results, bookmarks, tags, and settings are stored in an SQLite database using repository classes, as explained in Section~\ref{sec:database}. Finally, results can be exported in six formats: JSON, PDF, SARIF, JUnit XML, Checkstyle XML, and CSV, with details in Section~\ref{sec:export}.
+Beyond parsing, Cross Guard relies on three additional subsystems. Detected features are looked up in a local copy of the Can I Use database to check browser support, and a scoring algorithm calculates a weighted compatibility score (0--100) and assigns a letter grade (A to F); details are given in Section~\ref{sec:scoring}. Analysis results, bookmarks, tags, and settings are stored in an SQLite database using repository classes, as explained in Section~\ref{sec:database}. Finally, results can be exported in four formats: JSON, PDF, SARIF, and JUnit XML, with details in Section~\ref{sec:export}.
 
 \section{Can I Use Database}
 \label{sec:caniuse-db}
@@ -227,7 +227,7 @@ The database schema is organized into two versions. V1 tables (\texttt{analyses}
 
 Cross Guard supports six export formats for analysis results. Each format serves a different use case.
 
-JSON provides machine-readable output with full analysis metadata, suitable for processing by other tools or scripts. PDF produces a professional report containing score cards and browser breakdowns. SARIF 2.1.0~\cite{sarif210} integrates with GitHub Code Scanning, allowing compatibility issues to appear as inline annotations in pull requests. JUnit XML is compatible with CI systems such as Jenkins and GitLab CI for test reporting. Checkstyle XML integrates with static analysis tools such as SonarQube. CSV provides spreadsheet-friendly tabular output for reporting and data analysis.
+JSON provides machine-readable output with full analysis metadata, suitable for processing by other tools or scripts.PDF produces a readable report containing the compatibility score, a browser support table, key issues, baseline availability counts, recommendations, and a per-feature inventory that shows support status in each browser. SARIF 2.1.0~\cite{sarif210} integrates with GitHub Code Scanning, allowing compatibility issues to appear as inline annotations in pull requests. JUnit XML is compatible with CI systems such as Jenkins and GitLab CI for test reporting. Checkstyle XML integrates with static analysis tools such as SonarQube. CSV provides spreadsheet-friendly tabular output for reporting and data analysis.
 
 Each exporter receives an analysis report object and writes the formatted output to a file. The SARIF format is especially useful in automated workflows because GitHub recognizes it natively and can display compatibility issues directly inside pull request reviews.
 

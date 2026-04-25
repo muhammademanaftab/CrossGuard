@@ -46,15 +46,17 @@ Python can be downloaded from the official Python website. After installing it, 
 
 \begin{lstlisting}[caption={Complete setup: verify Python, clone the repository, create and activate a virtual environment, and install dependencies}, label=src:setup-all, basicstyle=\ttfamily\small, breaklines=true]
 # 1. Verify Python is installed
-python --version
+python3 --version    # macOS / Linux
+python --version     # Windows
 
 # 2. Clone the repository and enter the project directory
-cd ~/projects
 git clone [repository-url]
-cd cross-guard
+cd CrossGuard
+cd code
 
 # 3. Create a virtual environment
-python -m venv venv
+python3 -m venv venv    # macOS / Linux
+python -m venv venv     # Windows
 
 # 4. Activate the environment
 source venv/bin/activate     # macOS / Linux
@@ -104,6 +106,9 @@ pip install tree-sitter==0.21.3 tree-sitter-languages==1.10.2
 
 # Install tkinter on Linux if the GUI fails to start
 sudo apt-get install python3-tk
+
+# Install tkinter on macOS if the GUI fails to start
+brew install python-tk@3.11
 \end{lstlisting}
 
 Cross Guard automatically creates a local SQLite database called \texttt{crossguard.db} when the application runs for the first time. If the database file becomes corrupted or behaves unexpectedly, it can simply be deleted. The application will recreate the file automatically the next time it starts.
@@ -128,11 +133,11 @@ Once the files appear in the file table, they can be reviewed before starting th
 
 \subsection{Results Dashboard}
 
-After the analysis finishes, the results are presented in the Results Dashboard. The page opens with a large status banner labelled \emph{Compatibility: Passing} (or \emph{Failing}, depending on the score), a progress bar, and a caption showing how many detected features are fully supported (for example, ``63 of 68 features fully supported''). Directly below the banner, a row of four summary tiles displays the overall Score, the letter Grade, the number of target Browsers, and the total number of detected Features. For example, if a CSS file uses flexbox, CSS grid, and container queries, and the target browsers are Chrome 120 and Safari 15, the dashboard might show a score of 85\% (grade B) because container queries are only partially supported in Safari 15.
+After the analysis finishes, the results are presented in the Results Dashboard. The page opens with a large status banner reading {PASSING} when the score is 90 or above, {WARNING} when it is between 70 and 89, and {FAILING} when it is below 70, a progress bar, and a caption showing how many detected features are fully supported (for example, ``63 of 68 features fully supported''). Directly below the banner, a row of four summary tiles displays the overall Score, the letter Grade, the number of target Browsers, and the total number of detected Features. For example, if a CSS file uses flexbox, CSS grid, and container queries, and the target browsers are Chrome 120 and Safari 15, the dashboard might show a score of 85\% (grade B) because container queries are only partially supported in Safari 15.
 
-The rest of the dashboard is organised into collapsible sections that the user can expand or collapse independently. The \emph{Issues \& Fixes} section, marked with a count badge such as ``5 issues'', lists the features that need attention. Each entry shows the feature name together with the browsers affected and a Baseline label such as \emph{Widely Available} or \emph{Limited}, which indicates whether the feature is broadly supported across browsers or only partially. A ``Get AI Suggestions'' button at the bottom of this section invites the user to generate code-level fixes on demand. The \emph{Recommendations} section lists polyfills for unsupported features, complete with install commands (e.g. \texttt{npm install datalist-polyfill}), a \emph{Copy} button, and a \emph{Generate polyfills.js} button for projects that prefer a bundled fallback file. The \emph{Browser Support} section contains one card per target browser; each card shows a support percentage, counts of supported, partial, and unsupported features, and three inner tabs labelled \emph{Overview}, \emph{Issues}, and \emph{Versions}. The \emph{Detected Features} section lists every web feature Cross Guard identified in the analysed files, grouped by language. Finally, the \emph{Visualizations} section renders bar charts for per-browser compatibility, a breakdown of features by language (HTML, CSS, JavaScript), and an overall support summary showing how many features are supported, partial, or unsupported across the whole analysis. At the bottom of the dashboard, three buttons offer quick actions: \emph{Re-check}, \emph{Export PDF}, and \emph{Export JSON}.
 
 The compatibility score is calculated by averaging the support level of each detected feature across all target browsers. Each feature contributes 100 points if fully supported, 50 points if partially supported, and 0 points otherwise. The final score is the arithmetic mean of these values across all features and browsers. This score is then mapped to a letter grade:
+The rest of the dashboard is organised into collapsible sections that the user can expand or collapse independently. The {Issues \& Fixes} section, marked with a count badge such as ``5 issues'', lists the features that need attention. Each entry shows the feature name together with the browsers affected and a Baseline label such as {Widely Available} or {Limited}, which indicates whether the feature is broadly supported across browsers or only partially. A ``Get AI Suggestions'' button at the bottom of this section invites the user to generate code-level fixes on demand. The {Recommendations} section lists polyfills for unsupported features, complete with install commands (e.g. \texttt{npm install datalist-polyfill}), a {Copy} button, and a {Generate polyfills.js} button for projects that prefer a bundled fallback file. The {Browser Support} section contains one card per target browser; each card shows a support percentage, counts of supported, partial, and unsupported features, and three inner tabs labelled {Overview}, {Issues}, and {Versions}. The {Detected Features} section lists every web feature Cross Guard identified in the analysed files, grouped by language. Finally, the {Visualizations} section renders bar charts for per-browser compatibility, a breakdown of features by language (HTML, CSS, JavaScript), and an overall support summary showing how many features are supported, partial, or unsupported across the whole analysis. At the bottom of the dashboard, three buttons offer quick actions: {Re-check}, {Export PDF}, and {Export JSON}.
 
 \begin{table}[H]
     \centering
@@ -217,7 +222,7 @@ Creating a new rule adds an additional detection pattern to future analyses. Edi
 
 \subsection{Export Reports}
 
-After completing an analysis, the results can be exported as reports. These reports allow the compatibility findings to be shared with other developers or included in documentation and project reports. The GUI supports exporting the results as PDF or JSON files. Additional formats such as SARIF, JUnit XML, Checkstyle XML, and CSV are available through the CLI.
+After completing an analysis, the results can be exported as reports. These reports allow the compatibility findings to be shared with other developers or included in documentation and project reports. The GUI supports exporting the results as PDF or JSON files. Additional formats such as SARIF and JUnit XML are available through the CLI.
 
 The PDF format provides a readable report containing the compatibility score, detected features, and browser support information. JSON exports are more suitable when the results need to be processed by other tools or scripts.
 
@@ -260,7 +265,7 @@ The \texttt{-{}-format} flag controls how the results are presented. The default
     \label{fig:cli-analyze}
 \end{figure}
 
-The \texttt{analyze} command accepts seven values for its \texttt{-{}-format} flag, summarized in Table~\ref{tab:cli-formats}. Two of them (\texttt{table} and \texttt{summary}) print results directly to the terminal, while the other five write machine-readable output. PDF exports are produced separately through the \texttt{export} command rather than through \texttt{-{}-format}.
+The \texttt{analyze} command accepts five values for its \texttt{-{}-format} flag, summarized in Table~\ref{tab:cli-formats}. Two of them (\texttt{table} and \texttt{summary}) print results directly to the terminal, while the other three write machine-readable output. PDF exports are produced separately through the \texttt{export} command rather than through \texttt{-{}-format}.
 
 \begin{table}[H]
     \centering
@@ -268,13 +273,11 @@ The \texttt{analyze} command accepts seven values for its \texttt{-{}-format} fl
         \hline
         \textbf{Format} & \textbf{Purpose} \\
         \hline \hline
-        Table          & Human-readable terminal output. \\ \hline
-        Summary        & A one-line quick compatibility check. \\ \hline
-        JSON           & Machine-readable output for scripts and tools. \\ \hline
-        SARIF          & Integration with GitHub Code Scanning. \\ \hline
-        JUnit XML      & Compatibility with CI systems such as Jenkins or GitLab. \\ \hline
-        Checkstyle XML & Integration with static analysis tools such as SonarQube. \\ \hline
-        CSV            & Export suitable for spreadsheet analysis or reporting. \\ \hline
+        Table     & Human-readable terminal output. \\ \hline
+        Summary   & A one-line quick compatibility check. \\ \hline
+        JSON      & Machine-readable output for scripts and tools. \\ \hline
+        SARIF     & Integration with GitHub Code Scanning. \\ \hline
+        JUnit XML & Compatibility with CI systems such as Jenkins or GitLab. \\ \hline
     \end{tabular}
     \caption{Output formats supported by the CLI}
     \label{tab:cli-formats}
@@ -297,7 +300,7 @@ Multiple browsers are separated by commas. If a version number is not provided, 
 AI fix suggestions on the CLI are off by default and must be turned on for each run with the \texttt{-{}-ai} flag, mirroring the ``Get AI Suggestions'' button in the GUI. This prevents accidental API calls when a key is saved on the machine. When \texttt{-{}-ai} is used, the CLI looks for an API key in this order: the \texttt{-{}-api-key} flag, the \texttt{CROSSGUARD\_AI\_KEY} environment variable, and finally the key stored in local settings (saved via \texttt{config -{}-set-api-key}). If no key is found, the CLI prints a warning and continues the analysis without AI suggestions.
 
 \begin{lstlisting}[caption={Enable AI fix suggestions per run with \texttt{-{}-ai}}, label=src:ai-cli, basicstyle=\ttfamily\small, breaklines=true]
-# Save the API key once (prompts with hidden input if no value is given)
+# Save the API key once 
 python -m src.cli.main config --set-api-key sk-...
 python -m src.cli.main config --set-ai-provider anthropic
 
@@ -312,12 +315,12 @@ python -m src.cli.main config --clear-api-key
 \end{lstlisting}
 
 When \texttt{-{}-ai} is passed and the analysis detects unsupported or partially supported features, the CLI adds an ``AI Fix Suggestions'' section at the end of the output. Each suggestion includes the feature name, a short explanation of the recommended fix, and a code example showing how it can be implemented. Without \texttt{-{}-ai}, the analysis runs normally and no request is sent to the language model provider, even if a key is available. This keeps the feature optional and predictable for scripts and CI jobs.
-
+\newpage
 
 
 \subsection{Working With Previous Analyses}
 
-Just like the GUI, the CLI can access the history stored in the SQLite database. Each analysis performed through the tool can be saved and later reviewed. The \texttt{history} command lists previously recorded analyses and displays information such as the file name, compatibility score, and date of execution. The \texttt{stats} command provides aggregated statistics across all stored analyses, summarizing overall results and frequently failing features.
+Analyses from both the GUI and the CLI are automatically stored in the SQLite database and can be reviewed later. This is controlled by the {Auto-save to history} setting on the Settings page (enabled by default). The \texttt{history} command lists previously recorded analyses and displays information such as the file name, compatibility score, and date of execution. The \texttt{stats} command provides aggregated statistics across all stored analyses, summarizing overall results and frequently failing features.
 
 \begin{lstlisting}[caption={List previous analyses and view aggregated statistics}, basicstyle=\ttfamily\small]
 python -m src.cli.main history
@@ -349,7 +352,7 @@ python -m src.cli.main export 42 --format json --output report.json
 python -m src.cli.main export 42 --format pdf  --output report.pdf
 \end{lstlisting}
 
-Export formats such as SARIF, JUnit XML, and Checkstyle XML are especially useful when Cross Guard is used in automated environments. Many CI/CD platforms understand these formats and can display compatibility problems directly inside their reporting interfaces.
+Export formats such as SARIF and JUnit XML are especially useful when Cross Guard is used in automated environments. Many CI/CD platforms understand these formats and can display compatibility problems directly inside their reporting interfaces.
 
 \subsection{Configuration and Database Updates}
 
@@ -391,6 +394,8 @@ The CLI can also enforce compatibility thresholds through quality gates. These o
 \end{figure}
 
 Additional gates can limit the number of unsupported or partially supported features, and gates can be combined in a single command. These checks are particularly useful in automated pipelines because CI systems rely on exit codes to determine whether a build passes or fails.
+
+\newpage
 
 \begin{lstlisting}[caption={Enforce compatibility thresholds with quality gates}, basicstyle=\ttfamily\small, breaklines=true]
 # Fail if the compatibility score drops below 80
