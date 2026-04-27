@@ -1,4 +1,4 @@
-"""Parsers for extracting browser features from HTML, CSS, and JS files."""
+"""Parsers for HTML, CSS, and JS feature extraction."""
 
 from .html_parser import HTMLParser
 from .css_parser import CSSParser
