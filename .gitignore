@@ -43,3 +43,7 @@ logs/
 
 # Can I Use database — 289 MB, downloaded via `crossguard update-db` instead
 Code/data/caniuse/
+
+# Local-only files (not part of the thesis deliverables)
+code/CLAUDE.md
+reference/

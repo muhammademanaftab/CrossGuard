@@ -108,3 +108,66 @@ class TestAnalyzeAIFlag:
             mock_ai.assert_not_called()
 
 
+# --- Quality gate combinations (--fail-on-errors / --fail-on-warnings) ---
+
+
+@pytest.mark.blackbox
+class TestQualityGateCombinations:
+    """`--fail-on-score` is covered elsewhere; this pins the error/warning
+    gates and their AND-composition (any breached gate => exit 1)."""
+
+    def _clean_js(self, tmp_path):
+        f = tmp_path / "ok.js"
+        f.write_text("const x = 1;")
+        return f
+
+    def _problem_css(self, tmp_path):
+        # Modern CSS that is unsupported / partially supported in IE 11.
+        f = tmp_path / "bad.css"
+        f.write_text(".a { display: grid; gap: 10px; container-type: inline-size; }")
+        return f
+
+    def test_fail_on_errors_passes_when_threshold_high(self, tmp_path):
+        f = self._clean_js(tmp_path)
+        runner = CliRunner()
+        result = runner.invoke(cli, [
+            'analyze', str(f), '--format', 'summary',
+            '--fail-on-errors', '100',
+        ])
+        assert result.exit_code == 0, result.output
+
+    @staticmethod
+    def _combined(result):
+        # Click 8.3+ separates stderr; older Click folds it into output.
+        try:
+            stderr = result.stderr or ''
+        except ValueError:
+            stderr = ''
+        return result.output + stderr
+
+    def test_fail_on_warnings_fails_when_threshold_zero(self, tmp_path):
+        f = self._problem_css(tmp_path)
+        runner = CliRunner()
+        result = runner.invoke(cli, [
+            'analyze', str(f), '--format', 'summary',
+            '--browsers', 'ie:11',
+            '--fail-on-warnings', '0',
+        ])
+        # Either errors or warnings will trip; we only care that it failed.
+        assert result.exit_code == 1
+        assert 'GATE FAILED' in self._combined(result)
+
+    def test_combined_gates_fail_if_any_breached(self, tmp_path):
+        f = self._problem_css(tmp_path)
+        runner = CliRunner()
+        result = runner.invoke(cli, [
+            'analyze', str(f), '--format', 'summary',
+            '--browsers', 'ie:11',
+            '--fail-on-score', '0',     # 0% min: passes alone
+            '--fail-on-errors', '0',    # any error trips this
+        ])
+        assert result.exit_code == 1
+        # The error-count failure must be the one reported, not the score one.
+        assert 'Error count' in self._combined(result)
+
+

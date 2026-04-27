@@ -6,6 +6,7 @@ works correctly with real Can I Use data.
 
 import pytest
 
+from src.analyzer.main import CrossGuardAnalyzer
 from src.analyzer.scorer import CompatibilityScorer
 from src.parsers.css_parser import CSSParser
 from src.parsers.js_parser import JavaScriptParser
@@ -51,3 +52,45 @@ class TestMultiFileAnalysis:
             total_in_buckets = sum(len(bucket[k]) for k in bucket_keys)
             assert total_in_buckets == len(combined)
             assert len(bucket['statuses']) == len(combined)
+
+
+# ============================================================================
+# SECTION 5: Full Analyzer Entry Point
+# ============================================================================
+
+class TestFullAnalyzerPipeline:
+    """Drive CrossGuardAnalyzer.run_analysis() end-to-end on real files.
+
+    The other integration tests stop at parser+scorer; this one covers the
+    main public method that the API service and CLI both depend on.
+    """
+
+    @pytest.mark.integration
+    def test_run_analysis_on_real_css_file(self, caniuse_db, modern_browsers, tmp_path):
+        css_file = tmp_path / "site.css"
+        css_file.write_text(
+            ".grid { display: grid; gap: 10px; }\n"
+            ".flex { display: flex; }\n",
+            encoding='utf-8',
+        )
+
+        report = CrossGuardAnalyzer().run_analysis(
+            css_files=[str(css_file)],
+            target_browsers=modern_browsers,
+        )
+
+        assert report['success'] is True
+        # Both features appear in the CSS feature list
+        assert 'css-grid' in report['features']['css']
+        assert 'flexbox' in report['features']['css']
+        # Score and grade are sane
+        assert 0 <= report['scores']['simple_score'] <= 100
+        assert report['summary']['overall_grade'] in {
+            'A+', 'A', 'B', 'C', 'D', 'F'
+        }
+        # Per-browser breakdown contains every requested target
+        assert set(report['browsers'].keys()) == set(modern_browsers.keys())
+        for browser_data in report['browsers'].values():
+            total = (browser_data['supported'] + browser_data['partial']
+                     + browser_data['unsupported'] + browser_data['unknown'])
+            assert total == report['summary']['total_features']

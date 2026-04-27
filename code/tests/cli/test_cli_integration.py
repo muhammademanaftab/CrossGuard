@@ -74,3 +74,45 @@ class TestConfigOutputFormat:
         # summary output starts with "Grade:" not a JSON object
         assert result.output.lstrip().startswith('Grade:')
 
+
+# --- Multiple simultaneous outputs ---
+
+
+@pytest.mark.integration
+class TestMultipleSimultaneousExports:
+    """`--format X` plus `--output-sarif`/`--output-junit`/`--output-json`
+    should all produce their outputs in one CLI invocation. CLAUDE.md
+    advertises this combo; this pins it."""
+
+    def test_table_plus_sarif_plus_junit_plus_json(self, runner, js_file, tmp_path):
+        sarif_path = tmp_path / "r.sarif"
+        junit_path = tmp_path / "r.xml"
+        json_path = tmp_path / "r.json"
+
+        result = runner.invoke(cli, [
+            '-q', 'analyze', str(js_file),
+            '--format', 'summary',
+            '--output-sarif', str(sarif_path),
+            '--output-junit', str(junit_path),
+            '--output-json', str(json_path),
+        ])
+
+        assert result.exit_code in (0, 1), f"CLI failed: {result.output}"
+
+        # Primary output (summary) hits stdout
+        assert 'Grade:' in result.output
+
+        # Secondary SARIF: valid JSON of the right schema version
+        sarif = json.loads(sarif_path.read_text(encoding='utf-8'))
+        assert sarif['version'] == '2.1.0'
+        assert 'runs' in sarif
+
+        # Secondary JUnit: well-formed XML with a testsuite element
+        junit_text = junit_path.read_text(encoding='utf-8')
+        assert junit_text.lstrip().startswith('<?xml')
+        assert '<testsuite' in junit_text
+
+        # Secondary JSON: parses and is the analysis report
+        data = json.loads(json_path.read_text(encoding='utf-8'))
+        assert data.get('success') is True
+
