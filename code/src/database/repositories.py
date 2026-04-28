@@ -12,18 +12,21 @@ logger = get_logger('database.repositories')
 
 
 class _BaseRepository:
+    """Shared base. Lets repos accept a test connection via the constructor for unit tests."""
 
     def __init__(self, conn: Optional[sqlite3.Connection] = None):
         self._conn = conn
 
     @property
     def conn(self) -> sqlite3.Connection:
+        # If no test connection was injected, fall back to the singleton.
         if self._conn is None:
             return get_connection()
         return self._conn
 
 
 class AnalysisRepository(_BaseRepository):
+    """Save, load, and delete past analyses (and their features and per-browser results)."""
 
     def save_analysis(self, analysis: Analysis) -> int:
         conn = self.conn
@@ -276,6 +279,7 @@ def save_analysis_from_result(result: Dict[str, Any], file_info: Dict[str, str])
 
 
 class SettingsRepository(_BaseRepository):
+    """Key-value storage for user preferences (API key, default browsers, history limit, etc.)."""
 
     def get(self, key: str, default: str = '') -> str:
         cursor = self.conn.execute(
@@ -304,6 +308,7 @@ class SettingsRepository(_BaseRepository):
 
 
 class BookmarksRepository(_BaseRepository):
+    """Lets users bookmark important analyses so they can find them again later."""
 
     def add_bookmark(self, analysis_id: int, note: str = '') -> int:
         from .models import Bookmark

@@ -1,4 +1,4 @@
-"""Data contracts for AI fix suggestions."""
+"""Shape of one AI fix suggestion that flows from the AI service to the UI."""
 
 from dataclasses import dataclass, field
 from typing import List

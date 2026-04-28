@@ -1,3 +1,5 @@
+"""Holds the CLI's per-run flags (verbosity, color, timing) so every command can read them."""
+
 import os
 import sys
 from dataclasses import dataclass

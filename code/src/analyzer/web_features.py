@@ -11,6 +11,8 @@ logger = get_logger('analyzer.web_features')
 
 
 class BaselineInfo:
+    """Baseline status for one feature: when it became newly or widely available."""
+
     __slots__ = ('status', 'low_date', 'high_date')
 
     def __init__(self, status: str, low_date: Optional[str] = None, high_date: Optional[str] = None):
@@ -23,6 +25,7 @@ class BaselineInfo:
 
 
 class WebFeaturesManager:
+    """Looks up Baseline status (Widely / Newly / Limited) for a given Can I Use feature ID."""
 
     def __init__(self):
         self._reverse_map: Optional[Dict[str, BaselineInfo]] = None

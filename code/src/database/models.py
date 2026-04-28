@@ -8,6 +8,7 @@ import json
 
 @dataclass
 class BrowserResult:
+    """One row in browser_results: how a single browser/version supports a single feature."""
     browser: str
     support_status: str
     version: str = ''
@@ -36,6 +37,7 @@ class BrowserResult:
 
 @dataclass
 class AnalysisFeature:
+    """One detected web feature inside an analysis. Owns a list of BrowserResults."""
     feature_id: str
     category: str
     feature_name: str = ''
@@ -66,6 +68,7 @@ class AnalysisFeature:
 
 @dataclass
 class Analysis:
+    """One row in the analyses table. The top of the three-level history hierarchy."""
     file_name: str
     file_type: str
     overall_score: float
@@ -138,6 +141,7 @@ class Analysis:
 
 @dataclass
 class Bookmark:
+    """A user-saved reference to an analysis, with an optional note."""
     analysis_id: int
     note: str = ''
     id: Optional[int] = None

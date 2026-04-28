@@ -1,3 +1,5 @@
+"""Writes the analysis report to a JSON file. Used for piping into other tools or scripts."""
+
 import json
 from datetime import datetime
 from typing import Dict, Optional, Union

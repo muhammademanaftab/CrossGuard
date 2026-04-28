@@ -39,6 +39,7 @@ from .export_manager import ExportManager
 
 
 class MainWindow(ctk.CTkFrame):
+    """The main application window. Holds the sidebar, header, content area, and four pages."""
 
     def __init__(self, master):
         super().__init__(master, fg_color=COLORS['bg_darkest'])

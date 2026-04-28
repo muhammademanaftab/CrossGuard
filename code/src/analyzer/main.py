@@ -19,6 +19,7 @@ logger = get_logger('analyzer.main')
 
 
 class CrossGuardAnalyzer:
+    """Runs the full pipeline: parse files, check browser support, score, and build a report."""
 
     def __init__(self):
         self.html_parser = HTMLParser()

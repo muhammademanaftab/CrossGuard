@@ -12,6 +12,7 @@ POLYFILL_MAP_PATH = Path(__file__).parent / "polyfill_map.json"
 
 
 class PolyfillLoader:
+    """Reads polyfill_map.json once and keeps the data in memory for fast lookups."""
 
     _instance: Optional['PolyfillLoader'] = None
     _loaded: bool = False

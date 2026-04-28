@@ -1,3 +1,5 @@
+"""Turns analysis results into the strings printed to the terminal (table, summary, JSON)."""
+
 import json
 from typing import Dict, List
 

@@ -25,6 +25,8 @@ CONFIG_FILENAME = 'crossguard.config.json'
 
 
 class ConfigManager:
+    """Reads crossguard.config.json and merges it with CLI overrides and built-in defaults."""
+
     def __init__(self, config_path: Optional[str] = None, overrides: Optional[Dict] = None):
         self._config: Dict[str, Any] = {}
         self._config_path: Optional[Path] = None

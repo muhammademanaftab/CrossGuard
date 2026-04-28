@@ -13,6 +13,7 @@ import json
 
 
 class DatabaseUpdater:
+    """Downloads a fresh copy of the Can I Use data. Tries npm first, falls back to git."""
 
     def __init__(self, caniuse_dir: Path):
         self.caniuse_dir = Path(caniuse_dir)

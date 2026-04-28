@@ -23,6 +23,7 @@ ICON_ICO_PATH = Path(__file__).parent / "assets" / "icon.ico"
 
 if _TKDND_IMPORT_OK:
     class CTkDnD(ctk.CTk, TkinterDnD.DnDWrapper):
+        """A CustomTkinter root window that also supports tkdnd drag-and-drop."""
 
         def __init__(self, *args, **kwargs):
             super().__init__(*args, **kwargs)

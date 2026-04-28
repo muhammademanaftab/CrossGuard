@@ -24,6 +24,8 @@ logger = get_logger('api.service')
 
 
 class AnalyzerService:
+    """Single facade that the GUI and CLI talk to. Hides parsers, scorer, database, and AI."""
+
     DEFAULT_BROWSERS = {
         'chrome': LATEST_VERSIONS['chrome'],
         'firefox': LATEST_VERSIONS['firefox'],

@@ -31,6 +31,8 @@ LOG_DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 
 
 class CrossGuardLogger:
+    """Singleton logger. All log messages go to stderr so piped CLI output stays clean."""
+
     _instance: Optional['CrossGuardLogger'] = None
     _initialized: bool = False
 

@@ -9,6 +9,7 @@ from .widgets.messagebox import show_info, show_warning, show_error
 
 
 class ExportManager:
+    """Shows the Save As dialog and writes the report to disk as JSON or PDF."""
 
     def __init__(self, parent):
         self.parent = parent

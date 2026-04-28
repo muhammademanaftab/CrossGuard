@@ -10,6 +10,7 @@ logger = get_logger('analyzer.database')
 
 
 class CanIUseDatabase:
+    """Holds the Can I Use data in memory and answers "does browser X version Y support feature Z?"."""
 
     def __init__(self):
         self.data = None
@@ -185,12 +186,13 @@ _database_instance = None
 
 
 def get_database() -> CanIUseDatabase:
+    # Singleton accessor. The database is large, so we only load it once per run.
     global _database_instance
-    
+
     if _database_instance is None:
         _database_instance = CanIUseDatabase()
         _database_instance.load()
-    
+
     return _database_instance
 
 

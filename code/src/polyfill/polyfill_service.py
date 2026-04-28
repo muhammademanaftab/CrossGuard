@@ -6,6 +6,7 @@ from .polyfill_loader import get_polyfill_loader
 
 
 class PolyfillService:
+    """Builds the list of polyfill packages or CSS fallbacks shown on the results page."""
 
     def __init__(self):
         self._loader = get_polyfill_loader()

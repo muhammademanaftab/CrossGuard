@@ -1,4 +1,4 @@
-"""Generates AI-powered fix suggestions using LLM APIs."""
+"""Talks to OpenAI or Anthropic and asks the model to suggest fixes for unsupported browser features."""
 
 import json
 from typing import Dict, List, Set
@@ -27,9 +27,9 @@ class AIFixService:
                  model: str = None, max_features: int = 10, priority: str = "unsupported_first"):
         self._api_key = api_key or ""
         self._provider = provider
-        self._model = model  # None means fall back to DEFAULT_MODELS for the provider
-        self._max_features = max_features  # 0 = no limit
-        self._priority = priority  # "unsupported_first" or "all_equal"
+        self._model = model  # If None, fall back to the default model for the provider.
+        self._max_features = max_features  # 0 means no limit.
+        self._priority = priority  # "unsupported_first" or "all_equal".
 
     def is_available(self) -> bool:
         return bool(self._api_key)
@@ -48,11 +48,13 @@ class AIFixService:
         if not all_features:
             return []
 
+        # Send unsupported features first since they are the most urgent.
         if self._priority == "unsupported_first":
             ordered = sorted(unsupported_features) + sorted(partial_features - unsupported_features)
         else:
             ordered = sorted(all_features)
 
+        # Cap the list so the prompt stays small.
         limited = ordered[:self._max_features] if self._max_features > 0 else ordered
 
         feature_list = []
@@ -73,6 +75,7 @@ class AIFixService:
             raw = self._call_api(prompt)
             return self._parse_response(raw, feature_list)
         except Exception as e:
+            # Any failure here just means no AI suggestions for this run.
             logger.error(f"AI fix suggestion failed: {e}")
             return []
 

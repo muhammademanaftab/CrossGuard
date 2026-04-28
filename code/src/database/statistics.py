@@ -10,6 +10,7 @@ logger = get_logger('database.statistics')
 
 
 class StatisticsService:
+    """Computes summary numbers (averages, counts, top failing features) for the History panel."""
 
     def __init__(self, conn: Optional[sqlite3.Connection] = None):
         self._conn = conn

@@ -6,6 +6,7 @@ from typing import Dict, List, Optional, Any
 
 @dataclass
 class AnalysisRequest:
+    """What the frontend sends to AnalyzerService when starting an analysis."""
     html_files: List[str] = field(default_factory=list)
     css_files: List[str] = field(default_factory=list)
     js_files: List[str] = field(default_factory=list)
@@ -20,6 +21,7 @@ class AnalysisRequest:
 
 @dataclass
 class BrowserCompatibility:
+    """Per-browser support breakdown shown on the results page."""
     name: str
     version: str
     supported: int = 0
@@ -35,6 +37,7 @@ class BrowserCompatibility:
 
 @dataclass
 class AnalysisResult:
+    """The full report the backend returns after running an analysis."""
     success: bool
     summary: Optional[Dict[str, Any]] = None
     scores: Optional[Dict[str, Any]] = None
@@ -179,6 +182,7 @@ class AnalysisResult:
 
 @dataclass
 class DatabaseInfo:
+    """Summary of the local Can I Use database, shown on the Settings page."""
     features_count: int = 0
     last_updated: str = "Unknown"
     is_git_repo: bool = False
@@ -189,6 +193,7 @@ class DatabaseInfo:
 
 @dataclass
 class DatabaseUpdateResult:
+    """Outcome of trying to download a fresh Can I Use database."""
     success: bool
     message: str = ""
     no_changes: bool = False
