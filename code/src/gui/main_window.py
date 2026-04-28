@@ -1282,6 +1282,19 @@ class MainWindow(ctk.CTkFrame):
             w.destroy()
 
         if ai_data['has_suggestions']:
+            # Stash a dict-shaped copy on the report so PDF/SARIF/JUnit exports include AI suggestions
+            if self.current_report is not None:
+                self.current_report['ai_suggestions'] = [
+                    {
+                        'feature_id': s.feature_id,
+                        'feature_name': s.feature_name,
+                        'suggestion': s.suggestion,
+                        'code_example': s.code_example,
+                        'browsers_affected': s.browsers_affected,
+                    }
+                    for s in ai_data['suggestions']
+                ]
+
             ai_section = CollapsibleSection(
                 self._ai_placeholder,
                 title="AI Fix Suggestions",
