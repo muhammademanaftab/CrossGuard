@@ -4,7 +4,7 @@
 
 ![Python](https://img.shields.io/badge/Python-3.9%2B-blue?logo=python&logoColor=white)
 ![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)
-![Tests: 96](https://img.shields.io/badge/tests-96%20passing-brightgreen.svg)
+![Tests: 101](https://img.shields.io/badge/tests-101%20passing-brightgreen.svg)
 ![Status: Beta](https://img.shields.io/badge/status-beta-yellow.svg)
 
 Cross Guard parses HTML, CSS, and JavaScript files, extracts the web platform features they use (e.g. CSS Grid, Promises, the `<dialog>` element), looks each one up in the [Can I Use](https://caniuse.com/) compatibility database, and reports which features are supported, partially supported, or unsupported in the user's chosen target browsers.
@@ -58,7 +58,7 @@ The tool is aimed at web developers who want a fast local check before shipping,
 ### Desktop GUI
 - Drag-and-drop file upload
 - Results dashboard with score cards, browser cards, and issue cards
-- Analysis history with bookmarks and tags
+- Analysis history with bookmarks
 - Aggregated statistics (score trends, top problematic features)
 - Visual editor for custom detection rules
 
@@ -75,8 +75,8 @@ The tool is aimed at web developers who want a fast local check before shipping,
 
 ```
 Thesis/
-├── code/        Cross Guard application (Python project: CLI + desktop GUI)
-└── latex/       Thesis manuscript source (LaTeX, ELTE template)
+├── code/           Cross Guard application (Python project: CLI + desktop GUI)
+└── thesis_latex/   Thesis manuscript source (LaTeX, ELTE template)
 ```
 
 The two directories are independent. The thesis cites and screenshots the code; the code does not depend on the thesis.
@@ -93,13 +93,15 @@ git clone <repository-url>
 cd Thesis/code
 
 # Create and activate a virtual environment
-python -m venv .venv
-source .venv/bin/activate          # macOS / Linux
-.venv\Scripts\activate             # Windows
+python3 -m venv .venv                # macOS / Linux (use 'python' on Windows)
+source .venv/bin/activate            # macOS / Linux
+.venv\Scripts\activate               # Windows
 
 # Install dependencies
 pip install -r requirements.txt
 ```
+
+> On macOS the system Python is `python3`, not `python`. Once the virtual environment is activated, both work, but `python3` is safer to use everywhere.
 
 To use only the GUI or only the CLI, install just those extras through `pyproject.toml`:
 
@@ -115,41 +117,43 @@ pip install -e ".[cli]"   # CLI only
 ### Desktop GUI
 
 ```bash
-python run_gui.py
+python3 run_gui.py
 ```
 
 The window opens on the upload page. Drag files in or click to pick them, choose target browsers from the right-hand selector, and click **Analyze**. Results appear in a dashboard with a score card, browser cards, an issues list, and polyfill recommendations.
 
 ### Command line
 
+Cross Guard analyses **one file at a time** (directory targets are not supported). The repository ships with sample files in `examples/sample_project/` that you can use to try the CLI right away.
+
 ```bash
 # Analyse a single file with table output (the default)
-python -m src.cli.main analyze path/to/file.js --format table
+python3 -m src.cli.main analyze examples/sample_project/sample.js --format table
 
-# Analyse a directory, target specific browser versions
-python -m src.cli.main analyze src/ --browsers "chrome:120,firefox:121"
+# Target specific browser versions (each browser must include a version)
+python3 -m src.cli.main analyze examples/sample_project/sample.css --browsers "chrome:120,firefox:121"
 
 # Generate a SARIF report for GitHub Code Scanning
-python -m src.cli.main analyze src/ --format sarif -o results.sarif
+python3 -m src.cli.main analyze examples/sample_project/sample.js --format sarif -o results.sarif
 
 # Apply quality gates (exit 1 if score drops below 80)
-python -m src.cli.main analyze src/ --fail-on-score 80
+python3 -m src.cli.main analyze examples/sample_project/sample.css --fail-on-score 80
 
 # Generate a GitHub Actions workflow file
-python -m src.cli.main init-ci --provider github
+python3 -m src.cli.main init-ci --provider github
 
 # Pipe content via stdin
 echo "const x = Promise.resolve();" | \
-  python -m src.cli.main analyze --stdin --stdin-filename app.js --format sarif
+  python3 -m src.cli.main analyze --stdin --stdin-filename app.js --format sarif
 ```
 
-Run `python -m src.cli.main --help` for the full command list.
+Run `python3 -m src.cli.main --help` for the full command list. A complete reference with copy-paste examples for every command is available in [`code/CLI_COMMANDS.md`](code/CLI_COMMANDS.md).
 
 ### CI/CD example (GitHub Actions)
 
 ```yaml
 - name: Check browser compatibility
-  run: crossguard analyze src/ --format sarif --output-sarif results.sarif --fail-on-score 80
+  run: python3 -m src.cli.main analyze src/main.js --format sarif --output-sarif results.sarif --fail-on-score 80
 
 - uses: github/codeql-action/upload-sarif@v3
   with:
@@ -189,7 +193,7 @@ code/
 │   ├── parsers/    HTML, CSS, JS parsers and feature maps
 │   ├── polyfill/   Polyfill loader, recommendation service, generator
 │   └── utils/      Logging configuration, feature-name lookups
-├── tests/          96 tests (black box, white box, integration)
+├── tests/          101 tests (black box, white box, integration)
 ├── data/caniuse/   Local Can I Use database (downloaded via update-db)
 ├── examples/       Sample inputs and example reports
 ├── run_gui.py      GUI entry point
@@ -202,10 +206,10 @@ The full architecture, design patterns, and module-by-module walkthrough are des
 
 ## Building the thesis
 
-The `latex/` directory contains the LaTeX source for the thesis manuscript, built on the official **ELTE Faculty of Informatics** template (`elteikthesis` document class, 2024/04/26).
+The `thesis_latex/` directory contains the LaTeX source for the thesis manuscript, built on the official **ELTE Faculty of Informatics** template (`elteikthesis` document class, 2024/04/26).
 
 ```bash
-cd latex
+cd thesis_latex
 latexmk -pdf -xelatex elteikthesis_en.tex
 ```
 
@@ -218,7 +222,7 @@ xelatex elteikthesis_en
 xelatex elteikthesis_en
 ```
 
-The `elteikthesis` class is **not vendored** in this repository. It must be installed in your TeX tree (TeX Live or MiKTeX) or placed alongside `elteikthesis_en.tex` as `elteikthesis.cls`.
+The `elteikthesis.cls` document class file is included in the `thesis_latex/` directory, so the project compiles without needing to install the class system-wide.
 
 ---
 
@@ -226,13 +230,13 @@ The `elteikthesis` class is **not vendored** in this repository. It must be inst
 
 | Task | Command (run from repository root) |
 |---|---|
-| Launch GUI | `cd code && python run_gui.py` |
-| Analyse a file (table output) | `cd code && python -m src.cli.main analyze file.js --format table` |
-| Generate a SARIF report for CI | `cd code && python -m src.cli.main analyze src/ --format sarif -o results.sarif` |
-| Generate GitHub Actions workflow | `cd code && python -m src.cli.main init-ci --provider github` |
+| Launch GUI | `cd code && python3 run_gui.py` |
+| Analyse a file (table output) | `cd code && python3 -m src.cli.main analyze examples/sample_project/sample.js --format table` |
+| Generate a SARIF report for CI | `cd code && python3 -m src.cli.main analyze examples/sample_project/sample.js --format sarif -o results.sarif` |
+| Generate GitHub Actions workflow | `cd code && python3 -m src.cli.main init-ci --provider github` |
 | Run all tests | `cd code && pytest tests/ -q` |
-| Update Can I Use database | `cd code && python -m src.cli.main update-db` |
-| Build the thesis PDF | `cd latex && latexmk -pdf -xelatex elteikthesis_en.tex` |
+| Update Can I Use database | `cd code && python3 -m src.cli.main update-db` |
+| Build the thesis PDF | `cd thesis_latex && latexmk -pdf -xelatex elteikthesis_en.tex` |
 
 ---
 
@@ -240,7 +244,7 @@ The `elteikthesis` class is **not vendored** in this repository. It must be inst
 
 The Cross Guard codebase under `code/` is released under the **MIT License** (see `code/pyproject.toml`).
 
-The thesis manuscript under `latex/` is the author's own academic work and is subject to the policies of Eötvös Loránd University, Faculty of Informatics. Reproduction beyond fair academic use requires the author's permission.
+The thesis manuscript under `thesis_latex/` is the author's own academic work and is subject to the policies of Eötvös Loránd University, Faculty of Informatics. Reproduction beyond fair academic use requires the author's permission.
 
 ---
 
