@@ -29,7 +29,7 @@ The primary goal of Cross Guard is to automate the process of checking browser c
     \item The second goal is reliable compatibility checking. Each detected feature is looked up in a local copy of the Can I Use database to determine whether it is supported, partially supported, or unsupported in the target browsers. This lookup happens entirely offline.
     \item The third goal is clear and useful reporting. The tool calculates a weighted compatibility score from 0 to 100, assigns a letter grade from A to F, and breaks down results by browser and severity so that the most critical problems are easy to spot.
     \item The fourth goal is to provide two separate interfaces. A desktop GUI built with Python and CustomTkinter is designed for interactive use, while a command line interface built with Click is designed for automation and CI/CD pipelines. Both interfaces use the same backend, so the results are always identical.
-    \item The fifth goal is to support multiple export formats including JSON, PDF, SARIF, JUnit XML, Checkstyle XML, and CSV so that results can be used in different contexts, from scripts to CI systems to spreadsheets.
+    \item The fifth goal is to support multiple export formats including JSON, PDF, SARIF, and JUnit XML, so that results can be used in different contexts. 
     \item The sixth goal is to provide actionable suggestions for fixing issues, including polyfill recommendations from an internal database and optional AI-generated code fixes using language model APIs from OpenAI or Anthropic.
 \end{enumerate}
 

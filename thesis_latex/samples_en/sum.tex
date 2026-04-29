@@ -19,8 +19,6 @@ Overall, Cross Guard achieves what it set out to do. It takes a process that was
 
 While Cross Guard in its current form provides a complete and functional tool for browser compatibility analysis, there are several areas where it could be extended and improved in the future.
 
-\textbf{Project-Level Analysis.} Currently, Cross Guard analyzes individual files or small groups of files. A natural next step would be to support full project scanning, where the tool recursively processes all HTML, CSS, and JavaScript files in a directory. This would include respecting ignore patterns similar to \texttt{.gitignore}, aggregating results across files into a single project-level report, and identifying which features are used most frequently across the codebase.
-
 \textbf{Framework and Preprocessor Support.} Many modern web projects do not write plain HTML, CSS, or JavaScript. Instead, they use frameworks like React, Vue, or Angular, and preprocessors like SCSS, Less, or TypeScript. Adding support for these technologies would make Cross Guard useful in a wider range of real-world projects. For example, detecting JSX syntax in React components or parsing SCSS files before analyzing the generated CSS would significantly expand the tool's coverage.
 
 \textbf{Inline Analysis and IDE Integration.} Developers would benefit from seeing compatibility warnings directly in their code editor as they type, similar to how ESLint shows linting errors inline. Building a Language Server Protocol (LSP) integration or extensions for editors like Visual Studio Code and JetBrains IDEs would bring compatibility feedback into the development workflow without requiring the developer to run a separate tool.

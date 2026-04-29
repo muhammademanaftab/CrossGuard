@@ -277,7 +277,7 @@ The \texttt{analyze} command accepts five values for its \texttt{-{}-format} fla
         Summary   & A one-line quick compatibility check. \\ \hline
         JSON      & Machine-readable output for scripts and tools. \\ \hline
         SARIF     & Integration with GitHub Code Scanning. \\ \hline
-        JUnit XML & Compatibility with CI systems such as Jenkins or GitLab. \\ \hline
+        JUnit XML & Standard test-reporting format consumable by many CI systems. \\ \hline
     \end{tabular}
     \caption{Output formats supported by the CLI}
     \label{tab:cli-formats}
@@ -365,7 +365,7 @@ python -m src.cli.main update-db
 
 \subsection{CI and Automation Support}
 
-One of the main advantages of the CLI is that it can be integrated into automated development workflows. Cross Guard includes commands that generate configuration files for continuous integration platforms or Git hooks. The \texttt{init-ci} command creates example workflow configurations for platforms such as GitHub Actions. Figure~\ref{fig:cli-initci} shows the command generating a GitHub Actions workflow file.
+One of the main advantages of the CLI is that it can be integrated into automated development workflows. Cross Guard includes commands that generate configuration files for continuous integration platforms like Git hooks. The \texttt{init-ci} command creates example workflow configurations for platforms such as GitHub Actions. Figure~\ref{fig:cli-initci} shows the command generating a GitHub Actions workflow file.
 
 \begin{figure}[H]
     \centering
