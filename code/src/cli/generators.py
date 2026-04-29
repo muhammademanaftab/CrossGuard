@@ -1,4 +1,4 @@
-"""Ready-to-use CI config snippets (GitHub Actions, GitLab CI, pre-commit)."""
+"""Ready-to-use CI config snippets (GitHub Actions, pre-commit)."""
 
 _GITHUB_ACTIONS = """\
 # .github/workflows/crossguard.yml
@@ -27,10 +27,9 @@ jobs:
           python-version: '3.11'
 
       - name: Install Cross Guard
-        # Use the [cli] extra so the `crossguard` command-line works.
-        # Once Cross Guard is published to PyPI you can simply use
-        # `pip install crossguard[cli]`.
-        run: pip install "crossguard[cli]"
+        # Installs Cross Guard from the public source repository.
+        # The [cli] extra brings in click, which the `crossguard` command needs.
+        run: pip install "crossguard[cli] @ git+https://github.com/muhammademanaftab/CrossGuard.git#subdirectory=code"
 
       - name: Run compatibility analysis
         run: |
@@ -54,26 +53,10 @@ jobs:
           path: results.sarif
 """
 
-_GITLAB_CI = """\
-# Add to .gitlab-ci.yml
-crossguard:
-  stage: test
-  image: python:3.11
-  before_script:
-    # The [cli] extra installs click, which the command-line entry point needs.
-    - pip install "crossguard[cli]"
-  script:
-    - crossguard analyze src/ --format junit -o results.xml --fail-on-score 80
-  artifacts:
-    reports:
-      junit: results.xml
-    when: always
-"""
-
 _PRE_COMMIT = """\
 # Add to .pre-commit-config.yaml
 # Requires Cross Guard to be installed in your environment:
-#     pip install "crossguard[cli]"
+#     pip install "crossguard[cli] @ git+https://github.com/muhammademanaftab/CrossGuard.git#subdirectory=code"
 repos:
   - repo: local
     hooks:
@@ -87,15 +70,14 @@ repos:
 
 TEMPLATES = {
     'github': _GITHUB_ACTIONS,
-    'gitlab': _GITLAB_CI,
     'pre-commit': _PRE_COMMIT,
 }
 
 
 def generate_ci_config(provider: str) -> str:
-    if provider not in ('github', 'gitlab'):
+    if provider != 'github':
         raise ValueError(f"Unsupported CI provider: {provider}. "
-                         f"Supported: github, gitlab")
+                         f"Supported: github")
     return TEMPLATES[provider]
 
 

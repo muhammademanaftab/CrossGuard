@@ -1,4 +1,4 @@
-"""JUnit XML export for Jenkins, GitLab CI, and similar CI systems."""
+"""JUnit XML export — consumed by Jenkins and other CI systems that read JUnit reports."""
 
 import xml.etree.ElementTree as ET
 from typing import Dict, Optional, Union

@@ -51,7 +51,7 @@ Cross Guard is implemented in Python and uses several supporting libraries. The 
     \item \textbf{CustomTkinter 5.2+} - desktop GUI framework with a modern dark theme.
     \item \textbf{tkinterdnd2-universal 1.7+} - adds drag-and-drop file upload support to the GUI.
     \item \textbf{Click 8.1+}~\cite{clickdocs} - used to build the CLI with nested commands and options.
-    \item \textbf{BeautifulSoup4 4.12+}~\cite{bs4docs} -- HTML parser used to detect elements, attributes, and input types.
+    \item \textbf{BeautifulSoup4 4.12+}~\cite{bs4docs} - HTML parser used to detect elements, attributes, and input types.
     \item \textbf{tinycss2 1.2+}~\cite{tinycss2} - CSS AST parser used by the CSS feature detector.
     \item \textbf{tree-sitter 0.21.3}~\cite{treesitter} - AST-based parser used for JavaScript feature detection.
     \item \textbf{tree-sitter-languages 1.10.2} - pre-compiled tree-sitter grammar bundle, including JavaScript.
@@ -232,7 +232,7 @@ The database schema is organized into two versions. V1 tables (\texttt{analyses}
 
 Cross Guard supports four export formats for analysis results. Each format serves a different use case.
 
-JSON provides machine-readable output with full analysis metadata, suitable for processing by other tools or scripts. PDF produces a readable report that begins with the overall score, grade, and risk level, then shows a feature summary line (counts by HTML, CSS, and JS plus critical issues), a browser compatibility table with per-browser supported, partial, and unsupported counts, a key compatibility issues list, baseline availability counts (widely available, newly available, limited, unknown), recommendations, and a feature inventory that shows per-browser support indicators for every detected feature with a Baseline column. When AI fix suggestions are available, the PDF also includes a section with the suggestion text and code examples. SARIF 2.1.0~\cite{sarif210} integrates with GitHub Code Scanning, allowing compatibility issues to appear as inline annotations in pull requests. JUnit XML is compatible with CI systems such as Jenkins and GitLab CI for test reporting.
+JSON provides machine-readable output with full analysis metadata, suitable for processing by other tools or scripts. PDF produces a readable report that begins with the overall score, grade, and risk level, then shows a feature summary line (counts by HTML, CSS, and JS plus critical issues), a browser compatibility table with per-browser supported, partial, and unsupported counts, a key compatibility issues list, baseline availability counts (widely available, newly available, limited, unknown), recommendations, and a feature inventory that shows per-browser support indicators for every detected feature with a Baseline column. When AI fix suggestions are available, the PDF also includes a section with the suggestion text and code examples. SARIF 2.1.0~\cite{sarif210} integrates with GitHub Code Scanning, allowing compatibility issues to appear as inline annotations in pull requests. JUnit XML is compatible with CI systems such as Jenkins for test reporting.
 
 Each exporter receives an analysis report object and writes the formatted output to a file. The SARIF format is especially useful in automated workflows because GitHub recognizes it natively and can display compatibility issues directly inside pull request reviews.
 

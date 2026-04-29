@@ -155,13 +155,7 @@ python -m src.cli.main init-ci -p github
 rc=$?; echo ""; echo "Exit code: $rc"; echo ""
 
 echo "============================================"
-echo "24. INIT-CI: GITLAB"
-echo "============================================"
-python -m src.cli.main init-ci -p gitlab
-rc=$?; echo ""; echo "Exit code: $rc"; echo ""
-
-echo "============================================"
-echo "25. INIT-HOOKS: PRE-COMMIT"
+echo "24. INIT-HOOKS: PRE-COMMIT"
 echo "============================================"
 python -m src.cli.main init-hooks -t pre-commit
 rc=$?; echo ""; echo "Exit code: $rc"; echo ""

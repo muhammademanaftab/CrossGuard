@@ -365,7 +365,7 @@ python -m src.cli.main update-db
 
 \subsection{CI and Automation Support}
 
-One of the main advantages of the CLI is that it can be integrated into automated development workflows. Cross Guard includes commands that generate configuration files for continuous integration platforms or Git hooks. The \texttt{init-ci} command creates example workflow configurations for platforms such as GitHub Actions or GitLab CI. Figure~\ref{fig:cli-initci} shows the command generating a GitHub Actions workflow file.
+One of the main advantages of the CLI is that it can be integrated into automated development workflows. Cross Guard includes commands that generate configuration files for continuous integration platforms or Git hooks. The \texttt{init-ci} command creates example workflow configurations for platforms such as GitHub Actions. Figure~\ref{fig:cli-initci} shows the command generating a GitHub Actions workflow file.
 
 \begin{figure}[H]
     \centering
@@ -378,7 +378,6 @@ In addition, the \texttt{init-hooks} command generates Git pre-commit hooks that
 
 \begin{lstlisting}[caption={Generate CI workflow files and Git pre-commit hooks}, label=src:ci-automation, basicstyle=\ttfamily\small]
 python -m src.cli.main init-ci --provider github
-python -m src.cli.main init-ci --provider gitlab
 python -m src.cli.main init-hooks --type pre-commit
 \end{lstlisting}
 

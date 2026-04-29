@@ -583,7 +583,7 @@ def update_db(check_only):
 
 @cli.command('init-ci')
 @click.option('--provider', '-p', required=True,
-              type=click.Choice(['github', 'gitlab']),
+              type=click.Choice(['github']),
               help='CI provider to generate config for.')
 def init_ci(provider):
     """Generate a ready-to-use CI workflow configuration."""
