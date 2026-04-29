@@ -238,10 +238,12 @@ class HTMLParser:
         elements_with_srcset = soup.find_all(attrs={'srcset': True})
         if elements_with_srcset:
             self.features_found.add('srcset')
+            self._add_match('srcset', 'attributes', 'srcset')
 
         elements_with_sizes = soup.find_all(attrs={'sizes': True})
         if elements_with_sizes:
             self.features_found.add('srcset')  # Same feature
+            self._add_match('srcset', 'attributes', 'sizes')
 
         # <picture> with <source> children
         pictures = soup.find_all('picture')
@@ -249,6 +251,7 @@ class HTMLParser:
             sources = picture.find_all('source')
             if sources:
                 self.features_found.add('picture')
+                self._add_match('picture', 'elements', '<picture>')
 
         # data-* attributes
         all_elements = soup.find_all()
@@ -256,6 +259,9 @@ class HTMLParser:
             for attr in element.attrs:
                 if attr.startswith('data-'):
                     self.features_found.add('dataset')
+                    # Record the matched attr so feature_details (and the PDF
+                    # inventory) include this feature instead of dropping it.
+                    self._add_match('dataset', 'attributes', attr)
                     break
 
         # Script loading attributes
@@ -263,10 +269,13 @@ class HTMLParser:
         for script in scripts:
             if script.get('async') is not None:
                 self.features_found.add('script-async')
+                self._add_match('script-async', 'attributes', 'async')
             if script.get('defer') is not None:
                 self.features_found.add('script-defer')
+                self._add_match('script-defer', 'attributes', 'defer')
             if script.get('type') == 'module':
                 self.features_found.add('es6-module')
+                self._add_match('es6-module', 'values', 'type="module"')
 
         # Link rel values (preload, prefetch, etc.)
         links = soup.find_all('link')
@@ -279,19 +288,25 @@ class HTMLParser:
                 rel_lower = rel_value.lower()
                 if rel_lower == 'preload':
                     self.features_found.add('link-rel-preload')
+                    self._add_match('link-rel-preload', 'values', 'rel="preload"')
                 elif rel_lower == 'prefetch':
                     self.features_found.add('link-rel-prefetch')
+                    self._add_match('link-rel-prefetch', 'values', 'rel="prefetch"')
                 elif rel_lower == 'dns-prefetch':
                     self.features_found.add('link-rel-dns-prefetch')
+                    self._add_match('link-rel-dns-prefetch', 'values', 'rel="dns-prefetch"')
                 elif rel_lower == 'preconnect':
                     self.features_found.add('link-rel-preconnect')
+                    self._add_match('link-rel-preconnect', 'values', 'rel="preconnect"')
                 elif rel_lower == 'modulepreload':
                     self.features_found.add('link-rel-modulepreload')
+                    self._add_match('link-rel-modulepreload', 'values', 'rel="modulepreload"')
 
         # Meta theme-color
         theme_color_meta = soup.find('meta', attrs={'name': 'theme-color'})
         if theme_color_meta:
             self.features_found.add('meta-theme-color')
+            self._add_match('meta-theme-color', 'values', 'name="theme-color"')
 
         self._detect_svg_in_img(soup)
         self._detect_svg_fragments(soup)
@@ -312,12 +327,14 @@ class HTMLParser:
             src = img.get('src', '')
             if svg_pattern.search(src):
                 self.features_found.add('svg-img')
+                self._add_match('svg-img', 'values', f'src="{src}"')
                 return
 
         for source in soup.find_all('source'):
             srcset = source.get('srcset', '')
             if svg_pattern.search(srcset):
                 self.features_found.add('svg-img')
+                self._add_match('svg-img', 'values', f'srcset="{srcset}"')
                 return
 
     def _detect_svg_fragments(self, soup: BeautifulSoup):
@@ -326,6 +343,7 @@ class HTMLParser:
             href = use.get('href', '') or use.get('xlink:href', '')
             if '#' in href:
                 self.features_found.add('svg-fragment')
+                self._add_match('svg-fragment', 'values', f'href="{href}"')
                 return
 
         fragment_pattern = re.compile(r'\.svg#\w+', re.IGNORECASE)
@@ -334,6 +352,7 @@ class HTMLParser:
             for attr_value in element.attrs.values():
                 if isinstance(attr_value, str) and fragment_pattern.search(attr_value):
                     self.features_found.add('svg-fragment')
+                    self._add_match('svg-fragment', 'values', attr_value)
                     return
 
     def _detect_media_fragments(self, soup: BeautifulSoup):
@@ -344,12 +363,14 @@ class HTMLParser:
             src = media.get('src', '')
             if fragment_pattern.search(src):
                 self.features_found.add('media-fragments')
+                self._add_match('media-fragments', 'values', f'src="{src}"')
                 return
 
             for source in media.find_all('source'):
                 src = source.get('src', '')
                 if fragment_pattern.search(src):
                     self.features_found.add('media-fragments')
+                    self._add_match('media-fragments', 'values', f'src="{src}"')
                     return
 
     def _detect_custom_elements(self, soup: BeautifulSoup):
@@ -363,12 +384,14 @@ class HTMLParser:
                                'color-profile', 'glyph-ref'}
                 if element.name.lower() not in svg_elements:
                     self.features_found.add('custom-elementsv1')
+                    self._add_match('custom-elementsv1', 'elements', f'<{element.name}>')
                     return
 
     def _detect_fieldset_disabled(self, soup: BeautifulSoup):
         for fieldset in soup.find_all('fieldset'):
             if fieldset.has_attr('disabled'):
                 self.features_found.add('fieldset-disabled')
+                self._add_match('fieldset-disabled', 'attributes', 'disabled')
                 return
 
     def _detect_track_elements(self, soup: BeautifulSoup):
@@ -376,11 +399,13 @@ class HTMLParser:
             tracks = video.find_all('track')
             if tracks:
                 self.features_found.add('videotracks')
+                self._add_match('videotracks', 'elements', '<video><track></video>')
 
         for audio in soup.find_all('audio'):
             tracks = audio.find_all('track')
             if tracks:
                 self.features_found.add('audiotracks')
+                self._add_match('audiotracks', 'elements', '<audio><track></audio>')
 
     def _detect_webvtt(self, soup: BeautifulSoup):
         vtt_pattern = re.compile(r'\.vtt(\?.*)?$', re.IGNORECASE)
@@ -389,6 +414,7 @@ class HTMLParser:
             src = track.get('src', '')
             if vtt_pattern.search(src):
                 self.features_found.add('webvtt')
+                self._add_match('webvtt', 'values', f'src="{src}"')
                 return
 
     def _detect_data_uris(self, soup: BeautifulSoup):
@@ -398,12 +424,14 @@ class HTMLParser:
         for attr in url_attrs:
             for element in soup.find_all(attrs={attr: data_uri_pattern}):
                 self.features_found.add('datauri')
+                self._add_match('datauri', 'attributes', attr)
                 return
 
         for element in soup.find_all(attrs={'srcset': True}):
             srcset = element.get('srcset', '')
             if 'data:' in srcset:
                 self.features_found.add('datauri')
+                self._add_match('datauri', 'values', 'srcset with data: URI')
                 return
 
     def _detect_xhtml(self, soup: BeautifulSoup):
@@ -412,6 +440,7 @@ class HTMLParser:
             xmlns = html_elem.get('xmlns', '')
             if 'xhtml' in xmlns.lower():
                 self.features_found.add('xhtml')
+                self._add_match('xhtml', 'values', f'xmlns="{xmlns}"')
 
     def _find_unrecognized_patterns(self, soup: BeautifulSoup):
         all_elements = soup.find_all()

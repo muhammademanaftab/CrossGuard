@@ -904,7 +904,8 @@ JS_API_FEATURES = {
         'description': 'CSS Font Loading'
     },
     'form-attribute': {
-        'patterns': [r'form\s*=', r'\.form\b'],
+        # \b at the start avoids false positives from "transform=", "informed", etc.
+        'patterns': [r'\bform\s*=', r'\.form\b'],
         'keywords': ['form attribute'],
         'description': 'Form attribute'
     },
