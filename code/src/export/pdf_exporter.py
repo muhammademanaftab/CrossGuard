@@ -141,6 +141,20 @@ def export_pdf(report: Dict, output_path: str) -> str:
             entries = fd.get(key) or []
             if not entries:
                 continue
+            # Dedupe by feature ID — feature_details contains one entry per
+            # detection, so a feature used in multiple files would otherwise
+            # appear in the inventory multiple times. The GUI counts unique
+            # features only, so the PDF should match.
+            seen_ids = set()
+            unique_entries = []
+            for e in entries:
+                fid = e.get("feature", "")
+                if fid and fid not in seen_ids:
+                    seen_ids.add(fid)
+                    unique_entries.append(e)
+            entries = unique_entries
+            if not entries:
+                continue
             story.append(Spacer(1, 6))
             story.append(Paragraph(f"{label} ({len(entries)})", styles["Heading3"]))
             header = ["Feature"] + [ltr for _, ltr in browser_cols] + ["Baseline"]

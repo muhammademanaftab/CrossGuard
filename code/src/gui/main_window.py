@@ -510,7 +510,7 @@ class MainWindow(ctk.CTkFrame):
                         ctk.CTkLabel(frame, text="No version history needed.",
                                      font=ctk.CTkFont(size=10), text_color=COLORS['text_muted']).pack(anchor="w")
                         return frame
-                    for fid in problem_feats[:8]:
+                    for fid in problem_feats:
                         ranges = self._analyzer_service.get_version_ranges(fid, b_name)
                         if not ranges:
                             continue
