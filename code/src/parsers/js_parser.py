@@ -325,6 +325,7 @@ class JavaScriptParser:
         self.feature_details = []
         self.unrecognized_patterns = set()
         self._matched_apis = set()
+        self._shadowed_names: Set[str] = set()
 
         self._detect_directives(js_content)
         self._detect_event_listeners(js_content)
@@ -589,27 +590,27 @@ class JavaScriptParser:
                 stack.append(child)
 
     def _detect_ast_api_features(self, root_node, source_bytes: bytes):
+        self._shadowed_names = self._collect_top_level_declarations(root_node, source_bytes)
+
         stack = [root_node]
         while stack:
             node = stack.pop()
             node_type = node.type
 
-            # new Expression: new Promise(...), new Worker(...), etc.
             if node_type == 'new_expression':
                 constructor = node.child_by_field_name('constructor')
                 if constructor:
                     name = source_bytes[constructor.start_byte:constructor.end_byte].decode('utf-8', errors='replace')
-                    if name in AST_NEW_EXPRESSION_MAP:
+                    if name not in self._shadowed_names and name in AST_NEW_EXPRESSION_MAP:
                         feature_id = AST_NEW_EXPRESSION_MAP[name]
                         self._add_ast_feature(feature_id, f'new {name}', feature_id)
 
-            # Call expressions: fetch(), requestAnimationFrame(), obj.method()
             elif node_type == 'call_expression':
                 func_node = node.child_by_field_name('function')
                 if func_node:
                     func_text = source_bytes[func_node.start_byte:func_node.end_byte].decode('utf-8', errors='replace')
 
-                    if func_text in AST_CALL_EXPRESSION_MAP:
+                    if func_text not in self._shadowed_names and func_text in AST_CALL_EXPRESSION_MAP:
                         feature_id = AST_CALL_EXPRESSION_MAP[func_text]
                         self._add_ast_feature(feature_id, f'{func_text}()', feature_id)
 
@@ -619,6 +620,10 @@ class JavaScriptParser:
                         if obj_node and prop_node:
                             obj_text = source_bytes[obj_node.start_byte:obj_node.end_byte].decode('utf-8', errors='replace')
                             prop_text = source_bytes[prop_node.start_byte:prop_node.end_byte].decode('utf-8', errors='replace')
+
+                            if prop_text == 'includes':
+                                self._detect_includes_by_receiver(obj_node)
+
                             member_key = f'{obj_text}.{prop_text}'
                             if member_key in AST_MEMBER_EXPRESSION_MAP:
                                 feature_id = AST_MEMBER_EXPRESSION_MAP[member_key]
@@ -641,15 +646,48 @@ class JavaScriptParser:
                             feature_id = AST_MEMBER_EXPRESSION_MAP[member_key]
                             self._add_ast_feature(feature_id, member_key, feature_id)
 
-            # Standalone identifiers: SharedArrayBuffer, ReadableStream, etc.
             elif node_type == 'identifier':
                 name = source_bytes[node.start_byte:node.end_byte].decode('utf-8', errors='replace')
-                if name in AST_IDENTIFIER_MAP:
+                if name not in self._shadowed_names and name in AST_IDENTIFIER_MAP:
                     feature_id = AST_IDENTIFIER_MAP[name]
                     self._add_ast_feature(feature_id, name, feature_id)
 
             for child in node.children:
                 stack.append(child)
+
+    def _collect_top_level_declarations(self, root_node, source_bytes: bytes) -> Set[str]:
+        declared: Set[str] = set()
+
+        def name_of(node):
+            name_node = node.child_by_field_name('name')
+            if name_node is None:
+                return None
+            return source_bytes[name_node.start_byte:name_node.end_byte].decode('utf-8', errors='replace')
+
+        for child in root_node.children:
+            t = child.type
+            if t in ('function_declaration', 'class_declaration', 'generator_function_declaration'):
+                n = name_of(child)
+                if n:
+                    declared.add(n)
+            elif t in ('lexical_declaration', 'variable_declaration'):
+                for sub in child.children:
+                    if sub.type == 'variable_declarator':
+                        n = name_of(sub)
+                        if n:
+                            declared.add(n)
+
+        return declared
+
+    def _detect_includes_by_receiver(self, obj_node) -> None:
+        receiver_type = obj_node.type
+        if receiver_type == 'array':
+            self._add_ast_feature('array-includes', '.includes', 'Array.includes')
+        elif receiver_type in ('string', 'template_string'):
+            self._add_ast_feature('es6-string-includes', '.includes', 'String.includes')
+        else:
+            self._add_ast_feature('array-includes', '.includes', 'Array.includes')
+            self._add_ast_feature('es6-string-includes', '.includes', 'String.includes')
 
     def _build_matchable_text_from_ast(self, root_node, source_bytes: bytes) -> str:
         # Comments → spaces (preserving line structure), strings → empty delimiters, template literals → backticks with ${x} markers.
@@ -749,6 +787,8 @@ class JavaScriptParser:
             feature_found = False
 
             for pattern in patterns:
+                if self._pattern_uses_shadowed_name(pattern):
+                    continue
                 try:
                     if re.search(pattern, js_content):
                         feature_found = True
@@ -774,6 +814,13 @@ class JavaScriptParser:
                     for part in parts:
                         if part:
                             self._matched_apis.add(part)
+
+    def _pattern_uses_shadowed_name(self, pattern: str) -> bool:
+        if not self._shadowed_names:
+            return False
+        cleaned = re.sub(r'\\[bsSdDwWrn]', ' ', pattern)
+        tokens = set(re.findall(r'[a-zA-Z_][a-zA-Z0-9_]*', cleaned))
+        return bool(tokens & self._shadowed_names)
 
     def _extract_api_name(self, pattern: str) -> str:
         cleaned = pattern.replace('\\b', '').replace('\\s*', '').replace('\\s+', ' ')

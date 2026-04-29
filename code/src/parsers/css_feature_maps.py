@@ -111,8 +111,8 @@ CSS_COLOR_BACKGROUND = {
         'description': 'Background-clip: text'
     },
     'css-filter-function': {
-        'patterns': [r'filter\s*:', r'blur\(', r'brightness\(', r'contrast\(', r'grayscale\('],
-        'keywords': ['filter', 'blur', 'brightness'],
+        'patterns': [r'(?<![-\w])filter\s*:'],
+        'keywords': ['filter'],
         'description': 'CSS Filter Effects'
     },
     'css-backdrop-filter': {
@@ -888,7 +888,7 @@ CSS_ADDITIONAL_1 = {
         'description': 'CSS Exclusions Level 1'
     },
     'css-filters': {
-        'patterns': [r'filter\s*:'],
+        'patterns': [r'(?<![-\w])filter\s*:'],
         'keywords': ['filter'],
         'description': 'CSS Filter Effects'
     },

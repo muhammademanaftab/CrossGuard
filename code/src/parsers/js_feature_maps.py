@@ -994,7 +994,7 @@ JS_ARRAY_METHODS = {
         'description': 'Array.flat/flatMap'
     },
     'array-includes': {
-        'patterns': [r'\.includes\s*\('],
+        'patterns': [],
         'keywords': ['.includes'],
         'description': 'Array.includes'
     },
@@ -1009,7 +1009,7 @@ JS_ARRAY_METHODS = {
 
 JS_STRING_METHODS = {
     'es6-string-includes': {
-        'patterns': [r'\.includes\s*\('],
+        'patterns': [],
         'keywords': ['.includes'],
         'description': 'String.includes'
     },
