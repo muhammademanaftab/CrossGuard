@@ -624,6 +624,9 @@ class JavaScriptParser:
                             if prop_text == 'includes':
                                 self._detect_includes_by_receiver(obj_node)
 
+                            if prop_text == 'addEventListener':
+                                self._detect_event_listener_type(node, source_bytes)
+
                             member_key = f'{obj_text}.{prop_text}'
                             if member_key in AST_MEMBER_EXPRESSION_MAP:
                                 feature_id = AST_MEMBER_EXPRESSION_MAP[member_key]
@@ -688,6 +691,48 @@ class JavaScriptParser:
         else:
             self._add_ast_feature('array-includes', '.includes', 'Array.includes')
             self._add_ast_feature('es6-string-includes', '.includes', 'String.includes')
+
+    # Map well-known event-type strings (case-sensitive — DOM events are case-sensitive)
+    # to the caniuse feature each one represents. These can't be detected by regex
+    # patterns alone because the parser strips string contents before regex-matching,
+    # so we look at the AST first-argument string while it's still intact.
+    _EVENT_TYPE_FEATURE_MAP = {
+        'input': 'input-event',
+        'DOMContentLoaded': 'domcontentloaded',
+        'hashchange': 'hashchange',
+        'auxclick': 'auxclick',
+        'online': 'online-status',
+        'offline': 'online-status',
+        'focusin': 'focusin-focusout-events',
+        'focusout': 'focusin-focusout-events',
+    }
+
+    def _detect_event_listener_type(self, call_node, source_bytes: bytes) -> None:
+        args_node = call_node.child_by_field_name('arguments')
+        if args_node is None:
+            return
+        first_arg = None
+        for child in args_node.children:
+            if child.type in ('(', ',', ')'):
+                continue
+            first_arg = child
+            break
+        if first_arg is None:
+            return
+        if first_arg.type not in ('string', 'template_string'):
+            return
+        # Extract the literal content between the quotes/backticks. For a simple
+        # string like "input" the slice is straightforward; template literals
+        # with ${expr} interpolation are skipped because their value isn't static.
+        text = source_bytes[first_arg.start_byte:first_arg.end_byte].decode('utf-8', errors='replace')
+        if len(text) < 2:
+            return
+        if first_arg.type == 'template_string' and '${' in text:
+            return
+        event_name = text[1:-1]
+        feature_id = self._EVENT_TYPE_FEATURE_MAP.get(event_name)
+        if feature_id is not None:
+            self._add_ast_feature(feature_id, f'.addEventListener("{event_name}")', feature_id)
 
     def _build_matchable_text_from_ast(self, root_node, source_bytes: bytes) -> str:
         # Comments → spaces (preserving line structure), strings → empty delimiters, template literals → backticks with ${x} markers.

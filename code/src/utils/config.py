@@ -16,7 +16,10 @@ WEB_FEATURES_URL = "https://unpkg.com/web-features/data.json"
 WEB_FEATURES_CACHE_DIR = Path.home() / ".crossguard"
 WEB_FEATURES_CACHE_PATH = WEB_FEATURES_CACHE_DIR / "web_features.json"
 
-LATEST_VERSIONS = {
+# Hardcoded fallback used only when the Can I Use database can't be read.
+# Real defaults are computed from the live database below so GUI and CLI
+# always agree on "latest" — both sources read from data/caniuse/data.json.
+_LATEST_VERSIONS_FALLBACK = {
     'chrome': '144',
     'firefox': '146',
     'safari': '18.4',
@@ -24,6 +27,32 @@ LATEST_VERSIONS = {
     'ie': '11',
     'opera': '122'
 }
+
+
+def _load_latest_versions_from_caniuse() -> dict:
+    try:
+        import json
+        with open(CANIUSE_DB_PATH) as f:
+            data = json.load(f)
+        agents = data.get('agents', {})
+        result = {}
+        for browser_id in _LATEST_VERSIONS_FALLBACK.keys():
+            agent = agents.get(browser_id)
+            if not agent:
+                continue
+            versions = agent.get('versions', [])
+            valid = [v for v in versions if v]
+            if valid:
+                result[browser_id] = valid[-1]
+        # Fill any browser the DB didn't cover with the hardcoded fallback
+        for k, v in _LATEST_VERSIONS_FALLBACK.items():
+            result.setdefault(k, v)
+        return result
+    except Exception:
+        return dict(_LATEST_VERSIONS_FALLBACK)
+
+
+LATEST_VERSIONS = _load_latest_versions_from_caniuse()
 
 LOG_LEVEL = os.environ.get('CROSSGUARD_LOG_LEVEL', 'INFO').upper()
 LOG_FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'

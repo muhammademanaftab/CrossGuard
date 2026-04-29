@@ -1,4 +1,6 @@
 // Data Variables
+// caniuse: let          (block-scoped `let` declarations)
+// caniuse: queryselector (document.querySelector / querySelectorAll)
 let container_menu = document.querySelector(".container-menu");
 let game_start = document.querySelector(".start_game");
 let rules_btn = document.querySelector("#rules");
@@ -7,6 +9,7 @@ let back_btn_rules = document.querySelector(".back-btn");
 let backgame_btn = document.querySelector(".backgame-btn")
 let start_btn = document.querySelector("#start");
 let timerDisplay = document.querySelector(".time");
+// caniuse: const  (block-scoped `const` declarations — ES6)
 const playerNameInput = document.querySelector("#playerNameInput");
 const easyButton = document.querySelector(".btn.easy");
 const hardButton = document.querySelector(".btn.hard");
@@ -36,9 +39,11 @@ function startTimer() {
         const elapsedTime = new Date() - startTime;
         const seconds = Math.floor((elapsedTime / 1000) % 60);
         const minutes = Math.floor((elapsedTime / 1000 / 60) % 60);
+        // caniuse: textcontent  (Node.textContent — read/write text of a node)
         timerDisplay.textContent = formatTime(minutes) + ':' + formatTime(seconds);
 
         const isWin = checkWinCondition(getCurrentBoardLayout());
+        // caniuse: console-basic  (console.log / console.error / console.warn / console.info)
         console.log("Win Condition Check:", isWin);
         if (isWin) {
             stopTimer();
@@ -183,10 +188,12 @@ function getRandomLayout() {
 // Message box jo ke game ke doran msg dega
 const messageBox = document.querySelector("#messageBox");
 function showMessage(message) {
+    // caniuse: innertext  (HTMLElement.innerText — render-aware text accessor)
     messageBox.innerText = message;
     messageBox.style.display = "block";
+    // caniuse: arrow-functions  (() => {...} fat-arrow function expressions — ES6)
     setTimeout(() => {
-        messageBox.style.display = "none"; 
+        messageBox.style.display = "none";
     }, 3000);
 }
 
@@ -205,6 +212,7 @@ function populateGameBoard(layout) {
 
     gameBoard.innerHTML = '';
 
+    // caniuse: es5  (ES5 array iteration methods — forEach / map / filter / reduce / some / every)
     layout.forEach((rowData, rowIndex) => {
         const row = document.createElement('tr');
         rowData.forEach((tile, colIndex) => {
@@ -213,11 +221,13 @@ function populateGameBoard(layout) {
             const imgElement = document.createElement('img');
             imgElement.src = tileData.src;
             imgElement.alt = tileData.name;
+            // caniuse: template-literals  (`backtick strings` with ${expression} interpolation — ES6)
             imgElement.style.transform = `rotate(${tile.angle}deg)`;
             cell.appendChild(imgElement);
             row.appendChild(cell);
 
 
+            // caniuse: addeventlistener  (EventTarget.addEventListener — DOM Level 2 events)
             imgElement.addEventListener('contextmenu', function (event) {
                 event.preventDefault(); 
                 restoreTileIfDifferent(rowIndex, colIndex, imgElement);
@@ -297,6 +307,7 @@ function setupDragPlacement(cell, rowIndex, colIndex) {
         }
     });
 
+    // caniuse: dragndrop  (HTML5 Drag-and-Drop — dragstart/dragover/drop events + dataTransfer + draggable attr)
     cell.addEventListener("dragover", function (event) {
         event.preventDefault();
     });
@@ -369,6 +380,8 @@ function getCurrentBoardLayout() {
         return Array.from(cells).map(cell => {
             const img = cell.querySelector('img');
             if (img) {
+                // caniuse: es6-string-includes  (String.prototype.includes — `someString.includes("substring")`)
+                // caniuse: array-find           (Array.prototype.find — `arr.find(x => predicate)`)
                 const type = img.alt.includes("rail") ? img.alt : Object.keys(mapData).find(key => mapData[key].name === img.alt) || "empty";
                 const angleMatch = img.style.transform.match(/rotate\((\d+)deg\)/);
                 const angle = angleMatch ? parseInt(angleMatch[1], 10) % 360 : 0;
@@ -476,6 +489,7 @@ function areRailsConnected(boardLayout) {
             console.log(`Checking connections for rail at (${i}, ${j}) with type: ${tile.type} and angle: ${tile.angle}`);
             console.log(`Current tile connections: ${connections.join(', ')}`);
 
+            // caniuse: array-includes  (Array.prototype.includes — `arr.includes(value)`. Distinct caniuse entry from String.includes.)
             if (connections.includes("top") && i > 0) {
                 const topTile = boardLayout[i - 1][j];
                 if (topTile && railProperties[topTile.type] && railProperties[topTile.type][topTile.angle]) {
@@ -568,11 +582,13 @@ function resetEverything() {
     insideName.textContent = "Player";
     timerDisplay.textContent = "00:00";
 
+    // caniuse: classlist  (Element.classList — add / remove / toggle / contains methods)
     easyButton.classList.remove("selected");
     hardButton.classList.remove("selected");
 
     stopTimer();
 
+    // caniuse: namevalue-storage  (Web Storage — localStorage / sessionStorage with getItem/setItem/removeItem)
     localStorage.removeItem("savedGameState");
     localStorage.removeItem("originalLayout");
     localStorage.removeItem("playerName");
@@ -628,6 +644,7 @@ paletteImages.forEach((img, index) => {
 
 // function to handle arrow events, aroow keys ka use karna hai, yeh function os liay ha
 document.addEventListener("keydown", (event) => {
+    // caniuse: keyboardevent-key  (KeyboardEvent.key — modern named-key property like "ArrowDown", "Enter")
     if (event.key === "ArrowDown") {
         currentPaletteIndex = (currentPaletteIndex + 1) % paletteImages.length;
     }else if (event.key === "ArrowUp") {
@@ -657,6 +674,7 @@ function displayWinAnimation(minutes, seconds) {
         const playerName = document.querySelector("#playerNameInput").value.trim() || "Player";
         const time = formatTime(minutes) + ":" + formatTime(seconds);
 
+        // caniuse: json  (built-in JSON object — JSON.parse / JSON.stringify)
         const leaderboard = JSON.parse(localStorage.getItem("leaderboard")) || [];
 
         leaderboard.push({ name: playerName, time: time, difficulty: selectedDifficulty });
@@ -704,9 +722,10 @@ function displayLeaderboard() {
     });
 
     groupedScores["5x5"].sort((a, b) => {
+        // caniuse: es6  (ES6 destructuring assignment — `const [a, b] = array` / `const {x, y} = obj`)
         const [aMinutes, aSeconds] = a.time.split(":").map(Number);
         const [bMinutes, bSeconds] = b.time.split(":").map(Number);
-        return aMinutes * 60 + aSeconds - (bMinutes * 60 + bSeconds); 
+        return aMinutes * 60 + aSeconds - (bMinutes * 60 + bSeconds);
     });
 
     groupedScores["7x7"].sort((a, b) => {
@@ -833,6 +852,10 @@ back_btn_rules.addEventListener("click", function () {
     instructions.hidden = true;
 });
 
+// caniuse: input-event  (the `input` event on <input>/<select>/<textarea> — distinct from `change`)
+//   Note: this is a CURRENT PARSER BLIND SPOT. The pattern that detects it
+//   needs the literal "input" inside the addEventListener call, but the JS
+//   parser strips string contents before regex-matching, so the parser misses it.
 playerNameInput.addEventListener("input", () => {
     const playerName = playerNameInput.value.trim();
     if (playerName) {
