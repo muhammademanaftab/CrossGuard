@@ -1,0 +1,255 @@
+/*
+  Heavy custom-rules test file.
+
+  This CSS file is designed to exercise every custom rule defined in
+  src/parsers/custom_rules.json. Each section is labeled with the
+  custom rule ID it should trigger.
+
+  Run:
+    python3 -m src.cli.main analyze examples/test_fixtures/heavy_custom_test.css --format table
+
+  Expected custom features in the report (alongside any built-in rules
+  that also fire):
+    test-container-queries
+    test-view-transitions
+    css-grid-lanes
+    test-color-mix-fn
+    test-light-dark-fn
+    test-starting-style
+    test-field-sizing
+    test-popover-open-pseudo
+    test-user-valid-invalid
+    test-anchor-fn
+    test-relative-color
+    test-position-try
+    test-css-nesting
+*/
+
+/* ============================================================
+   Custom rule: test-container-queries
+   Triggered by: @container, container-type, container-name
+   ============================================================ */
+.card-host {
+    container-type: inline-size;
+    container-name: card;
+}
+
+@container card (min-width: 400px) {
+    .card-content { font-size: 1.25rem; }
+}
+
+/* ============================================================
+   Custom rule: test-view-transitions
+   Triggered by: view-transition-name, ::view-transition*
+   ============================================================ */
+.hero-image {
+    view-transition-name: hero;
+}
+
+::view-transition-old(hero) {
+    animation: fade-out 0.4s ease-in;
+}
+::view-transition-new(hero) {
+    animation: fade-in 0.4s ease-out;
+}
+
+/* ============================================================
+   Custom rule: css-grid-lanes
+   Triggered by: the substring "masonry"
+   ============================================================ */
+.gallery {
+    display: grid;
+    grid-template-rows: masonry;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+}
+
+/* ============================================================
+   Custom rule: test-color-mix-fn
+   Triggered by: color-mix(...)
+   ============================================================ */
+.mixed {
+    background: color-mix(in srgb, red 60%, blue);
+    border-color: color-mix(in oklch, var(--brand) 70%, white);
+    outline-color: color-mix(in lab, currentColor, transparent 50%);
+}
+
+/* ============================================================
+   Custom rule: test-light-dark-fn
+   Triggered by: light-dark(...)
+   ============================================================ */
+:root {
+    color-scheme: light dark;
+}
+
+.adaptive {
+    color: light-dark(black, white);
+    background: light-dark(#ffffff, #1a1a1a);
+    border-color: light-dark(#ddd, #333);
+}
+
+/* ============================================================
+   Custom rule: test-starting-style
+   Triggered by: @starting-style
+   ============================================================ */
+.toast {
+    transition: opacity 300ms;
+    opacity: 1;
+}
+
+@starting-style {
+    .toast {
+        opacity: 0;
+    }
+}
+
+/* ============================================================
+   Custom rule: test-field-sizing
+   Triggered by: field-sizing: ...
+   ============================================================ */
+input,
+textarea,
+select {
+    field-sizing: content;
+}
+
+.text-input {
+    field-sizing: fixed;
+}
+
+/* ============================================================
+   Custom rule: test-popover-open-pseudo
+   Triggered by: :popover-open
+   ============================================================ */
+.popover {
+    opacity: 0;
+    transition: opacity 200ms;
+}
+
+.popover:popover-open {
+    opacity: 1;
+}
+
+dialog:popover-open {
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+}
+
+/* ============================================================
+   Custom rule: test-user-valid-invalid
+   Triggered by: :user-valid, :user-invalid
+   ============================================================ */
+input:user-valid {
+    border-color: green;
+    background: #f0fff0;
+}
+
+input:user-invalid {
+    border-color: red;
+    background: #fff0f0;
+}
+
+textarea:user-invalid + .error-message {
+    display: block;
+}
+
+/* ============================================================
+   Custom rule: test-anchor-fn
+   Triggered by: anchor(--name)
+   ============================================================ */
+.target {
+    anchor-name: --my-anchor;
+}
+
+.tooltip {
+    position: absolute;
+    top: anchor(--my-anchor bottom);
+    left: anchor(--my-anchor center);
+    width: anchor-size(--my-anchor inline);
+}
+
+/* ============================================================
+   Custom rule: test-relative-color
+   Triggered by: rgb(from ...), hsl(from ...), oklch(from ...), etc.
+   ============================================================ */
+.relative-colors {
+    background: rgb(from var(--brand) r g b / 0.5);
+    border-color: hsl(from blue h s calc(l + 20%));
+    color: oklch(from #ff0000 calc(l * 0.8) c h);
+}
+
+/* ============================================================
+   Custom rule: test-position-try
+   Triggered by: @position-try
+   ============================================================ */
+@position-try --bottom-then-top {
+    top: anchor(--btn bottom);
+    bottom: auto;
+}
+
+@position-try --right-then-left {
+    left: anchor(--btn right);
+    right: auto;
+}
+
+.menu {
+    position-try-fallbacks: --bottom-then-top, --right-then-left;
+}
+
+/* ============================================================
+   Custom rule: test-css-nesting
+   Triggered by: native CSS nesting using the & selector
+   ============================================================ */
+.card {
+    padding: 16px;
+    border-radius: 8px;
+
+    & .title {
+        font-weight: bold;
+    }
+
+    & .body {
+        color: var(--text-muted);
+    }
+
+    &:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    &.featured {
+        border: 2px solid gold;
+    }
+}
+
+.button {
+    background: blue;
+
+    &:focus-visible {
+        outline: 2px solid orange;
+    }
+}
+
+/* ============================================================
+   Negative cases — these should NOT trigger any custom rule
+   ============================================================ */
+
+/* Plain CSS that should not match any of the custom rules */
+.plain {
+    color: black;
+    background: white;
+    margin: 16px;
+    padding: 8px;
+    font-size: 14px;
+}
+
+/* A comment mentioning "color-mix", "light-dark", "@starting-style",
+   "field-sizing", ":popover-open", ":user-valid". These should not
+   trigger because comments are stripped. */
+
+/* The string below mentions custom-rule patterns inside content but
+   should not trigger because string contents are stripped before
+   regex matching. */
+.string-host::before {
+    content: "this string mentions color-mix and light-dark and field-sizing but should not trigger";
+}
+
+@keyframes fade-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fade-out { from { opacity: 1; } to { opacity: 0; } }
