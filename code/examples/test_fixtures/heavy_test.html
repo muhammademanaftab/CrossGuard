@@ -1,0 +1,541 @@
+<!DOCTYPE html>
+<!--
+  Heavy HTML parser test file.
+
+  This file exercises a large slice of what the HTML parser can detect.
+  Each section is labeled with the Can I Use feature IDs the parser is
+  expected to add when this file is analyzed.
+
+  Run:
+    python3 -m src.cli.main analyze examples/test_fixtures/heavy_test.html --format table
+
+  Sections cover semantic elements, every input type, multimedia, interactive
+  elements, ARIA, custom elements, popover API, declarative shadow DOM,
+  permissions policy, form validation, loading attributes, drag and drop,
+  pointer/touch events, ruby annotations, tables, meta tags, and several
+  edge cases at the end.
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+
+    <!-- Meta theme color -->
+    <meta name="theme-color" content="#1e293b">
+    <meta name="theme-color" content="#000" media="(prefers-color-scheme: dark)">
+
+    <!-- Viewport / formatters -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+
+    <!-- Web app manifest (offline-apps feature) -->
+    <link rel="manifest" href="/site.webmanifest">
+
+    <!-- Preload, prefetch, preconnect (resource hints) -->
+    <link rel="preload" href="hero.png" as="image">
+    <link rel="prefetch" href="next.css">
+    <link rel="preconnect" href="https://api.example.com">
+    <link rel="dns-prefetch" href="https://cdn.example.com">
+
+    <!-- Alternate (RSS / mobile) -->
+    <link rel="alternate" type="application/rss+xml" title="Feed" href="/feed.xml">
+
+    <!-- Stylesheet with integrity (subresource integrity) -->
+    <link rel="stylesheet" href="style.css"
+          integrity="sha384-abc123"
+          crossorigin="anonymous">
+
+    <!-- Module / nomodule scripts -->
+    <script type="module" src="/app.mjs"></script>
+    <script nomodule src="/legacy.js"></script>
+
+    <!-- Async, defer, blocking attributes -->
+    <script src="/analytics.js" async></script>
+    <script src="/widget.js" defer></script>
+    <script src="/critical.js" blocking="render"></script>
+
+    <title>Heavy HTML Test</title>
+</head>
+<body>
+
+    <!-- ============================================================
+         Section 1: Semantic HTML5 elements
+         Detects: html5semantic
+         ============================================================ -->
+    <header>
+        <nav>
+            <ul>
+                <li><a href="#home">Home</a></li>
+                <li><a href="#about">About</a></li>
+            </ul>
+        </nav>
+    </header>
+
+    <main>
+        <article>
+            <header>
+                <h1>Article Title</h1>
+                <time datetime="2026-04-29">29 April 2026</time>
+            </header>
+
+            <section>
+                <h2>Section heading</h2>
+                <p>Some text with a <mark>highlighted phrase</mark>.</p>
+                <p>An idea that <wbr> can break here if needed.</p>
+            </section>
+
+            <aside>
+                <p>Side comment in an aside.</p>
+            </aside>
+
+            <figure>
+                <img src="diagram.png" alt="A diagram">
+                <figcaption>Fig 1. A diagram of the system.</figcaption>
+            </figure>
+        </article>
+    </main>
+
+    <footer>
+        <small>Copyright 2026.</small>
+    </footer>
+
+    <!-- ============================================================
+         Section 2: Interactive elements
+         Detects: dialog, details, template, menu
+         ============================================================ -->
+
+    <dialog id="confirm-dlg" open>
+        <p>Are you sure?</p>
+        <form method="dialog">
+            <button value="cancel" formmethod="dialog">Cancel</button>
+            <button value="confirm" formmethod="dialog">Confirm</button>
+        </form>
+    </dialog>
+
+    <details open>
+        <summary>Click to expand</summary>
+        <p>Details revealed when expanded.</p>
+    </details>
+
+    <details>
+        <summary>FAQ entry</summary>
+        <p>Another folded section.</p>
+    </details>
+
+    <template id="card-template">
+        <article class="card">
+            <h3 class="card-title"></h3>
+            <p class="card-body"></p>
+        </article>
+    </template>
+
+    <menu>
+        <li><button>Cut</button></li>
+        <li><button>Copy</button></li>
+        <li><button>Paste</button></li>
+    </menu>
+
+    <!-- ============================================================
+         Section 3: Popover API
+         Detects: popover
+         ============================================================ -->
+
+    <button popovertarget="info-popover" popovertargetaction="show">Show info</button>
+    <div id="info-popover" popover="auto">
+        <p>Popover content here.</p>
+        <button popovertarget="info-popover" popovertargetaction="hide">Close</button>
+    </div>
+
+    <!-- ============================================================
+         Section 4: All input types (full coverage)
+         Detects: input-color, input-datetime, input-number, input-range,
+                  input-search, input-email-tel-url, input-file-accept,
+                  form-validation, input-pattern, input-placeholder,
+                  input-minlength, maxlength, input-file-multiple,
+                  input-autocomplete-onoff, autofocus, input-inputmode,
+                  input-enterkeyhint, html-media-capture
+         ============================================================ -->
+
+    <form action="/submit" method="post" enctype="multipart/form-data" novalidate>
+
+        <!-- Text-like inputs -->
+        <label>Plain: <input type="text" name="plain" autocomplete="off"></label>
+        <label>Search: <input type="search" name="q" placeholder="search…"></label>
+        <label>Email: <input type="email" name="email" required autofocus></label>
+        <label>Tel: <input type="tel" name="phone" pattern="[0-9]{10}"></label>
+        <label>URL: <input type="url" name="site"></label>
+        <label>Password: <input type="password" name="pw" minlength="8" maxlength="64"></label>
+
+        <!-- Numeric and ranged -->
+        <label>Number: <input type="number" name="qty" min="0" max="100" step="1"></label>
+        <label>Range: <input type="range" name="vol" min="0" max="11" step="0.1"></label>
+
+        <!-- Date and time variants -->
+        <label>Date: <input type="date" name="d"></label>
+        <label>Datetime: <input type="datetime-local" name="dt"></label>
+        <label>Time: <input type="time" name="t"></label>
+        <label>Month: <input type="month" name="m"></label>
+        <label>Week: <input type="week" name="w"></label>
+
+        <!-- Visual / pickers -->
+        <label>Color: <input type="color" name="c" value="#ff0000"></label>
+
+        <!-- File picker variants -->
+        <label>File: <input type="file" name="upload"></label>
+        <label>Files: <input type="file" name="uploads" multiple accept="image/*"></label>
+        <label>Photo: <input type="file" name="photo" accept="image/*" capture="environment"></label>
+
+        <!-- Other input behaviour -->
+        <label>Read-only: <input type="text" value="locked" readonly></label>
+        <label>Inputmode: <input type="text" inputmode="numeric" enterkeyhint="done"></label>
+
+        <!-- Datalist suggestions -->
+        <label>
+            Country:
+            <input type="text" list="countries" name="country">
+        </label>
+        <datalist id="countries">
+            <option value="Hungary">
+            <option value="Pakistan">
+            <option value="Germany">
+        </datalist>
+
+        <!-- Output element (form output) -->
+        <output name="result" for="vol">10</output>
+
+        <!-- Meter and progress -->
+        <label>Volume: <meter min="0" max="100" value="60" low="20" high="80" optimum="50"></meter></label>
+        <label>Progress: <progress value="0.5" max="1"></progress></label>
+
+        <!-- Submit attributes (form-submit-attributes) -->
+        <button type="submit"
+                formaction="/submit-other"
+                formmethod="post"
+                formenctype="application/x-www-form-urlencoded"
+                formtarget="_blank"
+                formnovalidate>
+            Submit elsewhere
+        </button>
+    </form>
+
+    <!-- Standalone form-attribute usage (input outside its form) -->
+    <input type="text" form="confirm-dlg" name="external">
+
+    <!-- ============================================================
+         Section 5: Multimedia (video, audio, picture, source, track)
+         Detects: video, audio, picture, srcset, webvtt, videotracks,
+                  mpeg4, mp3, webp, capture (already covered)
+         ============================================================ -->
+
+    <picture>
+        <source srcset="hero.avif" type="image/avif">
+        <source srcset="hero.webp" type="image/webp">
+        <source srcset="hero-1x.jpg 1x, hero-2x.jpg 2x" sizes="(max-width: 600px) 100vw, 50vw">
+        <img src="hero.jpg" alt="Hero" width="1200" height="600">
+    </picture>
+
+    <!-- Image with loading, decoding, fetchpriority, sizes, srcset -->
+    <img src="banner.jpg"
+         alt="Banner"
+         loading="lazy"
+         decoding="async"
+         fetchpriority="low"
+         srcset="banner-400.jpg 400w, banner-800.jpg 800w"
+         sizes="100vw">
+
+    <video controls width="640" poster="poster.jpg">
+        <source src="movie.mp4" type="video/mp4">
+        <source src="movie.webm" type="video/webm">
+        <source src="movie.ogv" type="video/ogg">
+        <track src="captions-en.vtt" kind="captions" srclang="en" label="English">
+        <track src="subtitles-de.vtt" kind="subtitles" srclang="de" label="Deutsch">
+        <track src="chapters.vtt" kind="chapters">
+    </video>
+
+    <audio controls preload="metadata">
+        <source src="song.mp3" type="audio/mpeg">
+        <source src="song.ogg" type="audio/ogg">
+        <source src="song.flac" type="audio/flac">
+    </audio>
+
+    <!-- Canvas (canvas feature) -->
+    <canvas id="paint" width="400" height="300"></canvas>
+
+    <!-- SVG (svg feature) -->
+    <svg width="100" height="100" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="50" cy="50" r="40" fill="red" />
+    </svg>
+
+    <!-- ============================================================
+         Section 6: Embedded content (iframe, object, embed, portal)
+         Detects: iframe-sandbox, iframe-srcdoc, permissions-policy,
+                  portals
+         ============================================================ -->
+
+    <iframe src="/embed/widget"
+            srcdoc="<p>Inline document with <strong>HTML</strong></p>"
+            sandbox="allow-scripts allow-same-origin"
+            allow="camera; microphone; geolocation; fullscreen"
+            loading="lazy"
+            width="600" height="400"
+            referrerpolicy="no-referrer">
+    </iframe>
+
+    <object data="document.pdf" type="application/pdf" width="600" height="400">
+        Fallback content if the PDF cannot be displayed.
+    </object>
+
+    <embed src="movie.mp4" type="video/mp4" width="640" height="360">
+
+    <portal id="next-page" src="https://example.com/next"></portal>
+
+    <!-- ============================================================
+         Section 7: Tables
+         Detects: html5semantic (some), table-related
+         ============================================================ -->
+
+    <table>
+        <caption>Sample data</caption>
+        <colgroup>
+            <col span="1">
+            <col span="2" style="background: #eee">
+        </colgroup>
+        <thead>
+            <tr>
+                <th scope="col">Name</th>
+                <th scope="col">Score</th>
+                <th scope="col">Grade</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Alice</td>
+                <td>92</td>
+                <td>A</td>
+            </tr>
+            <tr>
+                <td>Bob</td>
+                <td>78</td>
+                <td>B</td>
+            </tr>
+        </tbody>
+        <tfoot>
+            <tr>
+                <td>Average</td>
+                <td>85</td>
+                <td>—</td>
+            </tr>
+        </tfoot>
+    </table>
+
+    <!-- ============================================================
+         Section 8: Ruby annotations
+         Detects: ruby
+         ============================================================ -->
+
+    <p>Pronunciation:
+        <ruby>
+            漢 <rt>kan</rt>
+            字 <rt>ji</rt>
+        </ruby>
+    </p>
+
+    <!-- ============================================================
+         Section 9: ARIA (wai-aria)
+         Detects: wai-aria
+         ============================================================ -->
+
+    <button aria-label="Close" aria-pressed="false" aria-controls="info-popover">X</button>
+    <div role="alert" aria-live="assertive" aria-atomic="true">Status message</div>
+    <input type="text" aria-describedby="hint" aria-invalid="false">
+    <span id="hint">Helpful hint text</span>
+    <ul role="tablist">
+        <li role="tab" aria-selected="true" tabindex="0">Tab 1</li>
+        <li role="tab" aria-selected="false" tabindex="-1">Tab 2</li>
+    </ul>
+    <div role="tabpanel" aria-labelledby="tab1">Panel content</div>
+
+    <nav aria-label="Breadcrumb">
+        <ol>
+            <li aria-current="page">Current</li>
+        </ol>
+    </nav>
+
+    <!-- ============================================================
+         Section 10: Custom Elements v1 (any hyphenated tag)
+         Detects: custom-elementsv1
+         ============================================================ -->
+
+    <my-card></my-card>
+    <fancy-banner data-theme="dark"></fancy-banner>
+    <super-cool-thing></super-cool-thing>
+
+    <!-- The "is" attribute is also part of Custom Elements v1 -->
+    <p is="my-paragraph">Custom built-in element using the is attribute.</p>
+
+    <!-- ============================================================
+         Section 11: Declarative Shadow DOM
+         Detects: declarative-shadow-dom
+         ============================================================ -->
+
+    <my-card>
+        <template shadowrootmode="open">
+            <style>
+                :host { display: block; padding: 16px; }
+            </style>
+            <slot></slot>
+        </template>
+        <p>Light DOM content projected into the slot.</p>
+    </my-card>
+
+    <!-- ============================================================
+         Section 12: Drag and drop
+         Detects: dragndrop
+         ============================================================ -->
+
+    <ul>
+        <li draggable="true">Draggable A</li>
+        <li draggable="true">Draggable B</li>
+    </ul>
+
+    <!-- Drop zone with inline event handlers (just to exercise attrs) -->
+    <section ondragover="event.preventDefault()" ondrop="event.preventDefault()">
+        Drop area
+    </section>
+
+    <!-- ============================================================
+         Section 13: Inert and hidden
+         Detects: inert, hidden
+         ============================================================ -->
+
+    <section inert>
+        <button>Not focusable</button>
+        <input type="text" placeholder="not editable">
+    </section>
+
+    <div hidden>This content is hidden via the hidden attribute.</div>
+
+    <!-- ============================================================
+         Section 14: Editable / spellcheck / translate
+         Detects: contenteditable, spellcheck-attribute, internationalization
+         ============================================================ -->
+
+    <div contenteditable="true" spellcheck="true" translate="no">
+        Editable region. Spellcheck on. Do not translate.
+    </div>
+
+    <p contenteditable="plaintext-only">Plain text editable.</p>
+
+    <!-- ============================================================
+         Section 15: Pointer / touch event attributes
+         Detects: pointer, touch
+         ============================================================ -->
+
+    <div ontouchstart="onTouch(event)"
+         ontouchmove="onTouch(event)"
+         ontouchend="onTouch(event)">
+        Touchable
+    </div>
+
+    <div onpointerdown="onPointer(event)"
+         onpointermove="onPointer(event)"
+         onpointerup="onPointer(event)"
+         onpointerenter="onPointer(event)"
+         onpointerleave="onPointer(event)">
+        Pointer-aware
+    </div>
+
+    <!-- ============================================================
+         Section 16: Inline event handlers tied to feature IDs
+         Detects: focusin-focusout-events, hashchange, page-transition-events
+         ============================================================ -->
+
+    <input type="text"
+           onfocusin="markFocused()"
+           onfocusout="markUnfocused()">
+
+    <body onhashchange="onHash()" onpageshow="onShow()" onpagehide="onHide()">
+
+    <!-- ============================================================
+         Section 17: Anchor and link attributes
+         Detects: download, ping, ol-reversed
+         ============================================================ -->
+
+    <a href="report.pdf" download="latest-report.pdf">Download report</a>
+    <a href="/track" ping="/analytics?clicked=link">Tracked link</a>
+
+    <ol reversed start="10">
+        <li>Tenth</li>
+        <li>Ninth</li>
+        <li>Eighth</li>
+    </ol>
+
+    <!-- ============================================================
+         Section 18: Maps and image maps (if supported)
+         ============================================================ -->
+
+    <img src="map.png" alt="World" usemap="#worldmap" width="500" height="300">
+    <map name="worldmap">
+        <area shape="rect" coords="0,0,200,150" href="/europe" alt="Europe">
+        <area shape="circle" coords="300,150,50" href="/asia" alt="Asia">
+    </map>
+
+    <!-- ============================================================
+         Section 19: Picture, srcset, sizes (already partly above)
+         Detects: srcset, picture
+         ============================================================ -->
+
+    <img src="thumb.jpg"
+         alt="Thumb"
+         srcset="thumb.jpg 1x, thumb@2x.jpg 2x"
+         loading="eager">
+
+    <!-- ============================================================
+         Section 20: Offline / app cache (manifest)
+         Detects: offline-apps (via the deprecated html manifest attr)
+         ============================================================ -->
+
+    <!-- Deprecated but still detected -->
+    <html manifest="cache.appcache" lang="en"></html>
+
+    <!-- ============================================================
+         Section 21: Form validation summary
+         Already covered, but here is one more constraint-rich form
+         ============================================================ -->
+
+    <form>
+        <input type="text" required minlength="3" maxlength="20" pattern="[A-Za-z]+">
+        <input type="number" required min="1" max="999" step="1">
+        <input type="email" required>
+        <button type="submit">Submit (validated)</button>
+        <button type="submit" formnovalidate>Submit (skip validation)</button>
+    </form>
+
+    <!-- ============================================================
+         Negative cases
+         Plain elements and attributes that should NOT trigger anything
+         beyond what is already detected. Comments and text mentioning
+         feature names should not produce extra detections.
+         ============================================================ -->
+
+    <!-- Comment mentioning <dialog>, <picture>, <video>, srcdoc, popover, inert -->
+
+    <p>
+        This paragraph talks about &lt;dialog&gt;, &lt;video&gt;, &lt;picture&gt;,
+        srcdoc, popover, inert, custom elements, and declarative shadow DOM,
+        but uses none of them.
+    </p>
+
+    <div weirdo="x" not-a-real-attr="y">
+        Plain div with junk attributes that should be reported as
+        unrecognized but should not trigger any feature.
+    </div>
+
+    <!-- A nested SVG element that contains hyphenated names but is excluded -->
+    <svg width="0" height="0">
+        <defs>
+            <font-face></font-face>
+            <missing-glyph></missing-glyph>
+        </defs>
+    </svg>
+
+</body>
+</html>

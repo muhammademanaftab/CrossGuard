@@ -50,7 +50,6 @@ class TestRealWorldScenarios:
         </body></html>
         """
         features = parse_features(html)
-        assert "viewport-units" in features
         assert "meta-theme-color" in features
         assert "link-icon-svg" in features
         assert "html5semantic" in features

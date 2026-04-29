@@ -421,7 +421,7 @@
 ### 02_web_component.html
 
 **Expected custom features:** `custom-elementsv1`
-**Expected built-in features:** `html5semantic`, `dialog`, `details`, `video`, `webm`, `srcset`, `input-email-tel-url`, `input-placeholder`, `form-validation`, `contenteditable`, `wai-aria`, `dataset`, `es6-module`, `link-rel-preload`, `viewport-units`
+**Expected built-in features:** `html5semantic`, `dialog`, `details`, `video`, `webm`, `srcset`, `input-email-tel-url`, `input-placeholder`, `form-validation`, `contenteditable`, `wai-aria`, `dataset`, `es6-module`, `link-rel-preload`
 
 | Status | Test                                      |
 | ------ | ----------------------------------------- |

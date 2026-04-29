@@ -288,11 +288,6 @@ class HTMLParser:
                 elif rel_lower == 'modulepreload':
                     self.features_found.add('link-rel-modulepreload')
 
-        # Meta viewport
-        viewport_meta = soup.find('meta', attrs={'name': 'viewport'})
-        if viewport_meta:
-            self.features_found.add('viewport-units')
-
         # Meta theme-color
         theme_color_meta = soup.find('meta', attrs={'name': 'theme-color'})
         if theme_color_meta:

@@ -1,0 +1,699 @@
+/*
+  Heavy CSS parser test file.
+
+  This file exercises a large slice of what the CSS parser can detect.
+  Each section is labeled with the Can I Use feature IDs it should add.
+
+  Run:
+    python3 -m src.cli.main analyze examples/test_fixtures/heavy_test.css --format table
+
+  Sections cover layout, colors, fonts, selectors, pseudo-elements, media
+  queries, animations, transforms, filters, scroll, modern selectors, math
+  functions, custom properties, container queries, logical properties, and
+  several edge cases at the end to verify the parser does not over-detect.
+*/
+
+/* ============================================================
+   Section 1: Custom properties (CSS variables)
+   Detects: css-variables
+   ============================================================ */
+:root {
+    --primary: #1e293b;
+    --secondary: hsl(220, 30%, 50%);
+    --spacing: 8px;
+    --radius: 4px;
+    --duration: 250ms;
+}
+
+.uses-vars {
+    color: var(--primary);
+    padding: var(--spacing);
+    border-radius: var(--radius);
+}
+
+/* ============================================================
+   Section 2: Colors (rgb, hsl, hex, hwb, color-mix, lch, lab, oklch)
+   Detects: css3-colors, currentcolor, css-color-mix, css-lch-lab
+   ============================================================ */
+.colors {
+    color: #ff0000;
+    background: rgb(255, 0, 0);
+    border-color: rgba(0, 0, 0, 0.5);
+    outline-color: hsl(120, 100%, 50%);
+    text-decoration-color: hsla(120, 100%, 50%, 0.5);
+    fill: currentColor;
+    stroke: currentcolor;
+}
+
+.modern-colors {
+    color: lch(50% 30 180);
+    background: lab(60% -30 40);
+    border-color: oklch(70% 0.15 240);
+    outline-color: oklab(0.5 -0.2 0.2);
+}
+
+.color-mix {
+    background: color-mix(in srgb, red 60%, blue);
+    border: 1px solid color-mix(in oklch, red, blue);
+}
+
+/* ============================================================
+   Section 3: Display: flexbox, grid, multicolumn
+   Detects: flexbox, flexbox-gap, css-grid, multicolumn,
+            inline-block, flow-root
+   ============================================================ */
+.flex-row {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+}
+
+.flex-wrap {
+    display: inline-flex;
+    flex-wrap: wrap;
+    flex: 1 1 200px;
+}
+
+.grid-base {
+    display: grid;
+    grid-template-columns: 1fr 2fr 1fr;
+    grid-template-rows: auto 1fr auto;
+    gap: 24px 16px;
+    grid-template-areas:
+        "header header header"
+        "sidebar main aside"
+        "footer footer footer";
+}
+
+.grid-span {
+    grid-column: 1 / -1;
+    grid-row: span 2;
+}
+
+.grid-child {
+    display: grid;
+    grid-template-columns: subgrid;
+    grid-template-rows: subgrid;
+}
+
+.cols {
+    column-count: 3;
+    column-gap: 24px;
+    column-rule: 1px solid #ccc;
+    columns: 200px 4;
+}
+
+.inline {
+    display: inline-block;
+}
+
+.flow {
+    display: flow-root;
+}
+
+/* ============================================================
+   Section 4: Aspect ratio, sizing, object-fit
+   Detects: aspect-ratio, intrinsic-width, object-fit, minmaxwh
+   ============================================================ */
+.thumbnail {
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    object-position: center;
+    width: min-content;
+    height: max-content;
+    max-width: 100%;
+    min-width: 200px;
+    min-height: 100px;
+    max-height: 80vh;
+}
+
+.intrinsic {
+    width: fit-content;
+}
+
+/* ============================================================
+   Section 5: Math functions (calc, min, max, clamp)
+   Detects: calc, css-math-functions
+   ============================================================ */
+.math {
+    width: calc(100% - 32px);
+    padding: max(8px, 1rem);
+    margin: min(2vw, 16px);
+    font-size: clamp(14px, 2vw, 22px);
+    line-height: calc(1.5em + 2px);
+}
+
+/* ============================================================
+   Section 6: Logical properties
+   Detects: css-logical-props
+   ============================================================ */
+.logical {
+    margin-inline-start: 8px;
+    margin-inline-end: 16px;
+    padding-block: 12px;
+    padding-block-start: 8px;
+    padding-block-end: 16px;
+    inset-inline-start: 0;
+    inset-block-end: 0;
+    inline-size: 100%;
+    block-size: auto;
+    border-inline: 1px solid;
+}
+
+/* ============================================================
+   Section 7: Borders, outlines, radius, shadows
+   Detects: border-radius, border-image, outline, css-boxshadow,
+            css-textshadow
+   ============================================================ */
+.boxes {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    border-top-left-radius: 4px;
+    border-bottom-right-radius: 12px;
+    border-image: linear-gradient(45deg, red, blue) 1;
+    border-image-source: url("border.png");
+    border-image-slice: 30 fill;
+    outline: 2px dashed currentColor;
+    outline-offset: 4px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.2);
+    box-shadow: inset 0 0 0 1px #fff;
+}
+
+.text-fx {
+    text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+    -webkit-text-stroke: 1px #000;
+}
+
+/* ============================================================
+   Section 8: Transforms (2d, 3d), perspective, will-change
+   Detects: transforms2d, transforms3d, will-change
+   ============================================================ */
+.transform2d {
+    transform: translate(10px, 20px) rotate(45deg) scale(1.2);
+}
+
+.transform3d {
+    transform: translate3d(10px, 20px, 0) rotateX(45deg) rotateY(30deg);
+    transform-style: preserve-3d;
+    perspective: 1000px;
+    backface-visibility: hidden;
+}
+
+.optimised {
+    will-change: transform, opacity;
+}
+
+/* ============================================================
+   Section 9: Transitions and animations
+   Detects: css-transitions, css-animation, css-mixblendmode
+   ============================================================ */
+.animated {
+    transition: all 250ms ease;
+    transition-property: transform, opacity;
+    transition-duration: 250ms;
+    transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+    transition-delay: 50ms;
+}
+
+@keyframes slide-in {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+}
+
+.animation-host {
+    animation: slide-in 300ms ease-out, pulse 2s infinite;
+    animation-fill-mode: both;
+    animation-play-state: running;
+    animation-direction: alternate;
+}
+
+.blend {
+    mix-blend-mode: multiply;
+    isolation: isolate;
+    background-blend-mode: overlay;
+}
+
+/* ============================================================
+   Section 10: Filters and backdrop-filter
+   Detects: css-filter-function, css-filters, css-backdrop-filter
+   ============================================================ */
+.blurred {
+    filter: blur(4px) brightness(1.1) contrast(1.2) grayscale(0.3);
+}
+
+.frosted {
+    backdrop-filter: blur(8px) saturate(1.5);
+    -webkit-backdrop-filter: blur(8px);
+}
+
+/* ============================================================
+   Section 11: Gradients (linear, radial, repeating, conic)
+   Detects: css-gradients, css-conic-gradients
+   ============================================================ */
+.gradients {
+    background: linear-gradient(45deg, red, yellow, green);
+    background-image: radial-gradient(circle at center, white, black 80%);
+}
+
+.repeating {
+    background: repeating-linear-gradient(45deg, red 0 10px, blue 10px 20px);
+}
+
+.conic {
+    background: conic-gradient(red, yellow, green, blue, red);
+}
+
+/* ============================================================
+   Section 12: Backgrounds (multi, clip, origin, attachment)
+   Detects: multibackgrounds, background-img-opts,
+            background-clip-text
+   ============================================================ */
+.multi-bg {
+    background:
+        url("img1.png") top left no-repeat,
+        url("img2.png") bottom right no-repeat,
+        linear-gradient(to bottom, white, gray);
+    background-clip: padding-box;
+    background-origin: border-box;
+    background-attachment: fixed;
+    background-size: cover;
+}
+
+.bg-clip-text {
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+}
+
+/* ============================================================
+   Section 13: Fonts (faces, formats, features)
+   Detects: fontface, woff, woff2, ttf, variable-fonts,
+            font-feature, font-kerning, font-family-system-ui
+   ============================================================ */
+@font-face {
+    font-family: "MyFont";
+    src: url("font.woff2") format("woff2"),
+         url("font.woff") format("woff"),
+         url("font.ttf") format("truetype");
+    font-weight: 100 900;
+    font-display: swap;
+}
+
+.modern-font {
+    font-family: system-ui, -apple-system, sans-serif;
+    font-variation-settings: "wght" 600, "slnt" -10;
+    font-feature-settings: "liga" 1, "kern" 1, "ss01";
+    font-kerning: normal;
+    font-size-adjust: 0.5;
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ============================================================
+   Section 14: Text effects (overflow, decoration, word-break)
+   Detects: text-overflow, text-decoration, word-break, wordwrap,
+            css3-tabsize
+   ============================================================ */
+.truncate {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.deco {
+    text-decoration: underline solid red;
+    text-decoration-line: underline overline;
+    text-decoration-style: wavy;
+    text-decoration-color: blue;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 4px;
+}
+
+.wrap {
+    word-break: break-all;
+    overflow-wrap: anywhere;
+    word-wrap: break-word;
+    hyphens: auto;
+    tab-size: 4;
+}
+
+/* ============================================================
+   Section 15: Box-sizing, content-visibility, contain
+   Detects: css3-boxsizing, content-visibility, css-containment
+   ============================================================ */
+.box-sized {
+    box-sizing: border-box;
+}
+
+.lazy-render {
+    content-visibility: auto;
+    contain-intrinsic-size: 200px;
+}
+
+.contained {
+    contain: layout paint style;
+}
+
+/* ============================================================
+   Section 16: Selectors (basic, complex, modern)
+   Detects: css-sel2, css-sel3, css-has, css-matches-pseudo,
+            css-any-link, css-focus-visible, css-focus-within,
+            css-placeholder-shown, css-default-pseudo,
+            css-indeterminate-pseudo, css-optional-pseudo,
+            css-read-only-write, css-dir-pseudo, css-case-insensitive
+   ============================================================ */
+button:hover,
+button:active,
+button:focus { background: lightblue; }
+
+a:any-link { color: blue; }
+button:focus-visible { outline: 2px solid blue; }
+.card:focus-within { box-shadow: 0 0 0 2px blue; }
+li:has(> a.active) { font-weight: bold; }
+:is(h1, h2, h3) { font-weight: 700; }
+:where(article, section) { margin-bottom: 1em; }
+input:not([type="hidden"]) { display: block; }
+
+input:placeholder-shown { color: gray; }
+input:default { background: lightblue; }
+input:indeterminate { background: yellow; }
+input:optional { border-color: lightgreen; }
+input:required { border-color: salmon; }
+input:read-only { background: #f0f0f0; }
+input:read-write { background: white; }
+:dir(rtl) { text-align: right; }
+[type="email" i] { font-family: monospace; }
+
+li:nth-child(2n + 1) { background: #f9f9f9; }
+li:nth-of-type(odd) { color: #333; }
+li:nth-last-child(2) { font-style: italic; }
+li:first-of-type { font-weight: bold; }
+li:last-of-type { font-weight: bold; }
+li:only-child { color: red; }
+li:only-of-type { color: blue; }
+li:empty { display: none; }
+
+[data-state="open"] { background: white; }
+[href^="https"] { color: green; }
+[href$=".pdf"] { color: red; }
+[href*="example"] { text-decoration: underline; }
+
+/* ============================================================
+   Section 17: Pseudo-elements
+   Detects: css-gencontent, css-first-letter, css-first-line,
+            css-selection, css-placeholder, css-marker-pseudo
+   ============================================================ */
+.with-content::before {
+    content: "→ ";
+    color: gray;
+}
+
+.with-content::after {
+    content: " ←";
+    color: gray;
+}
+
+.dropcap::first-letter {
+    font-size: 3em;
+    float: left;
+}
+
+p::first-line {
+    font-variant: small-caps;
+}
+
+::selection {
+    background: yellow;
+    color: black;
+}
+
+::placeholder {
+    color: gray;
+    opacity: 1;
+}
+
+li::marker {
+    color: blue;
+    font-weight: bold;
+}
+
+/* ============================================================
+   Section 18: Media queries (basic, modern preferences)
+   Detects: css-mediaqueries, prefers-color-scheme,
+            prefers-reduced-motion
+   ============================================================ */
+@media (max-width: 768px) {
+    .responsive { display: block; }
+}
+
+@media (min-width: 1200px) and (orientation: landscape) {
+    .wide { padding: 32px; }
+}
+
+@media (prefers-color-scheme: dark) {
+    :root {
+        --primary: #ffffff;
+        --background: #000000;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .animation-host {
+        animation: none;
+        transition: none;
+    }
+}
+
+@media (prefers-contrast: more) {
+    .high-contrast { color: #000; background: #fff; }
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .hover-only:hover { transform: scale(1.05); }
+}
+
+/* ============================================================
+   Section 19: @supports (feature queries)
+   Detects: css-featurequeries
+   ============================================================ */
+@supports (display: grid) {
+    .grid-only { display: grid; }
+}
+
+@supports (backdrop-filter: blur(8px)) or (-webkit-backdrop-filter: blur(8px)) {
+    .frosted-modern { backdrop-filter: blur(8px); }
+}
+
+@supports not (display: subgrid) {
+    .subgrid-fallback { display: grid; }
+}
+
+/* ============================================================
+   Section 20: Container queries
+   Detects: css-container-queries
+   ============================================================ */
+.card-host {
+    container-type: inline-size;
+    container-name: card;
+}
+
+@container card (min-width: 400px) {
+    .card-content { font-size: 1.25rem; }
+}
+
+@container (min-inline-size: 600px) {
+    .responsive-grid { display: grid; }
+}
+
+/* ============================================================
+   Section 21: Scroll features
+   Detects: css-scroll-behavior, css-scroll-snap, css-overscroll-behavior,
+            css-scrollbar
+   ============================================================ */
+html {
+    scroll-behavior: smooth;
+    scroll-padding-top: 60px;
+}
+
+.scroll-host {
+    scroll-snap-type: y mandatory;
+    overscroll-behavior: contain;
+    scrollbar-width: thin;
+    scrollbar-color: #888 #eee;
+    scrollbar-gutter: stable;
+}
+
+.scroll-host > .item {
+    scroll-snap-align: start;
+    scroll-margin-top: 16px;
+}
+
+/* ============================================================
+   Section 22: Position (sticky), z-index, all
+   Detects: css-sticky, css-all
+   ============================================================ */
+.header {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.reset {
+    all: unset;
+}
+
+/* ============================================================
+   Section 23: Clip-path, mask, shapes
+   Detects: css-clip-path, css-masks, css-shapes
+   ============================================================ */
+.clipped {
+    clip-path: polygon(50% 0%, 100% 100%, 0% 100%);
+    clip-path: circle(50% at center);
+}
+
+.masked {
+    -webkit-mask: url("mask.svg") center / contain no-repeat;
+    -webkit-mask-image: linear-gradient(black, transparent);
+    mask-mode: luminance;
+}
+
+.shaped {
+    shape-outside: circle(50%);
+    shape-margin: 10px;
+}
+
+/* ============================================================
+   Section 24: Cursor, pointer events, user-select, accent-color
+   Detects: css3-cursors, css3-cursors-newer, pointer-events,
+            css-user-select-none, css-accent-color
+   ============================================================ */
+.cursors {
+    cursor: pointer;
+}
+
+.cursor-zoom { cursor: zoom-in; }
+.cursor-grab { cursor: grab; }
+.cursor-not-allowed { cursor: not-allowed; }
+
+.no-clicks {
+    pointer-events: none;
+}
+
+.no-select {
+    user-select: none;
+    -webkit-user-select: none;
+}
+
+input[type="checkbox"] {
+    accent-color: rebeccapurple;
+}
+
+:root {
+    color-scheme: light dark;
+}
+
+/* ============================================================
+   Section 25: Writing modes, direction
+   Detects: css-writing-mode
+   ============================================================ */
+.vertical {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+}
+
+/* ============================================================
+   Section 26: @import, @namespace, @layer, @scope
+   Detects: css-cascade-layers, css-import
+   ============================================================ */
+@import url("base.css");
+@import "reset.css" layer(reset);
+
+@layer reset, base, components, utilities;
+
+@layer base {
+    body { margin: 0; }
+}
+
+/* ============================================================
+   Section 27: Counter, list-style, paged content
+   Detects: css-counter-style, css-counters
+   ============================================================ */
+@counter-style my-roman {
+    system: cyclic;
+    symbols: "i" "ii" "iii" "iv" "v";
+    suffix: ". ";
+}
+
+ol.fancy {
+    list-style: my-roman;
+    counter-reset: section;
+}
+
+ol.fancy li {
+    counter-increment: section;
+}
+
+ol.fancy li::before {
+    content: counter(section) ". ";
+}
+
+/* ============================================================
+   Section 28: Page features
+   Detects: css-paged-media (if available), printing
+   ============================================================ */
+@page {
+    margin: 1in;
+    size: A4 portrait;
+}
+
+@media print {
+    .no-print { display: none; }
+}
+
+/* ============================================================
+   Section 29: Anchor positioning, view transitions (newest)
+   Detects: css-anchor-positioning, view-transitions
+   ============================================================ */
+.anchored {
+    anchor-name: --my-anchor;
+}
+
+.popover {
+    position-anchor: --my-anchor;
+    inset-area: top;
+}
+
+::view-transition-old(root) { animation: fade-out 0.5s; }
+::view-transition-new(root) { animation: fade-in 0.5s; }
+
+@keyframes fade-out { to { opacity: 0; } }
+@keyframes fade-in { from { opacity: 0; } }
+
+/* ============================================================
+   Negative cases
+   These should NOT trigger any extra detections. Comments and string
+   contents are stripped before regex matching.
+   ============================================================ */
+
+/* Comment mentioning display: grid, flexbox, :has(), backdrop-filter */
+/* Another comment with @container, @supports, transform, animation */
+
+.string-mentions::before {
+    content: "this string mentions display: grid, :has(), backdrop-filter but should not detect";
+}
+
+.plain {
+    color: black;
+    margin: 16px;
+    padding: 8px;
+    font-size: 14px;
+    line-height: 1.5;
+    text-align: left;
+}
