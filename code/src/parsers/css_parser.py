@@ -97,6 +97,11 @@ class CSSParser:
             raise ValueError(f"Error parsing CSS file: {e}") from e
 
     def parse_string(self, css_content: str) -> Set[str]:
+        # Re-merge built-ins with custom rules every time the parser runs, so
+        # edits made in the Rules Manager (overrides, additions, deletions)
+        # take effect on the next analysis without restarting the app.
+        self._all_features = {**ALL_CSS_FEATURES, **get_custom_css_rules()}
+
         self.features_found = set()
         self.feature_details = []
         self.unrecognized_patterns = set()

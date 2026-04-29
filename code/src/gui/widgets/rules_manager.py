@@ -22,6 +22,15 @@ def _category_for(feature_id: str, categories: Dict) -> str:
     return 'Custom'
 
 
+# HTML rule type ↔ JSON key mapping is referenced from several places.
+HTML_TYPE_KEY_MAP = {
+    'Elements': 'elements',
+    'Attributes': 'attributes',
+    'Input Types': 'input_types',
+    'Attribute Values': 'attribute_values',
+}
+
+
 class RulesManagerDialog(ctk.CTkToplevel):
     """Modal dialog for browsing and managing all feature detection rules."""
 
@@ -351,15 +360,42 @@ class RulesManagerDialog(ctk.CTkToplevel):
         self._refresh_rules_list()
         self._show_details_placeholder()
 
+    def _is_override(self, feature_id: str, lang: str) -> bool:
+        """Return True if a custom rule for `feature_id` shadows a built-in of the same ID."""
+        custom = self._custom_rules.get(lang, {})
+        if feature_id not in custom:
+            return False
+        built_in = self._all_css if lang == 'css' else self._all_js
+        return feature_id in built_in
+
+    def _html_is_override(self, name: str, key: str) -> bool:
+        """Return True if a custom HTML rule shadows a built-in for the same name/key."""
+        if name not in self._custom_rules.get('html', {}).get(key, {}):
+            return False
+        built_in_for_key = {
+            'elements': self._html_elements,
+            'attributes': self._html_attributes,
+            'input_types': self._html_input_types,
+            'attribute_values': {f"{k[0]}:{k[1]}": v for k, v in self._html_attribute_values.items()},
+        }.get(key, {})
+        return name in built_in_for_key
+
     def _get_all_rules(self) -> List[Tuple[str, dict, bool, str]]:
-        """Get filtered rules for current tab. Returns (id, data, is_custom, category) tuples."""
+        """Get filtered rules for current tab. Returns (id, data, is_custom, category) tuples.
+
+        When a custom rule shares an ID with a built-in (i.e. it's an override),
+        the built-in entry is hidden — only the custom override appears in the list.
+        """
         rules = []
         search = self._search_var.get().lower().strip()
         category_filter = self._category_filter_var.get()
         html_type_filter = self._html_type_filter_var.get()
 
         if self._selected_category == "css":
+            overridden = set(self._custom_rules.get('css', {}).keys()) & set(self._all_css.keys())
             for feature_id, rule_data in self._all_css.items():
+                if feature_id in overridden:
+                    continue  # Hidden — the override below replaces it
                 cat = _category_for(feature_id, self._css_categories)
                 if category_filter != "All" and cat != category_filter:
                     continue
@@ -375,7 +411,10 @@ class RulesManagerDialog(ctk.CTkToplevel):
                 rules.append((feature_id, rule_data, True, 'Custom'))
 
         elif self._selected_category == "javascript":
+            overridden = set(self._custom_rules.get('javascript', {}).keys()) & set(self._all_js.keys())
             for feature_id, rule_data in self._all_js.items():
+                if feature_id in overridden:
+                    continue
                 cat = _category_for(feature_id, self._js_categories)
                 if category_filter != "All" and cat != category_filter:
                     continue
@@ -401,7 +440,10 @@ class RulesManagerDialog(ctk.CTkToplevel):
         rules = []
 
         if type_filter in ("All", "Elements"):
+            override_set = set(self._custom_rules.get('html', {}).get('elements', {}).keys())
             for name, feature_id in self._html_elements.items():
+                if name in override_set:
+                    continue
                 if search and search not in name.lower() and search not in feature_id.lower():
                     continue
                 rules.append((name, {'maps_to': feature_id}, False, 'Elements'))
@@ -411,7 +453,10 @@ class RulesManagerDialog(ctk.CTkToplevel):
                 rules.append((name, {'maps_to': feature_id}, True, 'Elements'))
 
         if type_filter in ("All", "Attributes"):
+            override_set = set(self._custom_rules.get('html', {}).get('attributes', {}).keys())
             for name, feature_id in self._html_attributes.items():
+                if name in override_set:
+                    continue
                 if search and search not in name.lower() and search not in feature_id.lower():
                     continue
                 rules.append((name, {'maps_to': feature_id}, False, 'Attributes'))
@@ -421,7 +466,10 @@ class RulesManagerDialog(ctk.CTkToplevel):
                 rules.append((name, {'maps_to': feature_id}, True, 'Attributes'))
 
         if type_filter in ("All", "Input Types"):
+            override_set = set(self._custom_rules.get('html', {}).get('input_types', {}).keys())
             for name, feature_id in self._html_input_types.items():
+                if name in override_set:
+                    continue
                 if search and search not in name.lower() and search not in feature_id.lower():
                     continue
                 rules.append((name, {'maps_to': feature_id}, False, 'Input Types'))
@@ -431,8 +479,11 @@ class RulesManagerDialog(ctk.CTkToplevel):
                 rules.append((name, {'maps_to': feature_id}, True, 'Input Types'))
 
         if type_filter in ("All", "Attribute Values"):
+            override_set = set(self._custom_rules.get('html', {}).get('attribute_values', {}).keys())
             for (attr, val), feature_id in self._html_attribute_values.items():
                 display_name = f"{attr}:{val}"
+                if display_name in override_set:
+                    continue
                 if search and search not in display_name.lower() and search not in feature_id.lower():
                     continue
                 rules.append((display_name, {'maps_to': feature_id}, False, 'Attribute Values'))
@@ -526,14 +577,15 @@ class RulesManagerDialog(ctk.CTkToplevel):
         btn.pack(side="left", fill="x", expand=True)
 
         if is_custom:
+            is_override = self._is_override(feature_id, self._selected_category)
             badge = ctk.CTkLabel(
                 item_frame,
-                text="Custom",
+                text="Override" if is_override else "Custom",
                 font=ctk.CTkFont(size=9, weight="bold"),
-                text_color=COLORS['accent'],
+                text_color=COLORS['warning'] if is_override else COLORS['accent'],
                 fg_color=COLORS['bg_dark'],
                 corner_radius=4,
-                width=50,
+                width=60,
                 height=20,
             )
             badge.pack(side="right", padx=5)
@@ -558,14 +610,16 @@ class RulesManagerDialog(ctk.CTkToplevel):
         btn.pack(side="left", fill="x", expand=True)
 
         if is_custom:
+            key = HTML_TYPE_KEY_MAP.get(rule_type, '')
+            is_override = self._html_is_override(name, key)
             badge = ctk.CTkLabel(
                 item_frame,
-                text="Custom",
+                text="Override" if is_override else "Custom",
                 font=ctk.CTkFont(size=9, weight="bold"),
-                text_color=COLORS['accent'],
+                text_color=COLORS['warning'] if is_override else COLORS['accent'],
                 fg_color=COLORS['bg_dark'],
                 corner_radius=4,
-                width=50,
+                width=60,
                 height=20,
             )
             badge.pack(side="right", padx=5)
@@ -586,6 +640,7 @@ class RulesManagerDialog(ctk.CTkToplevel):
             widget.destroy()
 
         self._selected_rule_id = feature_id
+        is_override = is_custom and self._is_override(feature_id, self._selected_category)
 
         if self._selected_category == "css":
             if is_custom:
@@ -611,14 +666,16 @@ class RulesManagerDialog(ctk.CTkToplevel):
         ).pack(side="left")
 
         if is_custom:
+            badge_text = "Override" if is_override else "Custom"
+            badge_bg = COLORS['warning'] if is_override else COLORS['accent']
             ctk.CTkLabel(
                 title_frame,
-                text="Custom",
+                text=badge_text,
                 font=ctk.CTkFont(size=10, weight="bold"),
                 text_color=COLORS['text_primary'],
-                fg_color=COLORS['accent'],
+                fg_color=badge_bg,
                 corner_radius=4,
-                width=60,
+                width=70,
                 height=22,
             ).pack(side="left", padx=10)
 
@@ -630,6 +687,16 @@ class RulesManagerDialog(ctk.CTkToplevel):
             text_color=COLORS['text_secondary'],
             wraplength=400,
         ).pack(anchor="w", pady=(0, 15))
+
+        if is_override:
+            ctk.CTkLabel(
+                self._details_frame,
+                text="This rule overrides a built-in. Delete it to restore the original.",
+                font=ctk.CTkFont(size=11, slant="italic"),
+                text_color=COLORS['warning'],
+                wraplength=420,
+                justify="left",
+            ).pack(anchor="w", pady=(0, 12))
 
         ctk.CTkLabel(
             self._details_frame,
@@ -669,10 +736,10 @@ class RulesManagerDialog(ctk.CTkToplevel):
                 text_color=COLORS['text_muted'],
             ).pack(anchor="w", pady=(0, 15))
 
-        if is_custom:
-            btn_frame = ctk.CTkFrame(self._details_frame, fg_color="transparent")
-            btn_frame.pack(fill="x", pady=(20, 0))
+        btn_frame = ctk.CTkFrame(self._details_frame, fg_color="transparent")
+        btn_frame.pack(fill="x", pady=(20, 0))
 
+        if is_custom:
             ctk.CTkButton(
                 btn_frame,
                 text="Edit",
@@ -686,13 +753,25 @@ class RulesManagerDialog(ctk.CTkToplevel):
 
             ctk.CTkButton(
                 btn_frame,
-                text="Delete",
+                text="Restore built-in" if is_override else "Delete",
                 font=ctk.CTkFont(size=12, weight="bold"),
-                width=100,
+                width=140 if is_override else 100,
                 height=35,
                 fg_color=COLORS['danger'],
                 hover_color=COLORS['danger_dark'],
                 command=lambda: self._delete_rule(feature_id),
+            ).pack(side="left")
+        else:
+            # Built-in rule — let the user override it without losing the original.
+            ctk.CTkButton(
+                btn_frame,
+                text="Override as custom",
+                font=ctk.CTkFont(size=12, weight="bold"),
+                width=180,
+                height=35,
+                fg_color=COLORS['warning'],
+                hover_color=COLORS['warning_dark'],
+                command=lambda: self._show_css_js_add_form(feature_id, rule_data, is_override=True),
             ).pack(side="left")
 
     def _show_html_rule_details(self, name: str, rule_data: dict, is_custom: bool, rule_type: str):
@@ -700,6 +779,8 @@ class RulesManagerDialog(ctk.CTkToplevel):
             widget.destroy()
 
         self._selected_rule_id = name
+        key = HTML_TYPE_KEY_MAP.get(rule_type, '')
+        is_override = is_custom and self._html_is_override(name, key)
 
         title_frame = ctk.CTkFrame(self._details_frame, fg_color="transparent")
         title_frame.pack(fill="x", pady=(0, 15))
@@ -712,14 +793,16 @@ class RulesManagerDialog(ctk.CTkToplevel):
         ).pack(side="left")
 
         if is_custom:
+            badge_text = "Override" if is_override else "Custom"
+            badge_bg = COLORS['warning'] if is_override else COLORS['accent']
             ctk.CTkLabel(
                 title_frame,
-                text="Custom",
+                text=badge_text,
                 font=ctk.CTkFont(size=10, weight="bold"),
                 text_color=COLORS['text_primary'],
-                fg_color=COLORS['accent'],
+                fg_color=badge_bg,
                 corner_radius=4,
-                width=60,
+                width=70,
                 height=22,
             ).pack(side="left", padx=10)
 
@@ -738,6 +821,16 @@ class RulesManagerDialog(ctk.CTkToplevel):
             text_color=COLORS['text_secondary'],
         ).pack(anchor="w", pady=(0, 15))
 
+        if is_override:
+            ctk.CTkLabel(
+                self._details_frame,
+                text="This rule overrides a built-in. Delete it to restore the original.",
+                font=ctk.CTkFont(size=11, slant="italic"),
+                text_color=COLORS['warning'],
+                wraplength=420,
+                justify="left",
+            ).pack(anchor="w", pady=(0, 12))
+
         ctk.CTkLabel(
             self._details_frame,
             text=f"This {rule_type.lower().rstrip('s')} is detected and checked against\nthe \"{maps_to}\" feature in Can I Use database.",
@@ -746,10 +839,10 @@ class RulesManagerDialog(ctk.CTkToplevel):
             justify="left",
         ).pack(anchor="w", pady=(0, 15))
 
-        if is_custom:
-            btn_frame = ctk.CTkFrame(self._details_frame, fg_color="transparent")
-            btn_frame.pack(fill="x", pady=(20, 0))
+        btn_frame = ctk.CTkFrame(self._details_frame, fg_color="transparent")
+        btn_frame.pack(fill="x", pady=(20, 0))
 
+        if is_custom:
             ctk.CTkButton(
                 btn_frame,
                 text="Edit",
@@ -763,13 +856,24 @@ class RulesManagerDialog(ctk.CTkToplevel):
 
             ctk.CTkButton(
                 btn_frame,
-                text="Delete",
+                text="Restore built-in" if is_override else "Delete",
                 font=ctk.CTkFont(size=12, weight="bold"),
-                width=100,
+                width=140 if is_override else 100,
                 height=35,
                 fg_color=COLORS['danger'],
                 hover_color=COLORS['danger_dark'],
                 command=lambda: self._delete_html_rule(name, rule_type),
+            ).pack(side="left")
+        else:
+            ctk.CTkButton(
+                btn_frame,
+                text="Override as custom",
+                font=ctk.CTkFont(size=12, weight="bold"),
+                width=180,
+                height=35,
+                fg_color=COLORS['warning'],
+                hover_color=COLORS['warning_dark'],
+                command=lambda: self._show_html_override_form(name, maps_to, rule_type),
             ).pack(side="left")
 
     def _show_add_form(self):
@@ -780,25 +884,45 @@ class RulesManagerDialog(ctk.CTkToplevel):
         else:
             self._show_css_js_add_form()
 
-    def _show_css_js_add_form(self, edit_id: str = None, edit_data: dict = None):
+    def _show_css_js_add_form(self, edit_id: str = None, edit_data: dict = None, is_override: bool = False):
         for widget in self._details_frame.winfo_children():
             widget.destroy()
 
         is_edit = edit_id is not None
         cat_type = self._selected_category.upper()
 
+        if is_override:
+            title_text = f"Override Built-in {cat_type} Rule"
+        elif is_edit:
+            title_text = f"Edit {cat_type} Rule"
+        else:
+            title_text = f"Add New {cat_type} Rule"
+
         ctk.CTkLabel(
             self._details_frame,
-            text=f"{'Edit' if is_edit else 'Add New'} {cat_type} Rule",
+            text=title_text,
             font=ctk.CTkFont(size=16, weight="bold"),
             text_color=COLORS['text_primary'],
-        ).pack(anchor="w", pady=(0, 20))
+        ).pack(anchor="w", pady=(0, 8))
+
+        if is_override:
+            ctk.CTkLabel(
+                self._details_frame,
+                text="The built-in rule's patterns are pre-filled. Edit them to tailor the detection. Saving creates a custom rule that overrides the built-in; deleting it later restores the original.",
+                font=ctk.CTkFont(size=11, slant="italic"),
+                text_color=COLORS['text_muted'],
+                wraplength=420,
+                justify="left",
+            ).pack(anchor="w", pady=(0, 14))
 
         id_entry = self._form_field(
             "Feature ID (Can I Use ID)*:",
             placeholder="e.g., css-container-queries",
             initial=edit_id or "",
         )
+        if is_override:
+            # The override must keep the same ID as the built-in it's replacing.
+            id_entry.configure(state="disabled")
 
         desc_entry = self._form_field(
             "Description:",
@@ -834,20 +958,22 @@ class RulesManagerDialog(ctk.CTkToplevel):
             command=self._show_details_placeholder,
         ).pack(side="left", padx=(0, 10))
 
+        save_label = "Save Override" if is_override else "Save Rule"
         ctk.CTkButton(
             btn_frame,
-            text="Save Rule",
+            text=save_label,
             font=ctk.CTkFont(size=12, weight="bold"),
-            width=120,
+            width=140 if is_override else 120,
             height=35,
             fg_color=COLORS['success'],
             hover_color=COLORS['success_dark'],
             command=lambda: self._save_css_js_rule(
-                id_entry.get(),
+                id_entry.get() if not is_override else edit_id,
                 desc_entry.get(),
                 patterns_text.get("1.0", "end"),
                 keywords_entry.get(),
-                edit_id
+                edit_id,
+                is_override=is_override,
             ),
         ).pack(side="left")
 
@@ -984,7 +1110,76 @@ class RulesManagerDialog(ctk.CTkToplevel):
             ),
         ).pack(side="left")
 
-    def _save_css_js_rule(self, feature_id: str, description: str, patterns_text: str, keywords_text: str, old_id: str = None):
+    def _show_html_override_form(self, name: str, feature_id: str, rule_type: str):
+        """Edit form for overriding a built-in HTML rule. Name is locked."""
+        for widget in self._details_frame.winfo_children():
+            widget.destroy()
+
+        ctk.CTkLabel(
+            self._details_frame,
+            text=f"Override Built-in HTML Rule",
+            font=ctk.CTkFont(size=16, weight="bold"),
+            text_color=COLORS['text_primary'],
+        ).pack(anchor="w", pady=(0, 8))
+
+        ctk.CTkLabel(
+            self._details_frame,
+            text="The built-in mapping is pre-filled. Change the Can I Use feature ID it points to. Saving creates a custom rule that overrides the built-in; deleting it later restores the original.",
+            font=ctk.CTkFont(size=11, slant="italic"),
+            text_color=COLORS['text_muted'],
+            wraplength=420,
+            justify="left",
+        ).pack(anchor="w", pady=(0, 14))
+
+        ctk.CTkLabel(
+            self._details_frame,
+            text=f"Type: {rule_type}",
+            font=ctk.CTkFont(size=12),
+            text_color=COLORS['text_muted'],
+        ).pack(anchor="w", pady=(0, 15))
+
+        name_entry = self._form_field("Name*:", initial=name)
+        # Lock the name — the override must shadow the same key as the built-in.
+        name_entry.configure(state="disabled")
+
+        feature_entry = self._form_field(
+            "Can I Use Feature ID*:",
+            initial=feature_id,
+            bottom_pad=20,
+        )
+
+        btn_frame = ctk.CTkFrame(self._details_frame, fg_color="transparent")
+        btn_frame.pack(fill="x")
+
+        ctk.CTkButton(
+            btn_frame,
+            text="Cancel",
+            font=ctk.CTkFont(size=12),
+            width=100,
+            height=35,
+            fg_color=COLORS['bg_light'],
+            hover_color=COLORS['hover_bg'],
+            text_color=COLORS['text_primary'],
+            command=self._show_details_placeholder,
+        ).pack(side="left", padx=(0, 10))
+
+        ctk.CTkButton(
+            btn_frame,
+            text="Save Override",
+            font=ctk.CTkFont(size=12, weight="bold"),
+            width=140,
+            height=35,
+            fg_color=COLORS['success'],
+            hover_color=COLORS['success_dark'],
+            command=lambda: self._save_html_rule(
+                rule_type,
+                name,
+                feature_entry.get(),
+                is_override=True,
+            ),
+        ).pack(side="left")
+
+    def _save_css_js_rule(self, feature_id: str, description: str, patterns_text: str, keywords_text: str, old_id: str = None, is_override: bool = False):
         feature_id = feature_id.strip()
         description = description.strip()
         patterns_text = patterns_text.strip()
@@ -998,10 +1193,14 @@ class RulesManagerDialog(ctk.CTkToplevel):
             show_warning(self, "Validation", "At least one pattern is required")
             return
 
-        # Don't let custom rules shadow built-in ones
+        # Block accidental shadowing — but allow it explicitly via the Override flow.
         built_in = self._all_css if self._selected_category == "css" else self._all_js
-        if feature_id in built_in and (not old_id or old_id != feature_id):
-            show_warning(self, "Validation", f"Feature ID '{feature_id}' already exists as a built-in rule")
+        if not is_override and feature_id in built_in and (not old_id or old_id != feature_id):
+            show_warning(
+                self, "Validation",
+                f"Feature ID '{feature_id}' already exists as a built-in rule.\n"
+                f"Open the built-in rule and use 'Override as custom' instead."
+            )
             return
 
         patterns = [p.strip() for p in patterns_text.split('\n') if p.strip()]
@@ -1030,7 +1229,7 @@ class RulesManagerDialog(ctk.CTkToplevel):
             self._refresh_rules_list()
             self._show_rule_details(feature_id, True)
 
-    def _save_html_rule(self, rule_type: str, name: str, feature_id: str, old_name: str = None):
+    def _save_html_rule(self, rule_type: str, name: str, feature_id: str, old_name: str = None, is_override: bool = False):
         name = name.strip()
         feature_id = feature_id.strip()
 
@@ -1042,26 +1241,24 @@ class RulesManagerDialog(ctk.CTkToplevel):
             show_warning(self, "Validation", "Feature ID is required")
             return
 
-        type_key_map = {
-            'Elements': 'elements',
-            'Attributes': 'attributes',
-            'Input Types': 'input_types',
-            'Attribute Values': 'attribute_values',
-        }
-        key = type_key_map.get(rule_type)
+        key = HTML_TYPE_KEY_MAP.get(rule_type)
         if not key:
             show_error(self, "Error", "Invalid rule type")
             return
 
-        # Don't shadow built-in rules
+        # Block accidental shadowing — but allow it explicitly via the Override flow.
         built_in_map = {
             'elements': self._html_elements,
             'attributes': self._html_attributes,
             'input_types': self._html_input_types,
             'attribute_values': {f"{k[0]}:{k[1]}": v for k, v in self._html_attribute_values.items()},
         }
-        if name in built_in_map.get(key, {}) and (not old_name or old_name != name):
-            show_warning(self, "Validation", f"'{name}' already exists as a built-in rule")
+        if not is_override and name in built_in_map.get(key, {}) and (not old_name or old_name != name):
+            show_warning(
+                self, "Validation",
+                f"'{name}' already exists as a built-in rule.\n"
+                f"Open the built-in rule and use 'Override as custom' instead."
+            )
             return
 
         if 'html' not in self._custom_rules:

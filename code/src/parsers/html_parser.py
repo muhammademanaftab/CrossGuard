@@ -120,6 +120,20 @@ class HTMLParser:
             raise ValueError(f"Error parsing HTML file: {e}") from e
 
     def parse_string(self, html_content: str) -> Set[str]:
+        # Re-merge built-ins with custom rules every time the parser runs, so
+        # edits made in the Rules Manager (overrides, additions, deletions)
+        # take effect on the next analysis without restarting the app.
+        custom_html = get_custom_html_rules()
+        self._elements = {**HTML_ELEMENTS, **HTML_SPECIAL_ELEMENTS, **custom_html.get('elements', {})}
+        self._input_types = {**HTML_INPUT_TYPES, **custom_html.get('input_types', {})}
+        self._attributes = {**HTML_ATTRIBUTES, **HTML_ARIA_ATTRIBUTES, **custom_html.get('attributes', {})}
+        custom_attr_values = {}
+        for key, value in custom_html.get('attribute_values', {}).items():
+            if ':' in key:
+                attr, val = key.split(':', 1)
+                custom_attr_values[(attr, val)] = value
+        self._attribute_values = {**HTML_ATTRIBUTE_VALUES, **HTML_MEDIA_TYPE_VALUES, **HTML_CSP_ATTRIBUTES, **custom_attr_values}
+
         self.features_found = set()
         self.elements_found = []
         self.attributes_found = []

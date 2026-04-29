@@ -1,0 +1,58 @@
+/*
+ * Override Test File
+ * ==================
+ * This CSS file is designed to demonstrate the "Override as custom" feature
+ * in the Rules Manager. It uses six well-known web features so you can
+ * override one of them, re-analyse, and immediately see the difference.
+ *
+ * Recommended feature to override: `border-radius` (it appears in three
+ * places below, so it's easy to spot in the report).
+ */
+
+
+/* (1) Flexbox — should detect `flexbox` */
+.layout {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+
+/* (2) Border radius — should detect `border-radius`           */
+/*     This is the easiest one to override for a quick demo.   */
+.card {
+    border-radius: 8px;
+    padding: 16px;
+}
+
+.button {
+    border-radius: 999px;
+}
+
+.avatar {
+    border-radius: 50%;
+}
+
+
+/* (3) Box shadow — should detect `css-boxshadow` */
+.dropdown {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+
+/* (4) Transitions — should detect `css-transitions` */
+.button {
+    transition: background-color 0.2s ease;
+}
+
+
+/* (5) 2D Transforms — should detect `transforms2d` */
+.card:hover {
+    transform: scale(1.02);
+}
+
+
+/* (6) Gradients — should detect `css-gradients` */
+.banner {
+    background-image: linear-gradient(135deg, #4c6ef5, #228be6);
+}
