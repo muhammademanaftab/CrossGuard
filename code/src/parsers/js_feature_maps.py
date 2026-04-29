@@ -191,7 +191,7 @@ JS_API_FEATURES = {
         'description': 'Channel Messaging API'
     },
     'x-doc-messaging': {
-        'patterns': [r'postMessage', r'window\.postMessage'],
+        'patterns': [r'window\.postMessage'],
         'keywords': ['postMessage'],
         'description': 'Cross-document messaging'
     },
@@ -779,8 +779,8 @@ JS_API_FEATURES = {
         'description': 'Beacon API'
     },
     'blobbuilder': {
-        'patterns': [r'new Blob\s*\(', r'BlobBuilder'],
-        'keywords': ['Blob'],
+        'patterns': [r'BlobBuilder'],
+        'keywords': ['BlobBuilder'],
         'description': 'Blob constructing'
     },
     'client-hints-dpr-width-viewport': {
@@ -1149,7 +1149,7 @@ JS_DOM_APIS = {
         'description': 'ChildNode.remove()'
     },
     'dom-range': {
-        'patterns': [r'document\.createRange', r'new Range', r'Range'],
+        'patterns': [r'document\.createRange', r'\bnew\s+Range\s*\('],
         'keywords': ['Range'],
         'description': 'Document Object Model Range'
     },
@@ -1499,7 +1499,6 @@ AST_NEW_EXPRESSION_MAP = {
     'OffscreenCanvas': 'offscreencanvas',
     'WebTransport': 'webtransport',
     'Path2D': 'path2d',
-    'Blob': 'blobbuilder',
     'CustomEvent': 'customevent',
     'XMLHttpRequest': 'xhr2',
     'URL': 'url',
