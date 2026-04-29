@@ -19,6 +19,12 @@
         "masonry",
         "grid-lanes"
       ]
+    },
+    "fictional-glow-effect": {
+      "patterns": [
+        "glow-effect\\s*:"
+      ],
+      "description": "CSS Fictional Glow Effect"
     }
   },
   "javascript": {
@@ -45,7 +51,7 @@
   },
   "html": {
     "elements": {
-      "my-component": "custom-elementsv1"
+      "mywidget": "mywidget"
     },
     "attributes": {},
     "input_types": {},

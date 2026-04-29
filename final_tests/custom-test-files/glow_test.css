@@ -1,0 +1,66 @@
+/*
+    ============================================================
+    Custom Rule end-to-end test — CSS
+    ============================================================
+
+    This file uses a FICTIONAL CSS property called "glow-effect"
+    that doesn't exist in any real browser. It does, however, exist
+    in our local Can I Use database as the test feature
+    "fictional-glow-effect" (added to data/caniuse/features-json/).
+
+    Goal: prove that the custom-rules module can bridge a parser gap
+    using only the Can I Use entry as the support source of truth.
+
+    Steps:
+
+      1. Run analysis on this file BEFORE adding any custom rule.
+         Expected: "property: glow-effect" appears in Unrecognized,
+         and the file detects ~3-4 normal CSS features (border-radius,
+         padding, etc).
+
+      2. Open the GUI → Custom Rules → CSS tab → click "+" to add a rule.
+         Use these exact values:
+
+           Feature ID:   fictional-glow-effect
+           Pattern:      glow-effect\s*:
+           Description:  CSS Fictional Glow Effect
+
+         Click Save.
+
+      3. Re-analyze this file.
+         Expected:
+           - "property: glow-effect" disappears from Unrecognized
+           - "CSS Fictional Glow Effect (TEST FEATURE)" shows up in
+             Detected Features
+           - Browser-support indicators show: Chrome ✅ Edge ✅
+             Firefox ❌ Safari (partial) — exactly what the fake JSON
+             defines.
+
+    If all three things happen, the custom rules module works
+    end-to-end as designed.
+*/
+
+.test-card {
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    background: #1e293b;
+    color: white;
+
+    /* This is the fictional property — should trigger the custom rule */
+    glow-effect: 0 0 10px cyan;
+}
+
+.test-card.bright {
+    glow-effect: 0 0 20px yellow;
+}
+
+.test-button {
+    border: 1px solid #334155;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+}
+
+.test-button:hover {
+    /* Same fictional property — second occurrence */
+    glow-effect: 0 0 5px white;
+}

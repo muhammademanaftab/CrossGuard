@@ -1,0 +1,70 @@
+{
+    "title": "CSS Fictional Glow Effect (TEST FEATURE)",
+    "description": "FAKE FEATURE FOR TESTING. Adds a fictional 'glow-effect' CSS property that supposedly applies a glow to elements.",
+    "spec": "https://example.com/fictional-glow-effect/",
+    "status": "wd",
+    "links": [],
+    "bugs": [],
+    "categories": ["CSS"],
+    "stats": {
+        "chrome": {
+            "120": "n",
+            "125": "n",
+            "130": "a",
+            "135": "a",
+            "140": "y",
+            "145": "y",
+            "150": "y"
+        },
+        "firefox": {
+            "115": "n",
+            "120": "n",
+            "125": "n",
+            "130": "n",
+            "135": "n",
+            "140": "n",
+            "150": "n",
+            "153": "n"
+        },
+        "safari": {
+            "16": "n",
+            "17": "n",
+            "18": "a",
+            "TP": "a"
+        },
+        "edge": {
+            "120": "n",
+            "130": "a",
+            "140": "y",
+            "147": "y"
+        },
+        "ie": {
+            "11": "n"
+        },
+        "opera": {
+            "100": "n"
+        },
+        "ios_saf": {
+            "17": "n",
+            "18": "a"
+        },
+        "and_chr": {
+            "150": "y"
+        },
+        "and_ff": {
+            "153": "n"
+        }
+    },
+    "notes": "This is a fictional feature created only for end-to-end testing of the custom-rules module. It does not exist in any real browser.",
+    "notes_by_num": {},
+    "usage_perc_y": 65.5,
+    "usage_perc_a": 8.2,
+    "ucprefix": false,
+    "parent": "",
+    "keywords": "glow-effect, fake test feature, glow",
+    "ie_id": "",
+    "chrome_id": "",
+    "firefox_id": "",
+    "webkit_id": "",
+    "shown": true
+}
