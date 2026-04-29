@@ -1,6 +1,6 @@
 """Single backend facade — frontends (GUI and CLI) talk only to this."""
 
-from typing import Optional, Dict, List, Any
+from typing import Optional, Dict, List, Any, Set
 from pathlib import Path
 from datetime import datetime
 
@@ -453,9 +453,10 @@ class AnalyzerService:
         # Per-browser rollups from browser_results attached to each feature
         browsers_used = db.get('browsers') or {}
         browser_details = {}
+        all_unknown_features: Set[str] = set()
         for browser_code, version in browsers_used.items():
             supported = partial = unsupported = unknown = 0
-            unsup_list, part_list = [], []
+            unsup_list, part_list, unk_list = [], [], []
             for f in features:
                 for br in f.get('browser_results', []) or []:
                     if br.get('browser') != browser_code:
@@ -471,9 +472,11 @@ class AnalyzerService:
                         unsup_list.append(f['feature_id'])
                     else:
                         unknown += 1
+                        unk_list.append(f['feature_id'])
                     break
             total = supported + partial + unsupported + unknown
             compat_pct = ((supported + partial * 0.5) / total * 100) if total else 0
+            all_unknown_features.update(unk_list)
             browser_details[browser_code] = {
                 'version': version,
                 'total_features': total,
@@ -519,8 +522,48 @@ class AnalyzerService:
                 f"{partial_count} features have partial support. "
                 "Test thoroughly in target browsers."
             )
+        if all_unknown_features:
+            num = len(all_unknown_features)
+            feature_text = "feature" if num == 1 else "features"
+            recommendations.append(
+                f"{num} {feature_text} not found in database across "
+                f"{len(browsers_used)} browsers. "
+                "These may be universally supported or custom features."
+            )
         if not critical and not partial_count:
             recommendations.append("All features are well-supported across target browsers.")
+
+        # Per-feature baseline labels + report-level summary, mirroring the
+        # live analysis path. Fails open ("Unknown") if web-features data is
+        # unavailable so the export never crashes.
+        baseline_summary = None
+        feature_details_dict = {
+            'html': _details_for(('html',)),
+            'css': _details_for(('css',)),
+            'js': _details_for(('js', 'javascript')),
+        }
+        try:
+            wf = self._get_web_features()
+            if wf and wf.has_data():
+                from src.analyzer.main import _BASELINE_LABELS
+                for entries in feature_details_dict.values():
+                    for entry in entries:
+                        info = wf.get_baseline_status(entry['feature'])
+                        entry['baseline'] = (
+                            _BASELINE_LABELS.get(info.status, 'Unknown')
+                            if info else 'Unknown'
+                        )
+                summary = wf.get_baseline_summary(all_ids)
+                if summary:
+                    baseline_summary = summary
+            else:
+                for entries in feature_details_dict.values():
+                    for entry in entries:
+                        entry['baseline'] = 'Unknown'
+        except Exception:
+            for entries in feature_details_dict.values():
+                for entry in entries:
+                    entry.setdefault('baseline', 'Unknown')
 
         return {
             'success': True,
@@ -549,14 +592,11 @@ class AnalyzerService:
                 'js': sorted(js_ids),
                 'all': sorted(all_ids),
             },
-            'feature_details': {
-                'html': _details_for(('html',)),
-                'css': _details_for(('css',)),
-                'js': _details_for(('js', 'javascript')),
-            },
+            'feature_details': feature_details_dict,
             'unrecognized': {'html': [], 'css': [], 'js': [], 'total': 0},
             'issues': {'critical': sorted(critical), 'warnings': [], 'errors': []},
             'recommendations': recommendations,
+            'baseline_summary': baseline_summary,
         }
 
     # -- Feature Utilities -----------------------------------------------------
