@@ -1,17 +1,5 @@
 {
   "css": {
-    "test-container-queries": {
-      "patterns": [
-        "@container\\b",
-        "container-type\\s*:",
-        "container-name\\s*:"
-      ],
-      "description": "CSS Container Queries",
-      "keywords": [
-        "container",
-        "@container"
-      ]
-    },
     "test-view-transitions": {
       "patterns": [
         "view-transition-name\\s*:",

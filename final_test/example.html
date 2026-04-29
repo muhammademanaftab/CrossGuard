@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<!--
+    ============================================================
+    Cross Guard detection cross-check list — HTML
+    ============================================================
+    Run:  python -m src.cli.main analyze ../final_test/example.html --format json
+    Expected ~20 HTML features detected from the Can I Use database:
+
+      1.  meta-theme-color      from <meta name="theme-color"> in <head>
+      2.  link-rel-preload      from <link rel="preload">
+      3.  html5semantic         from <header>, <nav>, <main>, <section>, <article>
+      4.  picture               from <picture> wrapping <source> + <img>
+      5.  srcset                from <source srcset="...">
+      6.  loading-lazy-attr     from <img loading="lazy">
+      7.  video                 from <video>
+      8.  mpeg4                 from <source type="video/mp4">
+      9.  videotracks           from <track> inside <video>
+      10. webvtt                from <track src="captions.vtt">
+      11. input-email-tel-url   from <input type="email">
+      12. input-search          from <input type="search">
+      13. input-datetime        from <input type="date">
+      14. input-color           from <input type="color">
+      15. input-placeholder     from <input placeholder="...">
+      16. form-validation       from <input required>
+      17. custom-elementsv1     from <my-widget>
+      18. dialog                from <dialog>
+      19. dataset               from data-story-id, data-author, data-mode
+      20. es6-module            from <script type="module">
+
+    Tip: if anything extra appears in the output, suspect a false positive.
+         If anything in this list is missing, suspect a parser miss.
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#1e293b">
+    <title>Example page</title>
+    <link rel="stylesheet" href="example.css">
+    <link rel="preload" href="hero.jpg" as="image">
+</head>
+<body>
+    <header>
+        <h1>Travel diary</h1>
+        <nav>
+            <a href="#stories">Stories</a>
+            <a href="#gallery">Gallery</a>
+            <a href="#contact">Contact</a>
+        </nav>
+    </header>
+
+    <main>
+        <section id="stories">
+            <article data-story-id="42" data-author="ema">
+                <h2>A morning in Budapest</h2>
+                <picture>
+                    <source srcset="hero-large.webp" media="(min-width: 800px)">
+                    <source srcset="hero-small.webp">
+                    <img src="hero.jpg" alt="Budapest skyline" loading="lazy" width="1200" height="600">
+                </article>
+            </article>
+        </section>
+
+        <section id="gallery">
+            <video controls width="600" poster="thumb.jpg">
+                <source src="clip.mp4" type="video/mp4">
+                <track src="captions.vtt" kind="captions" srclang="en">
+            </video>
+        </section>
+
+        <section id="contact">
+            <form>
+                <input type="email" placeholder="Your email" required>
+                <input type="search" placeholder="Search the diary">
+                <input type="date">
+                <input type="color" value="#3b82f6">
+                <button type="submit">Send</button>
+            </form>
+        </section>
+
+        <my-widget data-mode="dark"></my-widget>
+
+        <dialog id="confirmDialog">
+            <p>Are you sure you want to continue?</p>
+            <button onclick="document.getElementById('confirmDialog').close()">Close</button>
+        </dialog>
+    </main>
+
+    <script type="module" src="example.js"></script>
+</body>
+</html>

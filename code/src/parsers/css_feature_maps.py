@@ -60,6 +60,11 @@ CSS_TRANSFORM_ANIMATION = {
         'keywords': ['3d transforms', 'perspective'],
         'description': 'CSS3 3D Transforms'
     },
+    'css-individual-transform': {
+        'patterns': [r'(?<![-a-zA-Z])scale\s*:', r'(?<![-a-zA-Z])translate\s*:', r'(?<![-a-zA-Z])rotate\s*:'],
+        'keywords': ['individual transform', 'scale property', 'translate property', 'rotate property'],
+        'description': 'CSS Individual Transform Properties'
+    },
     'css-animation': {
         'patterns': [r'@keyframes', r'animation\s*:', r'animation-name', r'animation-duration', r'animation-timing-function', r'animation-delay', r'animation-iteration-count', r'animation-direction', r'animation-fill-mode', r'animation-play-state'],
         'keywords': ['animation', 'keyframes'],

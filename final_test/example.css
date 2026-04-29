@@ -1,0 +1,161 @@
+/*
+    ============================================================
+    Cross Guard detection cross-check list — CSS
+    ============================================================
+    Run:  python -m src.cli.main analyze ../final_test/example.css --format json
+    Expected ~27 CSS features detected from the Can I Use database:
+
+      1.  css-variables          from --primary, var(--bg)
+      2.  css3-boxsizing         from box-sizing: border-box
+      3.  rem                    from 0.75rem, 1rem, etc.
+      4.  viewport-units         from 100vh, 5vw
+      5.  flexbox                from display: flex
+      6.  flexbox-gap            from gap (in flex / grid)
+      7.  css-sticky             from position: sticky
+      8.  css-backdrop-filter    from backdrop-filter
+      9.  css-math-functions     from clamp(1rem, 5vw, 4rem)
+      10. css-grid               from display: grid
+      11. css-aspect-ratio       from aspect-ratio: 16 / 9
+      12. css-container-queries  from container-type and @container
+      13. css-has                from article:has(img)
+      14. object-fit             from object-fit: cover
+      15. border-radius          from border-radius: var(--radius)
+      16. css-logical-props      from margin-inline
+      17. outline                from outline: 2px solid
+      18. css-focus-visible      from input:focus-visible
+      19. css-transitions        from transition: scale 0.2s
+      20. font-family-system-ui  from font-family: system-ui
+      21. minmaxwh               from min-height: 100vh
+      22. css-overflow           from overflow: hidden
+      23. css3-cursors           from cursor: pointer
+      24. css3-colors            from rgba() values
+      25. css-mediaqueries       from @media rules
+      26. prefers-color-scheme   from @media (prefers-color-scheme: light)
+      27. css-sel2               from descendant / pseudo selectors
+
+    Note: color-mix() and accent-color may not be detected by the current
+    parser yet — if they show up, great; if not, that's expected.
+*/
+
+:root {
+    --primary: #3b82f6;
+    --bg: #0f172a;
+    --text: #e2e8f0;
+    --radius: 0.75rem;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    line-height: 1.6;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem clamp(1rem, 5vw, 4rem);
+    backdrop-filter: blur(12px);
+    position: sticky;
+    top: 0;
+}
+
+nav {
+    display: flex;
+    gap: 1.5rem;
+}
+
+main {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 2rem;
+    padding: 2rem;
+    max-width: 1400px;
+    margin-inline: auto;
+}
+
+article {
+    container-type: inline-size;
+    border-radius: var(--radius);
+    overflow: hidden;
+    aspect-ratio: 16 / 9;
+    background: color-mix(in srgb, var(--primary) 20%, var(--bg));
+}
+
+@container (min-width: 500px) {
+    article h2 {
+        font-size: 2rem;
+    }
+}
+
+article:has(img) {
+    border: 2px solid var(--primary);
+}
+
+picture img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+video {
+    width: 100%;
+    border-radius: var(--radius);
+}
+
+form {
+    display: grid;
+    gap: 1rem;
+}
+
+input, button {
+    padding: 0.75rem 1rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--text);
+    background: transparent;
+    color: var(--text);
+    accent-color: var(--primary);
+}
+
+input:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+button {
+    background: var(--primary);
+    color: white;
+    cursor: pointer;
+    transition: scale 0.2s;
+}
+
+button:hover {
+    scale: 1.02;
+}
+
+dialog {
+    border: none;
+    border-radius: var(--radius);
+    padding: 2rem;
+    max-width: 400px;
+}
+
+dialog::backdrop {
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+}
+
+@media (prefers-color-scheme: light) {
+    :root {
+        --bg: #f8fafc;
+        --text: #0f172a;
+    }
+}
