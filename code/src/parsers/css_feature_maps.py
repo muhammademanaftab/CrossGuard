@@ -296,7 +296,7 @@ CSS_BOX_MODEL = {
 
 CSS_BORDER_OUTLINE = {
     'border-image': {
-        'patterns': [r'border-image\s*:', r'border-image-source'],
+        'patterns': [r'border-image\s*:', r'border-image-source', r'border-image-slice\s*:', r'border-image-width\s*:', r'border-image-outset\s*:', r'border-image-repeat\s*:'],
         'keywords': ['border-image'],
         'description': 'CSS3 Border images'
     },
@@ -808,8 +808,8 @@ CSS_NESTING = {
 
 CSS_ADDITIONAL_1 = {
     'css-anchor-positioning': {
-        'patterns': [r'anchor-name\s*:', r'position-anchor\s*:', r'anchor\('],
-        'keywords': ['anchor', 'anchor-name'],
+        'patterns': [r'anchor-name\s*:', r'position-anchor\s*:', r'inset-area\s*:', r'position-area\s*:', r'anchor\('],
+        'keywords': ['anchor', 'anchor-name', 'inset-area'],
         'description': 'CSS Anchor Positioning'
     },
     'css-at-counter-style': {
@@ -868,8 +868,8 @@ CSS_ADDITIONAL_1 = {
         'description': 'CSS Containment'
     },
     'css-content-visibility': {
-        'patterns': [r'content-visibility\s*:'],
-        'keywords': ['content-visibility'],
+        'patterns': [r'content-visibility\s*:', r'contain-intrinsic-size\s*:', r'contain-intrinsic-width\s*:', r'contain-intrinsic-height\s*:'],
+        'keywords': ['content-visibility', 'contain-intrinsic-size'],
         'description': 'CSS content-visibility'
     },
     'css-descendant-gtgt': {
@@ -973,7 +973,7 @@ CSS_ADDITIONAL_2 = {
         'description': 'CSS line-clamp'
     },
     'css-masks': {
-        'patterns': [r'mask\s*:', r'mask-image\s*:', r'mask-border\s*:'],
+        'patterns': [r'mask\s*:', r'mask-image\s*:', r'mask-border\s*:', r'mask-mode\s*:', r'mask-repeat\s*:', r'mask-position\s*:', r'mask-clip\s*:', r'mask-origin\s*:', r'mask-size\s*:', r'mask-composite\s*:', r'mask-type\s*:'],
         'keywords': ['mask'],
         'description': 'CSS Masks'
     },

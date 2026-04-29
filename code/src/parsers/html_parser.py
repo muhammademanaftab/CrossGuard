@@ -55,6 +55,7 @@ _BASIC_ATTRIBUTES = frozenset({
     'charset', 'content', 'http-equiv', 'media',
     'for', 'form', 'accept', 'accept-charset',
     'usemap', 'ismap', 'coords', 'shape',
+    'scope', 'span', 'start', 'data',
     'xmlns', 'xml:lang', 'role', 'aria-label', 'aria-hidden',
     'controls', 'autoplay', 'loop', 'muted', 'preload', 'poster',
     'playsinline', 'crossorigin',
