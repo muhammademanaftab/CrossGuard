@@ -10,6 +10,11 @@ on:
   pull_request:
     branches: [main]
 
+# Required so github/codeql-action/upload-sarif can write findings.
+permissions:
+  security-events: write
+  contents: read
+
 jobs:
   compatibility:
     runs-on: ubuntu-latest
@@ -22,16 +27,31 @@ jobs:
           python-version: '3.11'
 
       - name: Install Cross Guard
-        run: pip install crossguard
+        # Use the [cli] extra so the `crossguard` command-line works.
+        # Once Cross Guard is published to PyPI you can simply use
+        # `pip install crossguard[cli]`.
+        run: pip install "crossguard[cli]"
 
-      - name: Check browser compatibility
-        run: crossguard analyze src/ --format sarif --output-sarif results.sarif --fail-on-score 80
+      - name: Run compatibility analysis
+        run: |
+          crossguard analyze src/ \\
+            --format sarif \\
+            --output-sarif results.sarif \\
+            --fail-on-score 80
 
-      - name: Upload SARIF results
+      - name: Upload SARIF results to Code Scanning
         if: always()
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: results.sarif
+          category: crossguard
+
+      - name: Upload SARIF as build artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crossguard-sarif
+          path: results.sarif
 """
 
 _GITLAB_CI = """\
@@ -40,7 +60,8 @@ crossguard:
   stage: test
   image: python:3.11
   before_script:
-    - pip install crossguard
+    # The [cli] extra installs click, which the command-line entry point needs.
+    - pip install "crossguard[cli]"
   script:
     - crossguard analyze src/ --format junit -o results.xml --fail-on-score 80
   artifacts:
@@ -51,6 +72,8 @@ crossguard:
 
 _PRE_COMMIT = """\
 # Add to .pre-commit-config.yaml
+# Requires Cross Guard to be installed in your environment:
+#     pip install "crossguard[cli]"
 repos:
   - repo: local
     hooks:

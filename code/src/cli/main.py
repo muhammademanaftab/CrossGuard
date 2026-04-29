@@ -242,10 +242,24 @@ def analyze(ctx, target, browsers, fmt, output, config_path,
             sys.exit(2)
 
         if target_path.is_dir():
-            click.echo("Error: Directory analysis is not supported. Please provide a single file.", err=True)
-            sys.exit(2)
-
-        html, css, js = _classify_files([str(target_path)])
+            # Walk the directory recursively and collect every HTML/CSS/JS file.
+            # Skip common noise dirs (node_modules, .git, dist, build, venvs).
+            _SKIP_DIRS = {'node_modules', '.git', 'dist', 'build', '.venv', 'venv',
+                          '__pycache__', '.pytest_cache', '.tox', '.next'}
+            collected: list[str] = []
+            for path in target_path.rglob('*'):
+                if not path.is_file():
+                    continue
+                if any(part in _SKIP_DIRS for part in path.parts):
+                    continue
+                if path.suffix.lower() in ('.html', '.htm', '.css', '.js', '.mjs', '.cjs'):
+                    collected.append(str(path))
+            if not collected:
+                click.echo(f"Error: no .html/.css/.js files found in {target}", err=True)
+                sys.exit(2)
+            html, css, js = _classify_files(collected)
+        else:
+            html, css, js = _classify_files([str(target_path)])
 
         if not (html or css or js):
             click.echo(f"Error: Unsupported file type: {target}", err=True)
