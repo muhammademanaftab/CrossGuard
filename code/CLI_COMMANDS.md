@@ -159,6 +159,18 @@ python3 -m src.cli.main analyze examples/sample_project/sample.css --ai
 python3 -m src.cli.main config --clear-api-key
 ```
 
+### Write a PDF report that includes the AI suggestions
+
+Use `--output-pdf` together with `--ai`. This writes a single PDF that contains the full analysis plus the AI fix suggestions section.
+
+```bash
+python3 -m src.cli.main analyze examples/sample_project/sample.css \
+    --ai \
+    --output-pdf report.pdf
+```
+
+> Note: the `export <ID> --format pdf` command does **not** include AI suggestions. AI is only added to the PDF when the analysis and the export happen in the same `analyze` run, because AI suggestions are not stored in the database. Always use `analyze --ai --output-pdf` if you want AI in the PDF.
+
 ---
 
 ## 2.5.4 — Working with previous analyses
@@ -192,6 +204,8 @@ python3 -m src.cli.main export 1 --format pdf --output report.pdf
 ```
 
 > The `export` command only supports `json` and `pdf`. SARIF and JUnit XML are produced by the `analyze` command via `--format`.
+>
+> The `export` command does **not** include AI fix suggestions, because AI data is not stored in the database. To get a PDF with AI suggestions, use `analyze --ai --output-pdf` instead (see Section 2.5.3).
 
 ---
 
@@ -367,10 +381,11 @@ python3 -m src.cli.main analyze examples/sample_project/sample.css \
     --format table \
     --output-sarif results.sarif \
     --output-junit results.xml \
-    --output-json results.json
+    --output-json results.json \
+    --output-pdf results.pdf
 ```
 
-This is useful in CI: print the table to the build log, save SARIF for GitHub, save JUnit for the test report, and save JSON for any custom tooling — all in a single run.
+This is useful in CI: print the table to the build log, save SARIF for GitHub, save JUnit for the test report, save JSON for any custom tooling, and save a PDF for human review, all in a single run.
 
 ### Reading from stdin
 

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<!--
+  HTML false-positive bait file.
+
+  The HTML parser uses dictionary lookups (BeautifulSoup DOM traversal)
+  rather than regex on raw text, so it is harder to trick than the CSS
+  and JS parsers. This file still tries to provoke false positives by
+  feeding the parser ambiguous attributes, comments, and content.
+
+  Run:
+    python3 -m src.cli.main analyze examples/test_fixtures/false_positive_bait.html --format table
+-->
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>HTML false-positive bait</title>
+
+    <!-- Bait 1: meta tag that looks like theme-color but is not -->
+    <!-- Should NOT detect meta-theme-color, because the name is wrong -->
+    <meta name="not-theme-color" content="#1e293b">
+
+    <!-- Bait 2: meta tag with theme-color in content but wrong name -->
+    <meta name="description" content="discusses theme-color settings">
+</head>
+<body>
+
+    <!-- Bait 3: feature names mentioned in HTML comments -->
+    <!-- A comment mentioning <dialog>, <picture>, <video>, <template> -->
+    <!-- and srcdoc, srcset, loading="lazy" should NOT trigger any -->
+    <!-- detections, because the parser walks the DOM, not the raw HTML. -->
+
+    <!--
+      Bait 4: feature names mentioned in text content.
+      Text below mentions dialog, video, picture but is just text.
+    -->
+    <p>
+        This paragraph talks about &lt;dialog&gt;, &lt;video&gt;,
+        &lt;picture&gt; and srcdoc but uses none of them.
+    </p>
+
+    <!-- Bait 5: an input with a type that is NOT one of the detected types -->
+    <!-- Should NOT detect input-color, input-datetime, or input-number -->
+    <input type="text" name="plain">
+    <input type="email" name="email-addr">
+    <input type="search" name="q">
+
+    <!-- Bait 6: an attribute named "loading" but with no lazy value -->
+    <!-- The parser maps loading="lazy" or loading="eager" to the feature. -->
+    <!-- Other loading values should still be examined. Verify what happens -->
+    <!-- when loading is set to something the parser does not expect. -->
+    <img src="thing.jpg" alt="thing" loading="auto">
+
+    <!-- Bait 7: a fake template-looking custom element -->
+    <!-- Should be detected as custom-elementsv1 (correctly) but not as -->
+    <!-- HTML Template Element, because <my-template> is not <template>. -->
+    <my-template></my-template>
+
+    <!-- Bait 8: SVG element with a hyphen ought to be excluded -->
+    <!-- These SVG element names contain hyphens but the parser excludes -->
+    <!-- them from custom-elementsv1 detection. -->
+    <svg width="0" height="0">
+        <font-face></font-face>
+        <missing-glyph></missing-glyph>
+    </svg>
+
+    <!-- Bait 9: data-* attribute names that LOOK like other features -->
+    <!-- A data-* attribute is the data attribute API. Names should not -->
+    <!-- trigger anything else even if they look like real attributes. -->
+    <div
+        data-srcdoc="something"
+        data-loading="lazy"
+        data-theme-color="#1e293b">
+        Has data-* attributes that mimic real feature names.
+    </div>
+
+    <!-- Bait 10: a valid <track> element but NOT inside a <video> -->
+    <!-- Videotracks is supposed to mean a track inside a video. Verify -->
+    <!-- that a <track> alone (or inside <audio>) does not trigger it. -->
+    <track src="captions.vtt" kind="captions">
+
+    <audio controls>
+        <source src="song.mp3" type="audio/mpeg">
+    </audio>
+
+    <!-- Bait 11: aria-* attribute that does not exist as a real ARIA name -->
+    <!-- The wai-aria feature is mapped from KNOWN aria-* names. -->
+    <!-- aria-totallyfake is not a real attribute and should not trigger. -->
+    <button aria-totallyfake="true">Bait button</button>
+
+    <!-- Truly negative: plain HTML that should detect nothing extra -->
+    <h1>Plain heading</h1>
+    <p>Plain paragraph.</p>
+    <ul>
+        <li>One</li>
+        <li>Two</li>
+    </ul>
+
+</body>
+</html>

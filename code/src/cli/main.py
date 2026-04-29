@@ -99,6 +99,7 @@ _EXPORT_METHOD_BY_FORMAT = {
     'sarif': 'export_to_sarif',
     'junit': 'export_to_junit',
     'json': 'export_to_json',
+    'pdf': 'export_to_pdf',
 }
 
 
@@ -171,6 +172,8 @@ def cli(ctx, verbose, quiet, debug, no_color, timing):
               help='Write JUnit XML to this file (independent of --format).')
 @click.option('--output-json', 'output_json_path', default=None,
               help='Write JSON output to this file (independent of --format).')
+@click.option('--output-pdf', 'output_pdf_path', default=None,
+              help='Write PDF output to this file (independent of --format). Includes AI suggestions when --ai is set.')
 @click.option('--ai', 'ai_enabled', is_flag=True, default=False,
               help='Enable AI fix suggestions (requires a saved or passed API key).')
 @click.option('--api-key', default=None, envvar='CROSSGUARD_AI_KEY',
@@ -182,7 +185,7 @@ def cli(ctx, verbose, quiet, debug, no_color, timing):
 def analyze(ctx, target, browsers, fmt, output, config_path,
             fail_on_score, fail_on_errors, fail_on_warnings,
             use_stdin, stdin_filename,
-            output_sarif, output_junit, output_json_path,
+            output_sarif, output_junit, output_json_path, output_pdf_path,
             ai_enabled, api_key, ai_provider):
     """Analyze a file for browser compatibility.
 
@@ -360,6 +363,7 @@ def analyze(ctx, target, browsers, fmt, output, config_path,
             sarif=output_sarif,
             junit=output_junit,
             json=output_json_path,
+            pdf=output_pdf_path,
         )
 
         if cli_ctx.timing:

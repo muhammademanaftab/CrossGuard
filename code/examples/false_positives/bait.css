@@ -1,0 +1,140 @@
+/*
+  CSS false-positive bait file.
+
+  Each block below is designed to PROVOKE the CSS parser into reporting
+  a feature that is not actually used. Each comment names the feature
+  the parser is suspected to wrongly report and explains why.
+
+  Run:
+    python3 -m src.cli.main analyze examples/test_fixtures/false_positive_bait.css --format table
+
+  Then check the "Detected Features" section. Any feature listed below
+  as a "suspected false positive" that DOES appear in the report is a
+  confirmed false positive.
+*/
+
+/*
+  --- Bait 1: backdrop-filter should not trigger CSS Filter Effects ---
+  Suspected false positive: css-filter-function
+  Why: the rule's regex r'filter\s*:' has no word boundary, so the
+  substring "filter:" inside "backdrop-filter:" matches. The blur()
+  pattern also matches even though it sits inside a backdrop-filter.
+*/
+.bait-backdrop {
+    backdrop-filter: blur(8px);
+}
+
+/*
+  --- Bait 2: focus-visible should not trigger basic :focus rule ---
+  Suspected false positive: a generic ":focus" feature might match the
+  prefix of ":focus-visible" because the rule pattern is just r':focus'
+  with no negative lookahead.
+*/
+.bait-focus:focus-visible {
+    outline: 2px solid blue;
+}
+.bait-focus-within:focus-within {
+    background: yellow;
+}
+
+/*
+  --- Bait 3: webkit mask should not trigger generic mask rule (if any) ---
+  This is a vendor-prefixed property. The parser might match the
+  substring "mask" without seeing the -webkit- prefix.
+*/
+.bait-mask {
+    -webkit-mask: url(mask.png);
+    -webkit-mask-image: linear-gradient(black, transparent);
+}
+
+/*
+  --- Bait 4: any-link pseudo-class ---
+  ":any-link" is a single feature, but the rule for it might also be
+  triggered by other ":any-*" patterns if the regex is loose.
+*/
+.bait-anylink:any-link {
+    color: green;
+}
+
+/*
+  --- Bait 5: text-decoration shorthand ---
+  The parser has rules for text-decoration-line / -style / -color, each
+  matched as separate features. The shorthand "text-decoration:" should
+  NOT trigger any of those individual feature rules. Watch for any of
+  them showing up.
+*/
+.bait-text-deco {
+    text-decoration: underline solid red 2px;
+}
+
+/*
+  --- Bait 6: gradients in a non-background property ---
+  The "linear-gradient" rule is loose. Putting it in a mask-image or
+  border-image-source value might still trigger the "css-gradients"
+  feature even if the intent is unrelated.
+*/
+.bait-gradient-elsewhere {
+    border-image-source: linear-gradient(to right, red, blue);
+}
+
+/*
+  --- Bait 7: woff vs woff2 ---
+  The parser has separate rules with negative lookaheads. Verify that
+  using woff2 does not trigger the plain woff feature too.
+*/
+@font-face {
+    font-family: "Bait";
+    src: url("font.woff2") format("woff2");
+}
+
+/*
+  --- Bait 8: nth-child variants ---
+  Several :nth-* selectors share the same rule. Confirm the parser
+  reports the umbrella feature once, not multiple times.
+*/
+.bait-nth :nth-child(2n+1) { color: red; }
+.bait-nth :nth-of-type(odd) { color: blue; }
+.bait-nth :nth-last-child(3) { color: green; }
+
+/*
+  --- Bait 9: substring property collision ---
+  Property names that contain other property names. The parser must
+  not match "color" inside "scrollbar-color" or "background-color".
+*/
+.bait-substring {
+    scrollbar-color: #888 transparent;
+    background-color: white;
+    border-color: #ccc;
+}
+
+/*
+  --- Bait 10: a real comment with feature names inside ---
+  CSS comments must NOT be parsed as code. Mentions of grid, flexbox,
+  and :has() inside this comment block should produce zero detections.
+*/
+/* The class below uses neither display: grid nor flexbox nor li:has(a). */
+.bait-comment {
+    color: black;
+}
+
+/*
+  --- Bait 11: feature names inside a string value ---
+  String contents are stripped before regex matching. So "display: grid"
+  inside a content: "..." declaration must not trigger css-grid.
+*/
+.bait-string-value::before {
+    content: "this string mentions display: grid and :has() but should not detect";
+}
+
+/*
+  --- Truly negative ---
+  Plain CSS that should produce zero detections. If anything shows up
+  that is not on the bait list above, that is also a false positive.
+*/
+.plain {
+    color: black;
+    margin: 16px;
+    padding: 8px;
+    font-size: 14px;
+    text-align: center;
+}
