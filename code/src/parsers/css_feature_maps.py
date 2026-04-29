@@ -96,7 +96,12 @@ CSS_COLOR_BACKGROUND = {
         'description': 'CSS Gradients'
     },
     'multibackgrounds': {
-        'patterns': [r'background.*,.*url', r'background-image.*,'],
+        # Match two image values (url(...) or *-gradient(...)) separated by a top-level
+        # comma in the same declaration. The first image is matched as a complete unit
+        # so commas inside its arguments (e.g. radial-gradient(red, blue)) don't count.
+        'patterns': [
+            r'background(?:-image)?\s*:[^;}]*?(?:url\([^)]*\)|[a-z-]+-gradient\([^)]*\))[^;,}]*,[^;}]*?(?:url\(|[a-z-]+-gradient\()'
+        ],
         'keywords': ['multiple backgrounds'],
         'description': 'CSS3 Multiple backgrounds'
     },

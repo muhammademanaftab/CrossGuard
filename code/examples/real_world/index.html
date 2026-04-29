@@ -17,6 +17,7 @@
     <div class="container-menu">
         <div id="main_screen_msg_box"></div>            
         <h1 class="title triple-cut-text">RAILWAYS</h1>
+        <!-- caniuse: input-placeholder  (the placeholder="..." attribute on <input>) -->
         <input class="input-box" type="text" id="playerNameInput" placeholder="WHO ARE YOU?">
 
         <div class="flex">
@@ -37,9 +38,11 @@
         <div class="railroad"></div>
     </div>
     <!-- Game rules section ha -->
+    <!-- caniuse: hidden  (the global `hidden` boolean attribute) -->
     <div class="instructions" hidden>
         <div id="instructions">
             <button class="back-btn">
+                <!-- caniuse: svg  (inline <svg> element in HTML) -->
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
                     class="mx-3 bi bi-arrow-left" viewBox="0 0 16 16">
                     <path fill-rule="evenodd"
@@ -113,6 +116,7 @@
                 <h3 id="option_heading">Select Palette</h3>
                 <table>
                     <tr>
+                        <!-- caniuse: dataset  (the `data-*` custom attributes, accessed via element.dataset in JS) -->
                         <td><img src="Images/straight_rail.png" alt="straight_rail" class="palette-image"
                                 data-type="straight_rail" data-angle="0" data-click-count="0"></td>
                     </tr>
